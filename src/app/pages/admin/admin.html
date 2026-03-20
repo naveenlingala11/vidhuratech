@@ -1,0 +1,140 @@
+<div class="admin-container">
+
+    <h2 class="dashboard-title">📊 Leads CRM Dashboard</h2>
+
+    <!-- TOP ACTION BAR -->
+    <div class="top-bar">
+
+        <div>
+            <button class="btn btn-primary me-2" (click)="refreshLeads()">🔄 Refresh</button>
+            <button class="btn btn-success" (click)="exportCSV()">📤 Export</button>
+        </div>
+
+        <div class="badge-box">
+            <span class="badge bg-primary">Total: {{stats.total}}</span>
+            <span class="badge bg-warning text-dark">New: {{stats.new}}</span>
+            <span class="badge bg-info text-dark">Contacted: {{stats.contacted}}</span>
+            <span class="badge bg-success">Joined: {{stats.joined}}</span>
+        </div>
+
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h3>{{stats.total}}</h3>
+            <p>Total Leads</p>
+        </div>
+
+        <div class="stat-card blue">
+            <h3>{{stats.new}}</h3>
+            <p>New</p>
+        </div>
+
+        <div class="stat-card orange">
+            <h3>{{stats.contacted}}</h3>
+            <p>Contacted</p>
+        </div>
+
+        <div class="stat-card green">
+            <h3>{{stats.joined}}</h3>
+            <p>Joined</p>
+        </div>
+
+    </div>
+
+    <!-- FOLLOW-UP ALERT -->
+    <div *ngIf="getTodayFollowups() > 0" class="alert-box">
+
+        🔔 You have {{getTodayFollowups()}} follow-ups today!
+
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+
+        <input type="text" placeholder="🔍 Search name or phone" [(ngModel)]="searchText" (input)="applyFilter()" />
+
+        <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
+            <option value="">All Status</option>
+            <option>New</option>
+            <option>Contacted</option>
+            <option>Joined</option>
+        </select>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Course</th>
+                    <th>Status</th>
+                    <th>Follow-up</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr *ngFor="let lead of filteredLeads">
+
+                    <td>{{lead.Name}}</td>
+                    <td>{{lead.Phone}}</td>
+                    <td>{{lead.Course}}</td>
+
+                    <td>
+
+                        <div class="status-wrapper">
+
+                            <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)" [ngClass]="{
+'status-new': lead.tempStatus==='New',
+'status-contacted': lead.tempStatus==='Contacted',
+'status-joined': lead.tempStatus==='Joined'
+}">
+                                <option>New</option>
+                                <option>Contacted</option>
+                                <option>Joined</option>
+                            </select>
+
+                            <!-- ACTION ICONS -->
+                            <div *ngIf="lead.isChanged" class="status-actions">
+
+                                <span class="tick" (click)="confirmUpdate(lead)">✔</span>
+                                <span class="cross" (click)="cancelUpdate(lead)">✖</span>
+
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+                        <input type="date" [(ngModel)]="lead.FollowUp" (change)="updateLead(lead)">
+                    </td>
+
+                    <td>
+                        <a [href]="'https://wa.me/91' + lead.Phone" target="_blank" class="whatsapp-btn">
+                            WhatsApp
+                        </a>
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <div *ngIf="filteredLeads.length === 0" class="empty-state">
+            No leads found 🚫
+        </div>
+    </div>
+
+</div>

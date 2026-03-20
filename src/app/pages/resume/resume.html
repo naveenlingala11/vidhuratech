@@ -1,0 +1,253 @@
+<div class="resume-container">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="brand">Resume Builder</div>
+
+    <div class="score-box">
+      <h2>{{ profileScore }}%</h2>
+      <p>Profile Strength</p>
+    </div>
+
+    <ul>
+      <li
+        *ngFor="let s of sections; let i = index"
+        (click)="setSection(s.id)"
+        [class.active]="activeSection === s.id"
+        draggable="true"
+        (dragstart)="onDragStart(i)"
+        (drop)="onDrop(i)"
+        (dragover)="$event.preventDefault()"
+      >
+        {{ s.label }}
+      </li>
+    </ul>
+
+    <button class="download-btn" (click)="downloadPDF()">Download Resume</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- LEFT PANEL -->
+    <div class="form-panel">
+      <!-- AI BOX -->
+      <div class="ai-box">
+        <h3>AI Resume Generator</h3>
+
+        <input placeholder="Enter Role" [(ngModel)]="aiRole" />
+
+        <select [(ngModel)]="aiExperience">
+          <option>Fresher</option>
+          <option>1 Year</option>
+          <option>2 Years</option>
+          <option>3+ Years</option>
+        </select>
+
+        <button (click)="generateAIResume()">Generate Resume</button>
+      </div>
+
+      <!-- TEMPLATE SELECTOR -->
+      <div class="template-bar">
+        <div
+          *ngFor="let t of templates"
+          class="template-card"
+          [class.active]="selectedTemplate === t.id"
+          (click)="selectedTemplate = t.id"
+        >
+          <div class="color" [style.background]="t.color"></div>
+          <p>{{ t.name }}</p>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <h3>Basic Information</h3>
+
+      <input placeholder="Full Name" [(ngModel)]="data.name" maxlength="50" />
+      <small class="error" *ngIf="errors.name">{{ errors.name }}</small>
+
+      <input placeholder="Email" [(ngModel)]="data.email" />
+      <small class="error" *ngIf="errors.email">{{ errors.email }}</small>
+
+      <input placeholder="Phone" [(ngModel)]="data.phone" maxlength="10" />
+      <small class="error" *ngIf="errors.phone">{{ errors.phone }}</small>
+
+      <input placeholder="Headline" [(ngModel)]="data.headline" />
+
+      <input type="file" (change)="onFileChange($event)" />
+
+      <!-- SUMMARY -->
+      <div *ngIf="activeSection === 'summary'">
+        <h4>Summary</h4>
+        <textarea [(ngModel)]="data.summary" maxlength="300"></textarea>
+        <small>{{ data.summary.length }}/300</small>
+      </div>
+
+      <!-- SKILLS -->
+      <div *ngIf="activeSection === 'skills'">
+        <h4>Skills</h4>
+
+        <input [(ngModel)]="skillInput" (input)="onSkillInput()" />
+
+        <div class="suggestions" *ngIf="filteredSkills.length">
+          <div *ngFor="let s of filteredSkills" (click)="addSkill(s)">
+            {{ s }}
+          </div>
+        </div>
+
+        <div class="selected-skills">
+          <span *ngFor="let s of selectedSkills; let i = index">
+            {{ s }} <b (click)="removeSkill(i)">×</b>
+          </span>
+        </div>
+      </div>
+
+      <!-- EMPLOYMENT -->
+      <div *ngIf="activeSection === 'employment'">
+        <h4>Employment</h4>
+
+        <div *ngFor="let e of data.employment; let i = index" class="card">
+          <input placeholder="Company" [(ngModel)]="e.company" />
+          <input placeholder="Role" [(ngModel)]="e.role" />
+          <input placeholder="Location" [(ngModel)]="e.location" />
+          <input type="date" [(ngModel)]="e.start" />
+          <input type="date" [(ngModel)]="e.end" [disabled]="e.current" />
+
+          <p>{{ getDuration(e.start, e.end) }}</p>
+
+          <label>
+            <input type="checkbox" [(ngModel)]="e.current" />
+            Current Job
+          </label>
+
+          <textarea [(ngModel)]="e.responsibilities"></textarea>
+
+          <button (click)="removeItem('employment', i)">Remove</button>
+        </div>
+
+        <button (click)="addItem('employment')">+ Add</button>
+      </div>
+
+      <!-- PROJECTS -->
+      <div *ngIf="activeSection === 'projects'">
+        <h4>Projects</h4>
+
+        <div *ngFor="let p of data.projects; let i = index" class="card">
+          <input [(ngModel)]="p.title" placeholder="Title" />
+          <input [(ngModel)]="p.tech" placeholder="Tech" />
+          <input [(ngModel)]="p.role" placeholder="Role" />
+          <input [(ngModel)]="p.link" placeholder="Link" />
+          <textarea [(ngModel)]="p.desc"></textarea>
+
+          <button (click)="removeItem('projects', i)">Remove</button>
+        </div>
+
+        <button (click)="addItem('projects')">+ Add</button>
+      </div>
+
+      <!-- EDUCATION -->
+      <div *ngIf="activeSection === 'education'">
+        <h4>Education</h4>
+
+        <div *ngFor="let e of data.education; let i = index" class="card">
+          <input [(ngModel)]="e.degree" placeholder="Degree" />
+          <input [(ngModel)]="e.college" placeholder="College" />
+          <input [(ngModel)]="e.year" placeholder="Year" />
+
+          <button (click)="removeItem('education', i)">Remove</button>
+        </div>
+
+        <button (click)="addItem('education')">+ Add</button>
+      </div>
+
+      <!-- PERSONAL -->
+      <div *ngIf="activeSection === 'personal'">
+        <h4>Personal</h4>
+
+        <input [(ngModel)]="data.personal.dob" placeholder="DOB" />
+        <input [(ngModel)]="data.personal.gender" placeholder="Gender" />
+        <input [(ngModel)]="data.personal.address" placeholder="Address" />
+        <input [(ngModel)]="data.personal.nationality" placeholder="Nationality" />
+        <input [(ngModel)]="data.personal.linkedin" placeholder="LinkedIn" />
+        <input [(ngModel)]="data.personal.github" placeholder="GitHub" />
+
+        <h5>Languages</h5>
+        <div *ngFor="let lang of allLanguages">
+          <input
+            type="checkbox"
+            [checked]="selectedLanguages.includes(lang)"
+            (change)="toggleLanguage(lang)"
+          />
+          {{ lang }}
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="preview-panel">
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <button (click)="zoomOut()">−</button>
+        <span>{{ zoomLevel * 100 | number: '1.0-0' }}%</span>
+        <button (click)="zoomIn()">+</button>
+        <button (click)="downloadPDF()">Download PDF</button>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="preview" id="preview">
+        <div
+          class="resume"
+          [ngClass]="selectedTemplate"
+          [style.transform]="'scale(' + zoomLevel + ')'"
+          style="transform-origin: top center"
+        >
+          <h2>{{ data.name || 'Your Name' }}</h2>
+          <p>{{ data.email }} | {{ data.phone }}</p>
+
+          <div *ngIf="data.summary">
+            <h4>Summary</h4>
+            <p>{{ data.summary }}</p>
+          </div>
+
+          <div *ngIf="selectedSkills.length">
+            <h4>Skills</h4>
+            <div *ngFor="let s of selectedSkills">• {{ s }}</div>
+          </div>
+
+          <div *ngIf="data.employment.length">
+            <h4>Experience</h4>
+
+            <div *ngFor="let e of data.employment">
+              <b>{{ e.role }} - {{ e.company }}</b>
+              <p>{{ e.start }} - {{ e.end }}</p>
+              <p>{{ e.responsibilities }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="data.projects.length">
+            <h4>Projects</h4>
+
+            <div *ngFor="let p of data.projects">
+              <b>{{ p.title }}</b>
+              <p>{{ p.tech }}</p>
+              <p>{{ p.desc }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="data.education.length">
+            <h4>Education</h4>
+
+            <div *ngFor="let e of data.education">
+              <b>{{ e.degree }}</b>
+              <p>{{ e.college }} - {{ e.year }}</p>
+            </div>
+          </div>
+
+          <div>
+            <h4>Additional</h4>
+            <p>{{ data.personal.address }}</p>
+            <p>{{ selectedLanguages.join(', ') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

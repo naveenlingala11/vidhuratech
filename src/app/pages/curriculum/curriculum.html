@@ -1,0 +1,58 @@
+<div class="hero">
+  <div class="hero-content">
+    <h1>Master Your Skills with Industry-Ready Courses</h1>
+    <p>Select a course, explore structured curriculum, and download complete syllabus instantly.</p>
+
+    <div class="hero-actions">
+      <select [(ngModel)]="selectedCourseId" (change)="setCourse()">
+        <option *ngFor="let c of courses" [value]="c.id">
+          {{c.name}}
+        </option>
+      </select>
+
+      <button class="primary-btn" (click)="downloadPDF()">
+        Download Curriculum PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODULES -->
+<div *ngFor="let module of selectedCourse.curriculum" class="module">
+
+  <div class="module-header" (click)="toggleModule(module)">
+    {{module.title}}
+  </div>
+
+  <div class="module-body" *ngIf="module.open">
+    <ul>
+      <li *ngFor="let topic of module.topics">
+        {{topic}}
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- FILTER -->
+<h2>Coding Questions</h2>
+
+<select [(ngModel)]="selectedLevel">
+  <option>All</option>
+  <option>Easy</option>
+  <option>Medium</option>
+  <option>Hard</option>
+</select>
+
+<div class="grid">
+  <div class="card" *ngFor="let q of filterQuestions()">
+    {{q.text}}
+    <span class="badge" [ngClass]="{
+        'easy': q.level === 'Easy',
+        'medium': q.level === 'Medium',
+        'hard': q.level === 'Hard'
+      }">
+      {{q.level}}
+    </span>
+  </div>
+</div>

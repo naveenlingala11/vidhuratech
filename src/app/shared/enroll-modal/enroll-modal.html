@@ -1,0 +1,168 @@
+<!-- ================= ENROLL MODAL ================= -->
+<div class="modal fade" id="enrollModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content modern-modal">
+      <!-- TOP BAR -->
+      <div class="top-bar">🔥 Limited Seats | Fill form to reserve your slot</div>
+
+      <!-- HEADER -->
+      <div class="modal-header border-0">
+        <h5 class="fw-bold">Enroll for Java Full Stack</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        <form (ngSubmit)="submitForm()" #f="ngForm">
+          <!-- PROGRESS -->
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="step * 33"></div>
+          </div>
+
+          <!-- STEP 1 -->
+          <div *ngIf="step === 1" class="fade-slide">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="field">
+                  <input
+                    type="text"
+                    name="name"
+                    [(ngModel)]="formData.name"
+                    required
+                    placeholder=" "
+                  />
+                  <label>Name *</label>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="field">
+                  <input
+                    type="tel"
+                    name="phone"
+                    [(ngModel)]="formData.phone"
+                    required
+                    placeholder=" "
+                  />
+                  <label>Phone *</label>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="btn next-btn w-100" (click)="nextStep()">Next →</button>
+          </div>
+
+          <!-- STEP 2 -->
+          <div *ngIf="step === 2" class="fade-slide">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="field">
+                  <input type="email" name="email" [(ngModel)]="formData.email" placeholder=" " />
+                  <label>Email</label>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="field">
+                  <select name="course" [(ngModel)]="formData.course">
+                    <option>Java Full Stack</option>
+                    <option>Python Full Stack</option>
+                    <option>Data Analytics</option>
+                  </select>
+                  <label class="active">Course</label>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="field">
+                  <select name="experience" [(ngModel)]="formData.experience">
+                    <option>Fresher</option>
+                    <option>Student</option>
+                    <option>Working</option>
+                  </select>
+                  <label class="active">Experience</label>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="field">
+                  <select name="batch" [(ngModel)]="formData.batch">
+                    <option>Morning</option>
+                    <option>Evening</option>
+                    <option>Weekend</option>
+                  </select>
+                  <label class="active">Batch</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="button" class="btn back-btn w-50" (click)="prevStep()">← Back</button>
+              <button type="button" class="btn next-btn w-50" (click)="nextStep()">Next →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3 -->
+          <div *ngIf="step === 3" class="fade-slide">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="field">
+                  <input type="text" name="city" [(ngModel)]="formData.city" placeholder=" " />
+                  <label>City</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="field">
+                  <textarea
+                    name="message"
+                    [(ngModel)]="formData.message"
+                    placeholder=" "
+                  ></textarea>
+                  <label>Message</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="button" class="btn back-btn w-50" (click)="prevStep()">← Back</button>
+              <button type="submit" class="btn submit-btn w-50">🚀 Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SUCCESS POPUP ================= -->
+<div class="success-popup" *ngIf="submitted">
+  <div class="success-box">
+    <!-- CLOSE -->
+    <button class="close-btn" (click)="submitted = false">✕</button>
+
+    <!-- CONFETTI -->
+    <div class="confetti-container">
+      <span
+        *ngFor="let i of [].constructor(80); let idx = index"
+        class="confetti"
+        [style.left.%]="idx * 1.2"
+        [style.animationDelay]="idx * 0.05 + 's'"
+      >
+      </span>
+    </div>
+
+    <!-- CHECK -->
+    <div class="checkmark"></div>
+
+    <h4>Successfully Registered 🎉</h4>
+    <p>We will contact you soon</p>
+
+    <!-- ACTION -->
+    <button class="btn whatsapp-btn w-100 mb-2" (click)="openWhatsApp()">
+      💬 Contact on WhatsApp
+    </button>
+
+    <button class="btn cancel-btn w-100" (click)="submitted = false">Cancel</button>
+  </div>
+</div>
