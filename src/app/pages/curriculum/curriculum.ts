@@ -55,8 +55,14 @@ export class Curriculum {
     });
   }
 
-  toggleModule(module: Module) {
-    module.open = !module.open;
+  toggleModule(clickedModule: Module) {
+    this.selectedCourse.curriculum.forEach((m: Module) => {
+      if (m === clickedModule) {
+        m.open = !m.open; // toggle clicked one
+      } else {
+        m.open = false; // close others
+      }
+    });
   }
 
   filterQuestions(): Question[] {

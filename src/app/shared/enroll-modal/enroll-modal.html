@@ -3,12 +3,59 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content modern-modal">
       <!-- TOP BAR -->
-      <div class="top-bar">🔥 Limited Seats | Fill form to reserve your slot</div>
+      <div class="top-bar">
+        🔥 Limited Seats | Join Free Demo Class on March 28th & 29th | ⏰ 7:30 PM – 9:00 PM
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="countdown-banner">
+        <!-- 🔥 SEATS + URGENCY -->
+        <p class="urgency-text">🔥 Only {{ seats() }} seats left — Filling fast!</p>
 
+        <!-- 🔥 TIMER -->
+        <div class="countdown flip" [class.shake]="hours() === 0">
+          <ng-container *ngIf="days() > 0; else hoursView">
+            <div class="time flip-card green">
+              <span>{{ days() }}</span>
+              <small>Days</small>
+            </div>
+
+            <div class="time flip-card yellow">
+              <span>{{ hours() }}</span>
+              <small>Hrs</small>
+            </div>
+
+            <div class="time flip-card blue">
+              <span>{{ minutes() }}</span>
+              <small>Min</small>
+            </div>
+          </ng-container>
+
+          <ng-template #hoursView>
+            <div class="time flip-card yellow">
+              <span>{{ hours() }}</span>
+              <small>Hrs</small>
+            </div>
+
+            <div class="time flip-card blue">
+              <span>{{ minutes() }}</span>
+              <small>Min</small>
+            </div>
+
+            <div class="time flip-card red">
+              <span>{{ seconds() }}</span>
+              <small>Sec</small>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- 🔥 PROGRESS BAR -->
+        <div class="time-progress">
+          <div class="time-progress-fill" [style.width.%]="progress()"></div>
+        </div>
+      </div>
       <!-- HEADER -->
       <div class="modal-header border-0">
-        <h5 class="fw-bold">Enroll for Java Full Stack</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="fw-bold">Enroll for Core Java 30 days Course</h5>
       </div>
 
       <!-- BODY -->
@@ -146,10 +193,15 @@
       <span
         *ngFor="let i of [].constructor(80); let idx = index"
         class="confetti"
+        [ngClass]="{
+          square: idx % 3 === 0,
+          circle: idx % 3 === 1,
+          triangle: idx % 3 === 2,
+        }"
         [style.left.%]="idx * 1.2"
         [style.animationDelay]="idx * 0.05 + 's'"
-      >
-      </span>
+        [style.animationDuration]="3 + (idx % 5) + 's'"
+      ></span>
     </div>
 
     <!-- CHECK -->

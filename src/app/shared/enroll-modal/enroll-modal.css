@@ -18,13 +18,239 @@
 
 /* TOP BAR */
 .top-bar {
+  position: relative; /* 🔥 REQUIRED */
   background: linear-gradient(90deg, #6366f1, #22c55e);
   color: #fff;
   text-align: center;
   padding: 10px;
   font-size: 14px;
 }
+/* ===== COUNTDOWN SECTION ===== */
+.countdown-banner {
+  text-align: center;
+  background: #f8fafc;
+  padding: 16px 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
 
+/* ===== OFFER TEXT (PREMIUM PULSE) ===== */
+.countdown-text {
+  font-weight: 700;
+  font-size: 15px;
+  color: #ef4444;
+  margin-bottom: 12px;
+
+  animation: softPulse 1.5s infinite;
+}
+
+@keyframes softPulse {
+  50% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+}
+
+/* ===== COUNTDOWN CONTAINER ===== */
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ===== TIME CARD BASE ===== */
+.time {
+  background: #ffffff;
+  padding: 12px 14px;
+  border-radius: 14px;
+  min-width: 65px;
+  text-align: center;
+
+  /* PREMIUM SHADOW */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+  transition: all 0.2s ease;
+}
+
+/* HOVER */
+.time:hover {
+  transform: translateY(-3px) scale(1.03);
+}
+
+/* NUMBER BASE */
+.time span {
+  font-size: 20px;
+  font-weight: 800;
+  display: block;
+}
+
+/* LABEL */
+.time small {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* ===== COLOR CODING ===== */
+.time:nth-child(1) span {
+  color: #22c55e; /* GREEN → Days */
+}
+
+.time:nth-child(2) span {
+  color: #f59e0b; /* YELLOW → Hours */
+}
+
+.time:nth-child(3) span {
+  color: #3b82f6; /* BLUE → Minutes */
+}
+
+.time:nth-child(4) span {
+  color: #ef4444; /* RED → Seconds */
+}
+
+/* OPTIONAL subtle border glow */
+.time:nth-child(1) {
+  border: 1px solid #dcfce7;
+}
+.time:nth-child(2) {
+  border: 1px solid #fef3c7;
+}
+.time:nth-child(3) {
+  border: 1px solid #dbeafe;
+}
+.time:nth-child(4) {
+  border: 1px solid #fee2e2;
+}
+
+/* ===== CLOSE BUTTON (PREMIUM RED) ===== */
+.modal-header .btn-close {
+  background: linear-gradient(145deg, #ef4444, #b91c1c);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 1;
+  background-image: none;
+  border: none;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* X ICON */
+.modal-header .btn-close::before {
+  content: '✕';
+  color: red;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/* CLICK */
+.modal-header .btn-close:active {
+  transform: scale(0.9);
+}
+/* ===== URGENCY TEXT ===== */
+.urgency-text {
+  text-align: center;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 10px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ===== COUNTDOWN ===== */
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ===== FLIP CARD ===== */
+.flip-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 65px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+  animation: flipIn 0.6s ease;
+}
+
+@keyframes flipIn {
+  from {
+    transform: rotateX(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+}
+
+/* ===== COLORS ===== */
+.green span {
+  color: #22c55e;
+}
+.yellow span {
+  color: #f59e0b;
+}
+.blue span {
+  color: #3b82f6;
+}
+.red span {
+  color: #ef4444;
+}
+
+/* ===== TEXT ===== */
+.time span {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.time small {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* ===== PROGRESS BAR ===== */
+.time-progress {
+  height: 6px;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.time-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #ef4444);
+  transition: width 1s linear;
+}
+
+/* ===== SHAKE WHEN < 1 HOUR ===== */
+.shake {
+  animation: shake 0.4s infinite;
+}
+
+@keyframes shake {
+  25% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  75% {
+    transform: translateX(-1px);
+  }
+}
 /* PROGRESS */
 .progress-bar {
   height: 6px;
@@ -176,38 +402,6 @@
   }
 }
 
-/* SIDE BURST */
-.success-box::before,
-.success-box::after {
-  content: '';
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(circle, #ffeb3b, transparent);
-  animation: burst 0.6s ease;
-}
-
-.success-box::before {
-  top: -40px;
-  left: -40px;
-}
-
-.success-box::after {
-  bottom: -40px;
-  right: -40px;
-}
-
-@keyframes burst {
-  from {
-    transform: scale(0);
-    opacity: 1;
-  }
-  to {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
 /* CHECK */
 .checkmark {
   width: 70px;
@@ -230,7 +424,7 @@
   transform: rotate(45deg);
 }
 
-/* CONFETTI CONTAINER */
+/* ===== CONTAINER ===== */
 .confetti-container {
   position: absolute;
   inset: 0;
@@ -238,51 +432,101 @@
   pointer-events: none;
 }
 
-/* CONFETTI BASE */
+/* ===== BASE CONFETTI ===== */
 .confetti {
   position: absolute;
-  top: -20px;
-  width: 8px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   opacity: 0.9;
-  animation: fallConfetti linear infinite;
+
+  animation: confettiFall linear infinite;
 }
 
-/* RANDOM COLORS */
-.confetti:nth-child(5n) {
-  background: #6366f1;
-}
-.confetti:nth-child(5n + 1) {
-  background: #22c55e;
-}
-.confetti:nth-child(5n + 2) {
-  background: #f59e0b;
-}
-.confetti:nth-child(5n + 3) {
-  background: #ef4444;
-}
-.confetti:nth-child(5n + 4) {
-  background: #06b6d4;
+/* ===== SHAPES ===== */
+.confetti.square {
+  border-radius: 2px;
 }
 
-/* RANDOM SIZES */
+.confetti.circle {
+  border-radius: 50%;
+}
+
+.confetti.triangle {
+  width: 0;
+  height: 0;
+  background: transparent;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 12px solid red;
+}
+
+/* ===== COLORS ===== */
+.confetti:nth-child(6n) { background: #6366f1; }
+.confetti:nth-child(6n+1) { background: #22c55e; }
+.confetti:nth-child(6n+2) { background: #f59e0b; }
+.confetti:nth-child(6n+3) { background: #ef4444; }
+.confetti:nth-child(6n+4) { background: #06b6d4; }
+.confetti:nth-child(6n+5) { background: #e11d48; }
+
+/* ===== RANDOM SIZE ===== */
 .confetti:nth-child(odd) {
   width: 6px;
-  height: 10px;
+  height: 6px;
 }
 .confetti:nth-child(even) {
-  width: 10px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
 }
 
-/* ANIMATION */
-@keyframes fallConfetti {
+/* ===== FALL + SWING + ROTATE ===== */
+@keyframes confettiFall {
   0% {
-    transform: translateY(-20px) rotate(0deg);
+    transform: translateY(-20px) translateX(0) rotate(0deg);
     opacity: 1;
   }
+  25% {
+    transform: translateY(25vh) translateX(-20px) rotate(180deg);
+  }
+  50% {
+    transform: translateY(50vh) translateX(20px) rotate(360deg);
+  }
+  75% {
+    transform: translateY(75vh) translateX(-10px) rotate(540deg);
+  }
   100% {
-    transform: translateY(110vh) rotate(720deg);
+    transform: translateY(110vh) translateX(10px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ===== BURST EFFECT (TOP CENTER EXPLOSION) ===== */
+.confetti-container::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: transparent;
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 10px #f59e0b,
+    20px 0 #ef4444,
+    -20px 0 #22c55e,
+    0 20px #3b82f6,
+    0 -20px #e11d48;
+
+  animation: explode 0.8s ease-out;
+}
+
+@keyframes explode {
+  from {
+    transform: scale(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(8);
     opacity: 0;
   }
 }
@@ -307,4 +551,53 @@
 .cancel-btn {
   border: 1px solid #ccc;
   border-radius: 10px;
+}
+/* ===== CLOSE BUTTON FINAL ===== */
+.top-bar .btn-close {
+  position: absolute;
+  top: 2.5px;
+  right: 10px;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 25px;
+  background: #ef4444;
+  border: none;
+  outline: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 1;
+  background-image: none;
+
+  cursor: pointer;
+
+  /* 🔥 PREMIUM SHADOW */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* X ICON */
+.top-bar .btn-close::before {
+  content: '✕';
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* HOVER */
+.top-bar .btn-close:hover {
+  transform: scale(1.1);
+}
+
+/* CLICK */
+.top-bar .btn-close:active {
+  transform: scale(0.9);
+}
+.top-bar .btn-close {
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.2),
+    0 4px 10px rgba(0,0,0,0.3);
 }

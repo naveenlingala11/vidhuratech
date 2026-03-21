@@ -2,6 +2,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, PLATFORM_ID } from '@angular/core';
 import { ModalService } from '../../services/modal';
 import { FormsModule } from '@angular/forms';
+import { signal } from '@angular/core';
+import { interval } from 'rxjs';
 declare var bootstrap: any;
 
 @Component({
@@ -11,6 +13,14 @@ declare var bootstrap: any;
   styleUrl: './enroll-modal.css',
 })
 export class EnrollModal {
+  days = signal(0);
+  hours = signal(0);
+  minutes = signal(0);
+  seconds = signal(0);
+
+  progress = signal(100);
+  seats = signal(25);
+
   step = 1;
   submitted = false;
 
@@ -51,7 +61,9 @@ export class EnrollModal {
   ) {}
 
   ngAfterViewInit() {
-    if (!isPlatformBrowser(this.platformId)) return; // 🔥 MUST
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.startCountdown(); // ✅ ADD THIS
 
     const modalElement = document.getElementById('enrollModal');
     if (!modalElement) return;
@@ -117,5 +129,47 @@ export class EnrollModal {
 📍 City: ${this.formData.city}`;
 
     window.open(`https://wa.me/919108057464?text=${encodeURIComponent(message)}`);
+  }
+
+  startCountdown() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const endTime = new Date('2026-03-27T23:59:59').getTime();
+    const totalDuration = endTime - new Date().getTime();
+
+    interval(1000).subscribe(() => {
+      const now = new Date().getTime();
+      const distance = endTime - now;
+
+      if (distance <= 0) {
+        this.days.set(0);
+        this.hours.set(0);
+        this.minutes.set(0);
+        this.seconds.set(0);
+        this.progress.set(0);
+        return;
+      }
+
+      const totalSeconds = Math.floor(distance / 1000);
+
+      const d = Math.floor(totalSeconds / (3600 * 24));
+      const h = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+
+      this.days.set(d);
+      this.hours.set(h);
+      this.minutes.set(m);
+      this.seconds.set(s);
+
+      // 🔥 progress decreasing
+      const progressPercent = (distance / totalDuration) * 100;
+      this.progress.set(progressPercent);
+
+      // 🔥 seats decreasing randomly
+      if (Math.random() > 0.7 && this.seats() > 5) {
+        this.seats.set(this.seats() - 1);
+      }
+    });
   }
 }

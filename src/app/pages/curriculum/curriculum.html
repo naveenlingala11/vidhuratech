@@ -6,32 +6,32 @@
     <div class="hero-actions">
       <select [(ngModel)]="selectedCourseId" (change)="setCourse()">
         <option *ngFor="let c of courses" [value]="c.id">
-          {{c.name}}
+          {{ c.name }}
         </option>
       </select>
 
-      <button class="primary-btn" (click)="downloadPDF()">
-        Download Curriculum PDF
-      </button>
+      <button class="primary-btn" (click)="downloadPDF()">Download Curriculum PDF</button>
     </div>
   </div>
 </div>
 
 <!-- MODULES -->
-<div *ngFor="let module of selectedCourse.curriculum" class="module">
-
+<div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
   <div class="module-header" (click)="toggleModule(module)">
-    {{module.title}}
+    {{ module.title }}
   </div>
 
   <div class="module-body" *ngIf="module.open">
-    <ul>
-      <li *ngFor="let topic of module.topics">
-        {{topic}}
-      </li>
-    </ul>
-  </div>
+    <div class="topics-grid">
+      <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
+        <span class="topic-number"> {{ mIndex + 1 }}.{{ i + 1 }} </span>
 
+        <span class="topic-text">
+          {{ topic }}
+        </span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- FILTER -->
@@ -46,13 +46,16 @@
 
 <div class="grid">
   <div class="card" *ngFor="let q of filterQuestions()">
-    {{q.text}}
-    <span class="badge" [ngClass]="{
-        'easy': q.level === 'Easy',
-        'medium': q.level === 'Medium',
-        'hard': q.level === 'Hard'
-      }">
-      {{q.level}}
+    {{ q.text }}
+    <span
+      class="badge"
+      [ngClass]="{
+        easy: q.level === 'Easy',
+        medium: q.level === 'Medium',
+        hard: q.level === 'Hard',
+      }"
+    >
+      {{ q.level }}
     </span>
   </div>
 </div>

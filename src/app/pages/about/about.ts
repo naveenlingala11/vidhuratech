@@ -1,16 +1,37 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ModalService } from '../../services/modal';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './about.html',
   styleUrl: './about.css',
 })
 export class About {
   constructor(private modalService: ModalService) {}
+
+  contactData = {
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+  };
+
+  submitted = false;
+
+  submitContact() {
+    console.log('Contact Data:', this.contactData);
+
+    this.submitted = true;
+
+    setTimeout(() => {
+      this.submitted = false;
+      this.contactData = { name: '', email: '', phone: '', message: '' };
+    }, 3000);
+  }
 
   features = [
     {

@@ -149,17 +149,18 @@ export class App {
   /* ================= WHATSAPP ================= */
   openWhatsApp(msg: string) {
     const message =
-      'Hello Vidhura Tech,\n\n' +
-      'I am interested in:\n' +
+      '👋 Hello Vidhura Tech,\n\n' +
+      '📚 I am interested in:\n' +
+      '➡️ ' +
       msg +
       '\n\n' +
-      'Ready to start my career.\n\n' +
-      'Please share:\n' +
-      '- Course details\n' +
-      '- Fees structure\n' +
-      '- Duration\n' +
-      '- Placement support\n\n' +
-      'Thank you.';
+      '🚀 Ready to start my career!\n\n' +
+      '📩 Please share details:\n' +
+      '✅ Course information\n' +
+      '✅ Fees structure\n' +
+      '✅ Duration\n' +
+      '✅ Placement support\n\n' +
+      '🙏 Thank you!';
 
     window.open(`https://wa.me/919108057464?text=${encodeURIComponent(message)}`, '_blank');
   }
