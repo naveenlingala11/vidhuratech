@@ -5,13 +5,48 @@
   <router-outlet></router-outlet>
 </div>
 
-<div *ngIf="showPreview" class="whatsapp-preview" (click)="openWhatsApp()">
-  <p>👋 Hi there!</p>
-  <small>Chat with us for course details</small>
-</div>
+<div class="chat-toggle" (click)="toggleChat()">💬</div>
 
-<a class="whatsapp-float" (click)="openWhatsApp()">
-  <img src="whatsapp-svgrepo-com.svg" width="55" />
-</a>
+<div class="chat-box" *ngIf="chatOpen">
+
+  <div class="chat-header">
+    <div>
+      <h6>Vidhura Tech</h6>
+      <small>Online • Replies instantly</small>
+    </div>
+    <span (click)="toggleChat()">✖</span>
+  </div>
+
+  <div class="chat-body" #chatContainer>
+
+    <div *ngFor="let msg of messages" class="msg" [ngClass]="msg.type">
+
+      <pre>{{ msg.text }}</pre>
+
+      <div *ngIf="msg.options" class="options">
+        <button *ngFor="let opt of msg.options" (click)="handleOption(opt)">
+          {{ opt }}
+        </button>
+      </div>
+
+      <div *ngIf="msg.showCTA" class="whatsapp-cta" (click)="openWhatsApp(msg.text)">
+        <span>Continue on WhatsApp</span>
+        <img src="whatsapp-svgrepo-com.svg" />
+      </div>
+
+    </div>
+
+    <div class="typing" *ngIf="typing">
+      <span></span><span></span><span></span>
+    </div>
+
+  </div>
+
+  <div class="chat-input">
+    <input [(ngModel)]="userInput" placeholder="Type your message..." (keyup.enter)="sendUserMessage()" />
+    <button (click)="sendUserMessage()">➤</button>
+  </div>
+
+</div>
 
 <app-footer></app-footer>

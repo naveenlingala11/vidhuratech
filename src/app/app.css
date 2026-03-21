@@ -1,71 +1,215 @@
-/* WHATSAPP FLOAT */
-.whatsapp-float {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    background: #25D366;
-    padding: 10px;
-    border-radius: 50%;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    cursor: pointer;
-    animation: float 2s infinite;
-    transition: 0.3s;
+:root {
+  --nav-height: 90px;
 }
 
-.whatsapp-float:hover {
-    transform: scale(1.1);
+body {
+  padding-top: var(--nav-height);
 }
 
-@keyframes float {
-    50% { transform: translateY(-8px); }
+/* ================= CHAT BUTTON ================= */
+.chat-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #0d6efd, #0b1f3a);
+  color: white;
+  font-size: 22px;
+  padding: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  transition: 0.3s;
 }
 
-/* PREVIEW BOX */
-.whatsapp-preview {
-    position: fixed;
-    bottom: 90px;
-    right: 20px;
-    background: white;
-    padding: 10px 15px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    cursor: pointer;
-    z-index: 9999;
-    animation: fadeInUp 0.8s ease;
+.chat-toggle:hover {
+  transform: scale(1.1);
 }
 
-.whatsapp-preview p {
-    margin: 0;
-    font-weight: 600;
+/* ================= CHAT BOX ================= */
+.chat-box {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 320px;
+  height: 420px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fadeUp 0.3s ease;
 }
 
-.whatsapp-preview small {
-    color: gray;
+/* HEADER */
+.chat-header {
+  background: linear-gradient(120deg, #0d6efd, #0b1f3a);
+  color: white;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
 }
 
-/* ANIMATION */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.chat-header small {
+  font-size: 11px;
+  opacity: 0.8;
 }
 
-/* MOBILE FIX */
+/* BODY */
+.chat-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+/* MESSAGE */
+.msg {
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  max-width: 80%;
+  font-size: 13px;
+}
+
+.bot {
+  background: #e2e8f0;
+}
+
+.user {
+  background: #0d6efd;
+  color: white;
+  margin-left: auto;
+}
+
+/* ================= INPUT ================= */
+.chat-input {
+  display: flex;
+  border-top: 1px solid #eee;
+}
+
+.chat-input input {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  outline: none;
+}
+
+.chat-input button {
+  background: #0d6efd;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+/* ================= CTA ================= */
+.whatsapp-cta {
+  margin-top: 8px;
+  padding: 8px;
+  background: #25d366;
+  color: white;
+  border-radius: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.whatsapp-cta img {
+  width: 16px;
+}
+
+/* ================= TYPING ================= */
+.typing {
+  display: flex;
+  gap: 4px;
+}
+
+.typing span {
+  width: 6px;
+  height: 6px;
+  background: #999;
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* ================= ANIMATION ================= */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= MOBILE ================= */
 @media (max-width: 768px) {
-    .whatsapp-float {
-        right: 10px;
-        bottom: 20px;
-    }
+  .chat-box {
+    width: 90%;
+    right: 5%;
+  }
+}
+/* OPTIONS BUTTONS */
+.options {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
-    .whatsapp-preview {
-        right: 10px;
-        bottom: 80px;
-        font-size: 13px;
-    }
+.options button {
+  background: #eef2ff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+.options button:hover {
+  background: #dbeafe;
+}
+.options {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.options button {
+  background: #eef2ff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+.options button:hover {
+  background: #dbeafe;
+}
+
+pre {
+  margin: 0;
+  font-family: inherit;
+  white-space: pre-wrap;
 }
