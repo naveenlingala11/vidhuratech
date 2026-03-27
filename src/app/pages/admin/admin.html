@@ -1,140 +1,289 @@
 <div class="admin-container">
+  <div class="header">
+    <h2>📊 Admin Dashboard</h2>
 
-    <h2 class="dashboard-title">📊 Leads CRM Dashboard</h2>
+    <div class="tabs">
+      <button [class.active]="activeTab === 'leads'" (click)="activeTab = 'leads'">Leads</button>
+      <button [class.active]="activeTab === 'jobs'" (click)="activeTab = 'jobs'">Post Jobs</button>
+      <button [class.active]="activeTab === 'companies'" (click)="activeTab = 'companies'">
+        Companies
+      </button>
+    </div>
+  </div>
 
-    <!-- TOP ACTION BAR -->
+  <!-- LEADS -->
+  <div [hidden]="activeTab !== 'leads'">
+    <!-- (NO CHANGE HERE — your code is fine) -->
+
     <div class="top-bar">
+      <div>
+        <button class="btn primary" (click)="refreshLeads()">🔄 Refresh</button>
+        <button class="btn success" (click)="exportCSV()">📤 Export</button>
+      </div>
 
-        <div>
-            <button class="btn btn-primary me-2" (click)="refreshLeads()">🔄 Refresh</button>
-            <button class="btn btn-success" (click)="exportCSV()">📤 Export</button>
-        </div>
-
-        <div class="badge-box">
-            <span class="badge bg-primary">Total: {{stats.total}}</span>
-            <span class="badge bg-warning text-dark">New: {{stats.new}}</span>
-            <span class="badge bg-info text-dark">Contacted: {{stats.contacted}}</span>
-            <span class="badge bg-success">Joined: {{stats.joined}}</span>
-        </div>
-
+      <div class="badge-box">
+        <span>Total: {{ stats.total }}</span>
+        <span>New: {{ stats.new }}</span>
+        <span>Contacted: {{ stats.contacted }}</span>
+        <span>Joined: {{ stats.joined }}</span>
+      </div>
     </div>
 
     <!-- STATS -->
     <div class="stats-grid">
-
-        <div class="stat-card">
-            <h3>{{stats.total}}</h3>
-            <p>Total Leads</p>
-        </div>
-
-        <div class="stat-card blue">
-            <h3>{{stats.new}}</h3>
-            <p>New</p>
-        </div>
-
-        <div class="stat-card orange">
-            <h3>{{stats.contacted}}</h3>
-            <p>Contacted</p>
-        </div>
-
-        <div class="stat-card green">
-            <h3>{{stats.joined}}</h3>
-            <p>Joined</p>
-        </div>
-
-    </div>
-
-    <!-- FOLLOW-UP ALERT -->
-    <div *ngIf="getTodayFollowups() > 0" class="alert-box">
-
-        🔔 You have {{getTodayFollowups()}} follow-ups today!
-
+      <div class="stat-card">
+        <h3>{{ stats.total }}</h3>
+        <p>Total Leads</p>
+      </div>
+      <div class="stat-card blue">
+        <h3>{{ stats.new }}</h3>
+        <p>New</p>
+      </div>
+      <div class="stat-card orange">
+        <h3>{{ stats.contacted }}</h3>
+        <p>Contacted</p>
+      </div>
+      <div class="stat-card green">
+        <h3>{{ stats.joined }}</h3>
+        <p>Joined</p>
+      </div>
     </div>
 
     <!-- FILTER -->
     <div class="filter-bar">
+      <input placeholder="🔍 Search" [(ngModel)]="searchText" (input)="applyFilter()" />
+      <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
+        <option value="">All Status</option>
+        <option>New</option>
+        <option>Contacted</option>
+        <option>Joined</option>
+      </select>
 
-        <input type="text" placeholder="🔍 Search name or phone" [(ngModel)]="searchText" (input)="applyFilter()" />
+      <select [(ngModel)]="selectedCity" (change)="applyFilter()">
+        <option value="">All Cities</option>
+        <option *ngFor="let c of cities">{{ c }}</option>
+      </select>
 
-        <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
-            <option value="">All Status</option>
-            <option>New</option>
-            <option>Contacted</option>
-            <option>Joined</option>
-        </select>
-
+      <input type="date" [(ngModel)]="fromDate" (change)="applyFilter()" />
+      <input type="date" [(ngModel)]="toDate" (change)="applyFilter()" />
     </div>
-
 
     <!-- TABLE -->
     <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Course</th>
+            <th>Status</th>
+            <th>Follow-up</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-        <table>
+        <tbody>
+          <tr *ngFor="let lead of filteredLeads">
+            <td>{{ lead.Name }}</td>
+            <td>{{ lead.Phone }}</td>
+            <td>{{ lead.Course }}</td>
 
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Course</th>
-                    <th>Status</th>
-                    <th>Follow-up</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+            <td>
+              <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
+                <option>New</option>
+                <option>Contacted</option>
+                <option>Joined</option>
+              </select>
+            </td>
 
-            <tbody>
+            <td>
+              <input type="date" [(ngModel)]="lead.FollowUp" (change)="updateLead(lead)" />
+            </td>
 
-                <tr *ngFor="let lead of filteredLeads">
-
-                    <td>{{lead.Name}}</td>
-                    <td>{{lead.Phone}}</td>
-                    <td>{{lead.Course}}</td>
-
-                    <td>
-
-                        <div class="status-wrapper">
-
-                            <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)" [ngClass]="{
-'status-new': lead.tempStatus==='New',
-'status-contacted': lead.tempStatus==='Contacted',
-'status-joined': lead.tempStatus==='Joined'
-}">
-                                <option>New</option>
-                                <option>Contacted</option>
-                                <option>Joined</option>
-                            </select>
-
-                            <!-- ACTION ICONS -->
-                            <div *ngIf="lead.isChanged" class="status-actions">
-
-                                <span class="tick" (click)="confirmUpdate(lead)">✔</span>
-                                <span class="cross" (click)="cancelUpdate(lead)">✖</span>
-
-                            </div>
-
-                        </div>
-
-                    </td>
-
-                    <td>
-                        <input type="date" [(ngModel)]="lead.FollowUp" (change)="updateLead(lead)">
-                    </td>
-
-                    <td>
-                        <a [href]="'https://wa.me/91' + lead.Phone" target="_blank" class="whatsapp-btn">
-                            WhatsApp
-                        </a>
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-        <div *ngIf="filteredLeads.length === 0" class="empty-state">
-            No leads found 🚫
-        </div>
+            <td>
+              <a [href]="'https://wa.me/91' + lead.Phone" target="_blank" class="whatsapp-btn">
+                WhatsApp
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
+  <!-- ================= JOB PANEL ================= -->
+  <div [hidden]="activeTab !== 'jobs'">
+    <div class="job-panel">
+      <h3>🚀 Post New Job</h3>
+
+      <form #jobFormRef="ngForm">
+        <div class="job-form">
+          <div>
+            <input
+              name="title"
+              required
+              #t="ngModel"
+              placeholder="Job Title"
+              [(ngModel)]="jobForm.title"
+            />
+            <small *ngIf="t.invalid && t.touched" class="error">Required</small>
+          </div>
+
+          <div>
+            <input
+              name="company"
+              required
+              #c="ngModel"
+              placeholder="Company"
+              [(ngModel)]="jobForm.company"
+            />
+            <small *ngIf="c.invalid && c.touched" class="error">Required</small>
+          </div>
+
+          <input name="location" placeholder="Location" [(ngModel)]="jobForm.location" />
+
+          <input name="experience" placeholder="Experience" [(ngModel)]="jobForm.experience" />
+
+          <select name="type" required [(ngModel)]="jobForm.type">
+            <option value="">Type</option>
+            <option>Fresher</option>
+            <option>Internship</option>
+            <option>Experienced</option>
+            <option>Walkin</option>
+          </select>
+
+          <select name="category" [(ngModel)]="jobForm.category">
+            <option value="">Category</option>
+            <option *ngFor="let c of categories">{{ c }}</option>
+          </select>
+
+          <input name="link" placeholder="Apply Link" [(ngModel)]="jobForm.link" />
+
+          <button type="button" (click)="previewJob()">👁 Preview</button>
+          <button type="button" (click)="postJob()">🚀 Post Job</button>
+        </div>
+      </form>
+
+      <div class="preview-box" *ngIf="showPreview">
+        <h4>Preview</h4>
+        <p>{{ jobForm.title }} - {{ jobForm.company }}</p>
+
+        <button (click)="confirmPost()">Confirm</button>
+        <button (click)="showPreview = false">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- companies and analytics -->
+  <div [class.disabled]="isScraping">
+    <div [hidden]="activeTab !== 'companies'" class="companies-section">
+      <h3>🏢 Companies</h3>
+
+      <div class="company-form">
+        <input placeholder="Company" [(ngModel)]="newCompany.company" />
+        <input placeholder="Type" [(ngModel)]="newCompany.type" />
+        <input placeholder="URL" [(ngModel)]="newCompany.url" />
+
+        <input
+          placeholder="🔍 Search Company"
+          [(ngModel)]="searchCompany"
+          (input)="loadCompanies()"
+        />
+
+        <!-- SORT -->
+        <select [(ngModel)]="sortBy" (change)="loadCompanies()">
+          <option value="company">Name</option>
+          <option value="type">Type</option>
+          <option value="jobs">Jobs 🔥</option>
+        </select>
+
+        <!-- DIRECTION -->
+        <select [(ngModel)]="direction" (change)="loadCompanies()">
+          <option value="asc">ASC</option>
+          <option value="desc">DESC</option>
+        </select>
+
+        <!-- ACTIVE FILTER -->
+        <select [(ngModel)]="activeFilter" (change)="loadCompanies()">
+          <option value="">All</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+
+        <!-- PAGE SIZE -->
+        <select [(ngModel)]="companySize" (change)="loadCompanies()">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+        </select>
+
+        <button class="add-btn" (click)="addCompany()">➕ Add</button>
+      </div>
+
+      <!-- 🔥 COMPANY LIST -->
+      <div class="company-list">
+        <div *ngFor="let c of companies" class="company-item">
+          <div class="company-left">
+            <span class="company-name">{{ c.company }}</span>
+
+            <!-- ✅ ADDED STATS -->
+            <div class="company-stats">✔ {{ c.successCount || 0 }} | ❌ {{ c.failCount || 0 }}</div>
+          </div>
+
+          <div class="company-right">
+            <button class="toggle-btn" (click)="toggleCompany(c)">
+              {{ c.active ? '🟢 Active' : '🔴 Inactive' }}
+            </button>
+
+            <button class="delete-btn" (click)="deleteCompany(c.id)">❌</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔥 PAGINATION -->
+      <div class="pagination">
+        <button (click)="prevCompanyPage()">⬅ Prev</button>
+        <span>Page {{ companyPage + 1 }}</span>
+        <button (click)="nextCompanyPage()">Next ➡</button>
+      </div>
+
+      <hr />
+
+      <!-- 🔥 ANALYTICS -->
+      <h3>📊 Analytics</h3>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>{{ analytics.totalJobs }}</h3>
+          <p>Total Jobs</p>
+        </div>
+
+        <div class="stat-card blue">
+          <h3>{{ analytics.today }}</h3>
+          <p>Today</p>
+        </div>
+
+        <div class="stat-card orange">
+          <h3>{{ analytics.week }}</h3>
+          <p>This Week</p>
+        </div>
+
+        <div class="stat-card green">
+          <h3>{{ analytics.month }}</h3>
+          <p>This Month</p>
+        </div>
+      </div>
+
+      <button class="scrape-btn" (click)="triggerScrape()" [disabled]="isScraping">
+        <span *ngIf="!isScraping">🚀 Run Scraper</span>
+        <span *ngIf="isScraping">⏳ Running...</span>
+      </button>
+      <div class="overlay" *ngIf="isScraping">
+        <div class="loader"></div>
+        <p class="loading-text">🚀 Scraping<span class="dots"></span></p>
+      </div>
+      <div *ngIf="!isScraping && completed" class="done-msg">✅ Scraping Completed</div>
+    </div>
+  </div>
 </div>

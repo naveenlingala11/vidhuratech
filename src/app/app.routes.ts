@@ -12,20 +12,25 @@ import { Privacy } from './components/policy/privacy/privacy';
 import { Refund } from './components/policy/refund/refund';
 import { Disclaimer } from './components/policy/disclaimer/disclaimer';
 import { Cookies } from './components/policy/cookies/cookies';
+import { Jobs } from './pages/jobs/jobs';
+import { JobDetail } from './pages/job-detail/job-detail';
+import { JobsHome } from './pages/jobs-home/jobs-home';
 
 export const routes: Routes = [
-    { path: '', component: Home },
-    { path: 'admin', component: Admin },
-    { path: 'courses', component: Courses },
-    { path: 'about', component: About },
-    { path: 'contact', component: Contact },
-    { path: 'curriculum', component: Curriculum },
-    { path: 'placements', component: Placements },
-    { path: 'resume', component: Resume },
-    { path: 'terms', component: Terms },
-    { path: 'privacy', component: Privacy },
-    { path: 'refund', component: Refund },
-    { path: 'disclaimer', component: Disclaimer },
-    { path: 'cookies', component: Cookies },
-
+  { path: '', component: Home },
+  { path: 'admin', component: Admin },
+  { path: 'courses', component: Courses },
+  { path: 'about', component: About },
+  { path: 'contact', component: Contact },
+  { path: 'curriculum', component: Curriculum },
+  { path: 'placements', component: Placements },
+  { path: 'resume', component: Resume },
+  { path: 'terms', component: Terms },
+  { path: 'privacy', component: Privacy },
+  { path: 'refund', component: Refund },
+  { path: 'disclaimer', component: Disclaimer },
+  { path: 'cookies', component: Cookies },
+  { path: 'jobs', component: Jobs },
+  { path: 'jobs/:id', component: JobDetail },
+  { path: 'jobs-home', component: JobsHome },
 ];

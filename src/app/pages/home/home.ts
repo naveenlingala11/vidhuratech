@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { interval } from 'rxjs';
 import { ModalService } from '../../services/modal';
+import { TimerService } from '../../services/timer';
 
 @Component({
   selector: 'app-home',
@@ -17,6 +18,7 @@ export class Home implements AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private modalService: ModalService,
     private zone: NgZone,
+    public timer: TimerService
   ) {}
 
   modalInstance: any;
@@ -34,7 +36,7 @@ export class Home implements AfterViewInit {
       }, 10000);
     });
 
-    this.startCountdown();
+    this.timer.startCountdown();
   }
 
   // FEATURES

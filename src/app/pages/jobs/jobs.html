@@ -1,0 +1,242 @@
+<section class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h3>Filters</h3>
+
+    <!-- SORT -->
+    <div class="filter-block">
+      <div class="filter-header" (click)="toggleSection('showSort')">
+        🔽 Sort By
+        <span>{{ showSort ? '▲' : '▼' }}</span>
+      </div>
+
+      <div *ngIf="showSort">
+        <label>
+          <input
+            type="radio"
+            name="sort"
+            value="latest"
+            [(ngModel)]="filters.sort"
+            (change)="page = 0"
+          />
+          Latest
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            name="sort"
+            value="oldest"
+            [(ngModel)]="filters.sort"
+            (change)="page = 0"
+          />
+          Oldest
+        </label>
+      </div>
+    </div>
+
+    <!-- DATE FILTER -->
+    <div class="filter-block">
+      <div class="filter-header" (click)="toggleSection('showDate')">
+        📅 Posted
+        <span>{{ showDate ? '▲' : '▼' }}</span>
+      </div>
+
+      <div *ngIf="showDate">
+        <label *ngFor="let d of ['today', 'week', 'month']">
+          <input type="radio" [value]="d" [(ngModel)]="filters.date" (change)="page = 0" />
+          {{ d }}
+        </label>
+      </div>
+    </div>
+
+    <!-- LOCATION -->
+    <div class="filter-block">
+      <div class="filter-header" (click)="toggleSection('showLocation')">
+        📍 Location
+        <span>{{ showLocation ? '▲' : '▼' }}</span>
+      </div>
+
+      <div *ngIf="showLocation">
+        <label *ngFor="let l of locations">
+          <input type="checkbox" (change)="toggleFilter('location', l)" />
+          {{ l }}
+        </label>
+      </div>
+    </div>
+
+    <!-- REMOTE -->
+    <div class="filter-block">
+      <div class="filter-header" (click)="toggleSection('showRemote')">
+        🌍 Work Mode
+        <span>{{ showRemote ? '▲' : '▼' }}</span>
+      </div>
+
+      <div *ngIf="showRemote">
+        <label>
+          <input type="checkbox" [(ngModel)]="filters.remote" (change)="page = 0" />
+          Remote Only
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <!-- HEADER -->
+      <div class="filter-header" (click)="toggleSection('showCompanyDropdown')">
+        🏢 Companies
+        <span class="arrow">
+          {{ showCompanyDropdown ? '▲' : '▼' }}
+        </span>
+      </div>
+
+      <!-- DROPDOWN -->
+      <div *ngIf="showCompanyDropdown" class="dropdown">
+        <!-- 🔍 SEARCH -->
+        <input
+          type="text"
+          placeholder="Search company..."
+          [(ngModel)]="companySearch"
+          class="search-box"
+        />
+
+        <!-- ✅ LIST -->
+        <label *ngFor="let c of filteredCompanies" class="checkbox-item">
+          <input
+            type="checkbox"
+            [checked]="filters.company.includes(c.name)"
+            (change)="toggleFilter('company', c.name)"
+          />
+          {{ c.name }} ({{ c.count }})
+        </label>
+      </div>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="filter-block">
+      <div class="filter-header" (click)="toggleSection('showExperience')">
+        💼 Experience
+        <span>{{ showExperience ? '▲' : '▼' }}</span>
+      </div>
+
+      <div *ngIf="showExperience">
+        <label *ngFor="let e of ['0', '3', '5', '10']">
+          <input type="checkbox" (change)="toggleFilter('experience', e)" />
+          {{ e }}+ yrs
+        </label>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="filter-block">
+      <div class="filter-header" (click)="toggleSection('showSkills')">
+        🧠 Skills
+        <span>{{ showSkills ? '▲' : '▼' }}</span>
+      </div>
+
+      <div *ngIf="showSkills">
+        <label *ngFor="let s of ['Java', 'React', 'Python', 'Angular']">
+          <input type="checkbox" (change)="toggleFilter('skill', s)" />
+          {{ s }}
+        </label>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <button
+        class="apply-btn"
+        (click)="applyAll()"
+        [disabled]="!searchText && selectedFilters.length === 0 && !filters.remote && !filters.date"
+      >
+        Apply Filters
+      </button>
+      <button class="clear-btn" (click)="clearFilters()">Clear Filters</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <!-- HEADER -->
+    <header class="header">
+      <input
+        type="search"
+        placeholder="Search jobs..."
+        [(ngModel)]="searchText"
+        (ngModelChange)="page = 0"
+      />
+    </header>
+
+    <!-- JOB LIST -->
+    <ng-container *ngIf="jobs$ | async as res">
+      <main class="job-grid">
+        <!-- LOADING -->
+        <ng-container *ngIf="loading">
+          <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4, 5, 6]"></div>
+        </ng-container>
+
+        <!-- DATA -->
+        <ng-container *ngIf="!loading">
+          <!-- EMPTY -->
+          <div *ngIf="!res?.content || res.content.length === 0" class="empty">
+            ❌ No jobs found
+          </div>
+
+          <!-- JOB CARD -->
+          <article
+            *ngFor="let job of res.content"
+            class="job-card"
+            (click)="job.id && goToDetail(job.id)"
+          >
+            <div class="top">
+              <img
+                [src]="getCompanyLogo(job.companyName)"
+                (error)="onLogoError($event, job.companyName)"
+              />
+
+              <div>
+                <h3>{{ job.title }}</h3>
+                <p class="company">{{ job.companyName }}</p>
+              </div>
+
+              <div class="meta">
+                <span>📍 {{ job.location }}</span>
+                <span>💼 {{ job.experience || 'Not specified' }}</span>
+              </div>
+
+              <div class="skills">
+                <span *ngFor="let s of job.skills | slice: 0 : 3" class="skill-chip">
+                  {{ s }}
+                </span>
+              </div>
+
+              <button (click)="job.id && goToDetail(job.id); $event.stopPropagation()">
+                View →
+              </button>
+            </div>
+          </article>
+        </ng-container>
+      </main>
+    </ng-container>
+
+    <!-- PAGINATION -->
+    <div class="pagination-wrapper">
+      <div class="job-count">
+        Showing {{ getStartIndex() }} - {{ getEndIndex() }} of {{ totalJobs }} jobs
+      </div>
+
+      <div class="pagination">
+        <button (click)="prevPage()" [disabled]="page === 0">⬅</button>
+
+        <button
+          *ngFor="let i of getVisiblePages()"
+          (click)="goToPage(i)"
+          [class.active]="i === page"
+        >
+          {{ i + 1 }}
+        </button>
+
+        <button (click)="nextPage()" [disabled]="page === totalPages - 1">➡</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,216 @@
+<div class="home">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="circle one"></div>
+    <div class="circle two"></div>
+    <h1>Find Your Dream Job 🚀</h1>
+    <p>Explore thousands of verified opportunities</p>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Search jobs..."
+        [(ngModel)]="searchText"
+        (input)="onSearchChange()"
+      />
+
+      <button (click)="goToJobs()">Search</button>
+
+      <div class="suggestions" *ngIf="suggestions.length">
+        <div *ngFor="let s of suggestions" (click)="selectSuggestion(s)">
+          {{ s }}
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-tags">
+      <span (click)="quickSearch('Java')">Java</span>
+      <span (click)="quickSearch('Angular')">Angular</span>
+      <span (click)="quickSearch('React')">React</span>
+      <span (click)="quickSearch('Fresher')">Fresher</span>
+    </div>
+  </section>
+
+  <!-- PROMO -->
+  <section class="promo">
+    <div class="promo-card">🚀 50,000+ Users</div>
+    <div class="promo-card">⚡ Daily Updates</div>
+    <div class="promo-card">🎯 Fresher Friendly</div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats">
+    <div>
+      <h2>{{ totalJobs }}</h2>
+      <p>Total Jobs</p>
+    </div>
+    <div>
+      <h2>{{ companies.length }}</h2>
+      <p>Companies</p>
+    </div>
+    <div>
+      <h2>24/7</h2>
+      <p>Updates</p>
+    </div>
+  </section>
+
+  <!-- ===============================
+       JOBS + FILTERS (NEW FIXED GRID)
+  ================================== -->
+  <section class="section">
+    <h2 class="text-center">🔥 Latest Jobs</h2>
+
+    <div class="jobs-wrapper">
+      <!-- FILTER COLUMN -->
+      <aside class="filters">
+        <h3>Filters</h3>
+
+        <div class="filter-group">
+          <label>Search</label>
+          <input [(ngModel)]="searchText" />
+        </div>
+
+        <div class="filter-group">
+          <label>Location</label>
+          <select [(ngModel)]="selectedLocation">
+            <option value="">All</option>
+            <option>India</option>
+            <option>Hyderabad</option>
+            <option>Bangalore</option>
+            <option>Remote</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Experience</label>
+          <select [(ngModel)]="experience">
+            <option value="">All</option>
+            <option>0-1 yrs</option>
+            <option>1-3 yrs</option>
+            <option>3+ yrs</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary w-100" (click)="goToJobs()">Apply</button>
+      </aside>
+
+      <!-- JOB GRID -->
+      <div class="jobs-grid">
+        <!-- SKELETON -->
+        <ng-container *ngIf="isLoading">
+          <div class="job-card skeleton" *ngFor="let x of skeletons">
+            <div class="sk-line title"></div>
+            <div class="sk-line small"></div>
+            <div class="sk-tags"><span></span><span></span><span></span></div>
+          </div>
+        </ng-container>
+
+        <!-- JOBS -->
+        <ng-container *ngIf="!isLoading">
+          <div
+            class="job-card"
+            *ngFor="let job of jobs | slice: 0 : 6"
+            (click)="goToDetail(job.id)"
+          >
+            <span class="badge-new">NEW</span>
+            <div class="card-top">
+              <img [src]="getCompanyLogo(job.companyName)" />
+
+              <div class="info">
+                <h3>{{ job.title }}</h3>
+                <p>{{ job.companyName }}</p>
+              </div>
+            </div>
+
+            <div class="meta">
+              <span>📍 {{ job.location }}</span>
+              <span>💼 {{ job.experience || '0-3 yrs' }}</span>
+            </div>
+
+            <div class="skills">
+              <span *ngFor="let s of job.skills | slice: 0 : 3">{{ s }}</span>
+            </div>
+
+            <button class="btn btn-primary" (click)="goToDetail(job.id); $event.stopPropagation()">
+              View Job
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </section>
+
+  <section class="section trending-advanced">
+    <h2>🔥 Trending Skills</h2>
+
+    <p class="subtitle">Based on real-time hiring trends across top companies</p>
+
+    <div class="skills-cloud">
+      <span>Angular</span>
+      <span>React</span>
+      <span>Spring Boot</span>
+      <span>Python</span>
+      <span>AWS</span>
+    </div>
+
+    <!-- NEW FEATURE BOX -->
+    <div class="highlight-box">
+      <h3>🚀 Why Our Platform is Powerful?</h3>
+
+      <ul>
+        <li>✔ Aggregates jobs from multiple company career pages</li>
+        <li>✔ Daily automated job fetch at 8 AM</li>
+        <li>✔ Covers multiple job portals in one place</li>
+        <li>✔ No duplicate / outdated listings</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section system-info">
+    <h2>⚙️ How Our Job Engine Works</h2>
+
+    <div class="system-grid">
+      <div class="system-card">
+        <h3>🔎 Smart Scraper</h3>
+        <p>Automatically scans multiple company career pages and job portals.</p>
+      </div>
+
+      <div class="system-card">
+        <h3>⏰ Daily Scheduler</h3>
+        <p>Runs every day at 8 AM to fetch the latest job openings.</p>
+      </div>
+
+      <div class="system-card">
+        <h3>📦 Unified Platform</h3>
+        <p>All jobs in one place — no need to check multiple sites.</p>
+      </div>
+
+      <div class="system-card">
+        <h3>⚡ Real-Time Updates</h3>
+        <p>Fresh listings delivered instantly with minimal delay.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="section testimonials">
+    <h2>What Users Say</h2>
+
+    <div class="testimonial-grid">
+      <div class="testimonial-card">"Got job in 2 weeks!"</div>
+
+      <div class="testimonial-card">"Best platform!"</div>
+    </div>
+  </section>
+</div>
+<!-- ===============================
+     NEW PAGES - TRAINING + DEMO
+================================== -->
+<section class="content-section">
+  <div class="container">
+    <h2>🚀 Free Training Demos</h2>
+
+    <p>
+      Join our free demo classes and experience our unique training approach. Get a taste of our
+      live coding sessions, real-time projects, and interview preparation techniques. Our expert
+      trainers will guide you through the learning process and help you build the skills needed to
+      succeed in the IT industry. Don't miss this opportunity to kickstart your career with us! Join our demo classes and take the first step towards landing your dream job in IT. Our training programs are designed to equip you with the practical skills, industry insights, and confidence needed to excel in your job search. Sign up for our free demo classes today and see how we can help you achieve your career goals!
