@@ -41,7 +41,7 @@ export class Courses implements AfterViewInit {
   /* ================= COURSES ================= */
   courses: Course[] = [
     {
-      title: 'Java Full Stack Development',
+      title: 'Java Full Stack',
       duration: '4 Months',
       level: 'Beginner → Advanced',
       rating: 4.8,

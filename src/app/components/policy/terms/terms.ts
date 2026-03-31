@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './terms.css',
 })
 export class Terms {
-
+  year = new Date().getFullYear();
 }

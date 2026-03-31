@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
 import { interval } from 'rxjs';
 import { TimerService } from '../../services/timer';
+import { environment } from '../../../environments/environment';
 declare var bootstrap: any;
 
 @Component({
@@ -53,7 +54,7 @@ export class EnrollModal {
     private cd: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object,
     public timer: TimerService,
-  ) {}
+  ) { }
 
   ngAfterViewInit() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -77,42 +78,31 @@ export class EnrollModal {
   }
 
   submitForm() {
-    const url =
-      'https://script.google.com/macros/s/AKfycbzOV6HBZGLI-wpoioth6XYR1yVQS7UyosjoutdUzVgy3LgUZ-0_z0mhRUjBmgPUh-AeYQ/exec';
-
-    const formData = new FormData();
-
-    formData.append('name', this.formData.name);
-    formData.append('phone', this.formData.phone);
-    formData.append('email', this.formData.email);
-    formData.append('course', this.formData.course);
-    formData.append('experience', this.formData.experience);
-    formData.append('batch', this.formData.batch);
-    formData.append('city', this.formData.city);
-    formData.append('message', this.formData.message);
-
-    fetch(url, {
+    fetch(`${environment.apiUrl}/api/leads/save`, {
       method: 'POST',
-      body: formData,
-      mode: 'no-cors', // ✅ IMPORTANT FIX
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(this.formData),
     })
-      .then(() => {
-        this.modalInstance?.hide();
-        setTimeout(() => {
-          this.submitted = true;
-          this.cd.detectChanges(); // 🔥 IMPORTANT
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed');
 
-          setTimeout(() => {
-            this.submitted = false;
-            this.cd.detectChanges();
-          }, 5000);
-        });
+        this.modalInstance?.hide();
+
+        this.submitted = true;
+        this.cd.detectChanges();
+
+        setTimeout(() => {
+          this.submitted = false;
+          this.cd.detectChanges();
+        }, 5000);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         alert('Error submitting form');
       });
   }
-
   openWhatsApp() {
     const message = `🎓 New Demo Registration
 

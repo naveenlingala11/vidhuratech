@@ -23,17 +23,17 @@ export class JobsHome {
   totalJobs = 0;
 
   isLoading = true;
-  skeletons = [1,2,3,4,5,6,7,8,9];
+  skeletons = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   suggestions: string[] = [];
   allSuggestions: string[] = [
-    'Java','Angular','React','Python','Fresher','Remote'
+    'Java', 'Angular', 'React', 'Python', 'Fresher', 'Remote'
   ];
 
   constructor(
     private jobService: JobService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadJobs();
@@ -94,5 +94,9 @@ export class JobsHome {
     }
     const clean = company.toLowerCase().replace(/\s+/g, '');
     return `https://www.google.com/s2/favicons?domain=${clean}.com&sz=128`;
+  }
+
+  trackById(index: number, job: Job) {
+    return job.id;
   }
 }

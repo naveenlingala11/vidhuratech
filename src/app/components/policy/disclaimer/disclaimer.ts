@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './disclaimer.css',
 })
 export class Disclaimer {
-
+  year = new Date().getFullYear();
 }

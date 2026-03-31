@@ -3,17 +3,14 @@
   <section class="hero">
     <div class="circle one"></div>
     <div class="circle two"></div>
-    <h1>Find Your Dream Job 🚀</h1>
-    <p>Explore thousands of verified opportunities</p>
+    <h1>Find Your Dream Job</h1>
+    <p class="sub-headline">
+      Get hired faster with AI-powered job discovery | Explore thousands of verified opportunities
+    </p>
 
     <div class="search-bar">
-      <input
-        type="text"
-        placeholder="Search jobs..."
-        [(ngModel)]="searchText"
-        (input)="onSearchChange()"
-      />
-
+      <input type="text" placeholder="Search by role, skill, company..." [(ngModel)]="searchText"
+        (input)="onSearchChange()" />
       <button (click)="goToJobs()">Search</button>
 
       <div class="suggestions" *ngIf="suggestions.length">
@@ -22,15 +19,27 @@
         </div>
       </div>
     </div>
+    <p class="live-count">
+      🔥 {{ totalJobs }}+ jobs available right now
+    </p>
 
-    <div class="quick-tags">
-      <span (click)="quickSearch('Java')">Java</span>
-      <span (click)="quickSearch('Angular')">Angular</span>
-      <span (click)="quickSearch('React')">React</span>
-      <span (click)="quickSearch('Fresher')">Fresher</span>
+    <div class="trust-badges">
+      <span>✔ 50K+ Users</span>
+      <span>✔ Verified Jobs</span>
+      <span>✔ No Spam</span>
+    </div>
+    <button class="cta" (click)="goToJobs()">Browse All Jobs →</button>
+  </section>
+  <section class="top-companies">
+    <h2>🏢 Top Hiring Companies</h2>
+
+    <div class="company-list">
+      <div *ngFor="let c of companies | slice:0:10">
+        <img [src]="getCompanyLogo(c.name)" />
+        <p>{{ c.name }}</p>
+      </div>
     </div>
   </section>
-
   <!-- PROMO -->
   <section class="promo">
     <div class="promo-card">🚀 50,000+ Users</div>
@@ -91,6 +100,24 @@
           </select>
         </div>
 
+        <div class="filter-group">
+          <label>Salary</label>
+          <select>
+            <option>Any</option>
+            <option>3-6 LPA</option>
+            <option>6-12 LPA</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Job Type</label>
+          <select>
+            <option>All</option>
+            <option>Full-time</option>
+            <option>Internship</option>
+          </select>
+        </div>
+
         <button class="btn btn-primary w-100" (click)="goToJobs()">Apply</button>
       </aside>
 
@@ -107,11 +134,7 @@
 
         <!-- JOBS -->
         <ng-container *ngIf="!isLoading">
-          <div
-            class="job-card"
-            *ngFor="let job of jobs | slice: 0 : 6"
-            (click)="goToDetail(job.id)"
-          >
+          <div class="job-card" *ngFor="let job of jobs | slice:0:9; trackBy: trackById" (click)="goToDetail(job.id)">
             <span class="badge-new">NEW</span>
             <div class="card-top">
               <img [src]="getCompanyLogo(job.companyName)" />
@@ -124,7 +147,13 @@
 
             <div class="meta">
               <span>📍 {{ job.location }}</span>
+              <span class="salary">💰 {{ job.salary || 'Not disclosed' }}</span>
               <span>💼 {{ job.experience || '0-3 yrs' }}</span>
+            </div>
+
+            <div class="meta">
+              <span class="job-type">Full Time</span>
+              <span class="posted">⏰ 2 days ago</span>
             </div>
 
             <div class="skills">
@@ -213,4 +242,7 @@
       Join our free demo classes and experience our unique training approach. Get a taste of our
       live coding sessions, real-time projects, and interview preparation techniques. Our expert
       trainers will guide you through the learning process and help you build the skills needed to
-      succeed in the IT industry. Don't miss this opportunity to kickstart your career with us! Join our demo classes and take the first step towards landing your dream job in IT. Our training programs are designed to equip you with the practical skills, industry insights, and confidence needed to excel in your job search. Sign up for our free demo classes today and see how we can help you achieve your career goals!
+      succeed in the IT industry. Don't miss this opportunity to kickstart your career with us! Join our demo classes
+      and take the first step towards landing your dream job in IT. Our training programs are designed to equip you with
+      the practical skills, industry insights, and confidence needed to excel in your job search. Sign up for our free
+      demo classes today and see how we can help you achieve your career goals!
