@@ -1,289 +1,514 @@
 <div class="admin-container">
-  <div class="header">
-    <h2>📊 Admin Dashboard</h2>
+  <!-- 🔄 PROCESSING OVERLAY -->
+  <div class="processing-overlay" *ngIf="isProcessing">
 
-    <div class="tabs">
-      <button [class.active]="activeTab === 'leads'" (click)="activeTab = 'leads'">Leads</button>
-      <button [class.active]="activeTab === 'jobs'" (click)="activeTab = 'jobs'">Post Jobs</button>
-      <button [class.active]="activeTab === 'companies'" (click)="activeTab = 'companies'">
-        Companies
-      </button>
+    <!-- 🔥 TOP PROGRESS BAR -->
+    <div class="top-progress">
+      <div class="bar" [style.width.%]="progress"></div>
+    </div>
+
+    <!-- 🔄 LOADER / SUCCESS -->
+    <div class="processing-box">
+
+      <!-- LOADING -->
+      <div *ngIf="!showSuccess" class="loader"></div>
+
+      <!-- SUCCESS -->
+      <div *ngIf="showSuccess" class="checkmark">✔</div>
+
+      <p>{{ processMessage }}</p>
+
     </div>
   </div>
 
-  <!-- LEADS -->
-  <div [hidden]="activeTab !== 'leads'">
-    <!-- (NO CHANGE HERE — your code is fine) -->
+  <!-- 🔒 LOGIN OVERLAY (OUTSIDE BLUR) -->
+  <div class="login-overlay" *ngIf="!isLoggedIn">
+    <div class="login-box">
+      <img src="VidhuraTechLogo.png" class="logo-img" />
+      <h2 class="title">Admin Login</h2>
 
-    <div class="top-bar">
-      <div>
-        <button class="btn primary" (click)="refreshLeads()">🔄 Refresh</button>
-        <button class="btn success" (click)="exportCSV()">📤 Export</button>
-      </div>
+      <input placeholder="Username" [(ngModel)]="loginData.username" (keyup.enter)="login()" />
 
-      <div class="badge-box">
-        <span>Total: {{ stats.total }}</span>
-        <span>New: {{ stats.new }}</span>
-        <span>Contacted: {{ stats.contacted }}</span>
-        <span>Joined: {{ stats.joined }}</span>
-      </div>
+      <input type="password" placeholder="Password" [(ngModel)]="loginData.password" (keyup.enter)="login()" />
+
+      <button (click)="login()">Login</button>
+
+      <p class="error" *ngIf="errorMsg">{{ errorMsg }}</p>
     </div>
+  </div>
 
-    <!-- STATS -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>{{ stats.total }}</h3>
-        <p>Total Leads</p>
+  <!-- 🔥 BLUR ONLY THIS -->
+  <div [class.blur]="!isLoggedIn">
+
+    <div class="admin-layout">
+
+      <!-- =======================🔥 SIDEBAR ========================== -->
+
+      <div class="sidebar" [class.collapsed]="isCollapsed">
+
+        <!-- TOP -->
+        <div class="sidebar-top">
+          <span class="logo" *ngIf="!isCollapsed">
+            <img src="VidhuraTechLogo.png" class="logo-img" />
+          </span>
+
+          <button class="collapse-btn" (click)="toggleSidebar()">
+            ☰
+          </button>
+        </div>
+
+        <!-- MENU -->
+        <div class="menu">
+
+          <button [class.active]="activeTab==='leads'" (click)="openTab('leads')">
+            <i class="fas fa-user-friends"></i>
+            <span *ngIf="!isCollapsed">Leads</span>
+          </button>
+
+          <button [class.active]="activeTab==='jobs'" (click)="openTab('jobs')">
+            <i class="fas fa-briefcase"></i>
+            <span *ngIf="!isCollapsed">Jobs</span>
+          </button>
+
+          <button [class.active]="activeTab==='companies'" (click)="openTab('companies')">
+            <i class="fas fa-building"></i>
+            <span *ngIf="!isCollapsed">Companies</span>
+          </button>
+
+          <button class="bin-btn" [class.active]="activeTab==='bin'" (click)="openTab('bin')">
+            <i class="fas fa-trash-alt"></i><span class="badge" *ngIf="binReady && !isCollapsed">
+              {{ binCount }}
+            </span>
+            <span *ngIf="!isCollapsed">Bin</span>
+
+
+          </button>
+
+        </div>
+
       </div>
-      <div class="stat-card blue">
-        <h3>{{ stats.new }}</h3>
-        <p>New</p>
-      </div>
-      <div class="stat-card orange">
-        <h3>{{ stats.contacted }}</h3>
-        <p>Contacted</p>
-      </div>
-      <div class="stat-card green">
-        <h3>{{ stats.joined }}</h3>
-        <p>Joined</p>
-      </div>
-    </div>
 
-    <!-- FILTER -->
-    <div class="filter-bar">
-      <input placeholder="🔍 Search" [(ngModel)]="searchText" (input)="applyFilter()" />
-      <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
-        <option value="">All Status</option>
-        <option>New</option>
-        <option>Contacted</option>
-        <option>Joined</option>
-      </select>
+      <!-- 🔥 MAIN -->
+      <div class="main-content">
 
-      <select [(ngModel)]="selectedCity" (change)="applyFilter()">
-        <option value="">All Cities</option>
-        <option *ngFor="let c of cities">{{ c }}</option>
-      </select>
+        <!-- 🔝 TOP BAR -->
+        <div class="top-header">
 
-      <input type="date" [(ngModel)]="fromDate" (change)="applyFilter()" />
-      <input type="date" [(ngModel)]="toDate" (change)="applyFilter()" />
-    </div>
+          <!-- MOBILE MENU -->
+          <button class="mobile-menu" (click)="toggleSidebar()">☰</button>
 
-    <!-- TABLE -->
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Course</th>
-            <th>Status</th>
-            <th>Follow-up</th>
-            <th>Action</th>
-          </tr>
-        </thead>
+          <h2 class="admin-text"><B>Admin Dashboard</B></h2>
 
-        <tbody>
-          <tr *ngFor="let lead of filteredLeads">
-            <td>{{ lead.Name }}</td>
-            <td>{{ lead.Phone }}</td>
-            <td>{{ lead.Course }}</td>
+          <!-- RIGHT SIDE -->
+          <div class="header-actions">
 
-            <td>
-              <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
+            <!-- 🔔 NOTIFICATION -->
+            <div class="notification" (click)="clearNotifications()">
+              🔔
+              <span class="notif-badge" *ngIf="newLeadsCount > 0">
+                {{ newLeadsCount }}
+              </span>
+            </div>
+
+            <!-- 👤 PROFILE -->
+            <div class="profile" (click)="toggleProfile()">
+              👤
+
+              <div class="dropdown" *ngIf="showProfile">
+                <p>Admin</p>
+                <button (click)="logout()">Logout</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        <div class="page-content">
+          <!-- LEADS -->
+          <div [hidden]="activeTab !== 'leads'">
+
+            <div class="top-bar">
+              <div>
+                <button class="btn primary" (click)="refreshLeads()">🔄 Refresh</button>
+                <button class="btn success" (click)="exportCSV()">📤 Export</button>
+              </div>
+
+              <div class="badge-box">
+                <span>Total: {{ stats.total }}</span>
+                <span>New: {{ stats.new }}</span>
+                <span>Contacted: {{ stats.contacted }}</span>
+                <span>Joined: {{ stats.joined }}</span>
+              </div>
+            </div>
+
+            <!-- STATS -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h3>{{ stats.total }}</h3>
+                <p>Total Leads</p>
+              </div>
+              <div class="stat-card blue">
+                <h3>{{ stats.new }}</h3>
+                <p>New</p>
+              </div>
+              <div class="stat-card orange">
+                <h3>{{ stats.contacted }}</h3>
+                <p>Contacted</p>
+              </div>
+              <div class="stat-card green">
+                <h3>{{ stats.joined }}</h3>
+                <p>Joined</p>
+              </div>
+            </div>
+
+            <!-- FILTER -->
+            <div class="filter-bar">
+              <input placeholder="🔍 Search" [(ngModel)]="searchText" (input)="applyFilter()" />
+              <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
+                <option value="">All Status</option>
                 <option>New</option>
                 <option>Contacted</option>
                 <option>Joined</option>
               </select>
-            </td>
 
-            <td>
-              <input type="date" [(ngModel)]="lead.FollowUp" (change)="updateLead(lead)" />
-            </td>
+              <select [(ngModel)]="selectedCity" (change)="applyFilter()">
+                <option value="">All Cities</option>
+                <option *ngFor="let c of cities">{{ c }}</option>
+              </select>
 
-            <td>
-              <a [href]="'https://wa.me/91' + lead.Phone" target="_blank" class="whatsapp-btn">
-                WhatsApp
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+              <input type="date" [(ngModel)]="fromDate" (change)="applyFilter()" />
+            </div>
 
-  <!-- ================= JOB PANEL ================= -->
-  <div [hidden]="activeTab !== 'jobs'">
-    <div class="job-panel">
-      <h3>🚀 Post New Job</h3>
+            <!-- TABLE -->
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Course</th>
+                    <th>Status</th>
+                    <th>Follow-up</th>
+                    <th>Action</th>
+                    <th>Delete</th>
+                  </tr>
+                </thead>
 
-      <form #jobFormRef="ngForm">
-        <div class="job-form">
-          <div>
-            <input
-              name="title"
-              required
-              #t="ngModel"
-              placeholder="Job Title"
-              [(ngModel)]="jobForm.title"
-            />
-            <small *ngIf="t.invalid && t.touched" class="error">Required</small>
+                <tbody>
+                  <tr *ngFor="let lead of filteredLeads" [class.today-followup]="lead.FollowUp === todayDate">
+                    <td>{{ lead.Date | date:'short' }}</td>
+                    <td>{{ lead.Name }}</td>
+                    <td>{{ lead.Phone }}</td>
+                    <td>{{ lead.Course }}</td>
+
+                    <td>
+                      <div class="status-wrapper">
+
+                        <!-- STATUS DROPDOWN -->
+                        <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
+
+                          <option>New</option>
+                          <option>Contacted</option>
+                          <option>Joined</option>
+
+                        </select>
+
+                        <!-- ✅ SHOW ONLY WHEN CHANGED -->
+                        <div class="status-actions" *ngIf="lead.isChanged">
+
+                          <!-- SAVE -->
+                          <i class="fas fa-check tick" (click)="saveStatus(lead)">
+                          </i>
+
+                          <!-- CANCEL -->
+                          <i class="fas fa-times cross" (click)="cancelStatus(lead)">
+                          </i>
+
+                        </div>
+
+                      </div>
+                    </td>
+                    <td>
+
+                      <div class="status-wrapper">
+
+                        <!-- DATE INPUT -->
+                        <input type="date" [(ngModel)]="lead.tempFollowUp" (change)="onFollowUpChange(lead)" />
+
+                        <!-- ICONS -->
+                        <div class="status-actions" *ngIf="lead.isFollowUpChanged">
+
+                          <!-- SAVE -->
+                          <i class="fas fa-check tick" (click)="saveFollowUp(lead)">
+                          </i>
+
+                          <!-- CANCEL -->
+                          <i class="fas fa-times cross" (click)="cancelFollowUp(lead)">
+                          </i>
+
+                        </div>
+
+                      </div>
+
+                    </td>
+
+                    <td>
+                      <a [href]="'https://wa.me/91' + lead.Phone" target="_blank" class="whatsapp-btn">
+                        WhatsApp
+                      </a>
+                    </td>
+                    <td>
+                      <span class="delete-btn" (click)="deleteLead(lead)">❌</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <button (click)="prevPage()" [disabled]="page === 0">⬅</button>
+              <span>Page {{ page + 1 }}</span>
+              <button (click)="nextPage()" [disabled]="page === totalPages - 1">➡</button>
+            </div>
           </div>
 
-          <div>
-            <input
-              name="company"
-              required
-              #c="ngModel"
-              placeholder="Company"
-              [(ngModel)]="jobForm.company"
-            />
-            <small *ngIf="c.invalid && c.touched" class="error">Required</small>
+          <div class="bin-container" [hidden]="activeTab !== 'bin'">
+
+            <!-- 🔙 HEADER -->
+            <div class="bin-header">
+              <button class="back-btn" (click)="openTab('leads')">← Back</button>
+
+              <h3>
+                🗑 Deleted Leads
+                <span class="count-badge">({{ binTotal }})</span>
+              </h3>
+            </div>
+
+            <div class="bin-table-wrapper">
+
+              <!-- LOADING -->
+              <div *ngIf="isBinLoading" class="bin-empty">
+                ⏳ Loading deleted leads...
+              </div>
+
+              <!-- EMPTY -->
+              <div *ngIf="!isBinLoading && binLeads.length === 0" class="bin-empty">
+                <div class="empty-icon">📦</div>
+                <p>No deleted leads found</p>
+              </div>
+
+              <!-- TABLE -->
+              <table class="bin-table" *ngIf="!isBinLoading && binLeads.length > 0">
+
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Deleted At</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  <tr *ngFor="let lead of binLeads">
+
+                    <td>{{ lead.name }}</td>
+                    <td>{{ lead.phone }}</td>
+
+                    <td>{{ lead.deletedAt | date:'short' }}</td>
+
+                    <td>
+                      <span class="deleted-badge">Deleted</span>
+                    </td>
+
+                    <td>
+                      <div class="bin-actions">
+                        <button class="restore-btn" (click)="restoreLead(lead)">♻ Restore</button>
+                        <button class="delete-permanent-btn" (click)="deletePermanent(lead)">
+                          🗑 Delete
+                        </button>
+                      </div>
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
           </div>
-
-          <input name="location" placeholder="Location" [(ngModel)]="jobForm.location" />
-
-          <input name="experience" placeholder="Experience" [(ngModel)]="jobForm.experience" />
-
-          <select name="type" required [(ngModel)]="jobForm.type">
-            <option value="">Type</option>
-            <option>Fresher</option>
-            <option>Internship</option>
-            <option>Experienced</option>
-            <option>Walkin</option>
-          </select>
-
-          <select name="category" [(ngModel)]="jobForm.category">
-            <option value="">Category</option>
-            <option *ngFor="let c of categories">{{ c }}</option>
-          </select>
-
-          <input name="link" placeholder="Apply Link" [(ngModel)]="jobForm.link" />
-
-          <button type="button" (click)="previewJob()">👁 Preview</button>
-          <button type="button" (click)="postJob()">🚀 Post Job</button>
         </div>
-      </form>
 
-      <div class="preview-box" *ngIf="showPreview">
-        <h4>Preview</h4>
-        <p>{{ jobForm.title }} - {{ jobForm.company }}</p>
 
-        <button (click)="confirmPost()">Confirm</button>
-        <button (click)="showPreview = false">Cancel</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- companies and analytics -->
-  <div [class.disabled]="isScraping">
-    <div [hidden]="activeTab !== 'companies'" class="companies-section">
-      <h3>🏢 Companies</h3>
 
-      <div class="company-form">
-        <input placeholder="Company" [(ngModel)]="newCompany.company" />
-        <input placeholder="Type" [(ngModel)]="newCompany.type" />
-        <input placeholder="URL" [(ngModel)]="newCompany.url" />
+        <!-- ===================================== JOB PANEL ======================================================================================================================================================================================== -->
 
-        <input
-          placeholder="🔍 Search Company"
-          [(ngModel)]="searchCompany"
-          (input)="loadCompanies()"
-        />
 
-        <!-- SORT -->
-        <select [(ngModel)]="sortBy" (change)="loadCompanies()">
-          <option value="company">Name</option>
-          <option value="type">Type</option>
-          <option value="jobs">Jobs 🔥</option>
-        </select>
 
-        <!-- DIRECTION -->
-        <select [(ngModel)]="direction" (change)="loadCompanies()">
-          <option value="asc">ASC</option>
-          <option value="desc">DESC</option>
-        </select>
 
-        <!-- ACTIVE FILTER -->
-        <select [(ngModel)]="activeFilter" (change)="loadCompanies()">
-          <option value="">All</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
-        </select>
+        <div [hidden]="activeTab !== 'jobs'">
+          <div class="job-panel">
+            <h3>🚀 Post New Job</h3>
 
-        <!-- PAGE SIZE -->
-        <select [(ngModel)]="companySize" (change)="loadCompanies()">
-          <option [value]="5">5</option>
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="50">50</option>
-        </select>
+            <form #jobFormRef="ngForm">
+              <div class="job-form">
+                <div>
+                  <input name="title" required #t="ngModel" placeholder="Job Title" [(ngModel)]="jobForm.title" />
+                  <small *ngIf="t.invalid && t.touched" class="error">Required</small>
+                </div>
 
-        <button class="add-btn" (click)="addCompany()">➕ Add</button>
-      </div>
+                <div>
+                  <input name="company" required #c="ngModel" placeholder="Company" [(ngModel)]="jobForm.company" />
+                  <small *ngIf="c.invalid && c.touched" class="error">Required</small>
+                </div>
 
-      <!-- 🔥 COMPANY LIST -->
-      <div class="company-list">
-        <div *ngFor="let c of companies" class="company-item">
-          <div class="company-left">
-            <span class="company-name">{{ c.company }}</span>
+                <input name="location" placeholder="Location" [(ngModel)]="jobForm.location" />
 
-            <!-- ✅ ADDED STATS -->
-            <div class="company-stats">✔ {{ c.successCount || 0 }} | ❌ {{ c.failCount || 0 }}</div>
+                <input name="experience" placeholder="Experience" [(ngModel)]="jobForm.experience" />
+
+                <select name="type" required [(ngModel)]="jobForm.type">
+                  <option value="">Type</option>
+                  <option>Fresher</option>
+                  <option>Internship</option>
+                  <option>Experienced</option>
+                  <option>Walkin</option>
+                </select>
+
+                <select name="category" [(ngModel)]="jobForm.category">
+                  <option value="">Category</option>
+                  <option *ngFor="let c of categories">{{ c }}</option>
+                </select>
+
+                <input name="link" placeholder="Apply Link" [(ngModel)]="jobForm.link" />
+
+                <button type="button" (click)="previewJob()">👁 Preview</button>
+                <button type="button" (click)="postJob()">🚀 Post Job</button>
+              </div>
+            </form>
+
+            <div class="preview-box" *ngIf="showPreview">
+              <h4>Preview</h4>
+              <p>{{ jobForm.title }} - {{ jobForm.company }}</p>
+
+              <button (click)="confirmPost()">Confirm</button>
+              <button (click)="showPreview = false">Cancel</button>
+            </div>
           </div>
+        </div>
 
-          <div class="company-right">
-            <button class="toggle-btn" (click)="toggleCompany(c)">
-              {{ c.active ? '🟢 Active' : '🔴 Inactive' }}
+        <!-- companies and analytics -->
+        <div [class.disabled]="isScraping">
+          <div [hidden]="activeTab !== 'companies'" class="companies-section">
+            <h3>🏢 Companies</h3>
+
+            <div class="company-form">
+              <input placeholder="Company" [(ngModel)]="newCompany.company" />
+              <input placeholder="Type" [(ngModel)]="newCompany.type" />
+              <input placeholder="URL" [(ngModel)]="newCompany.url" />
+
+              <input placeholder="🔍 Search Company" [(ngModel)]="searchCompany" (input)="loadCompanies()" />
+
+              <!-- SORT -->
+              <select [(ngModel)]="sortBy" (change)="loadCompanies()">
+                <option value="company">Name</option>
+                <option value="type">Type</option>
+                <option value="jobs">Jobs 🔥</option>
+              </select>
+
+              <!-- DIRECTION -->
+              <select [(ngModel)]="direction" (change)="loadCompanies()">
+                <option value="asc">ASC</option>
+                <option value="desc">DESC</option>
+              </select>
+
+              <!-- ACTIVE FILTER -->
+              <select [(ngModel)]="activeFilter" (change)="loadCompanies()">
+                <option value="">All</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+
+              <!-- PAGE SIZE -->
+              <select [(ngModel)]="companySize" (change)="loadCompanies()">
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+              </select>
+
+              <button class="add-btn" (click)="addCompany()">➕ Add</button>
+            </div>
+
+            <!-- 🔥 COMPANY LIST -->
+            <div class="company-list">
+              <div *ngFor="let c of companies" class="company-item">
+                <div class="company-left">
+                  <span class="company-name">{{ c.company }}</span>
+
+                  <!-- ✅ ADDED STATS -->
+                  <div class="company-stats">✔ {{ c.successCount || 0 }} | ❌ {{ c.failCount || 0 }}</div>
+                </div>
+
+                <div class="company-right">
+                  <button class="toggle-btn" (click)="toggleCompany(c)">
+                    {{ c.active ? '🟢 Active' : '🔴 Inactive' }}
+                  </button>
+
+                  <button class="delete-btn" (click)="deleteCompany(c.id)">❌</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 🔥 PAGINATION -->
+            <div class="pagination">
+              <button (click)="prevCompanyPage()">⬅ Prev</button>
+              <span>Page {{ companyPage + 1 }}</span>
+              <button (click)="nextCompanyPage()">Next ➡</button>
+            </div>
+
+            <hr />
+
+            <!-- 🔥 ANALYTICS -->
+            <h3>📊 Analytics</h3>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h3>{{ analytics.totalJobs }}</h3>
+                <p>Total Jobs</p>
+              </div>
+
+              <div class="stat-card blue">
+                <h3>{{ analytics.today }}</h3>
+                <p>Today</p>
+              </div>
+
+              <div class="stat-card orange">
+                <h3>{{ analytics.week }}</h3>
+                <p>This Week</p>
+              </div>
+
+              <div class="stat-card green">
+                <h3>{{ analytics.month }}</h3>
+                <p>This Month</p>
+              </div>
+            </div>
+
+            <button class="scrape-btn" (click)="triggerScrape()" [disabled]="isScraping">
+              <span *ngIf="!isScraping">🚀 Run Scraper</span>
+              <span *ngIf="isScraping">⏳ Running...</span>
             </button>
-
-            <button class="delete-btn" (click)="deleteCompany(c.id)">❌</button>
+            <div class="overlay" *ngIf="isScraping">
+              <div class="loader"></div>
+              <p class="loading-text">🚀 Scraping<span class="dots"></span></p>
+            </div>
+            <div *ngIf="!isScraping && completed" class="done-msg">✅ Scraping Completed</div>
           </div>
         </div>
       </div>
-
-      <!-- 🔥 PAGINATION -->
-      <div class="pagination">
-        <button (click)="prevCompanyPage()">⬅ Prev</button>
-        <span>Page {{ companyPage + 1 }}</span>
-        <button (click)="nextCompanyPage()">Next ➡</button>
-      </div>
-
-      <hr />
-
-      <!-- 🔥 ANALYTICS -->
-      <h3>📊 Analytics</h3>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>{{ analytics.totalJobs }}</h3>
-          <p>Total Jobs</p>
-        </div>
-
-        <div class="stat-card blue">
-          <h3>{{ analytics.today }}</h3>
-          <p>Today</p>
-        </div>
-
-        <div class="stat-card orange">
-          <h3>{{ analytics.week }}</h3>
-          <p>This Week</p>
-        </div>
-
-        <div class="stat-card green">
-          <h3>{{ analytics.month }}</h3>
-          <p>This Month</p>
-        </div>
-      </div>
-
-      <button class="scrape-btn" (click)="triggerScrape()" [disabled]="isScraping">
-        <span *ngIf="!isScraping">🚀 Run Scraper</span>
-        <span *ngIf="isScraping">⏳ Running...</span>
-      </button>
-      <div class="overlay" *ngIf="isScraping">
-        <div class="loader"></div>
-        <p class="loading-text">🚀 Scraping<span class="dots"></span></p>
-      </div>
-      <div *ngIf="!isScraping && completed" class="done-msg">✅ Scraping Completed</div>
     </div>
   </div>
 </div>

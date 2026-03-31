@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './cookies.css',
 })
 export class Cookies {
-
+  year = new Date().getFullYear();
 }

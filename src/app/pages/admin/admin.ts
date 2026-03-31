@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
@@ -12,7 +13,7 @@ import { HttpClient } from '@angular/common/http';
   styleUrl: './admin.css',
 })
 export class Admin implements OnInit {
-  activeTab: 'leads' | 'jobs' | 'companies' = 'leads';
+  activeTab: 'leads' | 'jobs' | 'companies' | 'bin' = 'leads';
 
   leads: any[] = [];
   filteredLeads: any[] = [];
@@ -35,54 +36,256 @@ export class Admin implements OnInit {
   companyPage = 0;
   companySize = 10;
   totalCompanies = 0;
+  page = 0;
+  size = 10;
+  totalPages = 0;
 
-  apiUrl =
-    'https://script.google.com/macros/s/AKfycbxmpbxdH5rj-z3fT29aAh-TrGVNneDej7MsUfz3O54HIJtrIW2dW0IGw4gact_0q7U/exec';
+  binTotal = 0;
+  binReady = false;
+  isCollapsed = false;
+  showProfile = false;
+
+  newLeadsCount = 0;
+  previousTotal = 0;
+
+  isLoggedIn = false;
+
+  loginData = {
+    username: '',
+    password: ''
+  };
+
+  errorMsg = '';
+  idleTimer: any;
+  timeout = 2 * 60 * 1000; // 2 minutes
+  isProcessing = false;
+  processMessage = '';
+  progress = 0;
+  showSuccess = false;
 
   constructor(
     private cd: ChangeDetectorRef,
     private http: HttpClient,
-  ) {}
+    private router: Router
+  ) { }
 
   // ================= INIT =================
   ngOnInit() {
-    this.loadLeads();
-    this.loadCategories();
-    this.loadCompanies();
-    this.loadAnalytics();
+    const saved = localStorage.getItem('adminLogin');
+
+    setTimeout(() => {
+      this.isLoggedIn = saved === 'true';
+
+      if (this.isLoggedIn) {
+        this.loadLeads();
+        this.loadCategories();
+        this.loadCompanies();
+        this.loadAnalytics();
+        this.loadBin();
+        this.startLeadPolling();
+        this.startIdleTimer();
+      }
+    });
   }
 
   ngAfterViewInit() {
-    this.cd.detectChanges();
+    setTimeout(() => {
+      this.cd.detectChanges();
+    });
+  }
+
+  login() {
+    if (
+      this.loginData.username === 'admin' &&
+      this.loginData.password === 'admin123'
+    ) {
+      this.isProcessing = true;
+      this.processMessage = 'Logging in...';
+      this.progress = 30;
+
+      setTimeout(() => {
+        this.progress = 70;
+      }, 300);
+
+      setTimeout(() => {
+        this.progress = 100;
+        this.showSuccess = true;
+      }, 600);
+
+      setTimeout(() => {
+        this.isLoggedIn = true;
+        localStorage.setItem('adminLogin', 'true');
+
+        this.isProcessing = false;
+        this.showSuccess = false;
+        this.errorMsg = '';
+
+        // 🔥 LOAD DATA AFTER UI FREE
+        setTimeout(() => {
+          this.loadLeads();
+          this.loadCategories();
+          this.loadCompanies();
+          this.loadAnalytics();
+          this.loadBin();
+          this.startLeadPolling();
+          this.startIdleTimer();
+        }, 100);
+
+      }, 1000);
+
+    } else {
+      this.errorMsg = 'Invalid credentials ❌';
+    }
+  }
+
+  logout(force = false) {
+    if (!force && !confirm('Logout?')) return;
+
+    this.isProcessing = true;
+    this.processMessage = 'Logging out...';
+    this.progress = 50;
+
+    setTimeout(() => {
+      this.progress = 100;
+      this.showSuccess = true;
+    }, 400);
+
+    setTimeout(() => {
+      localStorage.clear();
+      location.reload();
+    }, 900);
+  }
+
+  startIdleTimer() {
+    clearTimeout(this.idleTimer);
+
+    this.idleTimer = setTimeout(() => {
+      alert('Session expired. Please login again');
+      this.logout(true); // ✅ force logout
+    }, this.timeout);
+  }
+
+  @HostListener('document:mousemove')
+  @HostListener('document:keydown')
+  @HostListener('document:click')
+  resetTimer() {
+    if (this.isLoggedIn) {
+      this.startIdleTimer();
+    }
+  }
+
+  openTab(tab: 'leads' | 'jobs' | 'companies' | 'bin') {
+    this.activeTab = tab;
+
+    if (tab === 'bin') {
+      this.loadBin(); // 🔥 only here
+    }
+
+    if (tab === 'leads') {
+      this.loadLeads();
+    }
+  }
+
+  toggleSidebar() {
+    this.isCollapsed = !this.isCollapsed;
+  }
+
+  toggleProfile() {
+    setTimeout(() => {
+      this.showProfile = !this.showProfile;
+    });
+  }
+
+  clearNotifications() {
+    setTimeout(() => {
+      this.newLeadsCount = 0;
+    });
+  }
+
+  /* 🔔 LIVE NOTIFICATION */
+  startLeadPolling() {
+    setInterval(() => {
+      fetch(`${environment.apiUrl}/api/leads/analytics`)
+        .then(res => res.json())
+        .then(data => {
+
+          if (this.previousTotal && data.total > this.previousTotal) {
+            this.newLeadsCount += (data.total - this.previousTotal);
+          }
+
+          this.previousTotal = data.total;
+
+        });
+    }, 5000); // every 5 sec
   }
 
   // ================= LEADS =================
   loadLeads() {
-    fetch(this.apiUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        this.leads = data
-          .map((item: any) => ({
-            Date: item.Date,
-            Name: item.Name,
-            Phone: String(item.Phone),
-            Email: item.Email,
-            Course: item.Course,
-            Batch: item.Batch,
-            City: item.City,
-            Status: 'New',
-            FollowUp: '',
-            tempStatus: 'New',
-            isChanged: false,
-          }))
-          .reverse();
+    fetch(`${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}`)
+      .then(res => res.json())
+      .then(data => {
+
+        this.leads = data.content.map((item: any) => ({
+          id: item.id,
+          Date: item.createdAt,
+          Name: item.name,
+          Phone: item.phone,
+          Email: item.email,
+          Course: item.course,
+          Batch: item.batch,
+          City: item.city,
+          Status: item.status,
+          tempStatus: item.status,
+          isChanged: false,
+          FollowUp: item.followUpDate,
+          tempFollowUp: item.followUpDate,
+          isFollowUpChanged: false,
+        }));
+
+        this.totalPages = data.totalPages; // ✅ works now
 
         this.filteredLeads = [...this.leads];
-        this.cities = [...new Set(this.leads.map((l) => l.City))];
-
         this.calculateStats();
         this.cd.detectChanges();
       });
+  }
+
+  nextPage() {
+    if (this.page < this.totalPages - 1) {
+      this.page++;
+      this.loadLeads();
+    }
+  }
+
+  prevPage() {
+    if (this.page > 0) {
+      this.page--;
+      this.loadLeads();
+    }
+  }
+
+  onFollowUpChange(lead: any) {
+    lead.isFollowUpChanged = true;
+  }
+
+  saveFollowUp(lead: any) {
+
+    fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
+      method: 'POST'
+    })
+      .then(() => {
+        lead.FollowUp = lead.tempFollowUp;
+        lead.isFollowUpChanged = false;
+      })
+      .catch(() => {
+        alert('Failed to save follow-up');
+      });
+
+  }
+
+  cancelFollowUp(lead: any) {
+    lead.tempFollowUp = lead.FollowUp;
+    lead.isFollowUpChanged = false;
   }
 
   applyFilter() {
@@ -103,6 +306,21 @@ export class Admin implements OnInit {
     });
   }
 
+  saveStatus(lead: any) {
+    fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
+      method: 'POST'
+    })
+      .then(() => {
+        lead.Status = lead.tempStatus;
+        lead.isChanged = false;
+      });
+  }
+
+  cancelStatus(lead: any) {
+    lead.tempStatus = lead.Status;
+    lead.isChanged = false;
+  }
+
   calculateStats() {
     this.stats.total = this.leads.length;
     this.stats.new = this.leads.filter((l) => l.Status === 'New').length;
@@ -111,18 +329,29 @@ export class Admin implements OnInit {
   }
 
   updateLead(lead: any) {
-    const formData = new FormData();
 
-    formData.append('action', 'update');
-    formData.append('phone', lead.Phone);
-    formData.append('status', lead.tempStatus || lead.Status);
-    formData.append('followUp', lead.FollowUp || '');
+    fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
+      method: 'POST'
+    })
+      .then(() => {
+        // 🔥 update UI immediately
+        lead.Status = lead.tempStatus;
+        lead.isChanged = false;
+      })
+      .catch(() => {
+        alert('Failed to update status');
+      });
 
-    fetch(this.apiUrl, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors',
-    });
+    // FOLLOWUP
+    if (lead.isFollowUpChanged) {
+      fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
+        method: 'POST'
+      }).then(() => {
+        lead.FollowUp = lead.tempFollowUp;
+        lead.isFollowUpChanged = false;
+      });
+    }
+
   }
 
   refreshLeads() {
@@ -130,9 +359,32 @@ export class Admin implements OnInit {
   }
 
   onStatusChange(lead: any) {
-    lead.tempStatus = lead.Status;
-    lead.isChanged = true;
+    lead.isChanged = true; // don't overwrite
   }
+
+  deleteLead(lead: any) {
+
+    if (!lead.id) {
+      alert('Invalid lead ID');
+      return;
+    }
+
+    if (!confirm('Delete this lead?')) return;
+
+    fetch(`${environment.apiUrl}/api/leads/${lead.id}`, {
+      method: 'DELETE'
+    })
+      .then(() => {
+        this.loadLeads();
+        this.loadBin(); // 🔥 add this
+
+      })
+      .catch(() => {
+        alert('Delete failed');
+      });
+  }
+
+  todayDate = new Date().toISOString().split('T')[0];
 
   exportCSV() {
     const rows = this.leads.map((l) => `${l.Name},${l.Phone},${l.Course},${l.Status},${l.City}`);
@@ -146,6 +398,59 @@ export class Admin implements OnInit {
   getTodayFollowups() {
     const today = new Date().toISOString().split('T')[0];
     return this.leads.filter((l) => l.FollowUp === today).length;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  confirmExit(event: any) {
+    const hasChanges = this.leads.some(l => l.isChanged);
+
+    if (hasChanges) {
+      event.returnValue = true;
+    }
+  }
+
+  canDeactivate() {
+    return !this.leads.some(l => l.isChanged) || confirm("Save changes?");
+  }
+
+  get binCount() {
+    return this.binTotal;
+  }
+
+  loadBin() {
+    this.isBinLoading = true;
+
+    fetch(`${environment.apiUrl}/api/leads/bin?page=0&size=10`)
+      .then(res => res.json())
+      .then(data => {
+
+        this.binLeads = data.content;
+        this.binTotal = data.totalElements;
+
+        this.isBinLoading = false;
+        this.binReady = true; // ✅ important
+        this.cd.detectChanges();
+      });
+  }
+
+  restoreLead(lead: any) {
+    fetch(`${environment.apiUrl}/api/leads/restore/${lead.id}`, {
+      method: 'PUT'
+    }).then(() => this.loadBin());
+  }
+
+  deletePermanent(lead: any) {
+
+    if (!confirm('Delete permanently?')) return;
+
+    fetch(`${environment.apiUrl}/api/leads/permanent/${lead.id}`, {
+      method: 'DELETE'
+    }).then(() => this.loadBin());
+  }
+
+  openBin() {
+    this.activeTab = 'bin';
+    this.loadBin(); // 🔥 VERY IMPORTANT
   }
 
   // ================= JOB =================
@@ -228,6 +533,9 @@ export class Admin implements OnInit {
   sortBy = 'company';
   direction = 'asc';
   activeFilter: any = '';
+
+  binLeads: any[] = [];
+  isBinLoading = false;
 
   loadCompanies() {
     let url = `${environment.apiUrl}/admin/companies?page=${this.companyPage}&size=${this.companySize}&search=${this.searchCompany}&sortBy=${this.sortBy}&direction=${this.direction}`;

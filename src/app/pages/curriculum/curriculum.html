@@ -10,52 +10,104 @@
         </option>
       </select>
 
-      <button class="primary-btn" (click)="downloadPDF()">Download Curriculum PDF</button>
+      <!-- 🔒 DOWNLOAD -->
+      <button class="primary-btn" *ngIf="isUnlocked" (click)="downloadPDF()">
+        Download Curriculum PDF
+      </button>
+
+      <button class="primary-btn locked-btn" *ngIf="!isUnlocked" (click)="scrollToUnlock()">
+        🔒 Unlock to Access
+      </button>
     </div>
   </div>
 </div>
 
-<!-- MODULES -->
-<div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
-  <div class="module-header" (click)="toggleModule(module)">
-    {{ module.title }}
+<!-- ================= SINGLE LOCK CONTAINER ================= -->
+
+<div *ngIf="!isUnlocked" class="locked-container">
+
+  <!-- 🔥 SINGLE OVERLAY -->
+  <div class="lock-overlay">
+    <h3>🔒 Unlock Full Course Access</h3>
+
+    <input placeholder="Enter your phone number" [(ngModel)]="enteredPhone" />
+
+    <button (click)="verifyAccess()">Unlock</button>
+
+    <p class="small-text">
+      Unlock curriculum, coding questions & downloads
+    </p>
   </div>
 
-  <div class="module-body" *ngIf="module.open">
-    <div class="topics-grid">
-      <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
-        <span class="topic-number"> {{ mIndex + 1 }}.{{ i + 1 }} </span>
+  <!-- ================= CURRICULUM PREVIEW ================= -->
+  <h2>Course Curriculum</h2>
 
-        <span class="topic-text">
-          {{ topic }}
-        </span>
+  <div *ngFor="let module of selectedCourse.curriculum | slice:0:2" class="module blurred">
+    <div class="module-header">
+      {{ module.title }}
+    </div>
+  </div>
+
+  <!-- ================= QUESTIONS PREVIEW ================= -->
+  <h2>Coding Questions</h2>
+
+  <div class="grid blurred">
+    <div class="card" *ngFor="let q of selectedCourse.questions | slice:0:6">
+      {{ q.text }}
+      <span class="badge">{{ q.level }}</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= UNLOCKED CONTENT ================= -->
+
+<div *ngIf="isUnlocked">
+
+  <!-- ===== CURRICULUM ===== -->
+  <h2>Course Curriculum</h2>
+
+  <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
+
+    <div class="module-header" (click)="toggleModule(module)">
+      {{ module.title }}
+    </div>
+
+    <div class="module-body" *ngIf="module.open">
+      <div class="topics-grid">
+
+        <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
+          <span class="topic-number">{{ mIndex + 1 }}.{{ i + 1 }}</span>
+          <span class="topic-text">{{ topic }}</span>
+        </div>
+
       </div>
     </div>
+
   </div>
-</div>
 
-<!-- FILTER -->
-<h2>Coding Questions</h2>
+  <!-- ===== QUESTIONS ===== -->
+  <h2>Coding Questions</h2>
 
-<select [(ngModel)]="selectedLevel">
-  <option>All</option>
-  <option>Easy</option>
-  <option>Medium</option>
-  <option>Hard</option>
-</select>
+  <select [(ngModel)]="selectedLevel">
+    <option>All</option>
+    <option>Easy</option>
+    <option>Medium</option>
+    <option>Hard</option>
+  </select>
 
-<div class="grid">
-  <div class="card" *ngFor="let q of filterQuestions()">
-    {{ q.text }}
-    <span
-      class="badge"
-      [ngClass]="{
-        easy: q.level === 'Easy',
-        medium: q.level === 'Medium',
-        hard: q.level === 'Hard',
-      }"
-    >
-      {{ q.level }}
-    </span>
+  <div class="grid">
+    <div class="card" *ngFor="let q of filterQuestions()">
+      {{ q.text }}
+
+      <span class="badge" [ngClass]="{
+          easy: q.level === 'Easy',
+          medium: q.level === 'Medium',
+          hard: q.level === 'Hard'
+        }">
+        {{ q.level }}
+      </span>
+    </div>
   </div>
+
 </div>

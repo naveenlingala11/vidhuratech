@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-refund',
-  imports: [],
+  standalone: true,
   templateUrl: './refund.html',
   styleUrl: './refund.css',
 })
 export class Refund {
-
+  year = new Date().getFullYear();
 }
