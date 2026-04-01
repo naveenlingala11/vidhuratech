@@ -73,6 +73,10 @@ export class EnrollModal {
     });
   }
 
+  ngOnInit() {
+    this.formData.course = ''; // 🔥 important
+  }
+
   ngOnDestroy() {
     this.subscription?.unsubscribe();
   }

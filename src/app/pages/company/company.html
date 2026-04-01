@@ -1,0 +1,106 @@
+<div class="company-container">
+
+    <h2>🏢 {{ companyName }} Interview Preparation</h2>
+
+    <!-- SEARCH -->
+    <div class="search-box">
+        <input [(ngModel)]="search" placeholder="🔍 Search questions..." (keyup.enter)="searchQuestions()" />
+        <button (click)="searchQuestions()">Search</button>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+
+        <select [(ngModel)]="selectedType">
+            <option value="">All Types</option>
+            <option value="SCENARIO">Scenario</option>
+            <option value="CONCEPTUAL">Conceptual</option>
+            <option value="IMPLEMENTATION">Implementation</option>
+        </select>
+
+        <select [(ngModel)]="selectedDifficulty">
+            <option value="">All Difficulty</option>
+            <option value="EASY">Easy</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HARD">Hard</option>
+        </select>
+
+        <select [(ngModel)]="selectedTopic">
+            <option value="">All Topics</option>
+            <option value="Variables">Variables</option>
+            <option value="Expressions">Expressions</option>
+        </select>
+
+        <button class="apply-btn" (click)="applyFilters()">Apply</button>
+
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button [class.active]="activeTab === 'JAVA'" (click)="changeTab('JAVA')">☕ Java</button>
+        <button [class.active]="activeTab === 'PYTHON'" (click)="changeTab('PYTHON')">🐍 Python</button>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" *ngIf="loading">⏳ Loading...</div>
+
+    <!-- QUESTIONS -->
+    <div *ngFor="let q of questions; let i = index" class="question-card">
+
+        <div class="q-number">Q{{ page * size + i + 1 }}</div>
+
+        <div class="q-header">
+            <span class="badge type">{{ q.type }}</span>
+            <span class="badge diff" [ngClass]="q.difficulty">{{ q.difficulty }}</span>
+        </div>
+
+        <h4>{{ q.question }}</h4>
+
+        <small class="topic">📌 {{ q.topic }}</small>
+
+        <button class="toggle-btn" (click)="toggleAnswer(q)">
+            {{ q.show ? '▲ Hide Answer' : '▼ Show Answer' }}
+        </button>
+
+        <!-- ANSWER -->
+        <div *ngIf="q.show" class="answer">
+
+            <div class="answer-section definition">
+                <h5>📘 Definition</h5>
+                <p>{{ getSection(q.answer, 'Definition:', 'Explanation:') }}</p>
+            </div>
+
+            <div class="answer-section explanation">
+                <h5>🧠 Explanation</h5>
+                <p>{{ getSection(q.answer, 'Explanation:', 'Example:') }}</p>
+            </div>
+
+            <div class="answer-section example">
+                <h5>💻 Example</h5>
+                <pre>{{ getSection(q.answer, 'Example:', 'Real-world Scenario:') }}</pre>
+            </div>
+
+            <div class="answer-section real">
+                <h5>🌍 Real-world</h5>
+                <p>{{ getSection(q.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
+            </div>
+
+            <div class="answer-section tip">
+                <h5>💡 Interview Tip</h5>
+                <p>{{ getSection(q.answer, 'Interview Tip:', '') }}</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+        <button (click)="prevPage()" [disabled]="page === 0">⬅ Prev</button>
+
+        <span>Page {{ page + 1 }} of {{ totalPages }}</span>
+
+        <button (click)="nextPage()" [disabled]="page === totalPages - 1">Next ➡</button>
+    </div>
+
+</div>

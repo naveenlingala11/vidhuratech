@@ -13,8 +13,7 @@ import { Router } from '@angular/router';
   styleUrl: './admin.css',
 })
 export class Admin implements OnInit {
-  activeTab: 'leads' | 'jobs' | 'companies' | 'bin' = 'leads';
-
+  activeTab: 'leads' | 'jobs' | 'companies' | 'bin' | 'questions' = 'leads';
   leads: any[] = [];
   filteredLeads: any[] = [];
 
@@ -174,11 +173,11 @@ export class Admin implements OnInit {
     }
   }
 
-  openTab(tab: 'leads' | 'jobs' | 'companies' | 'bin') {
+  openTab(tab: 'leads' | 'jobs' | 'companies' | 'bin' | 'questions') {
     this.activeTab = tab;
 
     if (tab === 'bin') {
-      this.loadBin(); // 🔥 only here
+      this.loadBin();
     }
 
     if (tab === 'leads') {
@@ -634,5 +633,35 @@ export class Admin implements OnInit {
           }
         });
     }, 3000);
+  }
+
+  // ------------------------------------------------ Interview Questions -----------------------------------------------------------------
+
+  questionsJson = '';
+  parsedQuestions: any[] = [];
+  previewMode = false;
+  uploadSuccess = false;
+
+  previewQuestions() {
+    try {
+      this.parsedQuestions = JSON.parse(this.questionsJson);
+      this.previewMode = true;
+    } catch (e) {
+      alert('Invalid JSON ❌');
+    }
+  }
+
+  uploadQuestions() {
+    fetch(`${environment.apiUrl}/api/questions/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(this.parsedQuestions)
+    }).then(() => {
+      this.uploadSuccess = true;
+      this.previewMode = false;
+      setTimeout(() => {
+        this.questionsJson = '';
+      });
+    });
   }
 }
