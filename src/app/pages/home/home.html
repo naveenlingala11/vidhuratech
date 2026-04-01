@@ -1,27 +1,68 @@
-<section class="hero">
+<section class="hero" [ngClass]="activeCourse() === 'java' ? 'java-bg' : 'python-bg'">
+
   <div class="container">
     <div class="row align-items-center">
+
       <!-- LEFT CONTENT -->
       <div class="col-md-6 text-white">
-        <h1 class="hero-title">🚀 Become a Java Developer in 30 Days</h1>
 
-        <p class="hero-sub">
-          Start from ZERO coding knowledge and become job-ready with real-time projects, interview
-          preparation, and hands-on practice.
-        </p>
+        <!-- 🔘 TOGGLE -->
+        <div class="course-toggle mb-3">
+          <button [class.active]="activeCourse() === 'java'" (click)="switchCourse('java')">
+            ☕ Java
+          </button>
 
-        <!-- POINTS -->
-        <ul class="hero-points">
-          <li>✔ Core Java + OOPs + Logic Building</li>
-          <li>✔ Daily Live Coding + Assignments</li>
-          <li>✔ Mini Projects + Resume Preparation</li>
-          <li>✔ Interview Questions & Mock Sessions</li>
-        </ul>
-        <!-- PRICE -->
-        <div class="hero-price-box">
-          <i><span class="old">₹ 9,999/-</span>
-          <span class="new">₹ 4,999/-</span>
-          <span class="save">Save ₹ 5,000/-</span></i>
+          <button [class.active]="activeCourse() === 'python'" (click)="switchCourse('python')">
+            🐍 Python
+          </button>
+        </div>
+
+        <!-- 🔥 FADE WRAPPER -->
+        <div class="fade-box" [class.fade-out]="isAnimating()">
+
+          <!-- TITLE -->
+          <h1 class="hero-title">
+            {{ activeCourse() === 'java'
+            ? '🚀 Become a Java Developer in 30 Days'
+            : '🐍 Become a Python Developer in 30 Days' }}
+          </h1>
+
+          <!-- SUBTEXT -->
+          <p class="hero-sub">
+            {{ activeCourse() === 'java'
+            ? 'Start from ZERO coding knowledge and become job-ready with Java + Spring Boot + real-time projects.'
+            : 'Start from ZERO coding knowledge and become job-ready with Python + Django + real-time projects.' }}
+          </p>
+
+          <!-- POINTS -->
+          <ul class="hero-points">
+
+            <!-- JAVA -->
+            <ng-container *ngIf="activeCourse() === 'java'">
+              <li>✔ Core Java + OOPs + Logic Building</li>
+              <li>✔ Data Structures + Collection API</li>
+            </ng-container>
+
+            <!-- PYTHON -->
+            <ng-container *ngIf="activeCourse() === 'python'">
+              <li>✔ Core Python </li>
+              <li>✔ Data Structures + Collection API</li>
+            </ng-container>
+
+            <li>✔ Daily Live Coding + Assignments</li>
+            <li>✔ Mini Projects + Resume Preparation</li>
+            <li>✔ Interview Questions & Mock Sessions</li>
+          </ul>
+
+          <!-- PRICE -->
+          <div class="hero-price-box">
+            <span class="old">₹2999</span>
+            <span class="new">₹2499</span>
+            <span class="save">
+              {{ activeCourse() === 'java' ? 'Java Offer Price' : 'Python Offer Price' }}
+            </span>
+          </div>
+
         </div>
 
         <!-- CTA -->
@@ -34,11 +75,13 @@
             View Curriculum
           </button>
         </div>
+
       </div>
 
-      <!-- RIGHT SIDE VISUAL CARD -->
+      <!-- RIGHT SIDE -->
       <div class="col-md-6">
-        <!-- OFFER -->
+
+        <!-- OFFER BOX -->
         <div class="hero-offer-box">
           <div class="offer-line">🔥 Limited Seats | High Demand Course</div>
 
@@ -47,17 +90,46 @@
             <span>⏰ 7:30 PM – 9:00 PM</span>
           </div>
 
-          <div class="batch-info">🚀 Batch Starts: <b>April 13</b></div>
+          <div class="batch-info">
+            🚀 Batch Starts: <b>April 13</b>
+          </div>
+
+          <div class="batch-info">
+            📚 Course:
+            <b>
+              {{ activeCourse() === 'java'
+              ? 'Java + Data Structures'
+              : 'Python + Data Structures' }}
+            </b>
+          </div>
 
           <div class="hurry">⚡ Hurry Up — Seats Filling Fast!</div>
         </div>
-        <div class="hero-card">
+
+        <!-- HERO CARD -->
+        <div class="hero-card mt-3 fade-box" [class.fade-out]="isAnimating()">
+
           <h3>🎯 1 Month Crash Program</h3>
 
           <div class="hero-card-content">
             <p><b>Duration:</b> 30 Days Intensive</p>
-            <p><b>Mode:</b> Online / Offline</p>
+            <p><b>Mode:</b> Online</p>
             <p><b>Level:</b> Beginner Friendly</p>
+
+            <p>
+              <b>Course:</b>
+              {{ activeCourse() === 'java'
+              ? 'Java + Data Structures'
+              : 'Python + Data Structures' }}
+            </p>
+
+            <p>
+              <b>Bundles:</b>
+              {{ activeCourse() === 'java'
+              ? 'Java Study Material & Resources'
+              : 'Python Study Material & Resources' }}
+            </p>
+
             <p><b>Projects:</b> Real-Time + Mini</p>
             <p><b>Outcome:</b> Job Ready Developer</p>
           </div>
@@ -66,13 +138,20 @@
             Book Your Seat Now
           </button>
         </div>
+
       </div>
     </div>
   </div>
 </section>
 
-<div class="live-proof">🔥 27 students enrolled in last 24 hours</div>
-
+<div class="live-proof">
+  🔥
+  {{
+  activeCourse() === 'java'
+  ? javaCount() + ' students joined Java recently'
+  : pythonCount() + ' students joined Python recently'
+  }}
+</div>
 <!-- PROMO -->
 <div class="promo">
   <div class="seats-left">⚠️ Only {{ seats }} seats left</div>
@@ -93,7 +172,7 @@
       <!-- LEFT CONTENT -->
       <div class="col-md-6">
         <div class="jobs-content">
-          <h3>💼 Get 500+ Fresh Job Openings Every Day</h3>
+          <h3>💼 Get 500+ New Job Openings Daily!</h3>
 
           <p>
             Most students struggle not because of lack of skills, but because they don’t know
@@ -152,7 +231,7 @@
 </section>
 <section class="deep-content vidhura-section">
   <div class="container">
-    <h2 class="text-center">🚀 About Vidhura Tech</h2>
+    <h2 class="text-center">About Vidhura Tech</h2>
 
     <p class="dc-text">
       Vidhura Tech is not just a training institute — it is a complete career transformation
@@ -402,8 +481,8 @@
     <!-- CENTER PRICE + BUTTON -->
     <div class="cta-center">
       <div class="cta-price">
-        <i><span class="old">₹ 9,999/-</span>
-        <span class="new">₹ 4,999/-</span></i>
+        <span class="old">₹ 9999/-</span>
+        <span class="new">₹ 4999/-</span>
       </div>
 
       <button class="cta-btn" (click)="openEnrollModal()">Book Free Demo</button>
@@ -437,3 +516,11 @@
     </div>
   </div>
 </section>
+<div class="join-popup" *ngIf="showPopup()">
+  <div class="popup-content">
+    <span class="dot"></span>
+    <span class="text">
+      {{ popupMessage() }}
+    </span>
+  </div>
+</div>

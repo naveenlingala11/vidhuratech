@@ -15,6 +15,8 @@ import { Cookies } from './components/policy/cookies/cookies';
 import { Jobs } from './pages/jobs/jobs';
 import { JobDetail } from './pages/job-detail/job-detail';
 import { JobsHome } from './pages/jobs-home/jobs-home';
+import { Preparation } from './pages/preparation/preparation';
+import { Company } from './pages/company/company';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -33,4 +35,6 @@ export const routes: Routes = [
   { path: 'jobs', component: Jobs },
   { path: 'jobs/:id', component: JobDetail },
   { path: 'jobs-home', component: JobsHome },
+  { path: 'preparation', component: Preparation },
+  { path: 'company/:name', component: Company }
 ];

@@ -14,12 +14,17 @@ import { TimerService } from '../../services/timer';
   styleUrl: './home.css',
 })
 export class Home implements AfterViewInit {
+  activeCourse = signal<'java' | 'python'>('java');
+  isAnimating = signal(false);
+  javaCount = signal(5);
+  pythonCount = signal(7);
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private modalService: ModalService,
     private zone: NgZone,
     public timer: TimerService
-  ) {}
+  ) { }
 
   modalInstance: any;
 
@@ -36,7 +41,37 @@ export class Home implements AfterViewInit {
       }, 10000);
     });
 
+    this.zone.runOutsideAngular(() => {
+      setInterval(() => {
+        this.zone.run(() => this.switchCourse());
+      }, 5000);
+    });
+
     this.timer.startCountdown();
+  }
+
+  switchCourse(course?: 'java' | 'python') {
+    this.isAnimating.set(true);
+
+    setTimeout(() => {
+      if (course) {
+        this.activeCourse.set(course);
+      } else {
+        this.activeCourse.update(prev =>
+          prev === 'java' ? 'python' : 'java'
+        );
+      }
+
+      this.isAnimating.set(false);
+    }, 300);
+
+    setInterval(() => {
+      this.javaCount.update(v => v + Math.floor(Math.random() * 2));
+      this.pythonCount.update(v => v + Math.floor(Math.random() * 2));
+    }, 10000);
+
+    this.timer.startCountdown();
+    this.startPopupLoop();
   }
 
   // FEATURES
@@ -99,5 +134,34 @@ export class Home implements AfterViewInit {
       this.minutes.set(m);
       this.seconds.set(s);
     });
+  }
+
+  showPopup = signal(false);
+popupMessage = signal('');
+
+names = ['Ravi', 'Suresh', 'Kavya', 'Anil', 'Priya', 'Rahul'];
+cities = ['Hyderabad', 'Bangalore', 'Chennai', 'Vizag', 'Pune'];
+
+  startPopupLoop() {
+    setInterval(() => {
+      const name = this.names[Math.floor(Math.random() * this.names.length)];
+      const city = this.cities[Math.floor(Math.random() * this.cities.length)];
+
+      const course =
+        this.activeCourse() === 'java'
+          ? 'Java + DS'
+          : 'Python + DS';
+
+      this.popupMessage.set(
+        `🔥 ${name} from ${city} joined ${course} just now`
+      );
+
+      this.showPopup.set(true);
+
+      setTimeout(() => {
+        this.showPopup.set(false);
+      }, 3000);
+
+    }, 7000); // every 7 sec
   }
 }

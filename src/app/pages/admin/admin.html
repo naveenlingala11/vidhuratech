@@ -80,8 +80,11 @@
               {{ binCount }}
             </span>
             <span *ngIf="!isCollapsed">Bin</span>
+          </button>
 
-
+          <button [class.active]="activeTab==='questions'" (click)="openTab('questions')">
+            <i class="fas fa-brain"></i>
+            <span *ngIf="!isCollapsed">Interview Questions</span>
           </button>
 
         </div>
@@ -507,6 +510,39 @@
             </div>
             <div *ngIf="!isScraping && completed" class="done-msg">✅ Scraping Completed</div>
           </div>
+        </div>
+
+
+        <!-- Interview Questions  -->
+
+        <div [hidden]="activeTab !== 'questions'" class="questions-admin">
+
+          <h3>🧠 Upload Interview Questions</h3>
+
+          <!-- JSON INPUT -->
+          <textarea [(ngModel)]="questionsJson" placeholder="Paste JSON here..." rows="10"></textarea>
+
+          <!-- BUTTONS -->
+          <div class="actions">
+            <button (click)="previewQuestions()">👁 Preview</button>
+            <button (click)="uploadQuestions()">🚀 Upload</button>
+          </div>
+
+          <!-- PREVIEW -->
+          <div *ngIf="previewMode" class="preview">
+            <h4>Preview</h4>
+
+            <div *ngFor="let q of parsedQuestions" class="preview-card">
+              <b>{{ q.question }}</b>
+              <p>{{ q.answer }}</p>
+              <small>{{ q.topic }} | {{ q.difficulty }}</small>
+            </div>
+          </div>
+
+          <div *ngIf="uploadSuccess" class="success">
+            ✅ Uploaded Successfully
+          </div>
+
         </div>
       </div>
     </div>
