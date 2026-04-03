@@ -56,11 +56,14 @@ export class Admin implements OnInit {
 
   errorMsg = '';
   idleTimer: any;
-  timeout = 2 * 60 * 1000; // 2 minutes
+  timeout = 24 * 60 * 60 * 1000; // 24 hours
   isProcessing = false;
   processMessage = '';
   progress = 0;
   showSuccess = false;
+
+  leadSortBy = 'date';          // default sort by date
+  leadSortDirection = 'desc';   // latest first
 
   constructor(
     private cd: ChangeDetectorRef,
@@ -220,7 +223,7 @@ export class Admin implements OnInit {
 
   // ================= LEADS =================
   loadLeads() {
-    fetch(`${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}`)
+    fetch(`${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}&sortBy=${this.mapLeadSortField()}&direction=${this.leadSortDirection}`)
       .then(res => res.json())
       .then(data => {
 
@@ -287,14 +290,23 @@ export class Admin implements OnInit {
     lead.isFollowUpChanged = false;
   }
 
+  mapLeadSortField() {
+    if (this.leadSortBy === 'date') return 'createdAt';
+    if (this.leadSortBy === 'name') return 'name';
+    return 'createdAt';
+  }
+
   applyFilter() {
-    this.filteredLeads = this.leads.filter((lead) => {
+
+    let data = [...this.leads];
+
+    // 🔍 FILTER
+    data = data.filter((lead) => {
       const matchSearch =
         lead.Name.toLowerCase().includes(this.searchText.toLowerCase()) ||
         lead.Phone.includes(this.searchText);
 
       const matchStatus = this.selectedStatus ? lead.Status === this.selectedStatus : true;
-
       const matchCity = this.selectedCity ? lead.City === this.selectedCity : true;
 
       const matchDate =
@@ -303,6 +315,24 @@ export class Admin implements OnInit {
 
       return matchSearch && matchStatus && matchCity && matchDate;
     });
+
+    // 🔥 DEFAULT SORT → latest first
+    if (this.leadSortBy === 'name') {
+      data.sort((a, b) =>
+        this.leadSortDirection === 'asc'
+          ? a.Name.localeCompare(b.Name)
+          : b.Name.localeCompare(a.Name)
+      );
+    } else {
+      // default = date
+      data.sort((a, b) =>
+        this.leadSortDirection === 'asc'
+          ? new Date(a.Date).getTime() - new Date(b.Date).getTime()
+          : new Date(b.Date).getTime() - new Date(a.Date).getTime()
+      );
+    }
+
+    this.filteredLeads = data;
   }
 
   saveStatus(lead: any) {
@@ -361,22 +391,29 @@ export class Admin implements OnInit {
     lead.isChanged = true; // don't overwrite
   }
 
-  deleteLead(lead: any) {
+  selectedLeadToDelete: any = null;
+  showDeletePopup = false;
 
-    if (!lead.id) {
-      alert('Invalid lead ID');
-      return;
-    }
+  openDeletePopup(lead: any) {
+    this.selectedLeadToDelete = lead;
+    this.showDeletePopup = true;
+  }
 
-    if (!confirm('Delete this lead?')) return;
+  closeDeletePopup() {
+    this.showDeletePopup = false;
+    this.selectedLeadToDelete = null;
+  }
 
-    fetch(`${environment.apiUrl}/api/leads/${lead.id}`, {
+  confirmDelete() {
+    if (!this.selectedLeadToDelete?.id) return;
+
+    fetch(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`, {
       method: 'DELETE'
     })
       .then(() => {
         this.loadLeads();
-        this.loadBin(); // 🔥 add this
-
+        this.loadBin();
+        this.closeDeletePopup();
       })
       .catch(() => {
         alert('Delete failed');
@@ -406,6 +443,84 @@ export class Admin implements OnInit {
     if (hasChanges) {
       event.returnValue = true;
     }
+  }
+
+  openWhatsAppLead(lead: any) {
+    const url = this.getWhatsappLink(lead);
+    window.open(url, '_blank');
+  }
+
+  getWhatsappLink(lead: any) {
+
+    const courseKey = lead.Course?.toLowerCase();
+
+    let message = '';
+
+    if (courseKey?.includes('java')) {
+
+      message = `👋 Hello,
+
+Thanks for reaching out to Vidhura Tech!
+
+🎯 You're interested in:
+➡️ Java + Data Structures (Telugu) Crash Course
+
+📅 April 11th, 2026
+⏳ Daily 1.5-hour sessions
+💰 Offer Fee: ₹2499
+
+📚 Includes:
+✔ Core Java  
+✔ Data Structures  
+✔ Coding Practice  
+✔ Mock Interviews  
+✔ Real-time Projects  
+✔ Placement Support  
+
+🚀 Let me know if you'd like to enroll or need more details 🙂
+
+🙏 Thank you  
+Vidhura Tech Team`;
+
+    } else if (courseKey?.includes('python')) {
+
+      message = `👋 Hello,
+
+Thanks for reaching out to Vidhura Tech!
+
+🎯 You're interested in:
+➡️ Python Course
+
+📅 April 11th, 2026
+⏳ Daily 1.5-hour sessions
+💰 Offer Fee: ₹2499
+
+📚 Includes:
+✔ Python Fundamentals  
+✔ Problem Solving  
+✔ Projects  
+✔ Placement Support  
+
+🚀 Let me know if you'd like to enroll 🙂
+
+🙏 Thank you  
+Vidhura Tech Team`;
+
+    } else {
+
+      message = `👋 Hello,
+
+Thanks for reaching out to Vidhura Tech!
+
+🎯 I'm interested in your courses.
+
+📌 Please share more details 🙂
+
+🙏 Thank you`;
+    }
+
+    // ✅ WORKING URL (IMPORTANT CHANGE)
+    return `https://api.whatsapp.com/send?phone=91${lead.Phone}&text=${encodeURIComponent(message)}`;
   }
 
   canDeactivate() {
