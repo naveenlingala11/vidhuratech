@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Job, JobService } from '../../services/job';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -32,7 +32,9 @@ export class JobsHome {
 
   constructor(
     private jobService: JobService,
-    private router: Router
+    private router: Router,
+    private cd: ChangeDetectorRef
+
   ) { }
 
   ngOnInit() {
@@ -47,12 +49,14 @@ export class JobsHome {
       this.jobs = res.content.slice(0, 9);
       this.totalJobs = res.totalElements;
       this.isLoading = false;
+      this.cd.detectChanges();
     });
   }
 
   loadFilters() {
     this.jobService.getFilters().subscribe(res => {
       this.companies = res.companies || [];
+      this.cd.detectChanges();
     });
   }
 
@@ -94,6 +98,10 @@ export class JobsHome {
     }
     const clean = company.toLowerCase().replace(/\s+/g, '');
     return `https://www.google.com/s2/favicons?domain=${clean}.com&sz=128`;
+  }
+
+  onImgError(event: any) {
+    event.target.src = 'https://ui-avatars.com/api/?name=Company';
   }
 
   trackById(index: number, job: Job) {

@@ -137,10 +137,10 @@ export class Home implements AfterViewInit {
   }
 
   showPopup = signal(false);
-popupMessage = signal('');
+  popupMessage = signal('');
 
-names = ['Ravi', 'Suresh', 'Kavya', 'Anil', 'Priya', 'Rahul'];
-cities = ['Hyderabad', 'Bangalore', 'Chennai', 'Vizag', 'Pune'];
+  names = ['Ravi', 'Suresh', 'Kavya', 'Anil', 'Priya', 'Rahul', 'krishna'];
+  cities = ['Hyderabad', 'Bangalore', 'Chennai', 'Vizag', 'Pune', 'Tirupathi'];
 
   startPopupLoop() {
     setInterval(() => {

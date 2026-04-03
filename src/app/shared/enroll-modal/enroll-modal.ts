@@ -71,6 +71,7 @@ export class EnrollModal {
         this.modalInstance.show();
       });
     });
+    
   }
 
   ngOnInit() {
@@ -82,6 +83,18 @@ export class EnrollModal {
   }
 
   submitForm() {
+    // ✅ Phone validation
+    if (!/^[6-9][0-9]{9}$/.test(this.formData.phone)) {
+      alert('Enter valid mobile number');
+      return;
+    }
+
+    // ✅ Email validation (optional)
+    if (this.formData.email &&
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.formData.email)) {
+      alert('Enter valid email');
+      return;
+    }
     fetch(`${environment.apiUrl}/api/leads/save`, {
       method: 'POST',
       headers: {
@@ -108,15 +121,26 @@ export class EnrollModal {
       });
   }
   openWhatsApp() {
-    const message = `🎓 New Demo Registration
 
-👤 Name: ${this.formData.name}
-📞 Phone: ${this.formData.phone}
-📧 Email: ${this.formData.email}
-📘 Course: ${this.formData.course}
-⏰ Batch: ${this.formData.batch}
-📍 City: ${this.formData.city}`;
+    const message = `👋 Hello Vidhura Tech Team,
 
-    window.open(`https://wa.me/919108057464?text=${encodeURIComponent(message)}`);
+      I have just registered for a demo class. Here are my details:
+
+      👤 Name: ${this.formData.name}
+      📞 Phone: ${this.formData.phone}
+      📧 Email: ${this.formData.email}
+      📘 Course: ${this.formData.course}
+      ⏰ Batch: ${this.formData.batch}
+      📍 City: ${this.formData.city}
+
+      📌 Could you please share more details about the course, schedule, and next steps?
+
+      Looking forward to your response 🙂
+
+      Thank you!`;
+
+    const url = `https://api.whatsapp.com/send?phone=919108057464&text=${encodeURIComponent(message)}`;
+
+    window.open(url, '_blank');
   }
 }
