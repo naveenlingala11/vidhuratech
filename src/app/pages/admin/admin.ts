@@ -423,11 +423,23 @@ export class Admin implements OnInit {
   todayDate = new Date().toISOString().split('T')[0];
 
   exportCSV() {
-    const rows = this.leads.map((l) => `${l.Name},${l.Phone},${l.Course},${l.Status},${l.City}`);
+
+    const headers = ['NAME', 'PHONE', 'COURSE', 'STATUS', 'CITY'];
+
+    const rows = this.leads.map(l =>
+      [l.Name, l.Phone, l.Course, l.Status, l.City].join(',')
+    );
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
     const link = document.createElement('a');
-    link.href = 'data:text/csv;charset=utf-8,' + rows.join('\n');
-    link.download = 'leads.csv';
+    link.href = URL.createObjectURL(blob);
+    link.download = `VT_Leads_${today}.csv`;
+
     link.click();
   }
 
