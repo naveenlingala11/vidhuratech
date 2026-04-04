@@ -795,12 +795,16 @@ Thanks for reaching out to Vidhura Tech!
   certificateData = {
     name: '',
     course: '',
-    email: ''
+    email: '',
+    mobile: ''
   };
 
   certificateId = '';
   qrCodeUrl = '';
   today = new Date().toLocaleDateString();
+
+  mobileSuggestions: any[] = [];
+  showSuggestions = false;
 
   // 🔥 Generate ID
   generateCertificateId() {
@@ -866,5 +870,52 @@ Thanks for reaching out to Vidhura Tech!
         });
       });
     }, 400);
+  }
+  fetchUserByMobile() {
+    const mobile = this.certificateData.mobile;
+
+    if (!mobile || mobile.length < 5) return; // avoid unnecessary calls
+
+    this.http.get<any>(`${environment.apiUrl}/api/leads/by-phone?phone=${mobile}`)
+      .subscribe({
+        next: (user) => {
+          if (user) {
+            this.certificateData.name = this.certificateData.name || user.name;
+            this.certificateData.email = this.certificateData.email || user.email;
+            this.certificateData.course = this.certificateData.course || user.course;
+          }
+        },
+        error: () => {
+          console.log('User not found');
+        }
+      });
+  }
+
+  searchTimeout: any;
+
+  searchMobile() {
+    clearTimeout(this.searchTimeout);
+
+    this.searchTimeout = setTimeout(() => {
+      const mobile = this.certificateData.mobile;
+
+      if (!mobile || mobile.length < 3) return;
+
+      this.http.get<any[]>(`${environment.apiUrl}/api/leads/search?phone=${mobile}`)
+        .subscribe(data => {
+          this.mobileSuggestions = data;
+          this.showSuggestions = data.length > 0;
+        });
+
+    }, 300); // 300ms delay
+  }
+
+  selectSuggestion(user: any) {
+    this.certificateData.mobile = user.phone;
+    this.certificateData.name = user.name;
+    this.certificateData.email = user.email;
+    this.certificateData.course = user.course;
+
+    this.showSuggestions = false;
   }
 }
