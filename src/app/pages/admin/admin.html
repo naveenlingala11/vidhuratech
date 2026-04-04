@@ -93,6 +93,18 @@
           </button>
 
         </div>
+        <div class="sidebar-footer">
+
+          <div class="admin-info" *ngIf="!isCollapsed">
+            👤 Admin
+          </div>
+
+          <button class="logout-btn" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span *ngIf="!isCollapsed">Logout</span>
+          </button>
+
+        </div>
 
       </div>
 
@@ -105,46 +117,10 @@
           <!-- MOBILE MENU -->
           <button class="mobile-menu" (click)="toggleSidebar()">☰</button>
 
-          <h2 class="admin-text"><B>Admin Dashboard</B></h2>
-
-          <!-- RIGHT SIDE -->
-          <div class="header-actions">
-
-            <!-- 🔔 NOTIFICATION -->
-            <div class="notification" (click)="clearNotifications()">
-              🔔
-              <span class="notif-badge" *ngIf="newLeadsCount > 0">
-                {{ newLeadsCount }}
-              </span>
-            </div>
-
-            <!-- 👤 PROFILE -->
-            <div class="profile" (click)="toggleProfile()">
-              👤
-
-              <div class="dropdown" *ngIf="showProfile">
-                <p>Admin</p>
-                <button (click)="logout()">Logout</button>
-              </div>
-            </div>
-
-          </div>
-
         </div>
         <div class="page-content">
           <!-- LEADS -->
           <div [hidden]="activeTab !== 'leads'">
-
-            <div class="top-bar">
-
-              <div class="badge-box">
-                <span>Total: {{ stats.total }}</span>
-                <span>New: {{ stats.new }}</span>
-                <span>Contacted: {{ stats.contacted }}</span>
-                <span>Joined: {{ stats.joined }}</span>
-              </div>
-            </div>
-
             <!-- STATS -->
             <div class="stats-grid">
               <div class="stat-card">
@@ -296,15 +272,44 @@
           </div>
 
           <div [hidden]="activeTab !== 'certificate'" class="certificate-page">
+            <div class="form-row">
 
-            <h2>🎓 Generate Certificate</h2>
+              <!-- MOBILE -->
+              <div class="field mobile-wrapper">
 
-            <div class="form">
-              <input placeholder="Candidate Name" [(ngModel)]="certificateData.name" />
-              <input placeholder="Course Name" [(ngModel)]="certificateData.course" />
-              <input placeholder="Email" [(ngModel)]="certificateData.email" />
+                <input placeholder="📱 Mobile" [(ngModel)]="certificateData.mobile" (input)="searchMobile()"
+                  (blur)="fetchUserByMobile()" />
 
-              <button (click)="generateCertificate()">Generate & Download</button>
+                <!-- 🔥 SUGGESTIONS -->
+                <div class="suggestions" *ngIf="showSuggestions">
+                  <div *ngFor="let s of mobileSuggestions" (click)="selectSuggestion(s)" class="suggestion-item">
+                    <b>{{ s.phone }}</b> - {{ s.name }}
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- NAME -->
+              <div class="field">
+                <input placeholder="👤 Name" [(ngModel)]="certificateData.name" />
+              </div>
+
+              <!-- COURSE -->
+              <div class="field">
+                <input placeholder="🎓 Course" [(ngModel)]="certificateData.course" />
+              </div>
+
+              <!-- EMAIL -->
+              <div class="field">
+                <input placeholder="✉ Email" [(ngModel)]="certificateData.email" />
+              </div>
+
+              <!-- BUTTON -->
+              <button class="generate-btn" (click)="generateCertificate()">
+                <i class="fas fa-download"></i>
+                Generate
+              </button>
+
             </div>
 
             <!-- CERTIFICATE -->
@@ -313,6 +318,9 @@
               <!-- BORDER -->
               <div class="border"></div>
 
+              <!-- NEW DESIGNS -->
+              <div class="left-design"></div>
+              <div class="bottom-right-design"></div>
               <!-- TOP HEADER -->
               <div class="top-wave">
                 <svg viewBox="0 0 1440 320">
@@ -334,8 +342,9 @@
               <!-- QR -->
               <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr" />
               <div class="cert-content">
+                <img src="course_completion_badge.png" class="badge-left" />
 
-                <h1>CERTIFICATE</h1>
+                <h1><b>CERTIFICATE</b></h1>
                 <h4>OF ACHIEVEMENT</h4>
 
                 <p class="subtitle">
@@ -373,8 +382,7 @@
 
                 <!-- LEFT -->
                 <div class="footer-box">
-                  <p>{{today}}</p>
-                  <p>Date</p>
+                  <p><b>{{ today | date:'dd/MM/yyyy' }}</b></p>
                   <div class="underline"></div>
                 </div>
 
@@ -387,7 +395,7 @@
 
                 <!-- RIGHT -->
                 <div class="footer-box">
-                  <p>ID: {{certificateId}}</p>
+                  <p><b>ID: {{certificateId}}</b></p>
                   <div class="underline"></div>
                 </div>
 
