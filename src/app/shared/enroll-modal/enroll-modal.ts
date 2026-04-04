@@ -64,14 +64,28 @@ export class EnrollModal {
     const modalElement = document.getElementById('enrollModal');
     if (!modalElement) return;
 
+    // ✅ INIT MODAL
     this.modalInstance = new bootstrap.Modal(modalElement);
 
+    // ✅ OPEN MODAL
     this.subscription = this.modalService.modal$.subscribe(() => {
       setTimeout(() => {
         this.modalInstance.show();
       });
     });
-    
+
+    // ✅ AUTO SCROLL FIX
+    modalElement.addEventListener('shown.bs.modal', () => {
+      const inputs = modalElement.querySelectorAll('input, select, textarea');
+
+      inputs.forEach((el: any) => {
+        el.addEventListener('focus', () => {
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+      });
+    });
   }
 
   ngOnInit() {

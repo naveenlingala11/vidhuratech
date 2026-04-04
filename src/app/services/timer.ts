@@ -9,9 +9,9 @@ export class TimerService {
   minutes = signal(0);
   seconds = signal(0);
   progress = signal(100);
-  seats = signal(25);
-
+  seats = signal(100);
   private started = false;
+  private lastSeatUpdateHour = new Date().getHours();
 
   startCountdown() {
     if (this.started) return; // 🔥 prevent duplicate timers
@@ -35,8 +35,15 @@ export class TimerService {
 
       this.progress.set((distance / totalDuration) * 100);
 
-      if (Math.random() > 0.7 && this.seats() > 5) {
-        this.seats.set(this.seats() - 1);
+      // ✅ NEW LOGIC
+      const currentHour = new Date().getHours();
+
+      if (currentHour !== this.lastSeatUpdateHour) {
+        this.lastSeatUpdateHour = currentHour;
+
+        if (this.seats() > 0) {
+          this.seats.set(this.seats() - 1);
+        }
       }
     });
   }

@@ -1,11 +1,14 @@
 <!-- ================= ENROLL MODAL ================= -->
 <div class="modal fade" id="enrollModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered custom-modal">
     <div class="modal-content modern-modal">
       <!-- TOP BAR -->
       <div class="top-bar">
-        🔥 Limited Seats | Join Free Demo Class on April 11th & 12th | ⏰ 7:30 PM – 9:00 PM
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+        <div>🔥 Limited Seats | Join Free Demo Class on April 11th & 12th</div>
+        <div class="timing">⏰ 7:30 PM – 9:00 PM</div>
+        <button class="btn-close custom-close" data-bs-dismiss="modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
       <div class="countdown-banner">
         <!-- 🔥 SEATS + URGENCY -->
@@ -55,7 +58,7 @@
       </div>
       <!-- HEADER -->
       <div class="modal-header border-0">
-        <h5 class="fw-bold">Enroll for Core Java 30 days Course</h5>
+        <h5 class="fw-bold">Enroll for Free Demo Class</h5>
       </div>
 
       <!-- BODY -->
@@ -67,54 +70,52 @@
           </div>
 
           <!-- STEP 1 -->
-          <div *ngIf="step === 1" class="fade-slide">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="field">
-                  <input type="text" name="name" [(ngModel)]="formData.name" required minlength="3" #name="ngModel"
-                    placeholder=" " />
-                  <label>Name *</label>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="field">
+                <input type="text" name="name" [(ngModel)]="formData.name" required minlength="3" #name="ngModel"
+                  placeholder=" " />
+                <label>Name *</label>
 
-                  <small class="v-error" *ngIf="name.invalid && name.touched">
-                    Name must be at least 3 characters
-                  </small>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="field">
-                  <input type="tel" name="phone" [(ngModel)]="formData.phone" required pattern="^[6-9][0-9]{9}$"
-                    #phone="ngModel" placeholder=" " />
-                  <label>Phone *</label>
-
-                  <small class="v-error" *ngIf="phone.invalid && phone.touched">
-                    Enter valid 10-digit mobile number
-                  </small>
-                </div>
+                <small class="v-error" *ngIf="name.invalid && name.touched">
+                  Name must be at least 3 characters
+                </small>
               </div>
             </div>
 
-            <button type="button" class="btn next-btn w-100"
-              [disabled]="!formData.name || formData.name.length < 3 || !formData.phone || !/^[6-9][0-9]{9}$/.test(formData.phone)"
-              (click)="nextStep()">
-              Next →
-            </button>
+            <div class="col-md-6">
+              <div class="field">
+                <input type="tel" name="phone" [(ngModel)]="formData.phone" required pattern="^[6-9][0-9]{9}$"
+                  #phone="ngModel" placeholder=" " />
+                <label>Phone *</label>
+
+                <small class="v-error" *ngIf="phone.invalid && phone.touched">
+                  Enter valid 10-digit mobile number
+                </small>
+              </div>
+            </div>
           </div>
 
-          <!-- STEP 2 -->
-          <div *ngIf="step === 2" class="fade-slide">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="field">
-                  <input type="email" name="email" [(ngModel)]="formData.email" #email="ngModel" required
-                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" placeholder=" " />
-                  <label>Email</label>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="field">
+                <input type="email" name="email" [(ngModel)]="formData.email" #email="ngModel" required
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" placeholder=" " />
+                <label>Email</label>
 
-                  <small class="v-error" *ngIf="email.invalid && email.touched">
-                    Enter valid email (example@gmail.com)
-                  </small>
-                </div>
+                <small class="v-error" *ngIf="email.invalid && email.touched">
+                  Enter valid email (example@gmail.com)
+                </small>
               </div>
+            </div>
+            <div class="col-md-6">
+              <div class="field">
+                <input type="text" name="city" [(ngModel)]="formData.city" placeholder=" " />
+                <label>City</label>
+              </div>
+            </div>
+
+            <div class="row">
 
               <div class="col-md-6">
                 <div class="field">
@@ -123,7 +124,6 @@
                     <option value="Java + DS">☕ Java + Data Structures</option>
                     <option value="Python + DS">🐍 Python + Data Structures</option>
                   </select>
-                  <label class="active">Course</label>
                 </div>
               </div>
 
@@ -135,51 +135,22 @@
                     <option value="Student">Student</option>
                     <option value="Working">Working</option>
                   </select>
-                  <label>Experience</label>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="field">
-                  <select name="batch" [(ngModel)]="formData.batch">
-                    <option value="" disabled>Select Batch</option>
-                    <option>Morning</option>
-                    <option>Evening</option>
-                    <option>Weekend</option>
-                  </select>
-                  <label>Batch</label>
                 </div>
               </div>
             </div>
 
-            <div class="d-flex gap-2">
-              <button type="button" class="btn back-btn w-50" (click)="prevStep()">← Back</button>
-              <button type="button" class="btn next-btn w-50" (click)="nextStep()">Next →</button>
+            <div class="col-12">
+              <div class="field">
+                <textarea name="message" [(ngModel)]="formData.message"
+                  placeholder="Tell us your goal (e.g., job, career switch, learning coding)..."></textarea>
+              </div>
             </div>
           </div>
 
-          <!-- STEP 3 -->
-          <div *ngIf="step === 3" class="fade-slide">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="field">
-                  <input type="text" name="city" [(ngModel)]="formData.city" placeholder=" " />
-                  <label>City</label>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <div class="field">
-                  <textarea name="message" [(ngModel)]="formData.message"
-                    placeholder="Tell us your goal (e.g., job, career switch, learning coding)..."></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="d-flex gap-2">
-              <button type="button" class="btn back-btn w-50" (click)="prevStep()">← Back</button>
-              <button type="submit" class="btn submit-btn w-50">🚀 Submit</button>
-            </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn submit-btn w-100">
+              🚀 Submit
+            </button>
           </div>
         </form>
       </div>
