@@ -87,6 +87,11 @@
             <span *ngIf="!isCollapsed">Interview Questions</span>
           </button>
 
+          <button [class.active]="activeTab==='certificate'" (click)="openTab('certificate')">
+            <i class="fas fa-certificate"></i>
+            <span *ngIf="!isCollapsed">Certificates</span>
+          </button>
+
         </div>
 
       </div>
@@ -288,6 +293,111 @@
               <span>Page {{ page + 1 }}</span>
               <button (click)="nextPage()" [disabled]="page === totalPages - 1">➡</button>
             </div>
+          </div>
+
+          <div [hidden]="activeTab !== 'certificate'" class="certificate-page">
+
+            <h2>🎓 Generate Certificate</h2>
+
+            <div class="form">
+              <input placeholder="Candidate Name" [(ngModel)]="certificateData.name" />
+              <input placeholder="Course Name" [(ngModel)]="certificateData.course" />
+              <input placeholder="Email" [(ngModel)]="certificateData.email" />
+
+              <button (click)="generateCertificate()">Generate & Download</button>
+            </div>
+
+            <!-- CERTIFICATE -->
+            <div id="certificate" class="certificate">
+
+              <!-- BORDER -->
+              <div class="border"></div>
+
+              <!-- TOP HEADER -->
+              <div class="top-wave">
+                <svg viewBox="0 0 1440 320">
+                  <path fill="url(#grad1)"
+                    d="M0,160L80,144C160,128,320,96,480,96C640,96,800,128,960,133.3C1120,139,1280,117,1360,106.7L1440,96V0H0Z">
+                  </path>
+                  <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style="stop-color:#0f172a" />
+                      <stop offset="50%" style="stop-color:#2563eb" />
+                      <stop offset="100%" style="stop-color:#facc15" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <!-- LEFT LOGO -->
+              <img src="VidhuraTechLogo.png" class="logo-left" />
+
+              <!-- QR -->
+              <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr" />
+              <div class="cert-content">
+
+                <h1>CERTIFICATE</h1>
+                <h4>OF ACHIEVEMENT</h4>
+
+                <p class="subtitle">
+                  This certificate is proudly presented to
+                </p>
+
+                <h2 class="name">{{certificateData.name || 'Your Name'}}</h2>
+
+                <p class="email">
+                  {{certificateData.email || 'email@example.com'}}
+                </p>
+
+                <div class="line"></div>
+
+                <p class="desc">
+                  In recognition of successfully completing the professional training program
+                </p>
+
+                <h3 class="course">{{certificateData.course || 'Course Name'}}</h3>
+
+                <p class="desc2">
+                  This program covered practical concepts, real-time projects, and industry-relevant skills.
+                  The candidate has demonstrated strong dedication, problem-solving ability, and commitment
+                  towards continuous learning and professional excellence.
+                </p>
+
+                <p class="desc3">
+                  We proudly acknowledge this achievement and wish continued success in future endeavors.
+                </p>
+
+              </div>
+
+              <!-- FOOTER -->
+              <div class="bottom">
+
+                <!-- LEFT -->
+                <div class="footer-box">
+                  <p>{{today}}</p>
+                  <p>Date</p>
+                  <div class="underline"></div>
+                </div>
+
+                <!-- CENTER -->
+                <div class="footer-center">
+                  <img src="seal.png" class="seal-img" />
+                  <img src="signature.png" class="sign-img" />
+                  <p>Authorized Signature</p>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="footer-box">
+                  <p>ID: {{certificateId}}</p>
+                  <div class="underline"></div>
+                </div>
+
+              </div>
+
+              <!-- WATERMARK -->
+              <div class="watermark">VIDHURA TECH</div>
+
+            </div>
+
           </div>
 
           <div class="bin-container" [hidden]="activeTab !== 'bin'">

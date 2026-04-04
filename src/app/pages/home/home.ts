@@ -41,37 +41,18 @@ export class Home implements AfterViewInit {
       }, 10000);
     });
 
-    this.zone.runOutsideAngular(() => {
-      setInterval(() => {
-        this.zone.run(() => this.switchCourse());
-      }, 5000);
-    });
-
     this.timer.startCountdown();
   }
 
-  switchCourse(course?: 'java' | 'python') {
+  switchCourse(course: 'java' | 'python') {
+    if (this.activeCourse() === course) return;
+
     this.isAnimating.set(true);
 
     setTimeout(() => {
-      if (course) {
-        this.activeCourse.set(course);
-      } else {
-        this.activeCourse.update(prev =>
-          prev === 'java' ? 'python' : 'java'
-        );
-      }
-
+      this.activeCourse.set(course);
       this.isAnimating.set(false);
     }, 300);
-
-    setInterval(() => {
-      this.javaCount.update(v => v + Math.floor(Math.random() * 2));
-      this.pythonCount.update(v => v + Math.floor(Math.random() * 2));
-    }, 10000);
-
-    this.timer.startCountdown();
-    this.startPopupLoop();
   }
 
   // FEATURES
