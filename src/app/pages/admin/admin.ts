@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import QRCode from 'qrcode';
+
 
 @Component({
   selector: 'app-admin',
@@ -815,10 +817,9 @@ Thanks for reaching out to Vidhura Tech!
 
   // 🔥 Generate QR
   async generateQR() {
-    const qr = await import('qrcode');
-
-    const verifyUrl = `${environment.apiUrl}/verify/${this.certificateId}`;
-    this.qrCodeUrl = await qr.toDataURL(verifyUrl);
+    this.qrCodeUrl = await QRCode.toDataURL(
+      `${environment.apiUrl}/certificates/${this.certificateId}`
+    );
   }
 
   // 🔥 Save to backend
@@ -843,33 +844,49 @@ Thanks for reaching out to Vidhura Tech!
       return;
     }
 
+    // 1️⃣ Generate ID
     this.generateCertificateId();
+
+    // 2️⃣ Generate QR
     await this.generateQR();
+
+    // 3️⃣ Save backend
     this.saveCertificate();
 
-    setTimeout(() => {
+    // 4️⃣ WAIT FOR UI RENDER (IMPORTANT FIX 🔥)
+    setTimeout(async () => {
+
       const element = document.getElementById('certificate');
 
-      if (!element) return;
+      if (!element) {
+        alert("Certificate element not found ❌");
+        return;
+      }
 
-      import('html2canvas').then(html2canvas => {
-        html2canvas.default(element, {
+      try {
+
+        const html2canvas = (await import('html2canvas')).default;
+        const canvas = await html2canvas(element, {
           scale: 3,
           useCORS: true
-        }).then(canvas => {
-
-          const imgData = canvas.toDataURL('image/png');
-
-          import('jspdf').then(jsPDF => {
-            const pdf = new jsPDF.jsPDF('landscape', 'px', [1120, 794]);
-
-            pdf.addImage(imgData, 'PNG', 0, 0, 1120, 794);
-            pdf.save(`${this.certificateData.name}_certificate.pdf`);
-          });
-
         });
-      });
-    }, 400);
+
+        const imgData = canvas.toDataURL('image/png'); // ✅ ONLY HERE
+
+        const jsPDF = (await import('jspdf')).jsPDF;
+
+        const pdf = new jsPDF('landscape', 'px', [1120, 794]);
+
+        pdf.addImage(imgData, 'PNG', 0, 0, 1120, 794);
+
+        pdf.save(`${this.certificateData.name}_certificate.pdf`);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error generating certificate ❌");
+      }
+
+    }, 800); // 🔥 increased delay (VERY IMPORTANT)
   }
   fetchUserByMobile() {
     const mobile = this.certificateData.mobile;
