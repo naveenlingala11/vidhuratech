@@ -1,0 +1,198 @@
+<div class="analytics-page">
+
+    <!-- LOADING -->
+    <div class="loading-overlay" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Refreshing Analytics...</p>
+    </div>
+
+    <!-- HEADER -->
+    <div class="analytics-header">
+        <div>
+            <h1>Revenue Intelligence Dashboard</h1>
+            <p>Real-time financial analytics & business insights</p>
+            <small>
+                Last Updated:
+                {{lastUpdated | date:'dd MMM yyyy hh:mm:ss a'}}
+            </small>
+        </div>
+
+        <button class="refresh-btn" [class.refreshing]="loading" (click)="loadAnalytics()">
+            Refresh Data
+        </button>
+    </div>
+
+    <div class="export-toolbar">
+
+        <button (click)="exportDashboardPdf()">
+            Export PDF
+        </button>
+
+        <button (click)="exportRevenueExcel()">
+            Export Excel
+        </button>
+
+        <button (click)="exportInvoicesCsv()">
+            Export CSV
+        </button>
+
+        <button (click)="printDashboard()">
+            Print
+        </button>
+
+    </div>
+
+    <!-- MAIN KPI CARDS -->
+    <div class="analytics-grid">
+
+        <div class="metric-card total">
+            <span>Total Revenue</span>
+            <h2>₹{{summary.totalRevenue || 0}}</h2>
+            <small>{{summary.totalInvoices || 0}} Invoices</small>
+        </div>
+
+        <div class="metric-card paid">
+            <span>Paid Revenue</span>
+            <h2>₹{{summary.paidRevenue || 0}}</h2>
+            <small>{{collectionRate | number:'1.0-1'}}% Collected</small>
+        </div>
+
+        <div class="metric-card pending">
+            <span>Pending Revenue</span>
+            <h2>₹{{summary.pendingRevenue || 0}}</h2>
+            <small>{{pendingRate | number:'1.0-1'}}% Outstanding</small>
+        </div>
+
+        <div class="metric-card partial">
+            <span>Average Invoice</span>
+            <h2>₹{{averageInvoiceValue | number:'1.0-0'}}</h2>
+            <small>Per Invoice Avg</small>
+        </div>
+
+    </div>
+
+    <!-- MINI KPI STRIP -->
+    <div class="mini-kpi-grid">
+
+        <div class="mini-kpi-card">
+            <span>Collection Rate</span>
+            <h4>{{collectionRate | number:'1.0-1'}}%</h4>
+        </div>
+
+        <div class="mini-kpi-card">
+            <span>Pending Ratio</span>
+            <h4>{{pendingRate | number:'1.0-1'}}%</h4>
+        </div>
+
+        <div class="mini-kpi-card">
+            <span>Total Courses Sold</span>
+            <h4>{{courseBreakdown.length}}</h4>
+        </div>
+
+        <div class="mini-kpi-card">
+            <span>Payment Methods Used</span>
+            <h4>{{paymentMethods.length}}</h4>
+        </div>
+
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="chart-grid">
+
+        <div class="analytics-card chart-card">
+            <h3>Monthly Revenue Trend</h3>
+
+            <div class="chart-wrapper">
+                <canvas baseChart [data]="monthlyRevenueChartData" [options]="chartOptions" [type]="'bar'">
+                </canvas>
+            </div>
+        </div>
+
+        <div class="analytics-card chart-card">
+            <h3>Payment Method Distribution</h3>
+
+            <div class="chart-wrapper">
+                <canvas baseChart [data]="paymentMethodChartData" [options]="chartOptions" [type]="'doughnut'">
+                </canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="chart-grid">
+
+        <div class="analytics-card chart-card">
+            <h3>Course Revenue Share</h3>
+
+            <div class="chart-wrapper">
+                <canvas baseChart [data]="courseRevenueChartData" [options]="chartOptions" [type]="'pie'">
+                </canvas>
+            </div>
+        </div>
+
+        <div class="analytics-card">
+            <h3>Top Highest Invoices</h3>
+
+            <div class="trend-list">
+                <div class="trend-item" *ngFor="let item of topInvoices">
+
+                    <div>
+                        <strong>{{item.name}}</strong>
+                        <small style="display:block;color:#64748b">
+                            {{item.course}}
+                        </small>
+                    </div>
+
+                    <strong>₹{{item.amount}}</strong>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM DETAILED INSIGHT PANELS -->
+    <div class="chart-grid">
+
+        <div class="analytics-card">
+            <h3>Top Performing Courses</h3>
+
+            <div class="trend-list">
+                <div class="trend-item" *ngFor="let item of courseBreakdown">
+
+                    <div>
+                        <strong>{{item.course}}</strong>
+                        <small style="display:block;color:#64748b">
+                            {{item.count}} Enrollments
+                        </small>
+                    </div>
+
+                    <strong>₹{{item.revenue}}</strong>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-card">
+            <h3>Payment Method Stats</h3>
+
+            <div class="trend-list">
+                <div class="trend-item" *ngFor="let item of paymentMethods">
+
+                    <div>
+                        <strong>{{item.paymentMethod}}</strong>
+                        <small style="display:block;color:#64748b">
+                            {{item.count}} Transactions
+                        </small>
+                    </div>
+
+                    <strong>₹{{item.revenue}}</strong>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

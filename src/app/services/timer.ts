@@ -17,7 +17,7 @@ export class TimerService {
     if (this.started) return; // 🔥 prevent duplicate timers
     this.started = true;
 
-    const endTime = new Date('2026-04-10T23:59:59').getTime();
+    const endTime = new Date('2026-05-01T23:59:59').getTime();
     const totalDuration = endTime - new Date().getTime();
 
     interval(1000).subscribe(() => {

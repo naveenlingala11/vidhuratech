@@ -1,0 +1,105 @@
+<!-- STATS -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ stats.total }}</h3>
+        <p>Total Leads</p>
+    </div>
+    <div class="stat-card blue">
+        <h3>{{ stats.new }}</h3>
+        <p>New</p>
+    </div>
+    <div class="stat-card orange">
+        <h3>{{ stats.contacted }}</h3>
+        <p>Contacted</p>
+    </div>
+    <div class="stat-card green">
+        <h3>{{ stats.joined }}</h3>
+        <p>Joined</p>
+    </div>
+</div>
+
+<!-- FILTER -->
+<div class="filter-bar">
+    <input placeholder="🔍 Search" [(ngModel)]="searchText" (input)="applyFilter()" />
+    <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
+        <option value="">All Status</option>
+        <option>New</option>
+        <option>Contacted</option>
+        <option>Joined</option>
+    </select>
+
+    <select [(ngModel)]="selectedCity" (change)="applyFilter()">
+        <option value="">All Cities</option>
+        <option *ngFor="let c of cities">{{ c }}</option>
+    </select>
+
+    <input type="date" [(ngModel)]="fromDate" (change)="applyFilter()" />
+
+    <button (click)="refreshLeads()">Refresh</button>
+    <button (click)="exportCSV()">CSV</button>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Course</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Follow-up</th>
+                <th>Action</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr *ngFor="let lead of filteredLeads">
+                <td>{{ lead.Date | date:'dd/MM/yyyy' }}</td>
+                <td>{{ lead.Name }}</td>
+                <td>{{ lead.Phone }}</td>
+                <td>{{ lead.Course }}</td>
+
+                <td (click)="openMessagePopup(lead)">
+                    {{ lead.Message ? (lead.Message | slice:0:30) + '...' : '-' }}
+                </td>
+
+                <td>
+                    <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
+                        <option>New</option>
+                        <option>Contacted</option>
+                        <option>Joined</option>
+                    </select>
+
+                    <button *ngIf="lead.isChanged" (click)="saveStatus(lead)">✔</button>
+                    <button *ngIf="lead.isChanged" (click)="cancelStatus(lead)">✖</button>
+                </td>
+
+                <td>
+                    <input type="date" [(ngModel)]="lead.tempFollowUp" (change)="onFollowUpChange(lead)" />
+
+                    <button *ngIf="lead.isFollowUpChanged" (click)="saveFollowUp(lead)">✔</button>
+                    <button *ngIf="lead.isFollowUpChanged" (click)="cancelFollowUp(lead)">✖</button>
+                </td>
+
+                <td>
+                    <button (click)="openWhatsAppLead(lead)">WhatsApp</button>
+                </td>
+
+                <td>
+                    <button (click)="openDeletePopup(lead)">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- PAGINATION -->
+<div class="pagination">
+    <button (click)="prevPage()" [disabled]="page === 0">⬅</button>
+    <span>Page {{ page + 1 }}</span>
+    <button (click)="nextPage()" [disabled]="page === totalPages - 1">➡</button>
+</div>

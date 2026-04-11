@@ -237,6 +237,7 @@ export class Admin implements OnInit {
           Course: item.course,
           Batch: item.batch,
           City: item.city,
+          Message: item.message,
           Status: item.status,
           tempStatus: item.status,
           isChanged: false,
@@ -425,10 +426,10 @@ export class Admin implements OnInit {
 
   exportCSV() {
 
-    const headers = ['NAME', 'PHONE', 'COURSE', 'STATUS', 'CITY'];
+    const headers = ['NAME', 'PHONE', 'COURSE', 'STATUS', 'CITY', 'REMARKS'];
 
     const rows = this.leads.map(l =>
-      [l.Name, l.Phone, l.Course, l.Status, l.City].join(',')
+      [l.Name, l.Phone, l.Course, l.Status, l.City, l.Message].join(',')
     );
 
     const csvContent = [headers.join(','), ...rows].join('\n');
@@ -442,6 +443,19 @@ export class Admin implements OnInit {
     link.download = `VT_Leads_${today}.csv`;
 
     link.click();
+  }
+
+  selectedMessageLead: any = null;
+  showMessagePopup = false;
+
+  openMessagePopup(lead: any) {
+    this.selectedMessageLead = lead;
+    this.showMessagePopup = true;
+  }
+
+  closeMessagePopup() {
+    this.showMessagePopup = false;
+    this.selectedMessageLead = null;
   }
 
   getTodayFollowups() {
@@ -478,9 +492,9 @@ Thanks for reaching out to Vidhura Tech!
 🎯 You're interested in:
 ➡️ Java + Data Structures (Telugu) Crash Course
 
-📅 April 11th, 2026
+📅 May 02, 2026
 ⏳ Daily 1.5-hour sessions
-💰 Offer Fee: ₹2499
+💰 Offer Fee: ₹2999
 
 📚 Includes:
 ✔ Core Java  
@@ -504,9 +518,9 @@ Thanks for reaching out to Vidhura Tech!
 🎯 You're interested in:
 ➡️ Python Course
 
-📅 April 11th, 2026
+📅 May 02nd, 2026
 ⏳ Daily 1.5-hour sessions
-💰 Offer Fee: ₹2499
+💰 Offer Fee: ₹2999
 
 📚 Includes:
 ✔ Python Fundamentals  
@@ -807,21 +821,22 @@ Thanks for reaching out to Vidhura Tech!
 
   mobileSuggestions: any[] = [];
   showSuggestions = false;
+  showCertPopup = false;
 
-  // 🔥 Generate ID
-  generateCertificateId() {
-    const random = Math.floor(1000 + Math.random() * 9000);
-    const year = new Date().getFullYear();
-    this.certificateId = `VT-${year}-${random}`;
+  generateQRCode(id: string) {
+
+    const url = `${window.location.origin}/certificate/${id}`;
+
+    QRCode.toDataURL(url)
+      .then(qr => {
+
+        this.qrCodeUrl = qr;
+
+        // 🔥 FORCE SYNC WITH ANGULAR
+        this.cd.detectChanges();
+
+      });
   }
-
-  // 🔥 Generate QR
-  async generateQR() {
-    this.qrCodeUrl = await QRCode.toDataURL(
-      `${environment.apiUrl}/certificates/${this.certificateId}`
-    );
-  }
-
   // 🔥 Save to backend
   saveCertificate() {
     fetch(`${environment.apiUrl}/certificates`, {
@@ -836,58 +851,49 @@ Thanks for reaching out to Vidhura Tech!
     });
   }
 
-  // 🔥 Generate + Download
-  async generateCertificate() {
+  async generateAndDownload() {
 
-    if (!this.certificateData.name || !this.certificateData.course) {
-      alert("Fill all details");
+    this.showCertPopup = false;
+
+    this.http.post(`${environment.apiUrl}/certificates`, {
+      name: this.certificateData.name,
+      course: this.certificateData.course,
+      email: this.certificateData.email
+    }).subscribe(async (res: any) => {
+
+      this.certificateId = res.id;
+      this.generateQRCode(res.id);
+      this.cd.detectChanges();
+
+    });
+  }
+
+  downloadCertificate() {
+
+    if (!this.certificateId) {
+      alert("Generate certificate first");
       return;
     }
 
-    // 1️⃣ Generate ID
-    this.generateCertificateId();
-
-    // 2️⃣ Generate QR
-    await this.generateQR();
-
-    // 3️⃣ Save backend
-    this.saveCertificate();
-
-    // 4️⃣ WAIT FOR UI RENDER (IMPORTANT FIX 🔥)
     setTimeout(async () => {
 
       const element = document.getElementById('certificate');
 
-      if (!element) {
-        alert("Certificate element not found ❌");
-        return;
-      }
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(element!, { scale: 3 });
 
-      try {
+      const imgData = canvas.toDataURL('image/png');
 
-        const html2canvas = (await import('html2canvas')).default;
-        const canvas = await html2canvas(element, {
-          scale: 3,
-          useCORS: true
-        });
+      const jsPDF = (await import('jspdf')).jsPDF;
+      const pdf = new jsPDF('landscape', 'px', [1120, 794]);
 
-        const imgData = canvas.toDataURL('image/png'); // ✅ ONLY HERE
+      pdf.addImage(imgData, 'PNG', 0, 0, 1120, 794);
 
-        const jsPDF = (await import('jspdf')).jsPDF;
+      pdf.save(`${this.certificateData.name}_certificate.pdf`);
 
-        const pdf = new jsPDF('landscape', 'px', [1120, 794]);
-
-        pdf.addImage(imgData, 'PNG', 0, 0, 1120, 794);
-
-        pdf.save(`${this.certificateData.name}_certificate.pdf`);
-
-      } catch (err) {
-        console.error(err);
-        alert("Error generating certificate ❌");
-      }
-
-    }, 800); // 🔥 increased delay (VERY IMPORTANT)
+    }, 500);
   }
+
   fetchUserByMobile() {
     const mobile = this.certificateData.mobile;
 
@@ -906,6 +912,21 @@ Thanks for reaching out to Vidhura Tech!
           console.log('User not found');
         }
       });
+  }
+
+  shareLinkedIn() {
+
+    if (!this.certificateId) {
+      alert("Generate certificate first");
+      return;
+    }
+
+    const url = `${window.location.origin}/certificate/${this.certificateId}`;
+
+    const linkedInUrl =
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+
+    window.open(linkedInUrl, '_blank');
   }
 
   searchTimeout: any;

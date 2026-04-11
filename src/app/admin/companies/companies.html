@@ -1,0 +1,102 @@
+<div class="company-container">
+
+    <!-- HEADER -->
+    <div class="top-bar">
+        <h2>🏢 Companies</h2>
+
+        <button class="refresh-btn" (click)="refresh()">🔄 Refresh</button>
+    </div>
+
+    <!-- FORM -->
+    <div class="company-form">
+
+        <input placeholder="Company Name" [(ngModel)]="newCompany.company" />
+        <input placeholder="Careers URL" [(ngModel)]="newCompany.url" />
+
+        <select [(ngModel)]="newCompany.type">
+            <option value="greenhouse">Greenhouse</option>
+            <option value="lever">Lever</option>
+            <option value="naukri">Naukri</option>
+        </select>
+
+        <button class="add-btn" (click)="addCompany()">➕ Add</button>
+
+        <!-- SEARCH -->
+        <input placeholder="🔍 Search..." [(ngModel)]="searchCompany" (input)="onSearchChange()" />
+
+        <!-- FILTER -->
+        <select [(ngModel)]="activeFilter" (change)="loadCompanies()">
+            <option value="">All</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+        </select>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th (click)="changeSort('company')">Company ⬍</th>
+                    <th>Type</th>
+                    <th (click)="changeSort('successCount')">Success ⬍</th>
+                    <th (click)="changeSort('failCount')">Fail ⬍</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr *ngFor="let c of companies">
+
+                    <td>
+                        <b>{{ c.company }}</b><br />
+                        <small>{{ c.url }}</small>
+                    </td>
+
+                    <td>{{ c.type }}</td>
+
+                    <td class="success">{{ c.successCount || 0 }}</td>
+                    <td class="fail">{{ c.failCount || 0 }}</td>
+
+                    <td>
+                        <span [class]="getStatusClass(c.active)">
+                            {{ c.active ? 'Active' : 'Inactive' }}
+                        </span>
+                    </td>
+
+                    <td>
+
+                        <button class="toggle-btn" (click)="toggleCompany(c)">
+                            {{ c.active ? 'Disable' : 'Enable' }}
+                        </button>
+
+                        <button class="delete-btn" (click)="deleteCompany(c.id)">
+                            🗑
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <!-- LOADING -->
+        <div *ngIf="isLoading" class="loading">⏳ Loading...</div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+        <button (click)="prevCompanyPage()" [disabled]="companyPage === 0">⬅</button>
+        <span>Page {{ companyPage + 1 }}</span>
+        <button (click)="nextCompanyPage()" [disabled]="(companyPage + 1) * companySize >= totalCompanies">➡</button>
+    </div>
+
+</div>

@@ -4,9 +4,9 @@
     <div class="modal-content modern-modal">
       <!-- TOP BAR -->
       <div class="top-bar">
-        <div>🔥 Limited Seats | Join Free Demo Class on April 11th & 12th</div>
+        <div>🔥 Limited Seats | Join Free Demo Class on May 02nd May</div>
         <div class="timing">⏰ 7:30 PM – 9:00 PM</div>
-        <button class="btn-close custom-close" data-bs-dismiss="modal">
+        <button class="btn-close custom-close" data-bs-dismiss="modal" (click)="resetForm(enrollForm)">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -59,12 +59,14 @@
       <!-- HEADER -->
       <div class="modal-header border-0">
         <h5 class="fw-bold">Enroll for Free Demo Class</h5>
+        <button class="clear-btn" (click)="submitted = false; resetForm(enrollForm)">
+          🧹 Clear
+        </button>
       </div>
 
       <!-- BODY -->
       <div class="modal-body">
-        <form (ngSubmit)="submitForm()" #f="ngForm">
-          <!-- PROGRESS -->
+        <form #enrollForm="ngForm">
           <div class="progress-bar">
             <div class="progress-fill" [style.width.%]="step * 33"></div>
           </div>
@@ -77,7 +79,7 @@
                   placeholder=" " />
                 <label>Name *</label>
 
-                <small class="v-error" *ngIf="name.invalid && name.touched">
+                <small class="v-error" *ngIf="name.invalid && (name.dirty || name.touched)">
                   Name must be at least 3 characters
                 </small>
               </div>
@@ -89,7 +91,7 @@
                   #phone="ngModel" placeholder=" " />
                 <label>Phone *</label>
 
-                <small class="v-error" *ngIf="phone.invalid && phone.touched">
+                <small class="v-error" *ngIf="phone.invalid && (phone.dirty || phone.touched)">
                   Enter valid 10-digit mobile number
                 </small>
               </div>
@@ -99,11 +101,11 @@
           <div class="row">
             <div class="col-md-6">
               <div class="field">
-                <input type="email" name="email" [(ngModel)]="formData.email" #email="ngModel" required
+                <input type="email" name="email" [(ngModel)]="formData.email" #email="ngModel"
                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" placeholder=" " />
                 <label>Email</label>
 
-                <small class="v-error" *ngIf="email.invalid && email.touched">
+                <small class="v-error" *ngIf="email.invalid && (email.dirty || email.touched)">
                   Enter valid email (example@gmail.com)
                 </small>
               </div>
@@ -121,8 +123,8 @@
                 <div class="field">
                   <select name="course" [(ngModel)]="formData.course" class="custom-select">
                     <option value="" disabled>Select Course</option>
-                    <option value="Java + DS">☕ Java + Data Structures</option>
-                    <option value="Python + DS">🐍 Python + Data Structures</option>
+                    <option value="Python + DS">Python + Data Structures</option>
+                    <option value="Java + DS">Java + Data Structures</option>
                   </select>
                 </div>
               </div>
@@ -148,8 +150,10 @@
           </div>
 
           <div class="d-flex gap-2">
-            <button type="submit" class="btn submit-btn w-100">
-              🚀 Submit
+            <button type="button" (click)="submitForm()" [disabled]="isSubmitting" class="btn submit-btn w-100">
+
+              {{ isSubmitting ? 'Submitting...' : '🚀 Submit' }}
+
             </button>
           </div>
         </form>

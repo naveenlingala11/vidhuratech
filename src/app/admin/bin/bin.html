@@ -1,0 +1,72 @@
+<div class="bin-container">
+
+    <!-- HEADER -->
+    <div class="bin-header">
+        <h3>
+            🗑 Deleted Leads
+            <span class="count-badge">({{ binTotal }})</span>
+        </h3>
+    </div>
+
+    <div class="bin-table-wrapper">
+
+        <!-- LOADING -->
+        <div *ngIf="isBinLoading" class="bin-empty">
+            ⏳ Loading deleted leads...
+        </div>
+
+        <!-- EMPTY -->
+        <div *ngIf="!isBinLoading && binLeads.length === 0" class="bin-empty">
+            <div class="empty-icon">📦</div>
+            <p>No deleted leads found</p>
+        </div>
+
+        <!-- TABLE -->
+        <table class="bin-table" *ngIf="!isBinLoading && binLeads.length > 0">
+
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Deleted At</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr *ngFor="let lead of binLeads">
+
+                    <td>{{ lead.name }}</td>
+                    <td>{{ lead.phone }}</td>
+
+                    <td>{{ lead.deletedAt | date:'short' }}</td>
+
+                    <td>
+                        <span class="deleted-badge">Deleted</span>
+                    </td>
+
+                    <td>
+                        <div class="bin-actions">
+
+                            <button class="restore-btn" (click)="restoreLead(lead)">
+                                ♻ Restore
+                            </button>
+
+                            <button class="delete-permanent-btn" (click)="deletePermanent(lead)">
+                                🗑 Delete
+                            </button>
+
+                        </div>
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

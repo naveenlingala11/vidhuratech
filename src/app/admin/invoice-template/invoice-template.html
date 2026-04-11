@@ -1,0 +1,174 @@
+<div id="invoice" class="tax-invoice">
+
+    <div class="invoice-watermark">
+        VIDHURA TECH
+    </div>
+    <div class="invoice-title-bar">
+        <div>TAX INVOICE</div>
+        <div>ORIGINAL FOR RECIPIENT</div>
+    </div>
+
+    <div class="top-grid">
+
+        <div class="company-box">
+            <div class="company-header">
+                <img src="VidhuraTechLogo.png" class="company-logo">
+
+                <div class="company-details">
+                    <h2>VIDHURA TECH</h2>
+                    <p>Professional Software Training Institute</p>
+                    <p>Website: www.vidhuratech.com</p>
+                    <p>Mobile: +91 9108057464</p>
+                    <p>Email: naveentechie11@gmail.com</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="meta-box">
+            <p><b>Invoice #:</b> {{data?.id || 'INV-DRAFT'}}</p>
+            <p><b>Date:</b> {{today | date:'dd MMM yyyy'}}</p>
+            <p><b>Status:</b> {{data?.paymentStatus}}</p>
+        </div>
+
+    </div>
+
+    <div class="address-grid">
+
+        <div class="customer-box">
+            <h4>Student Details</h4>
+            <p><b>{{data?.name}}</b></p>
+            <p>{{data?.email}}</p>
+            <p>{{data?.mobile}}</p>
+            <p>{{data?.studentAddress}}</p>
+        </div>
+
+        <div class="shipping-box">
+            <h4>Enrollment Details</h4>
+
+            <p><b>Course:</b> {{data?.course}}</p>
+            <p><b>Batch:</b> {{data?.batch}}</p>
+            <p><b>Coupon Applied:</b> {{data?.couponCode || 'N/A'}}</p>
+            <p><b>Payment Method:</b> {{data?.paymentMethod}}</p>
+        </div>
+
+    </div>
+
+    <table class="invoice-main-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Discount</th>
+                <th>Scholarship</th>
+                <th>Qty</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>{{data?.course}}</td>
+                <td>₹{{data?.amount}}</td>
+                <td>{{data?.discount}}%</td>
+                <td>₹{{data?.scholarship}}</td>
+                <td>1</td>
+                <td>₹{{finalAmount}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="balance-summary">
+
+        <div>
+            <b>Total Amount:</b> ₹{{data?.amount}}
+        </div>
+
+        <div>
+            <b>Paid Amount:</b> ₹{{data?.paidAmount || 0}}
+        </div>
+
+        <div *ngIf="data?.remainingAmount > 0" class="remaining-balance">
+            <b>Remaining:</b> ₹{{data?.remainingAmount}}
+        </div>
+
+    </div>
+    <div *ngIf="data?.installmentEnabled">
+
+        <h4>Installment Schedule</h4>
+
+        <table class="invoice-main-table">
+            <tr>
+                <th>No</th>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+
+            <tr *ngFor="let inst of data?.installments">
+                <td>{{inst.installmentNo}}</td>
+                <td>{{inst.dueDate}}</td>
+                <td>₹{{inst.amount}}</td>
+                <td>{{inst.status}}</td>
+            </tr>
+        </table>
+
+    </div>
+    <div class="amount-words">
+        <b>Amount In Words:</b> {{amountInWords}}
+    </div>
+
+    <div class="payment-signature-grid">
+
+        <div class="verification-box">
+
+            <div class="payment-stamp" [ngClass]="getStampClass()">
+                {{data?.paymentStatus}}
+            </div>
+
+            <h4>{{qrTitle}}</h4>
+
+            <img [src]="dynamicQrUrl" class="paid-qr-img">
+
+            <p>{{qrDescription}}</p>
+
+        </div>
+
+        <div class="signature-box">
+
+            <p class="signature-title">For VIDHURA TECH</p>
+
+            <div class="signature-wrapper">
+                <img src="seal.png" class="seal-img">
+                <img src="signature.png" class="sign-img">
+            </div>
+
+            <p>Authorized Signatory</p>
+
+        </div>
+
+    </div>
+
+    <div class="footer-notes">
+
+        <div>
+            <h4>Notes</h4>
+            <p>{{data?.notes || 'Thank you for enrolling with Vidhura Tech. We appreciate your trust in us.'}}</p>
+        </div>
+
+        <div>
+            <h4>Terms & Conditions</h4>
+            <p>1. Fees once paid are non-refundable.</p>
+            <p>2. Course access is valid for enrolled batch only.</p>
+            <p>3. Certificate will be issued after successful completion.</p>
+            <p>4. Invoice valid as proof of payment.</p>
+        </div>
+
+    </div>
+
+    <div class="system-generated-note">
+        This is a system generated invoice and does not require physical signature.
+    </div>
+
+</div>

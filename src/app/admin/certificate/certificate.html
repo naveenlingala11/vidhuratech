@@ -1,0 +1,183 @@
+<div class="certificate-page">
+    <div class="form-row">
+
+        <!-- MOBILE -->
+        <div class="field mobile-wrapper">
+
+            <input placeholder="📱 Mobile" [(ngModel)]="certificateData.mobile" (input)="searchMobile()"
+                (blur)="fetchUserByMobile()" />
+
+            <!-- 🔥 SUGGESTIONS -->
+            <div class="suggestions" *ngIf="showSuggestions">
+                <div *ngFor="let s of mobileSuggestions" (click)="selectSuggestion(s)" class="suggestion-item">
+                    <b>{{ s.phone }}</b> - {{ s.name }}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- NAME -->
+        <div class="field">
+            <input placeholder="👤 Name" [(ngModel)]="certificateData.name" />
+        </div>
+
+        <!-- COURSE -->
+        <div class="field">
+            <input placeholder="🎓 Course" [(ngModel)]="certificateData.course" />
+        </div>
+
+        <!-- EMAIL -->
+        <div class="field">
+            <input placeholder="✉ Email" [(ngModel)]="certificateData.email" />
+        </div>
+
+        <div class="cert-actions">
+
+            <button class="btn generate-btn" (click)="generateAndDownload()">
+                <i class="fas fa-certificate"></i>
+                <span>Generate</span>
+            </button>
+
+            <button class="btn download-btn" (click)="downloadCertificate()">
+                <i class="fas fa-download"></i>
+                <span>Download</span>
+            </button>
+
+            <button class="btn linkedin-btn" (click)="shareLinkedIn()">
+                <i class="fab fa-linkedin"></i>
+                <span>Share</span>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- CERTIFICATE -->
+    <div id="certificate" class="certificate">
+
+        <div class="border"></div>
+
+        <div class="left-design"></div>
+        <div class="bottom-right-design"></div>
+
+        <div class="top-wave">
+            <svg viewBox="0 0 1440 320">
+                <path fill="url(#grad1)"
+                    d="M0,160L80,144C160,128,320,96,480,96C640,96,800,128,960,133.3C1120,139,1280,117,1360,106.7L1440,96V0H0Z">
+                </path>
+                <defs>
+                    <linearGradient id="grad1">
+                        <stop offset="0%" style="stop-color:#0f172a" />
+                        <stop offset="50%" style="stop-color:#2563eb" />
+                        <stop offset="100%" style="stop-color:#facc15" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <img src="VidhuraTechLogo.png" class="logo-left" />
+
+        <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr" />
+        <p class="qr-label">Scan to Verify Certificate</p>
+
+        <div class="cert-content">
+
+            <img src="course_completion_badge.png" class="badge-left" />
+
+            <div class="cert-header">
+                <div class="line"></div>
+                <h1>CERTIFICATE</h1>
+                <div class="line"></div>
+            </div>
+
+            <p class="cert-subtitle">OF ACHIEVEMENT</p>
+
+            <p class="subtitle">
+                This certificate is proudly presented to
+            </p>
+
+            <h2 class="name">{{certificateData.name || 'Your Name'}}</h2>
+
+            <p class="email">
+                <i>{{certificateData.email || 'email@example.com'}}</i>
+            </p>
+
+            <div class="line"></div>
+
+            <p class="desc">
+                In recognition of successfully completing the professional training program
+            </p>
+
+            <h3 class="course">{{certificateData.course || 'Course Name'}}</h3>
+
+            <p class="desc2">
+                This program covered practical concepts, real-time projects, and industry-relevant skills.
+                The candidate has demonstrated strong dedication, problem-solving ability, and commitment
+                towards continuous learning and professional excellence.
+            </p>
+
+            <p class="desc3">
+                We proudly acknowledge this achievement and wish continued success in future endeavors.
+            </p>
+
+        </div>
+
+        <div class="bottom">
+
+            <div class="footer-box">
+                <p><b><i>{{ today | date:'dd/MM/yyyy' }}</i></b></p>
+                <div class="underline"></div>
+            </div>
+
+            <div class="footer-center">
+                <img src="seal.png" class="seal-img" />
+                <img src="signature.png" class="sign-img" />
+                <p class="sign-name">Authorized Signature</p>
+            </div>
+
+            <div class="footer-box">
+                <p><b>ID: {{certificateId}}</b></p>
+                <div class="underline"></div>
+            </div>
+
+        </div>
+
+        <img src="watermark.png" class="certificate-watermark" />
+
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrapper" style="margin-top:30px">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Course</th>
+                <th>Date</th>
+                <th>Remarks</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr *ngFor="let c of certificates">
+                <td>{{c.name}}</td>
+                <td>{{c.email}}</td>
+                <td>{{c.mobile}}</td>
+                <td>{{c.course}}</td>
+                <td>{{c.issuedAt | date:'dd/MM/yyyy'}}</td>
+
+                <td>
+                    <input [(ngModel)]="c.remarks" placeholder="Add remarks" />
+                </td>
+
+                <td>
+                    <button (click)="viewCert(c.id)">View</button>
+                    <button (click)="downloadCert(c.id)">Download</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

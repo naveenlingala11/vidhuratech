@@ -40,13 +40,13 @@ export class EnrollModal {
     email: '',
     course: 'Java Full Stack',
     experience: '',
-    batch: '',
     city: '',
     message: '',
   };
 
   subscription: any;
-
+  isSubmitting = false;
+  lastSubmittedData: any = null;
   modalInstance: any;
 
   constructor(
@@ -86,29 +86,66 @@ export class EnrollModal {
         });
       });
     });
+
+    modalElement.addEventListener('hidden.bs.modal', () => {
+      this.resetForm();
+    });
   }
 
   ngOnInit() {
-    this.formData.course = ''; // 🔥 important
+    this.formData.course = '';
+    this.resetForm();
   }
 
   ngOnDestroy() {
     this.subscription?.unsubscribe();
   }
 
+  resetForm(form?: any) {
+
+    this.formData = {
+      name: '',
+      phone: '',
+      email: '',
+      course: '',
+      experience: '',
+      city: '',
+      message: '',
+    };
+
+    // 🔥 Angular form state reset
+    form?.resetForm();
+
+    this.isSubmitting = false;
+  }
+
   submitForm() {
-    // ✅ Phone validation
+
+    if (this.isSubmitting) return;
+
+    // ✅ Required
+    if (!this.formData.name || !this.formData.phone) {
+      alert('Please fill required fields');
+      return;
+    }
+
+    // ✅ Phone
     if (!/^[6-9][0-9]{9}$/.test(this.formData.phone)) {
       alert('Enter valid mobile number');
       return;
     }
 
-    // ✅ Email validation (optional)
-    if (this.formData.email &&
-      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.formData.email)) {
+    // ✅ Email
+    if (
+      this.formData.email &&
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.formData.email)
+    ) {
       alert('Enter valid email');
       return;
     }
+
+    this.isSubmitting = true;
+
     fetch(`${environment.apiUrl}/api/leads/save`, {
       method: 'POST',
       headers: {
@@ -116,13 +153,34 @@ export class EnrollModal {
       },
       body: JSON.stringify(this.formData),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed');
+      .then(async (res) => {
 
+        // 🔥 HANDLE BACKEND ERROR MESSAGE
+        if (!res.ok) {
+          const msg = await res.text();
+          throw new Error(msg);
+        }
+
+        // ✅ STORE DATA FOR WHATSAPP
+        this.lastSubmittedData = { ...this.formData };
+
+        // ✅ Close modal
         this.modalInstance?.hide();
 
+        // ✅ Success popup
         this.submitted = true;
         this.cd.detectChanges();
+
+        // ✅ Reset form
+        this.formData = {
+          name: '',
+          phone: '',
+          email: '',
+          course: '',
+          experience: '',
+          city: '',
+          message: '',
+        };
 
         setTimeout(() => {
           this.submitted = false;
@@ -131,27 +189,40 @@ export class EnrollModal {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error submitting form');
+
+        // 🔥 SHOW BACKEND MESSAGE (important)
+        alert(err.message || 'Error submitting form');
+      })
+      .finally(() => {
+        this.isSubmitting = false;
       });
   }
+
   openWhatsApp() {
+
+    const data = this.lastSubmittedData;
+
+    if (!data) {
+      alert('Please submit form first');
+      return;
+    }
 
     const message = `👋 Hello Vidhura Tech Team,
 
-      I have just registered for a demo class. Here are my details:
+I have just registered for a demo class. Here are my details:
 
-      👤 Name: ${this.formData.name}
-      📞 Phone: ${this.formData.phone}
-      📧 Email: ${this.formData.email}
-      📘 Course: ${this.formData.course}
-      ⏰ Batch: ${this.formData.batch}
-      📍 City: ${this.formData.city}
+👤 Name: ${data.name}
+📞 Phone: ${data.phone}
+📧 Email: ${data.email}
+📘 Course: ${data.course}
+📍 City: ${data.city}
+📘 Message: ${data.message}
 
-      📌 Could you please share more details about the course, schedule, and next steps?
+📌 Could you please share more details about the course, schedule, and next steps?
 
-      Looking forward to your response 🙂
+Looking forward to your response 🙂
 
-      Thank you!`;
+Thank you!`;
 
     const url = `https://api.whatsapp.com/send?phone=919108057464&text=${encodeURIComponent(message)}`;
 
