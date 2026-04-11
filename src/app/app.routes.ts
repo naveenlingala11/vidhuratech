@@ -17,6 +17,16 @@ import { JobDetail } from './pages/job-detail/job-detail';
 import { JobsHome } from './pages/jobs-home/jobs-home';
 import { Preparation } from './pages/preparation/preparation';
 import { Company } from './pages/company/company';
+import { CertificateView } from './certificate-view/certificate-view';
+import { LeadsComponent } from './admin/leads/leads';
+import { BinComponent } from './admin/bin/bin';
+import { JobPostAdmin } from './admin/jobs/jobs';
+import { CertificateComponent } from './admin/certificate/certificate';
+import { Questions } from './admin/questions/questions';
+import { CompaniesComponent } from './admin/companies/companies';
+import { InvoiceComponent } from './admin/invoice/invoice';
+import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
+import { AdminHomeComponent } from './admin/admin-home/admin-home';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -36,5 +46,18 @@ export const routes: Routes = [
   { path: 'jobs/:id', component: JobDetail },
   { path: 'jobs-home', component: JobsHome },
   { path: 'preparation', component: Preparation },
-  { path: 'company/:name', component: Company }
+  { path: 'company/:name', component: Company },
+  { path: 'certificate/:id', component: CertificateView },
+
+  // ADMIN  TABS
+  { path: 'admin-home', component: AdminHomeComponent },
+  { path: 'admin/leads', component: LeadsComponent },
+  { path: 'admin/bin', component: BinComponent },
+  { path: 'admin/jobs', component: JobPostAdmin },
+  { path: 'admin/companies', component: CompaniesComponent },
+  { path: 'admin/certificates', component: CertificateComponent },
+  { path: 'admin/questions', component: Questions },
+  { path: 'admin/invoice', component: InvoiceComponent },
+  { path: 'invoice-analytics', component: InvoiceAnalytics }
+
 ];

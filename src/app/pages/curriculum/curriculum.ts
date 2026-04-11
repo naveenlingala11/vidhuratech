@@ -34,7 +34,7 @@ interface Course {
 export class Curriculum {
   courses: Course[] = COURSES;
 
-  selectedCourseId = 'java';
+  selectedCourseId = 'python';
   selectedLevel = 'All';
 
   selectedCourse!: Course;

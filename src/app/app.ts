@@ -35,13 +35,13 @@ export class App {
       type: 'bot',
     },
     {
-      text: `📚 Available Courses:\n\n☕ Java + Data Structures\n🐍 Python + Data Structures`,
+      text: `📚 Available Courses:\n\n☕ Java + Data Structures\n Python + Data Structures`,
       type: 'bot',
     },
     {
       text: `👇 Please select a course to continue`,
       type: 'bot',
-      options: ['☕ Java + DS', '🐍 Python + DS'],
+      options: ['☕ Java + DS', 'Python + DS'],
     },
   ];
 
@@ -71,14 +71,14 @@ export class App {
 
       if (option.includes('Java')) {
         this.messages.push({
-          text: `☕ *Java + Data Structures*\n\n⏳ Duration: 30 Days\n💻 Core Java + OOPs + DS\n📦 Real-time Projects\n🎯 Placement Assistance`,
+          text: `☕ *Java + Data Structures*\n\n⏳ Duration: 45 Days\n💻 Core Java + OOPs + DS\n📦 Real-time Projects\n🎯 Placement Assistance`,
           type: 'bot',
           options: ['💰 Fees', '🏢 Placement', '⏳ Duration'],
         });
       }
       else if (option.includes('Python')) {
         this.messages.push({
-          text: `🐍 *Python + Data Structures*\n\n⏳ Duration: 30 Days\n💻 Core Python + DS\n📦 Hands-on Projects\n🎯 Placement Assistance`,
+          text: `*Python + Data Structures*\n\n⏳ Duration: 45 Days\n💻 Core Python + DS\n📦 Hands-on Projects\n🎯 Placement Assistance`,
           type: 'bot',
           options: ['💰 Fees', '🏢 Placement', '⏳ Duration'],
         });
@@ -117,10 +117,10 @@ export class App {
       let reply = '';
 
       if (userMsg.toLowerCase().includes('java')) {
-        reply = `☕ Java + Data Structures\n\n⏳ 30 Days\n💻 Core Java + OOPs\n📦 Real-time Projects\n🎯 Placement Assistance`;
+        reply = `☕ Java + Data Structures\n\n⏳ 45 Days\n💻 Core Java + OOPs\n📦 Real-time Projects\n🎯 Placement Assistance`;
       }
       else if (userMsg.toLowerCase().includes('python')) {
-        reply = `🐍 Python + Data Structures\n\n⏳ 30 Days\n💻 Core Python + APIs\n📦 Hands-on Projects\n🎯 Placement Assistance`;
+        reply = `Python + Data Structures\n\n⏳ 45 Days\n💻 Core Python + APIs\n📦 Hands-on Projects\n🎯 Placement Assistance`;
       } else if (userMsg.toLowerCase().includes('fees')) {
         reply = `💰 Fees Info\n\n📌 Flexible plans\n📌 Demo explanation`;
       } else {

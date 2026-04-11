@@ -1,0 +1,128 @@
+<div class="admin-dashboard" [class.dark]="darkMode">
+
+    <div class="dashboard-loader" *ngIf="loading">
+        <div class="loader-ring"></div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="dashboard-header glass-card">
+        <div>
+            <h1>Admin Control Center</h1>
+            <p>Enterprise ERP Dashboard for Vidhura Tech</p>
+        </div>
+
+        <button class="theme-toggle" (click)="toggleTheme()">
+            {{darkMode ? '☀ Light Mode' : '🌙 Dark Mode'}}
+        </button>
+
+        <button class="refresh-dashboard-btn" (click)="refreshDashboard()">
+            🔄 Refresh Dashboard
+        </button>
+
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+
+        <div class="stat-card glass-card">
+            <span>Leads</span>
+            <h2>{{stats.leads}}</h2>
+            <small>+12% This Week</small>
+        </div>
+
+        <div class="stat-card glass-card revenue">
+            <span>Revenue</span>
+            <h2>₹{{stats.revenue}}</h2>
+            <small>+{{revenueGrowth}}% Growth</small>
+        </div>
+
+        <div class="stat-card glass-card jobs">
+            <span>Jobs Posted</span>
+            <h2>{{stats.jobs}}</h2>
+            <small>Hiring Pipeline Active</small>
+        </div>
+
+        <div class="stat-card glass-card cert">
+            <span>Certificates</span>
+            <h2>{{stats.certificates}}</h2>
+            <small>Issued Successfully</small>
+        </div>
+
+    </div>
+    <div class="stats-grid secondary-stats">
+
+        <div class="stat-card glass-card">
+            <span>Companies</span>
+            <h2>{{extraStats.companies}}</h2>
+        </div>
+
+        <div class="stat-card glass-card">
+            <span>Deleted Leads</span>
+            <h2>{{extraStats.deletedLeads}}</h2>
+        </div>
+
+        <div class="stat-card glass-card">
+            <span>Follow Ups Today</span>
+            <h2>{{extraStats.todayFollowups}}</h2>
+        </div>
+
+    </div>
+
+    <!-- QUICK ANALYTICS -->
+    <div class="analytics-row">
+
+        <div class="analytics-widget glass-card">
+            <h3>Quick Insights</h3>
+
+            <div class="insight">
+                <span>Lead Conversion Rate</span>
+                <strong>{{extraStats.conversionRate}}%</strong>
+            </div>
+
+            <div class="insight">
+                <span>Revenue Growth</span>
+                <strong>{{revenueGrowth}}%</strong>
+            </div>
+
+            <div class="insight">
+                <span>Active Modules</span>
+                <strong>{{activeModules}}</strong>
+            </div>
+        </div>
+
+        <div class="analytics-widget glass-card">
+            <h3>Recent Activity</h3>
+
+            <div class="activity-item" *ngFor="let activity of recentActivities">
+                {{activity}}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODULES -->
+    <div class="modules-section">
+
+        <h2>Admin Modules</h2>
+
+        <div class="module-grid">
+
+            <div class="module-card glass-card" *ngFor="let module of modules" (click)="navigate(module.route)">
+
+                <div class="module-icon">
+                    {{module.icon}}
+                </div>
+
+                <h3>{{module.title}}</h3>
+
+                <button>
+                    Open →
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -14,7 +14,7 @@ import { TimerService } from '../../services/timer';
   styleUrl: './home.css',
 })
 export class Home implements AfterViewInit {
-  activeCourse = signal<'java' | 'python'>('java');
+  activeCourse = signal<'java' | 'python'>('python');
   isAnimating = signal(false);
   javaCount = signal(5);
   pythonCount = signal(7);
