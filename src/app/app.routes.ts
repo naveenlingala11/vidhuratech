@@ -27,6 +27,7 @@ import { CompaniesComponent } from './admin/companies/companies';
 import { InvoiceComponent } from './admin/invoice/invoice';
 import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
 import { AdminHomeComponent } from './admin/admin-home/admin-home';
+import { Checkout } from './pages/checkout/checkout';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -58,6 +59,11 @@ export const routes: Routes = [
   { path: 'admin/certificates', component: CertificateComponent },
   { path: 'admin/questions', component: Questions },
   { path: 'admin/invoice', component: InvoiceComponent },
-  { path: 'invoice-analytics', component: InvoiceAnalytics }
+  { path: 'invoice-analytics', component: InvoiceAnalytics },
+
+  // Checkout
+  { path: 'checkout', component: Checkout},
+
+  { path: '**', redirectTo: '' } // fallback
 
 ];

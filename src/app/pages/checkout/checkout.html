@@ -1,0 +1,240 @@
+<section class="payment-page">
+
+    <div class="payment-shell">
+
+        <!-- HEADER -->
+        <div class="payment-header">
+
+            <div class="brand">
+                <img src="VidhuraTechIcon.png" alt="Vidhura Tech" />
+
+                <div>
+                    <h3>Vidhura Tech</h3>
+                    <p>Secure Course Enrollment Payment</p>
+                </div>
+            </div>
+
+            <div class="contact-box">
+                <span>Need Help?</span>
+                <b>+91 {{ formData.phone || 'XXXXXXXXXX' }}</b>
+            </div>
+
+        </div>
+
+        <!-- PAYMENT BODY -->
+        <div *ngIf="!paymentSuccess()" class="payment-body">
+
+            <!-- LEFT SUMMARY -->
+            <div class="left-panel">
+
+                <div class="offer-banner">
+                    🔥 Limited Time Offer Active
+                </div>
+
+                <div class="amount-box">
+                    <small>Total Amount</small>
+                    <h2>₹{{ formData.amount }}</h2>
+                    <span class="strike">₹4999</span>
+                </div>
+
+                <div class="method-box active">
+                    <span>💳</span>
+                    <div>
+                        <b>UPI Payment</b>
+                        <small>PhonePe / GPay / Paytm / Any UPI App</small>
+                    </div>
+                </div>
+
+                <div class="course-summary">
+
+                    <h4>Enrollment Summary</h4>
+
+                    <p>
+                        <span>Course</span>
+                        <b>{{ formData.course }}</b>
+                    </p>
+
+                    <p>
+                        <span>Batch</span>
+                        <b>{{ formData.batch }}</b>
+                    </p>
+
+                    <p>
+                        <span>Duration</span>
+                        <b>45 Days</b>
+                    </p>
+
+                    <p>
+                        <span>Mode</span>
+                        <b>Online Live</b>
+                    </p>
+
+                    <p>
+                        <span>Projects</span>
+                        <b>Mini + Major</b>
+                    </p>
+
+                    <p>
+                        <span>Placement Support</span>
+                        <b>Included</b>
+                    </p>
+
+                </div>
+
+                <div class="trust-box">
+                    🔒 100% Secure Payment <br>
+                    Instant Access Activation After Verification
+                </div>
+
+            </div>
+
+            <!-- RIGHT FORM / QR -->
+            <div class="right-panel">
+
+                <!-- FORM -->
+                <div *ngIf="!paymentInitiated()" class="checkout-form">
+
+                    <h3>Complete Your Enrollment</h3>
+                    <p>Fill your details to generate payment QR</p>
+
+                    <div class="input-grid">
+
+                        <input [(ngModel)]="formData.name" placeholder="Full Name" />
+                        <input [(ngModel)]="formData.phone" placeholder="Mobile Number" />
+
+                        <input [(ngModel)]="formData.email" placeholder="Email Address" />
+                        <input [(ngModel)]="formData.city" placeholder="City" />
+
+                        <select [(ngModel)]="formData.experience">
+                            <option value="">Select Experience</option>
+                            <option>Student</option>
+                            <option>Fresher</option>
+                            <option>Working Professional</option>
+                        </select>
+
+                        <select [(ngModel)]="formData.course">
+                            <option>Python + DS</option>
+                            <option>Java + DS</option>
+                        </select>
+
+                    </div>
+
+                    <button class="generate-btn" (click)="startCheckout()">
+                        Generate Payment QR →
+                    </button>
+
+                </div>
+
+                <!-- QR PAYMENT -->
+                <div *ngIf="paymentInitiated()" class="qr-section">
+
+                    <div class="qr-header">
+                        <h3>Scan & Pay</h3>
+                        <p>Use any UPI app to complete payment</p>
+                    </div>
+
+                    <div class="qr-wrapper">
+                        <img [src]="qrImageUrl" class="qr-image" />
+                    </div>
+
+                    <div class="upi-icons">
+                        GPay • PhonePe • Paytm • BHIM • Any UPI
+                    </div>
+
+                    <button class="upi-open-btn" (click)="openUpiIntent()">
+                        Open UPI App
+                    </button>
+
+                    <div class="proof-box">
+
+                        <input [(ngModel)]="utrNumber" placeholder="Enter UTR / Transaction ID">
+
+                        <input type="file" (change)="onScreenshotUpload($event)">
+
+                        <button class="confirm-btn" (click)="submitProof()">
+
+                            Submit Payment Proof
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="status-check-box">
+
+                    <h3>Check Payment Status</h3>
+
+                    <input [(ngModel)]="statusPhone" placeholder="Enter Mobile Number">
+
+                    <input [(ngModel)]="statusInvoiceId" placeholder="Enter Invoice ID">
+
+                    <button class="generate-btn" (click)="checkStatus()">
+                        Check Status
+                    </button>
+
+                    <div *ngIf="statusData" class="status-result">
+
+                        <h4>Status: {{ statusData.status }}</h4>
+
+                        <p *ngIf="statusData.status === 'PENDING'">
+                            QR Generated. Awaiting Payment.
+                        </p>
+
+                        <p *ngIf="statusData.status === 'UNDER_REVIEW'">
+                            Payment Proof Submitted. Verification In Progress.
+                        </p>
+
+                        <p *ngIf="statusData.status === 'PAID'">
+                            Payment Verified Successfully ✅ Access Granted.
+                        </p>
+
+                        <p *ngIf="statusData.status === 'REJECTED'">
+                            Payment Rejected. Contact Support.
+                        </p>
+
+                        <div *ngIf="statusData.status === 'PAID'" class="paid-actions">
+                            <a href="https://chat.whatsapp.com/YOUR_GROUP_LINK" target="_blank">
+                                Join WhatsApp Group
+                            </a>
+
+                            <a routerLink="/dashboard">
+                                Open Student Dashboard
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SUCCESS -->
+        <div *ngIf="paymentSuccess()" class="success-screen">
+
+            <div class="success-icon">✓</div>
+
+            <h2>Payment Successful!</h2>
+
+            <h1>₹{{ formData.amount }}</h1>
+
+            <p>Your enrollment has been completed successfully.</p>
+
+            <div class="success-details">
+
+                <p><span>Invoice ID</span><b>{{ invoiceId }}</b></p>
+                <p><span>Course</span><b>{{ formData.course }}</b></p>
+                <p><span>Phone</span><b>{{ formData.phone }}</b></p>
+
+            </div>
+
+            <button routerLink="/" class="home-btn">
+                Back To Home
+            </button>
+
+        </div>
+
+    </div>
+
+</section>

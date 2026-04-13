@@ -435,4 +435,99 @@ export class InvoiceComponent implements OnInit {
       new Date(inst.dueDate) < new Date()
     );
   }
+
+  async approvePayment(invoiceId: string): Promise<void> {
+
+    const confirmed = confirm(
+      'Approve this payment and grant student access?'
+    );
+
+    if (!confirmed) return;
+
+    const invoice = this.invoices.find(x => x.id === invoiceId);
+
+    if (!invoice) return;
+
+    // MUTATE TO FINAL PAID STATE BEFORE PDF GENERATION
+    this.invoiceData = {
+      ...invoice,
+      paymentStatus: 'PAID',
+      paymentVerified: true,
+      paidAmount: invoice.amount,
+      remainingAmount: 0
+    };
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const pdfBlob = await this.generateInvoicePdfBlob();
+
+    if (!pdfBlob) {
+      alert('Failed to generate invoice PDF');
+      return;
+    }
+
+    const formData = new FormData();
+
+    formData.append('invoiceId', invoiceId);
+    formData.append(
+      'invoicePdf',
+      pdfBlob,
+      `${invoiceId}.pdf`
+    );
+
+    this.http.post(
+      `${environment.apiUrl}/api/checkout/approve`,
+      formData
+    ).subscribe(() => {
+
+      alert('Payment Approved + Email Sent');
+
+      this.loadInvoices();
+    });
+  }
+  
+  async generateInvoicePdfBlob(): Promise<Blob | null> {
+    const invoiceElement = document.getElementById('invoice');
+
+    if (!invoiceElement) return null;
+
+    const canvas = await html2canvas(invoiceElement, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      scrollY: -window.scrollY
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    const margin = 8;
+
+    const usableWidth = pdfWidth - margin * 2;
+    const usableHeight = pdfHeight - margin * 2;
+
+    const imgWidth = usableWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = margin;
+
+    pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+
+    heightLeft -= usableHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + margin;
+
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+
+      heightLeft -= usableHeight;
+    }
+
+    return pdf.output('blob');
+  }
 }
