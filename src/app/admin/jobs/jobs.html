@@ -1,1 +1,47 @@
-<p>jobs works!</p>
+<div class="job-panel">
+    <h3>🚀 Post New Job</h3>
+
+    <form #jobFormRef="ngForm">
+        <div class="job-form">
+            <div>
+                <input name="title" required #t="ngModel" placeholder="Job Title" [(ngModel)]="jobForm.title" />
+                <small *ngIf="t.invalid && t.touched" class="error">Required</small>
+            </div>
+
+            <div>
+                <input name="company" required #c="ngModel" placeholder="Company" [(ngModel)]="jobForm.company" />
+                <small *ngIf="c.invalid && c.touched" class="error">Required</small>
+            </div>
+
+            <input name="location" placeholder="Location" [(ngModel)]="jobForm.location" />
+
+            <input name="experience" placeholder="Experience" [(ngModel)]="jobForm.experience" />
+
+            <select name="type" required [(ngModel)]="jobForm.type">
+                <option value="">Type</option>
+                <option>Fresher</option>
+                <option>Internship</option>
+                <option>Experienced</option>
+                <option>Walkin</option>
+            </select>
+
+            <select name="category" [(ngModel)]="jobForm.category">
+                <option value="">Category</option>
+                <option *ngFor="let c of categories">{{ c }}</option>
+            </select>
+
+            <input name="link" placeholder="Apply Link" [(ngModel)]="jobForm.link" />
+
+            <button type="button" (click)="previewJob()">👁 Preview</button>
+            <button type="button" (click)="postJob()">🚀 Post Job</button>
+        </div>
+    </form>
+
+    <div class="preview-box" *ngIf="showPreview">
+        <h4>Preview</h4>
+        <p>{{ jobForm.title }} - {{ jobForm.company }}</p>
+
+        <button (click)="confirmPost()">Confirm</button>
+        <button (click)="showPreview = false">Cancel</button>
+    </div>
+</div>

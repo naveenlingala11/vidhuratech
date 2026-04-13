@@ -78,7 +78,11 @@ export class Home implements AfterViewInit {
   ];
 
   openEnrollModal() {
-    this.modalService.open();
+    this.modalService.open({
+      course: this.activeCourse() === 'java'
+        ? 'Java Coming Soon'
+        : 'Python Batch'
+    });
   }
 
   ngAfterViewInit() {

@@ -8,13 +8,81 @@
       skills, and complete career support to help you land your dream job in IT.
     </p>
 
-    <button
-      class="btn btn-warning btn-lg mt-3"
-      data-bs-toggle="modal"
-      data-bs-target="#enrollModal"
-    >
+    <button class="btn btn-warning btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#enrollModal">
       Join Free Demo
     </button>
+  </div>
+</section>
+
+
+<!-- 🔥 COURSES -->
+<section class="courses">
+  <div class="container">
+    <h2 class="text-center">Explore Our Courses</h2>
+
+    <div class="row g-4 mt-4">
+      <div class="col-lg-4 col-md-6" *ngFor="let c of courses">
+        <div class="course-card">
+
+          <!-- TOP -->
+          <div class="course-top">
+            <span class="course-status" [class.live]="c.status === 'Live Batch'">
+              {{ c.status }}
+            </span>
+
+            <span class="course-date">
+              {{ c.startDate }}
+            </span>
+          </div>
+
+          <!-- TITLE -->
+          <h3>{{ c.title }}</h3>
+
+          <p class="course-desc">{{ c.desc }}</p>
+
+          <!-- META -->
+          <div class="course-meta">
+            <span>⏱ {{ c.duration }}</span>
+            <span>📈 {{ c.level }}</span>
+          </div>
+
+          <div class="course-rating">
+            ⭐ {{ c.rating }} | 👨‍🎓 {{ c.students }} Students
+          </div>
+
+          <!-- TECH TAGS -->
+          <div class="tech-tags">
+            <span *ngFor="let t of c.technologies">{{ t }}</span>
+          </div>
+
+          <!-- ACCORDION BUTTON -->
+          <button class="accordion-toggle" (click)="toggleCourse(c)">
+            {{ c.open ? 'Hide Details' : 'View Full Details' }}
+          </button>
+
+          <!-- ACCORDION BODY -->
+          <div class="accordion-body" *ngIf="c.open">
+
+            <h5>Course Highlights</h5>
+            <ul>
+              <li *ngFor="let h of c.highlights">✔ {{ h }}</li>
+            </ul>
+
+            <h5>What You Will Achieve</h5>
+            <ul>
+              <li *ngFor="let o of c.outcomes">✔ {{ o }}</li>
+            </ul>
+
+          </div>
+
+          <!-- BUTTON -->
+          <button class="btn btn-primary w-100 enroll-btn" data-bs-toggle="modal" data-bs-target="#enrollModal">
+            Enroll Now
+          </button>
+
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -29,146 +97,95 @@
 </section>
 
 <!-- 🔥 ABOUT TRAINING -->
-<section class="content-section">
+<section class="why-training">
   <div class="container">
-    <h2>Why Our Training Stands Out</h2>
 
-    <p>
-      Our training programs are carefully designed to bridge the gap between academic knowledge and
-      industry requirements. We focus on hands-on coding, real-time projects, and interview
-      preparation.
-    </p>
-
-    <ul>
-      <li>✔ Live coding sessions with expert trainers</li>
-      <li>✔ Real-time project implementation</li>
-      <li>✔ Industry-based curriculum</li>
-      <li>✔ Continuous mentorship and support</li>
-    </ul>
-  </div>
-</section>
-
-<!-- 🔥 UPCOMING -->
-<section class="upcoming text-center">
-  <div class="container">
-    <h2>Upcoming Demo Classes</h2>
-
-    <div class="demo-card">
-      <h3>Core Java Demo</h3>
-      <p>📅 May 02 & 03, 2026</p>
-      <p>⏰ 7:30 PM – 9:00 PM</p>
-      <p>Attend demo sessions and experience our teaching methodology.</p>
-
-      <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#enrollModal">
-        Book Seat
-      </button>
+    <div class="section-head text-center">
+      <h2>Why Our Training Stands Out</h2>
+      <p>Designed to make you industry-ready, not just course-complete.</p>
     </div>
-  </div>
-</section>
 
-<!-- 🔥 COURSES -->
-<section class="courses">
-  <div class="container">
-    <h2 class="text-center">Explore Our Courses</h2>
-
-    <div class="row g-4 mt-4">
-      <div class="col-lg-4 col-md-6" *ngFor="let c of courses">
-        <div class="course-card">
-          <h3>{{ c.title }}</h3>
-          <p>{{ c.desc }}</p>
-
-          <p><b>Duration:</b> {{ c.duration }}</p>
-          <p><b>Level:</b> {{ c.level }}</p>
-
-          <p>⭐ {{ c.rating }} | 👨‍🎓 {{ c.students }} Students</p>
-
-          <h5>Technologies Covered</h5>
-          <ul>
-            <li *ngFor="let t of c.technologies">{{ t }}</li>
-          </ul>
-
-          <h5>Course Highlights</h5>
-          <ul>
-            <li *ngFor="let h of c.highlights">✔ {{ h }}</li>
-          </ul>
-
-          <h5>What You Will Achieve</h5>
-          <ul>
-            <li *ngFor="let o of c.outcomes">{{ o }}</li>
-          </ul>
-
-          <button
-            class="btn btn-primary w-100 mt-3"
-            data-bs-toggle="modal"
-            data-bs-target="#enrollModal"
-          >
-            Enroll Now
-          </button>
-        </div>
-      </div>
+    <div class="why-grid">
+      <div class="why-card">💻 Live Coding Sessions</div>
+      <div class="why-card">🚀 Real-Time Projects</div>
+      <div class="why-card">📚 Industry Curriculum</div>
+      <div class="why-card">🎯 Interview Preparation</div>
+      <div class="why-card">👨‍🏫 Mentor Support</div>
+      <div class="why-card">📈 Placement Assistance</div>
     </div>
+
   </div>
 </section>
 
 <!-- 🔥 LEARNING JOURNEY -->
-<section class="content-section text-center">
+<section class="journey-section">
   <div class="container">
-    <h2>Your Learning Journey</h2>
 
-    <p>We follow a structured approach to ensure every student gains practical knowledge:</p>
-
-    <div class="steps">
-      <div>📘 Learn Basics</div>
-      <div>💻 Practice Coding</div>
-      <div>🚀 Build Projects</div>
-      <div>🎯 Crack Interviews</div>
+    <div class="section-head text-center">
+      <h2>Your Learning Journey</h2>
+      <p>Our structured process ensures consistent progress and real outcomes.</p>
     </div>
+
+    <div class="journey-timeline">
+      <div class="journey-step">📘 Learn Fundamentals</div>
+      <div class="journey-step">💻 Daily Practice</div>
+      <div class="journey-step">🚀 Build Projects</div>
+      <div class="journey-step">🎯 Crack Interviews</div>
+    </div>
+
   </div>
 </section>
 
 <!-- 🔥 TESTIMONIAL SLIDER -->
-<section class="testimonial text-center">
-  <h2>Student Reviews</h2>
+<section class="testimonial-section">
+  <div class="container">
 
-  <div class="slider">
-    <div
-      class="slide"
-      *ngFor="let t of testimonials; let i = index"
-      [class.active]="i === currentSlide"
-    >
-      <p>"{{ t.text }}"</p>
-      <h6>- {{ t.name }}</h6>
+    <div class="section-head text-center">
+      <h2>What Students Say</h2>
+      <p>Success stories from our learners.</p>
     </div>
+
+    <div class="testimonial-card">
+      <div class="slide" *ngFor="let t of testimonials; let i = index" [class.active]="i === currentSlide">
+
+        <p>"{{ t.text }}"</p>
+        <h6>{{ t.name }}</h6>
+
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- 🔥 PLACEMENT SUPPORT -->
-<section class="content-section">
+<section class="placement-section">
   <div class="container">
-    <h2>Placement Assistance</h2>
 
-    <p>
-      We provide complete placement support including resume building, mock interviews, and direct
-      referrals to companies.
-    </p>
+    <div class="section-head text-center">
+      <h2>Placement Assistance</h2>
+      <p>We support you until you get hired.</p>
+    </div>
 
-    <ul>
-      <li>✔ Resume preparation</li>
-      <li>✔ Mock technical interviews</li>
-      <li>✔ HR interview training</li>
-      <li>✔ Job referrals</li>
-    </ul>
+    <div class="placement-grid">
+      <div class="placement-card">📄 Resume Preparation</div>
+      <div class="placement-card">🎤 Mock Technical Interviews</div>
+      <div class="placement-card">💼 HR Interview Training</div>
+      <div class="placement-card">🤝 Job Referrals</div>
+    </div>
+
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta text-center text-white">
+<section class="cta-section">
   <div class="container">
+
     <h2>Start Your IT Career Today</h2>
-    <p>Join our demo and take the first step towards your dream job.</p>
+    <p>Join our upcoming batch and begin your transformation.</p>
 
     <button class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#enrollModal">
-      Join Demo
+      Join Free Demo
     </button>
+
   </div>
 </section>

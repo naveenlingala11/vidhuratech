@@ -1,8 +1,10 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, signal } from '@angular/core';
 import { Job, JobService } from '../../services/job';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Mode } from 'fs';
+import { ModalService } from '../../services/modal';
 
 @Component({
   selector: 'app-jobs-home',
@@ -33,7 +35,8 @@ export class JobsHome {
   constructor(
     private jobService: JobService,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private modalService: ModalService
 
   ) { }
 
@@ -106,5 +109,15 @@ export class JobsHome {
 
   trackById(index: number, job: Job) {
     return job.id;
+  }
+
+  activeCourse = signal<'java' | 'python'>('python');
+
+  openEnrollModal() {
+    this.modalService.open({
+      course: this.activeCourse() === 'java'
+        ? 'Java Coming Soon'
+        : 'Python Batch'
+    });
   }
 }

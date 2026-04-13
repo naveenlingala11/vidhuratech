@@ -68,7 +68,11 @@ export class EnrollModal {
     this.modalInstance = new bootstrap.Modal(modalElement);
 
     // ✅ OPEN MODAL
-    this.subscription = this.modalService.modal$.subscribe(() => {
+    this.subscription = this.modalService.modal$.subscribe((payload) => {
+      if (payload?.course) {
+        this.formData.course = payload.course;
+      }
+
       setTimeout(() => {
         this.modalInstance.show();
       });
