@@ -1,0 +1,110 @@
+<div class="student-dashboard">
+
+  <div class="page-header">
+    <h2>Student Dashboard</h2>
+    <p>Track your learning, assignments, and placements</p>
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card blue" (click)="goTo('/dashboard/student/courses')">
+      <h3>{{ stats.enrolledCourses }}</h3>
+      <p>Enrolled Courses</p>
+    </div>
+
+    <div class="stat-card green">
+      <h3>{{ stats.attendance }}%</h3>
+      <p>Attendance</p>
+    </div>
+
+    <div class="stat-card orange" routerLink="/dashboard/student/assignments">
+      <h3>{{ stats.assignmentsPending }}</h3>
+      <p>Pending Assignments</p>
+    </div>
+
+    <div class="stat-card purple">
+      <h3>{{ stats.assessmentsUpcoming }}</h3>
+      <p>Upcoming Assessments</p>
+    </div>
+
+    <div class="stat-card teal" routerLink="/dashboard/student/certificates">
+      <h3>{{ stats.certificates }}</h3>
+      <p>Certificates</p>
+    </div>
+
+    <div class="stat-card gold">
+      <h3>{{ stats.placementStatus }}</h3>
+      <p>Placement Status</p>
+    </div>
+
+  </div>
+
+  <div class="dashboard-grid">
+
+    <div class="panel">
+      <h4>My Courses</h4>
+
+      <div class="course-card clickable" *ngFor="let course of myCourses"
+        [routerLink]="['/dashboard/student/lms', course.batchId]">
+
+        <div>
+          <strong>{{ course.name }}</strong>
+          <p>{{ course.progress }}% Completed</p>
+        </div>
+
+        <div class="progress-bar">
+          <div class="fill" [style.width.%]="course.progress"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4>Mentor Sessions</h4>
+
+      <div class="session" *ngFor="let session of mentorSessions">
+        <strong>{{ session.title }}</strong>
+        <p>{{ session.date }}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dashboard-grid second">
+
+    <div class="panel">
+      <h4>Notifications</h4>
+
+      <div class="notification" *ngFor="let note of notifications">
+        <strong>{{ note.title }}</strong>
+        <p>{{ note.message }}</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4>Quick Actions</h4>
+
+      <button routerLink="/dashboard/student/lms">
+        My LMS
+      </button>
+
+      <button routerLink="/resume">
+        Resume Builder
+      </button>
+
+      <button routerLink="/preparation">
+        Mock Interview
+      </button>
+
+      <button routerLink="/dashboard/student/certificates">
+        View Certificates
+      </button>
+
+      <button routerLink="/placements">
+        Placement Tracker
+      </button>
+      <button>Placement Tracker</button>
+    </div>
+
+  </div>
+
+</div>

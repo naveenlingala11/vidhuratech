@@ -88,14 +88,17 @@
             }}
           </button>
 
-          <button *ngIf="activeCourse() === 'python'" class="btn btn-outline-primary btn-lg px-4"
-            [routerLink]="['/checkout']" [queryParams]="{
-              course: 'Python + DS',
-              batch: 'May 2nd 2026 - Python Batch'
-            }">
+          <a class="btn btn-success btn-lg px-4" [routerLink]="['/checkout']" [queryParams]="{
+    course: activeCourse() === 'java' ? 'Java + DS' : 'Python + DS',
+    batch: activeBatch?.name,
+    batchId: activeBatch?.id
+  }">
+            🚀 Enroll Now
+          </a>
 
-            Enroll Now
-          </button>
+          <div *ngIf="!activeBatch" style="color:red; margin-top:10px;">
+            ⚠️ Batch not available yet. Coming soon...
+          </div>
 
           <button *ngIf="activeCourse() === 'java'" class="btn btn-warning btn-lg px-4" (click)="openEnrollModal()">
 

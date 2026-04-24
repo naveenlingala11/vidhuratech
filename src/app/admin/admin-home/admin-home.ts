@@ -1,14 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { AdminDashboardService } from '../../dashboard/service/admin-dashboard';
 
 interface DashboardStats {
   leads: number;
   revenue: number;
   jobs: number;
   certificates: number;
+
+  // 🔥 NEW ROLE-BASED
+  totalUsers: number;
+  totalStudents: number;
+  trainers: number;
+  admins: number;
+  mentors: number;
 }
 
 @Component({
@@ -18,26 +26,32 @@ interface DashboardStats {
   templateUrl: './admin-home.html',
   styleUrls: ['./admin-home.css']
 })
-export class AdminHomeComponent implements OnInit {
+export class AdminHomeComponent implements OnInit, OnDestroy {
 
   darkMode = false;
-  loading = false;
 
-  stats: DashboardStats = {
+  stats = signal<DashboardStats>({
     leads: 0,
     revenue: 0,
     jobs: 0,
-    certificates: 0
-  };
+    certificates: 0,
+    totalUsers: 0,
+    totalStudents: 0,
+    trainers: 0,
+    admins: 0,
+    mentors: 0
+  });
 
-  extraStats = {
+  extraStats = signal({
     companies: 0,
     deletedLeads: 0,
     todayFollowups: 0,
     conversionRate: 0
-  };
+  });
 
-  recentActivities: string[] = [];
+  loading = signal(false);
+
+  recentActivities = signal<string[]>([]);
 
   modules = [
     { title: 'Leads', icon: '📋', route: '/admin/leads' },
@@ -50,12 +64,13 @@ export class AdminHomeComponent implements OnInit {
     { title: 'Analytics', icon: '📊', route: '/invoice-analytics' }
   ];
 
+  refreshInterval: any;
+
   constructor(
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private dashboardService: AdminDashboardService
   ) { }
-
-  refreshInterval: any;
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -69,8 +84,9 @@ export class AdminHomeComponent implements OnInit {
     clearInterval(this.refreshInterval);
   }
 
-  loadDashboardData(showLoader: boolean = true): void {
-    if (showLoader) this.loading = true;
+  // ================= MAIN =================
+  loadDashboardData(showLoader: boolean = true) {
+    if (showLoader) this.loading.set(true);
 
     this.loadLeadStats();
     this.loadRevenueStats();
@@ -78,24 +94,47 @@ export class AdminHomeComponent implements OnInit {
     this.loadCertificateStats();
     this.loadCompanyStats();
     this.loadBinStats();
+    this.loadRoleStats();
     this.loadRecentActivities();
 
     setTimeout(() => {
-      this.loading = false;
+      this.loading.set(false);
     }, 800);
   }
 
-  loadLeadStats(): void {
+  // ================= ROLE BASED =================
+  loadRoleStats() {
+    this.dashboardService.getDashboard().subscribe({
+      next: (res) => {
+        this.stats.update(s => ({
+          ...s,
+          totalUsers: res?.totalUsers || 0,
+          totalStudents: res?.totalStudents || 0,
+          trainers: res?.trainers || 0,
+          admins: res?.admins || 0,
+          mentors: res?.mentors || 0
+        }));
+      }
+    });
+  }
+
+  // ================= EXISTING =================
+  loadLeadStats() {
     this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`)
       .subscribe(res => {
-        this.animateCounter('leads', res.total || 0);
 
-        this.extraStats.conversionRate =
-          res.total > 0
+        this.stats.update(s => ({
+          ...s,
+          leads: res.total || 0
+        }));
+
+        this.extraStats.update(e => ({
+          ...e,
+          conversionRate: res.total > 0
             ? Math.round((res.joined / res.total) * 100)
-            : 0;
-        this.extraStats.todayFollowups = res.todayFollowups || 0;
-
+            : 0,
+          todayFollowups: res.todayFollowups || 0
+        }));
       });
   }
 
@@ -106,72 +145,91 @@ export class AdminHomeComponent implements OnInit {
       });
   }
 
-  loadJobStats(): void {
-    this.http.get<any[]>(`${environment.apiUrl}/jobs/all`)
+  loadJobStats() {
+    this.http.get<any>(`${environment.apiUrl}/jobs?page=0&size=100`)
       .subscribe(res => {
-        this.animateCounter('jobs', res.length || 0);
+        this.stats.update(s => ({
+          ...s,
+          jobs: res?.content?.length || 0
+        }));
       });
   }
 
-  loadCertificateStats(): void {
-    this.http.get<any[]>(`${environment.apiUrl}/certificates/all`)
+  loadCertificateStats() {
+    this.http.get<any[]>(`${environment.apiUrl}/certificates`)
       .subscribe(res => {
-        this.animateCounter('certificates', res.length || 0);
+        this.stats.update(s => ({
+          ...s,
+          certificates: res.length || 0
+        }));
       });
   }
 
-  loadCompanyStats(): void {
+  loadCompanyStats() {
     this.http.get<any>(`${environment.apiUrl}/admin/companies?page=0&size=1`)
       .subscribe(res => {
-        this.extraStats.companies = res.totalElements || 0;
+        this.extraStats.update(e => ({
+          ...e,
+          companies: res.totalElements || 0
+        }));
       });
   }
 
-  loadBinStats(): void {
+  loadBinStats() {
     this.http.get<any>(`${environment.apiUrl}/api/leads/bin?page=0&size=1`)
       .subscribe(res => {
-        this.extraStats.deletedLeads = res.totalElements || 0;
+        this.extraStats.update(e => ({
+          ...e,
+          deletedLeads: res.totalElements || 0
+        }));
       });
   }
 
-  loadRecentActivities(): void {
-    this.recentActivities = [
+  loadRecentActivities() {
+    this.recentActivities.set([
       'New Lead Added',
       'Invoice Payment Received',
       'Certificate Generated',
       'Job Posted Successfully',
       'Company Added To Portal'
-    ];
+    ]);
   }
 
-  animateCounter(
-    key: keyof DashboardStats,
-    target: number
-  ): void {
-    const duration = 800;
-    const steps = 40;
-
-    const start = this.stats[key];
-    const increment = (target - start) / steps;
-
-    let current = start;
+  // ================= ANIMATION (RESTORED) =================
+  animateCounter(key: keyof DashboardStats, target: number) {
+    let current = this.stats()[key];
+    const step = (target - current) / 40;
 
     const interval = setInterval(() => {
-      current += increment;
+
+      current += step;
+
+      const value = Math.floor(current);
+
+      setTimeout(() => {
+        this.stats.update(s => ({
+          ...s,
+          [key]: value
+        }));
+      });
 
       if (
-        (increment >= 0 && current >= target) ||
-        (increment < 0 && current <= target)
+        (step > 0 && current >= target) ||
+        (step < 0 && current <= target)
       ) {
-        this.stats[key] = target;
         clearInterval(interval);
-      } else {
-        this.stats[key] = Math.floor(current);
+
+        setTimeout(() => {
+          this.stats.update(s => ({
+            ...s,
+            [key]: target
+          }));
+        });
       }
 
-    }, duration / steps);
+    }, 20);
   }
-
+  // ================= UI =================
   navigate(route: string): void {
     this.router.navigate([route]);
   }
@@ -187,6 +245,7 @@ export class AdminHomeComponent implements OnInit {
   get activeModules(): number {
     return this.modules.length;
   }
+
   get revenueGrowth(): number {
     return 18.6;
   }

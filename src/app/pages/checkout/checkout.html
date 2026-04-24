@@ -16,7 +16,7 @@
 
             <div class="contact-box">
                 <span>Need Help?</span>
-                <b>+91 {{ formData.phone || 'XXXXXXXXXX' }}</b>
+                <b><i>+91 {{ supportNumber }}</i></b>
             </div>
 
         </div>
@@ -119,8 +119,8 @@
 
                     </div>
 
-                    <button class="generate-btn" (click)="startCheckout()">
-                        Generate Payment QR →
+                    <button class="generate-btn" (click)="startCheckoutAndPay()">
+                        Pay Now →
                     </button>
 
                 </div>
@@ -160,52 +160,6 @@
 
                 </div>
 
-                <div class="status-check-box">
-
-                    <h3>Check Payment Status</h3>
-
-                    <input [(ngModel)]="statusPhone" placeholder="Enter Mobile Number">
-
-                    <input [(ngModel)]="statusInvoiceId" placeholder="Enter Invoice ID">
-
-                    <button class="generate-btn" (click)="checkStatus()">
-                        Check Status
-                    </button>
-
-                    <div *ngIf="statusData" class="status-result">
-
-                        <h4>Status: {{ statusData.status }}</h4>
-
-                        <p *ngIf="statusData.status === 'PENDING'">
-                            QR Generated. Awaiting Payment.
-                        </p>
-
-                        <p *ngIf="statusData.status === 'UNDER_REVIEW'">
-                            Payment Proof Submitted. Verification In Progress.
-                        </p>
-
-                        <p *ngIf="statusData.status === 'PAID'">
-                            Payment Verified Successfully ✅ Access Granted.
-                        </p>
-
-                        <p *ngIf="statusData.status === 'REJECTED'">
-                            Payment Rejected. Contact Support.
-                        </p>
-
-                        <div *ngIf="statusData.status === 'PAID'" class="paid-actions">
-                            <a href="https://chat.whatsapp.com/YOUR_GROUP_LINK" target="_blank">
-                                Join WhatsApp Group
-                            </a>
-
-                            <a routerLink="/dashboard">
-                                Open Student Dashboard
-                            </a>
-                        </div>
-
-                    </div>
-
-                </div>
-
             </div>
 
         </div>
@@ -229,12 +183,16 @@
 
             </div>
 
-            <button routerLink="/" class="home-btn">
-                Back To Home
+            <button (click)="goToAccess()" class="home-btn">
+                Access Course →
             </button>
 
         </div>
 
     </div>
-
+    <!-- HIDDEN INVOICE FOR PDF -->
+    <div style="position:absolute; left:-9999px; top:0;">
+        <app-invoice-template *ngIf="invoiceData" [data]="invoiceData" [today]="today">
+        </app-invoice-template>
+    </div>
 </section>

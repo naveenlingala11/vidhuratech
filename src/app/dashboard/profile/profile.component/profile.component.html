@@ -1,0 +1,117 @@
+<div class="profile-container">
+
+  <!-- HEADER -->
+  <div class="profile-header">
+
+    <div class="avatar">
+      {{ getInitials() }}
+    </div>
+
+    <div>
+      <h2>{{ user?.name }}</h2>
+      <p>{{ user?.role }}</p>
+    </div>
+
+    <button class="edit-btn" (click)="toggleEdit()">
+      {{ editMode ? 'Close' : 'Edit Profile' }}
+    </button>
+
+  </div>
+
+  <!-- PROFILE CARD -->
+  <div class="profile-card">
+
+    <h3>Profile Details</h3>
+
+    <div class="profile-grid">
+
+      <!-- NAME -->
+      <div class="profile-item">
+        <label>Name</label>
+
+        <input *ngIf="editMode"
+               [(ngModel)]="form.name" />
+
+        <span *ngIf="!editMode">{{ user?.name }}</span>
+      </div>
+
+      <!-- PHONE -->
+      <div class="profile-item">
+        <label>Phone</label>
+
+        <input *ngIf="editMode"
+               [(ngModel)]="form.phone" />
+
+        <span *ngIf="!editMode">{{ user?.phone || '-' }}</span>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="profile-item">
+        <label>Email</label>
+        <span>{{ user?.email }}</span>
+      </div>
+
+      <!-- STATUS -->
+      <div class="profile-item">
+        <label>Status</label>
+        <span class="active">Active</span>
+      </div>
+
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div *ngIf="editMode" class="actions">
+      <button class="save" (click)="saveProfile()">Save</button>
+      <button class="cancel" (click)="cancelEdit()">Cancel</button>
+    </div>
+
+  </div>
+
+  <!-- ROLE BASED ACTIONS -->
+
+  <!-- STUDENT -->
+  <div *ngIf="user?.role === 'STUDENT'" class="profile-card">
+    <h3>Student Actions</h3>
+    <button>View Certificates</button>
+    <button>Resume Builder</button>
+    <button>Placement Tracker</button>
+  </div>
+
+  <!-- TRAINER -->
+  <div *ngIf="user?.role === 'TRAINER'" class="profile-card">
+    <h3>Trainer Actions</h3>
+    <button>Manage Batches</button>
+    <button>Upload Content</button>
+    <button>Create Assignment</button>
+  </div>
+
+  <!-- ADMIN -->
+  <div *ngIf="user?.role === 'ADMIN'" class="profile-card">
+    <h3>Admin Actions</h3>
+    <button>Manage Users</button>
+    <button>Reports</button>
+    <button>Analytics</button>
+  </div>
+
+  <!-- HR -->
+  <div *ngIf="user?.role === 'HR'" class="profile-card">
+    <h3>HR Actions</h3>
+    <button>View Candidates</button>
+    <button>Schedule Interview</button>
+  </div>
+
+  <!-- MANAGER -->
+  <div *ngIf="user?.role === 'MANAGER'" class="profile-card">
+    <h3>Manager Actions</h3>
+    <button>Team Overview</button>
+    <button>Approvals</button>
+  </div>
+
+  <!-- MENTOR -->
+  <div *ngIf="user?.role === 'MENTOR'" class="profile-card">
+    <h3>Mentor Actions</h3>
+    <button>My Mentees</button>
+    <button>Sessions</button>
+  </div>
+
+</div>

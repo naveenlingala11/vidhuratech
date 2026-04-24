@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Footer } from './components/footer/footer';
 import { Navbar } from './components/navbar/navbar';
 import { EnrollModal } from './shared/enroll-modal/enroll-modal';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../environments/environment';
+import { filter } from 'rxjs';
+import { AuthService } from './features/auth/services/auth.service';
+import { DashboardLayout } from "./dashboard/layouts/dashboard-layout/dashboard-layout";
 
 interface ChatMessage {
   text: string;
@@ -22,12 +25,36 @@ interface ChatMessage {
 })
 export class App {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
+  hideLayout = false;
+
+  isAuthPage = false;
 
   chatOpen = false;
   typing = false;
   userInput = '';
+  selectedCourse = '';
 
-  constructor(private cd: ChangeDetectorRef) { }
+  isDashboardRoute = false;
+
+  constructor(
+    private cd: ChangeDetectorRef,
+    private router: Router,
+    public authService: AuthService
+  ) {
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+
+        const url = event.urlAfterRedirects;
+
+        this.isAuthPage =
+          url.includes('/login') ||
+          url.includes('/register');
+
+        this.isDashboardRoute = url.startsWith('/dashboard');
+      });
+  }
+  
   messages: ChatMessage[] = [
     { text: `👋 Hello! Welcome to Vidhura Tech 🚀`, type: 'bot' },
     {
@@ -51,7 +78,6 @@ export class App {
   }
 
   /* ================= OPTION CLICK ================= */
-  selectedCourse = '';
 
   handleOption(option: string) {
     this.messages.push({ text: option, type: 'user' });

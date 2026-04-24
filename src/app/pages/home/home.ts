@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { interval } from 'rxjs';
 import { ModalService } from '../../services/modal';
 import { TimerService } from '../../services/timer';
+import { BatchService } from '../../features/lms/batch/services/batch';
 
 @Component({
   selector: 'app-home',
@@ -23,12 +24,15 @@ export class Home implements AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private modalService: ModalService,
     private zone: NgZone,
-    public timer: TimerService
+    public timer: TimerService,
+    private batchService: BatchService
   ) { }
 
   modalInstance: any;
 
   seats = 25;
+
+  activeBatch: any;
 
   ngOnInit() {
     this.zone.runOutsideAngular(() => {
@@ -41,18 +45,42 @@ export class Home implements AfterViewInit {
       }, 10000);
     });
 
+    this.loadBatch(2); // default python
     this.timer.startCountdown();
   }
 
   switchCourse(course: 'java' | 'python') {
-    if (this.activeCourse() === course) return;
 
-    this.isAnimating.set(true);
+    this.activeCourse.set(course);
 
-    setTimeout(() => {
-      this.activeCourse.set(course);
-      this.isAnimating.set(false);
-    }, 300);
+    const courseMap: any = {
+      java: 1,
+      python: 2
+    };
+
+    this.loadBatch(courseMap[course]);
+  }
+
+  // ✅ HARD CODED BATCHES
+  loadBatch(courseId: number) {
+
+    const batchMap: any = {
+
+      1: { // JAVA
+        id: 101,
+        name: 'Java Batch Jan 2026',
+        startDate: '2026-01-10'
+      },
+
+      2: { // PYTHON
+        id: 202,
+        name: 'Python Batch May 2026',
+        startDate: '2026-05-01'
+      }
+
+    };
+
+    this.activeBatch = batchMap[courseId] || null;
   }
 
   // FEATURES
@@ -65,9 +93,9 @@ export class Home implements AfterViewInit {
 
   // COURSES
   courses = [
-    { title: 'Java Full Stack', desc: 'Spring Boot, Angular, REST APIs.' },
-    { title: 'Python Full Stack', desc: 'Python, Django, React.' },
-    { title: 'Data Analytics', desc: 'Excel, SQL, Power BI.' },
+    { id: 1, title: 'Java Full Stack', desc: 'Spring Boot, Angular, REST APIs.' },
+    { id: 2, title: 'Python Full Stack', desc: 'Python, Django, React.' },
+    { id: 3, title: 'Data Analytics', desc: 'Excel, SQL, Power BI.' },
   ];
 
   // TESTIMONIALS

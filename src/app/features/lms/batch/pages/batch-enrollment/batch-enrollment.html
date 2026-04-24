@@ -1,0 +1,84 @@
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h4>📘 Batch Enrollment</h4>
+
+    <p *ngIf="batch" class="mt-2 text-primary">
+      <strong>{{ batch?.name }}</strong>
+    </p>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header">
+    <h5>Enroll Student</h5>
+  </div>
+
+  <div class="card-body">
+
+    <input class="form-control mb-3" [(ngModel)]="keyword" (keyup)="onSearch()" placeholder="🔍 Search student..." />
+
+    <div *ngFor="let student of students" class="student-item d-flex justify-content-between align-items-center mb-2">
+
+      <div>
+        <strong>{{ student?.name }}</strong>
+        <div class="text-muted small">{{ student?.email }}</div>
+      </div>
+
+      <button class="btn btn-primary btn-sm" (click)="enroll(student.id)">
+        + Enroll
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h5>Enrolled Students</h5>
+  </div>
+
+  <div class="card-body">
+
+    <!-- LOADING -->
+    <div *ngIf="loading" class="text-center py-3">
+      Loading...
+    </div>
+
+    <table class="table align-middle" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let enrollment of enrollments">
+
+          <!-- ✅ SAFE NAVIGATION FIX -->
+          <td>{{ enrollment?.student?.name || 'N/A' }}</td>
+          <td>{{ enrollment?.student?.email || 'N/A' }}</td>
+          <td>{{ enrollment?.enrolledAt | date:'medium' }}</td>
+
+          <td>
+            <button class="btn btn-danger btn-sm" (click)="remove(enrollment.id)">
+              Remove
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="enrollments.length === 0">
+          <td colspan="4" class="text-center text-muted">
+            No students enrolled
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>

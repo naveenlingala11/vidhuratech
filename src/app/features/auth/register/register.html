@@ -1,0 +1,127 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <img src="VidhuraTechLogo.png" class="auth-logo" />
+      <h2>Create Account 🚀</h2>
+      <p>Start your journey with VidhuRaTech</p>
+    </div>
+
+    <!-- FORM -->
+    <form *ngIf="step === 'form'" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="auth-field">
+        <label>Full Name</label>
+        <input formControlName="name" placeholder="Enter full name" />
+        <small *ngIf="f['name'].touched && f['name'].invalid">
+          Minimum 3 characters required
+        </small>
+      </div>
+
+      <div class="auth-field">
+        <label>Email</label>
+        <input formControlName="email" placeholder="Enter email" />
+        <small *ngIf="f['email'].touched && f['email'].invalid">
+          Valid email required
+        </small>
+      </div>
+
+      <div class="auth-field">
+        <label>Phone</label>
+        <input formControlName="phone" placeholder="Enter phone number" />
+        <small *ngIf="f['phone'].touched && f['phone'].invalid">
+          Enter valid 10-digit Indian mobile number
+        </small>
+      </div>
+
+      <!-- NEW PASSWORD -->
+      <div class="auth-field password-field">
+        <label>New Password</label>
+
+        <div class="password-wrapper">
+          <input [type]="showPassword ? 'text' : 'password'" formControlName="password"
+            placeholder="Enter new password" />
+
+          <span class="eye-icon" (click)="togglePassword()">
+            <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </span>
+        </div>
+
+        <small *ngIf="f['password'].touched && f['password'].invalid">
+          Min 6 chars, 1 uppercase, 1 number
+        </small>
+      </div>
+
+      <!-- CONFIRM PASSWORD -->
+      <div class="auth-field password-field">
+        <label>Confirm Password</label>
+
+        <input type="text" formControlName="confirmPassword" placeholder="Confirm password" />
+
+        <small *ngIf="form.value.password !== form.value.confirmPassword">
+          Passwords do not match
+        </small>
+      </div>
+
+      <button type="submit" class="auth-btn" [disabled]="loading">
+        <span *ngIf="!loading">Register</span>
+        <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+      </button>
+
+    </form>
+
+    <!-- OTP -->
+    <div *ngIf="step === 'otp'" class="otp-section">
+
+      <div class="otp-header">
+        <h3>Verify Your Email 🔐</h3>
+        <p>Enter the 6-digit code sent to</p>
+        <b>{{ form.value.email }}</b>
+      </div>
+
+      <!-- OTP BOXES -->
+      <div class="otp-box-container">
+        <!-- OTP BOXES (SAME AS LOGIN) -->
+        <div class="otp-box-container" (paste)="onPasteOtp($event)">
+          <input *ngFor="let digit of otpValues; let i = index" type="text" maxlength="1" class="otp-box"
+            [class.error]="otpError" (input)="onOtpInput($event, i)" (keydown)="onOtpKeyDown($event, i)" #otpBox />
+        </div>
+      </div>
+
+      <!-- ERROR -->
+      <small *ngIf="otpError" class="otp-error">
+        ❌ Invalid OTP. Please try again.
+      </small>
+
+      <!-- TIMER -->
+      <div class="otp-timer">
+        <span *ngIf="otpTimer > 0">
+          ⏱ Resend in {{ otpTimer }}s
+        </span>
+
+        <button *ngIf="otpTimer === 0" class="resend-btn" (click)="resendOtp()">
+          🔁 Resend OTP
+        </button>
+      </div>
+
+      <!-- VERIFY BUTTON -->
+      <button class="auth-btn otp-btn" (click)="verifyOtp()" [disabled]="otpVerifying">
+
+        <span *ngIf="!otpVerifying">Verify & Create Account</span>
+        <span *ngIf="otpVerifying" class="spinner-border spinner-border-sm"></span>
+
+      </button>
+
+      <!-- SECURITY NOTE -->
+      <div class="otp-note">
+        🔒 Never share your OTP with anyone
+      </div>
+
+    </div>
+
+    <p class="switch-link">
+      Already have account?
+      <a routerLink="/login">Login</a>
+    </p>
+
+  </div>
+</div>
