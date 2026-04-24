@@ -4,10 +4,11 @@
     <p>Select a course, explore structured curriculum, and download complete syllabus instantly.</p>
 
     <div class="hero-actions">
-      <select [(ngModel)]="selectedCourseId" (change)="setCourse()">
-        <option *ngFor="let c of courses" [value]="c.id">
-          {{ c.name }}
-        </option>
+
+      <!-- 🔥 ONLY MODEL CHANGE (NO courses, NO setCourse) -->
+      <select [(ngModel)]="selectedCourseId" (change)="loadCurriculum()">
+        <option value="java">Java</option>
+        <option value="python">Python</option>
       </select>
 
       <!-- 🔒 DOWNLOAD -->
@@ -18,15 +19,15 @@
       <button class="primary-btn locked-btn" *ngIf="!isUnlocked" (click)="scrollToUnlock()">
         🔒 Unlock to Access
       </button>
+
     </div>
   </div>
 </div>
 
-<!-- ================= SINGLE LOCK CONTAINER ================= -->
+<!-- ================= LOCK ================= -->
 
 <div *ngIf="!isUnlocked" class="locked-container">
 
-  <!-- 🔥 SINGLE OVERLAY -->
   <div class="lock-overlay">
     <h3>🔒 Unlock Full Course Access</h3>
 
@@ -39,7 +40,7 @@
     </p>
   </div>
 
-  <!-- ================= CURRICULUM PREVIEW ================= -->
+  <!-- 🔥 SAFE NAVIGATION ADDED -->
   <h2>Course Curriculum</h2>
 
   <div *ngFor="let module of selectedCourse.curriculum | slice:0:2" class="module blurred">
@@ -48,7 +49,6 @@
     </div>
   </div>
 
-  <!-- ================= QUESTIONS PREVIEW ================= -->
   <h2>Coding Questions</h2>
 
   <div class="grid blurred">
@@ -60,11 +60,10 @@
 
 </div>
 
-<!-- ================= UNLOCKED CONTENT ================= -->
+<!-- ================= UNLOCKED ================= -->
 
 <div *ngIf="isUnlocked">
 
-  <!-- ===== CURRICULUM ===== -->
   <h2>Course Curriculum</h2>
 
   <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
@@ -86,7 +85,6 @@
 
   </div>
 
-  <!-- ===== QUESTIONS ===== -->
   <h2>Coding Questions</h2>
 
   <select [(ngModel)]="selectedLevel">
@@ -101,10 +99,10 @@
       {{ q.text }}
 
       <span class="badge" [ngClass]="{
-          easy: q.level === 'Easy',
-          medium: q.level === 'Medium',
-          hard: q.level === 'Hard'
-        }">
+        easy: q.level === 'Easy',
+        medium: q.level === 'Medium',
+        hard: q.level === 'Hard'
+      }">
         {{ q.level }}
       </span>
     </div>

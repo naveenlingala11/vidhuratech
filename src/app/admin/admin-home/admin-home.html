@@ -1,6 +1,6 @@
 <div class="admin-dashboard" [class.dark]="darkMode">
 
-    <div class="dashboard-loader" *ngIf="loading">
+    <div class="dashboard-loader" *ngIf="loading()">
         <div class="loader-ring"></div>
     </div>
 
@@ -18,7 +18,6 @@
         <button class="refresh-dashboard-btn" (click)="refreshDashboard()">
             🔄 Refresh Dashboard
         </button>
-
     </div>
 
     <!-- STATS -->
@@ -26,57 +25,57 @@
 
         <div class="stat-card glass-card">
             <span>Leads</span>
-            <h2>{{stats.leads}}</h2>
+            <h2>{{stats().leads}}</h2>
             <small>+12% This Week</small>
         </div>
 
         <div class="stat-card glass-card revenue">
             <span>Revenue</span>
-            <h2>₹{{stats.revenue}}</h2>
+            <h2>₹{{stats().revenue}}</h2>
             <small>+{{revenueGrowth}}% Growth</small>
         </div>
 
         <div class="stat-card glass-card jobs">
             <span>Jobs Posted</span>
-            <h2>{{stats.jobs}}</h2>
-            <small>Hiring Pipeline Active</small>
+            <h2>{{stats().jobs}}</h2>
         </div>
 
         <div class="stat-card glass-card cert">
             <span>Certificates</span>
-            <h2>{{stats.certificates}}</h2>
-            <small>Issued Successfully</small>
+            <h2>{{stats().certificates}}</h2>
         </div>
 
     </div>
+
+    <!-- EXTRA -->
     <div class="stats-grid secondary-stats">
 
         <div class="stat-card glass-card">
             <span>Companies</span>
-            <h2>{{extraStats.companies}}</h2>
+            <h2>{{extraStats().companies}}</h2>
         </div>
 
         <div class="stat-card glass-card">
             <span>Deleted Leads</span>
-            <h2>{{extraStats.deletedLeads}}</h2>
+            <h2>{{extraStats().deletedLeads}}</h2>
         </div>
 
         <div class="stat-card glass-card">
             <span>Follow Ups Today</span>
-            <h2>{{extraStats.todayFollowups}}</h2>
+            <h2>{{extraStats().todayFollowups}}</h2>
         </div>
 
     </div>
 
-    <!-- QUICK ANALYTICS -->
+    <!-- ANALYTICS -->
     <div class="analytics-row">
 
         <div class="analytics-widget glass-card">
             <h3>Quick Insights</h3>
 
             <div class="insight">
-                <span>Lead Conversion Rate</span>
-                <strong>{{extraStats.conversionRate}}%</strong>
+                <span>Conversion Rate</span>
+                <strong>{{extraStats().conversionRate}}%</strong>
             </div>
 
             <div class="insight">
@@ -93,8 +92,8 @@
         <div class="analytics-widget glass-card">
             <h3>Recent Activity</h3>
 
-            <div class="activity-item" *ngFor="let activity of recentActivities">
-                {{activity}}
+            <div class="activity-item" *ngFor="let a of recentActivities()">
+                {{a}}
             </div>
         </div>
 
@@ -107,17 +106,11 @@
 
         <div class="module-grid">
 
-            <div class="module-card glass-card" *ngFor="let module of modules" (click)="navigate(module.route)">
+            <div class="module-card glass-card" *ngFor="let m of modules" (click)="navigate(m.route)">
 
-                <div class="module-icon">
-                    {{module.icon}}
-                </div>
-
-                <h3>{{module.title}}</h3>
-
-                <button>
-                    Open →
-                </button>
+                <div class="module-icon">{{m.icon}}</div>
+                <h3>{{m.title}}</h3>
+                <button>Open →</button>
 
             </div>
 

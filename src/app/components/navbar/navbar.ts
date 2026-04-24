@@ -1,48 +1,91 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { ElementRef, ViewChild } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
+import { AuthService } from '../../features/auth/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink],
   templateUrl: './navbar.html',
-  styleUrl: './navbar.css',
+  styleUrls: ['./navbar.css']
 })
 export class Navbar {
+
+  mobileMenuOpen = false;
+  showDropdown = false;
   scrolled = false;
 
-  @ViewChild('navCollapse') navCollapse!: ElementRef;
-  constructor(private router: Router) {
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+  constructor(
+    private router: Router,
+    public authService: AuthService
+  ) {
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => window.scrollTo({ top: 0 }));
   }
 
-  @HostListener('window:scroll', [])
+  // ===== SCROLL SHADOW =====
+  @HostListener('window:scroll')
   onScroll() {
-    this.scrolled = window.scrollY > 50;
+    this.scrolled = window.scrollY > 20;
+  }
+
+  // ===== MOBILE MENU =====
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+    document.body.style.overflow = this.mobileMenuOpen ? 'hidden' : 'auto';
   }
 
   closeMenu() {
-    const element = this.navCollapse?.nativeElement;
+    this.mobileMenuOpen = false;
+    document.body.style.overflow = 'auto';
+  }
 
-    if (element && element.classList.contains('show')) {
-      const bsCollapse = new (window as any).bootstrap.Collapse(element, {
-        toggle: false,
-      });
-      bsCollapse.hide();
+  // ===== DROPDOWN =====
+  toggleDropdown() {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  // ===== OUTSIDE CLICK =====
+  @HostListener('document:click', ['$event'])
+  handleClick(event: any) {
+    if (!event.target.closest('.navbar')) {
+      this.closeMenu();
+      this.showDropdown = false;
     }
   }
 
+  // ===== ACTIONS =====
   openDemo() {
     const modal = document.getElementById('enrollModal');
-
     if (modal) {
       const bootstrapModal = new (window as any).bootstrap.Modal(modal);
       bootstrapModal.show();
     }
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  goDashboard() {
+    const role = this.authService.getUser()?.role;
+
+    const routes: any = {
+      STUDENT: '/dashboard/student',
+      ADMIN: '/dashboard/admin',
+      HR: '/dashboard/hr',
+      MANAGER: '/dashboard/manager'
+    };
+
+    this.router.navigate([routes[role] || '/dashboard/student']);
+  }
+
+  goToProfile() {
+    const role = this.authService.getUser()?.role?.toLowerCase();
+    this.router.navigate([`/dashboard/${role}/profile`]);
   }
 }

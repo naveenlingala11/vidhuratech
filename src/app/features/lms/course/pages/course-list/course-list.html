@@ -1,0 +1,84 @@
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5>Courses</h5>
+
+    <button class="btn btn-primary" routerLink="/dashboard/lms/courses/create">
+      Create Course
+    </button>
+  </div>
+
+  <div class="card-body">
+
+    <!-- Filters -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <input class="form-control" placeholder="Search..." [(ngModel)]="filters.keyword" (keyup)="loadCourses()" />
+      </div>
+
+      <div class="col-md-3">
+        <select class="form-select" [(ngModel)]="filters.level" (change)="loadCourses()">
+          <option value="">All Levels</option>
+          <option value="BEGINNER">Beginner</option>
+          <option value="INTERMEDIATE">Intermediate</option>
+          <option value="ADVANCED">Advanced</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="loading" class="text-center py-4">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="!loading">
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Title</th>
+            <th>Level</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let course of courses">
+            <td>{{ course.code }}</td>
+            <td>{{ course.title }}</td>
+            <td>{{ course.level }}</td>
+            <td>{{ course.status }}</td>
+            <td>{{ course.durationHours }} hrs</td>
+
+            <td>
+              <button class="btn btn-success btn-sm me-1" (click)="publish(course.id)">
+                Publish
+              </button>
+
+              <button class="btn btn-primary btn-sm me-1" [routerLink]="['/dashboard/lms/courses', course.id, 'edit']">
+                Edit
+              </button>
+
+              <button class="btn btn-warning btn-sm me-1" (click)="archive(course.id)">
+                Archive
+              </button>
+
+              <button class="btn btn-danger btn-sm" (click)="delete(course.id)">
+                Delete
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="courses.length === 0">
+            <td colspan="6" class="text-center text-muted">
+              No courses found
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

@@ -28,7 +28,11 @@
         <div class="meta-box">
             <p><b>Invoice #:</b> {{data?.id || 'INV-DRAFT'}}</p>
             <p><b>Date:</b> {{today | date:'dd MMM yyyy'}}</p>
-            <p><b>Status:</b> {{data?.paymentStatus}}</p>
+            <p><b>Status:</b>
+                <span class="status-badge" [ngClass]="data?.paymentStatus?.toLowerCase()">
+                    {{data?.paymentStatus}}
+                </span>
+            </p>
         </div>
 
     </div>
@@ -92,7 +96,9 @@
         <div *ngIf="data?.remainingAmount > 0" class="remaining-balance">
             <b>Remaining:</b> ₹{{data?.remainingAmount}}
         </div>
-
+        <div class="paid-full-badge" *ngIf="data?.paymentStatus === 'PAID'">
+            ✔ PAID IN FULL
+        </div>
     </div>
     <div *ngIf="data?.installmentEnabled">
 
@@ -167,8 +173,13 @@
 
     </div>
 
-    <div class="system-generated-note">
-        This is a system generated invoice and does not require physical signature.
+    <div class="system-generated-note"><i>
+        **This is a system generated invoice and does not require physical signature.**</i>
     </div>
-
+    <div class="invoice-footer-bar">
+        <div>📍 Vidhura Tech, India</div>
+        <div>🌐 www.vidhuratech.com</div>
+        <div>📞 +91 9108057464</div>
+        <div>✉ support@vidhuratech.com</div>
+    </div>
 </div>

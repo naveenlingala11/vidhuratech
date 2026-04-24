@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { COURSES } from '../../data/courses.data';
 import { ModalService } from '../../services/modal';
 import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 interface Module {
   title: string;
@@ -32,9 +33,9 @@ interface Course {
   styleUrl: './curriculum.css',
 })
 export class Curriculum {
-  courses: Course[] = COURSES;
 
   selectedCourseId = 'python';
+  selectedBatchId = 1;
   selectedLevel = 'All';
 
   selectedCourse!: Course;
@@ -42,31 +43,32 @@ export class Curriculum {
   // 🔒 LOCK STATE
   isUnlocked = false;
 
-  constructor(private modalService: ModalService) { }
+  constructor(private modalService: ModalService, private http: HttpClient) { }
 
   ngOnInit() {
-    this.setCourse();
-    // ✅ persist unlock (optional but recommended)
     const unlocked = localStorage.getItem('courseUnlocked');
     if (unlocked === 'true') {
       this.isUnlocked = true;
     }
+    this.loadCurriculum();
     this.checkUnlock();
   }
 
-  setCourse() {
-    const course: Course | undefined = this.courses.find(
-      (c: Course) => c.id === this.selectedCourseId,
-    );
+  // 🔥 LOAD FROM BACKEND
+  loadCurriculum() {
+    this.http.get<any>(
+      `${environment.apiUrl}/api/trainer/dashboard/curriculum?batchId=${this.selectedBatchId}&courseId=${this.selectedCourseId}`
+    ).subscribe(res => {
 
-    if (!course) return;
+      if (res && res.jsonData) {
+        this.selectedCourse = JSON.parse(res.jsonData);
+      } else {
+        console.warn('No curriculum found');
+      }
 
-    this.selectedCourse = course;
-
-    this.selectedCourse.curriculum.forEach((m: Module) => {
-      m.open = false;
+      // close all modules initially
+      this.selectedCourse?.curriculum?.forEach((m: Module) => m.open = false);
     });
-    this.checkUnlock();
   }
 
   toggleModule(clickedModule: Module) {

@@ -1,0 +1,704 @@
+/* =========================================================
+   AUTH PAGE WRAPPER
+========================================================= */
+.auth-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-top: 50px;
+
+  background:
+    radial-gradient(circle at top left, rgba(255, 193, 7, 0.18), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(13, 110, 253, 0.18), transparent 30%),
+    linear-gradient(135deg, #08162b 0%, #0d223f 55%, #122b4f 100%);
+}
+
+/* Glow Decoration */
+.auth-page::before,
+.auth-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: 0;
+  opacity: 0.35;
+}
+
+.auth-page::before {
+  width: 280px;
+  height: 280px;
+  background: #ffc107;
+  top: -80px;
+  left: -80px;
+}
+
+.auth-page::after {
+  width: 320px;
+  height: 320px;
+  background: #0d6efd;
+  bottom: -100px;
+  right: -100px;
+}
+
+/* =========================================================
+   AUTH CARD
+========================================================= */
+.auth-card {
+  width: 100%;
+  max-width: 500px;
+  padding: 42px 36px;
+  border-radius: 24px;
+  position: relative;
+  z-index: 1;
+
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(18px);
+
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+
+  animation: authFadeUp 0.45s ease;
+}
+
+/* Accent Top Border */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(90deg, #ffc107, #ff9800);
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+.auth-logo {
+  height: 68px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-header h2 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #08162b;
+  margin-bottom: 6px;
+}
+
+.auth-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* =========================================================
+   FORM FIELDS
+========================================================= */
+.auth-field {
+  margin-bottom: 18px;
+}
+
+.auth-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 15px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #d1d5db;
+  background: #f9fafb;
+  font-size: 15px;
+  color: #111827;
+  transition: all 0.25s ease;
+}
+
+.auth-field input::placeholder {
+  color: #9ca3af;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: #ffc107;
+  background: #fff;
+
+  box-shadow:
+    0 0 0 4px rgba(255, 193, 7, 0.14),
+    0 8px 18px rgba(255, 193, 7, 0.08);
+}
+
+/* Invalid State */
+.auth-field input.ng-invalid.ng-touched {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+}
+
+/* =========================================================
+   VALIDATION MESSAGE
+========================================================= */
+.auth-field small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+}
+
+/* =========================================================
+   BUTTON
+========================================================= */
+.auth-btn {
+  width: 100%;
+  padding: 15px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #ffc107, #ff9800);
+  color: #111827;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  transition: all 0.3s ease;
+
+  box-shadow:
+    0 12px 24px rgba(255, 193, 7, 0.25);
+}
+
+.auth-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 32px rgba(255, 193, 7, 0.35);
+}
+
+.auth-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   SWITCH LINK
+========================================================= */
+.switch-link {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.switch-link a {
+  color: #0d6efd;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.switch-link a:hover {
+  color: #084298;
+  text-decoration: underline;
+}
+
+/* =========================================================
+   LOADING SPINNER
+========================================================= */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  vertical-align: middle;
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+@keyframes authFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   MOBILE RESPONSIVE
+========================================================= */
+@media (max-width: 768px) {
+  .auth-card {
+    max-width: 100%;
+    padding: 32px 24px;
+    border-radius: 20px;
+  }
+
+  .auth-header h2 {
+    font-size: 26px;
+  }
+
+  .auth-field input {
+    padding: 14px;
+  }
+
+  .auth-btn {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 20px 12px;
+  }
+
+  .auth-card {
+    padding: 28px 18px;
+  }
+
+  .auth-logo {
+    height: 56px;
+  }
+
+  .auth-header h2 {
+    font-size: 24px;
+  }
+
+  .auth-header p {
+    font-size: 13px;
+  }
+}
+
+/* ================= OTP SECTION ================= */
+.otp-section {
+  margin-top: 25px;
+}
+
+/* Divider */
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.divider span {
+  background: #fff;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #6b7280;
+  position: relative;
+  z-index: 2;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #e5e7eb;
+  z-index: 1;
+}
+
+/* Title */
+.otp-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+  color: #1f2937;
+}
+
+/* OTP Field Row */
+.otp-field {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* Input */
+.otp-field input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1.5px solid #d1d5db;
+  background: #f9fafb;
+}
+
+/* Button */
+.otp-field button {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #0d6efd, #2563eb);
+  color: #fff;
+
+  transition: 0.2s;
+}
+
+.otp-field button:hover {
+  transform: translateY(-1px);
+}
+
+/* ================= TABS ================= */
+.login-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.login-tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #64748b;
+  transition: 0.2s;
+}
+
+.login-tabs button.active {
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* ================= OTP ================= */
+.otp-section {
+  margin-top: 10px;
+}
+
+.otp-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.otp-row input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1.5px solid #d1d5db;
+}
+
+.otp-row button {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #0d6efd, #2563eb);
+  color: white;
+}
+
+/* ================= OTP BOXES ================= */
+.otp-box-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.otp-box {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+
+  border-radius: 12px;
+  border: 1.5px solid #d1d5db;
+  background: #f9fafb;
+
+  transition: all 0.2s ease;
+}
+
+.otp-box:focus {
+  outline: none;
+  border-color: #0d6efd;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+}
+
+/* Error state */
+.otp-box.error {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+/* Error text */
+.otp-error {
+  display: block;
+  text-align: center;
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake {
+  animation: shake 0.35s ease;
+}
+
+/* OTP SECTION */
+.otp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* OTP BOXES */
+.otp-box-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.otp-box {
+  width: 45px;
+  height: 55px;
+  text-align: center;
+  font-size: 20px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+  transition: 0.2s;
+}
+
+.otp-box:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+}
+
+/* ERROR STATE */
+.otp-box.error {
+  border-color: #ef4444;
+  background: #fee2e2;
+}
+
+.otp-error {
+  color: #ef4444;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* SEND OTP BUTTON */
+.otp-send-btn {
+  margin-top: 5px;
+  height: 45px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* LOGIN BUTTON */
+.otp-login-btn {
+  margin-top: 10px;
+}
+
+/* LOADER */
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* SHAKE ANIMATION */
+.shake {
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+.otp-email-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.email-field {
+  flex: 1;
+}
+
+.otp-send-btn {
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: none;
+  white-space: nowrap;
+
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  font-weight: 700;
+
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+  transition: 0.25s;
+}
+
+.otp-send-btn:hover {
+  transform: translateY(-1px);
+}
+.otp-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+.otp-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.otp-divider::before,
+.otp-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.otp-divider span {
+  font-size: 12px;
+  color: #64748b;
+}
+.otp-box-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.otp-box {
+  width: 48px;
+  height: 58px;
+  font-size: 22px;
+  font-weight: 700;
+
+  border-radius: 14px;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+
+  transition: 0.2s;
+}
+
+.otp-box:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+.otp-valid {
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 8px;
+}
+
+.otp-security {
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  font-size: 12px;
+  text-align: center;
+  color: #475569;
+}
+.forgot-link {
+  text-align: right;
+  margin-top: 5px;
+}
+
+.forgot-link a {
+  font-size: 13px;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.forgot-link a:hover {
+  text-decoration: underline;
+}

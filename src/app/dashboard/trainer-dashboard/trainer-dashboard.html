@@ -1,0 +1,111 @@
+<div class="trainer-dashboard">
+
+  <div class="page-header">
+    <h2>Trainer Dashboard</h2>
+    <p>Manage your batches, students, and training sessions</p>
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card blue">
+      <h3>{{ stats.assignedBatches }}</h3>
+      <p>Assigned Batches</p>
+    </div>
+
+    <div class="stat-card green">
+      <h3>{{ stats.totalStudents }}</h3>
+      <p>Total Students</p>
+    </div>
+
+    <div class="stat-card orange">
+      <h3>{{ stats.pendingReviews }}</h3>
+      <p>Pending Reviews</p>
+    </div>
+
+    <div class="stat-card purple">
+      <h3>{{ stats.todaysSessions }}</h3>
+      <p>Today's Sessions</p>
+    </div>
+
+    <div class="stat-card teal">
+      <h3>{{ stats.avgAttendance }}%</h3>
+      <p>Avg Attendance</p>
+    </div>
+
+    <div class="stat-card gold">
+      <h3>{{ stats.assignmentsSubmitted }}</h3>
+      <p>Assignments Submitted</p>
+    </div>
+
+  </div>
+
+  <div class="dashboard-grid">
+
+    <div class="panel">
+      <h4>Assigned Batches</h4>
+
+      <div class="batch-item" *ngFor="let batch of batches">
+        <strong>{{ batch.name }}</strong>
+        <p>{{ batch.students }} Students</p>
+
+        <button class="manage-btn" [routerLink]="['/dashboard/trainer/batches', batch.id]">
+          Manage Batch
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4>Upcoming Sessions</h4>
+
+      <div class="session-item" *ngFor="let session of upcomingSessions">
+        <strong>{{ session.topic }}</strong>
+        <p>{{ session.batch }}</p>
+        <small>{{ session.time }}</small>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dashboard-grid second">
+
+    <div class="panel">
+      <h4>Recent Student Activity</h4>
+
+      <div class="activity-item" *ngFor="let activity of studentActivities">
+        <strong>{{ activity.student }}</strong>
+        <p>{{ activity.action }}</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h4>Quick Actions</h4>
+      <div class="panel">
+        <h4>Upload Curriculum</h4>
+
+        <!-- SELECT BATCH -->
+        <select [(ngModel)]="selectedBatchId">
+          <option *ngFor="let b of batches" [value]="b.id">
+            {{ b.name }}
+          </option>
+        </select>
+
+        <!-- SELECT COURSE -->
+        <select [(ngModel)]="selectedCourseId">
+          <option value="java">Java</option>
+          <option value="python">Python</option>
+        </select>
+
+        <!-- FILE UPLOAD -->
+        <input type="file" (change)="onFileSelected($event)" />
+
+        <button (click)="uploadCurriculum()">Upload Curriculum</button>
+      </div>
+      <button>Mark Attendance</button>
+      <button>Upload Content</button>
+      <button>Create Assignment</button>
+      <button>Schedule Session</button>
+    </div>
+
+  </div>
+
+</div>

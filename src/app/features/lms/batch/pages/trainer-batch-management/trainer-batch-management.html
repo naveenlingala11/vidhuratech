@@ -1,0 +1,96 @@
+<div class="card shadow-sm mb-4" *ngIf="batch">
+    <div class="card-body">
+        <h4>{{ batch.name }}</h4>
+        <p>{{ batch.courseName }}</p>
+        <small>{{ batch.startDate }} - {{ batch.endDate }}</small>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5>Upload New Session</h5>
+    </div>
+
+    <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="submitSession()">
+
+            <input class="form-control mb-3" placeholder="Title" formControlName="title" />
+
+            <textarea class="form-control mb-3" rows="3" placeholder="Description"
+                formControlName="description"></textarea>
+
+            <input class="form-control mb-3" placeholder="Video URL" formControlName="videoUrl" />
+
+            <input class="form-control mb-3" type="number" placeholder="Duration (Minutes)"
+                formControlName="durationMinutes" />
+
+            <input class="form-control mb-3" type="date" formControlName="sessionDate" />
+
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" formControlName="published" />
+                <label class="form-check-label">
+                    Publish Immediately
+                </label>
+            </div>
+
+            <button class="btn btn-primary">
+                Upload Session
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5>Sessions</h5>
+    </div>
+
+    <div class="card-body">
+
+        <div *ngIf="loading" class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+        </div>
+
+        <table *ngIf="!loading" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let session of sessions">
+                    <td>{{ session.title }}</td>
+                    <td>{{ session.sessionDate }}</td>
+                    <td>{{ session.durationMinutes }} mins</td>
+                    <td>
+                        {{ session.published ? 'Published' : 'Draft' }}
+                    </td>
+                    <td>
+
+                        <button *ngIf="!session.published" class="btn btn-success btn-sm me-1"
+                            (click)="publish(session.id)">
+                            Publish
+                        </button>
+
+                        <button *ngIf="session.published" class="btn btn-warning btn-sm me-1"
+                            (click)="unpublish(session.id)">
+                            Unpublish
+                        </button>
+
+                        <button class="btn btn-danger btn-sm" (click)="delete(session.id)">
+                            Delete
+                        </button>
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>

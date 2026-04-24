@@ -1,0 +1,222 @@
+<div class="card main-card shadow-sm">
+
+  <!-- HEADER -->
+  <div class="card-header header-bar d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">📚 Batch Management</h5>
+
+    <button class="btn btn-light fw-semibold" (click)="openCreateModal()">
+      + Create Batch
+    </button>
+  </div>
+
+  <div class="card-body">
+
+    <!-- 🔍 FILTER SECTION (TOP CLEAN) -->
+    <div class="filters mb-4">
+
+      <div class="row g-2 align-items-center">
+
+        <!-- SEARCH -->
+        <div class="col-md-3">
+          <input class="form-control search-box" [(ngModel)]="filters.keyword" (keyup)="triggerSearch()"
+            placeholder="🔍 Search batches..." />
+        </div>
+
+        <!-- COURSE -->
+        <div class="col-md-2">
+          <select class="form-control" [(ngModel)]="filters.courseId" (change)="loadBatches()">
+            <option value="">All Courses</option>
+            <option *ngFor="let c of courses" [value]="c.id">
+              {{ c.title }}
+            </option>
+          </select>
+        </div>
+
+        <!-- TRAINER -->
+        <div class="col-md-2">
+          <select class="form-control" [(ngModel)]="filters.trainerId" (change)="loadBatches()">
+            <option value="">All Trainers</option>
+            <option *ngFor="let t of trainers" [value]="t.id">
+              {{ t.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- STATUS -->
+        <div class="col-md-5">
+          <div class="status-filters">
+            <button class="chip" [class.active]="filters.status === ''" (click)="setStatus('')">All</button>
+            <button class="chip" [class.active]="filters.status === 'ACTIVE'"
+              (click)="setStatus('ACTIVE')">Active</button>
+            <button class="chip" [class.active]="filters.status === 'COMPLETED'"
+              (click)="setStatus('COMPLETED')">Completed</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive" *ngIf="!loading">
+
+      <table class="table custom-table align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Trainer</th>
+            <th>Status</th>
+            <th>Students</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let batch of batches">
+
+            <td class="fw-semibold">{{ batch.name }}</td>
+            <td>{{ batch.courseName }}</td>
+            <td>{{ batch.trainerName }}</td>
+
+            <!-- STATUS -->
+            <td>
+              <span class="badge" [ngClass]="{
+                  'bg-success': batch.status === 'ACTIVE',
+                  'bg-secondary': batch.status === 'COMPLETED'
+                }">
+                {{ batch.status }}
+              </span>
+            </td>
+
+            <!-- STUDENTS -->
+            <td>
+              <span class="student-count">
+                👥 {{ batch.studentCount || 0 }}
+              </span>
+            </td>
+
+            <!-- ACTIONS -->
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-primary me-1"
+                [routerLink]="['/dashboard/admin/batches', batch.id, 'enrollments']">
+                Manage
+              </button>
+
+              <button class="btn btn-sm btn-outline-warning me-1" (click)="openEditModal(batch)">
+                Edit
+              </button>
+
+              <button class="btn btn-sm btn-outline-danger" (click)="deleteBatch(batch.id)">
+                Delete
+              </button>
+            </td>
+
+          </tr>
+
+          <!-- EMPTY -->
+          <tr *ngIf="batches.length === 0">
+            <td colspan="6" class="text-center empty-state">
+              🚫 No batches found
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination-bar mt-3 d-flex justify-content-between align-items-center">
+
+      <button class="btn btn-outline-secondary" [disabled]="filters.page === 0" (click)="prevPage()">
+        ⬅ Prev
+      </button>
+
+      <span class="fw-semibold">
+        Page {{ filters.page + 1 }} / {{ totalPages }}
+      </span>
+
+      <button class="btn btn-outline-secondary" [disabled]="filters.page + 1 >= totalPages" (click)="nextPage()">
+        Next ➡
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="modal fade show" *ngIf="showModal" style="display:block; background: rgba(0,0,0,0.5)">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{ editingId ? 'Edit Batch' : 'Create Batch' }}
+        </h5>
+        <button class="btn-close" (click)="closeModal()"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <form>
+
+          <div class="mb-3">
+            <label class="form-label">Batch Name</label>
+            <input type="text" class="form-control" [(ngModel)]="form.name" name="name">
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label>Course</label>
+              <select class="form-control" [(ngModel)]="form.courseId" name="courseId">
+                <option *ngFor="let c of courses" [value]="c.id">{{ c.title }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Trainer</label>
+              <select class="form-control" [(ngModel)]="form.trainerId" name="trainerId">
+                <option *ngFor="let t of trainers" [value]="t.id">{{ t.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <label>Start Date</label>
+              <input type="date" class="form-control" [(ngModel)]="form.startDate" name="startDate">
+            </div>
+
+            <div class="col-md-6">
+              <label>End Date</label>
+              <input type="date" class="form-control" [(ngModel)]="form.endDate" name="endDate">
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label>Status</label>
+            <select class="form-control" [(ngModel)]="form.status" name="status">
+              <option value="ACTIVE">Active</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
+
+        </form>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+        <button class="btn btn-success" (click)="saveBatch()">Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<div class="lms-container">
+
+    <!-- LEFT -->
+    <div class="lms-main">
+
+        <!-- HEADER ROW -->
+        <div class="video-header">
+
+            <div class="left">
+                <h2>{{ selected?.title }}</h2>
+
+                <div class="progress-wrapper">
+                    <span>{{ progress }}% completed</span>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="progress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right">
+                <button class="next-btn" (click)="onVideoEnd()">
+                    ▶ Next Lesson
+                </button>
+            </div>
+
+        </div>
+
+        <!-- VIDEO (FIXED RATIO) -->
+        <div class="video-container">
+            <div #playerContainer class="video-frame"></div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="lms-sidebar">
+
+        <div class="tabs">
+            <button (click)="activeTab='sessions'" [class.active]="activeTab==='sessions'">
+                Sessions
+            </button>
+            <button (click)="activeTab='curriculum'" [class.active]="activeTab==='curriculum'">
+                Curriculum
+            </button>
+        </div>
+
+        <div *ngIf="activeTab==='sessions'" class="list">
+
+            <div *ngFor="let s of sessions" class="list-item" [class.active]="selected?.id === s.id"
+                (click)="select(s)">
+
+                <div class="item-title">{{ s.title }}</div>
+                <div class="item-meta">{{ s.durationMinutes }} mins</div>
+
+            </div>
+
+        </div>
+
+        <div *ngIf="activeTab==='curriculum'" class="list">
+
+            <div *ngFor="let m of curriculum?.curriculum" class="module">
+                <div class="module-title">{{ m.title }}</div>
+
+                <ul>
+                    <li *ngFor="let t of m.topics">{{ t }}</li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

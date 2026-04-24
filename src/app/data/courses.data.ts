@@ -18,285 +18,100 @@ export interface Course {
 }
 
 export const COURSES: Course[] = [{
-    id: 'java',
-    name: 'Core Java',
-    curriculum: [
+  id: 'java',
+  name: 'Core Java (45 Days)',
+  curriculum: [
 
-        {
-            title: "Java Fundamentals & Environment Setup",
-            topics: [
-                "Introduction to Java, history, features, and platform independence concept",
-                "Understanding JDK, JRE, JVM architecture and execution flow",
-                "Installing Java, configuring environment variables (JAVA_HOME, PATH)",
-                "Writing, compiling, and executing your first Java program",
-                "Understanding bytecode, class files, and Java program lifecycle"
-            ]
-        },
+    {
+      title: "Week 1: Java Foundations",
+      topics: [
+        "Day 1: Introduction to Java, JDK installation, IDE setup, Hello World",
+        "Day 2: Variables and Data Types (int, float, double, char, boolean, String)",
+        "Day 3: Operators (Arithmetic, Relational, Logical, Assignment, Unary)",
+        "Day 4: Strings and String methods",
+        "Day 5: Input/Output, Scanner class, Comments, Debugging",
+        "Day 6: Conditional statements (if, else, nested if)",
+        "Day 7: Practice - Basic problem solving"
+      ]
+    },
 
-        {
-            title: "Variables, Data Types & Type Casting",
-            topics: [
-                "Primitive data types with memory allocation and ranges",
-                "Non-primitive data types like arrays, strings, and objects",
-                "Type casting (implicit and explicit) with real-world scenarios",
-                "Constants using final keyword and naming conventions",
-                "Wrapper classes and autoboxing/unboxing mechanism"
-            ]
-        },
+    {
+      title: "Week 2: Control Flow & Methods",
+      topics: [
+        "Day 8: While loop, break, continue",
+        "Day 9: For loop, nested loops",
+        "Day 10: Methods introduction and usage",
+        "Day 11: Parameters and return types",
+        "Day 12: Method overloading",
+        "Day 13: Variable scope (local, instance, static)",
+        "Day 14: Practice - Loops & methods"
+      ]
+    },
 
-        {
-            title: "Operators in Java",
-            topics: [
-                "Arithmetic operators and operator precedence rules",
-                "Relational operators for comparison logic",
-                "Logical operators (AND, OR, NOT) in conditional checks",
-                "Bitwise operators and their low-level usage",
-                "Ternary operator for concise conditional expressions"
-            ]
-        },
+    {
+      title: "Week 3: Arrays & Strings",
+      topics: [
+        "Day 15: Arrays basics",
+        "Day 16: Array operations",
+        "Day 17: 2D arrays",
+        "Day 18: StringBuffer & StringBuilder",
+        "Day 19: Advanced string operations",
+        "Day 20: Searching (Linear, Binary)",
+        "Day 21: Practice - Arrays & strings"
+      ]
+    },
 
-        {
-            title: "Control Flow Statements",
-            topics: [
-                "if, if-else, nested if statements with real examples",
-                "Switch statements and modern switch expressions",
-                "Break and continue statements usage in loops",
-                "Writing clean and readable conditional logic",
-                "Real-world applications of decision-making constructs"
-            ]
-        },
+    {
+      title: "Week 4: Object-Oriented Programming",
+      topics: [
+        "Day 22: OOP concepts",
+        "Day 23: Classes & Objects",
+        "Day 24: Constructors",
+        "Day 25: Inheritance",
+        "Day 26: Polymorphism",
+        "Day 27: Encapsulation & Abstraction",
+        "Day 28: Practice - OOP"
+      ]
+    },
 
-        {
-            title: "Loops and Iteration Techniques",
-            topics: [
-                "for, while, and do-while loops with differences",
-                "Nested loops and pattern-based coding problems",
-                "Loop optimization and performance tuning",
-                "Avoiding infinite loops and debugging techniques",
-                "Using loops in real-world data processing scenarios"
-            ]
-        },
+    {
+      title: "Week 5: Collections - List",
+      topics: [
+        "Day 29: Collections Framework intro",
+        "Day 30: List & ArrayList",
+        "Day 31: ArrayList operations",
+        "Day 32: LinkedList",
+        "Day 33: ArrayList vs LinkedList",
+        "Day 34: Vector & Stack",
+        "Day 35: Practice - List problems"
+      ]
+    },
 
-        {
-            title: "Arrays and Memory Handling",
-            topics: [
-                "Single-dimensional arrays and memory allocation",
-                "Multi-dimensional arrays and matrix operations",
-                "Array traversal techniques and iteration patterns",
-                "Sorting algorithms (Bubble, Selection, Insertion)",
-                "Searching algorithms (Linear and Binary Search)"
-            ]
-        },
+    {
+      title: "Week 6: Collections - Set",
+      topics: [
+        "Day 36: Set interface",
+        "Day 37: HashSet",
+        "Day 38: LinkedHashSet",
+        "Day 39: TreeSet",
+        "Day 40: Set comparison",
+        "Day 41: Iterators",
+        "Day 42: Practice - Set problems"
+      ]
+    },
 
-        {
-            title: "Strings and String Manipulation",
-            topics: [
-                "String class and immutability concept",
-                "StringBuilder and StringBuffer differences",
-                "Common string methods and operations",
-                "String comparison and memory handling",
-                "Real-world string processing use cases"
-            ]
-        },
-
-        {
-            title: "Methods and Functional Design",
-            topics: [
-                "Method declaration, definition, and invocation",
-                "Method overloading and compile-time polymorphism",
-                "Recursion and problem-solving techniques",
-                "Return types and parameter passing mechanisms",
-                "Designing reusable and modular methods"
-            ]
-        },
-
-        {
-            title: "Classes, Objects & Constructors",
-            topics: [
-                "Class structure and object creation",
-                "Constructors (default, parameterized)",
-                "this keyword and its use cases",
-                "Memory allocation and object lifecycle",
-                "Best practices for class design"
-            ]
-        },
-
-        {
-            title: "Encapsulation & Data Hiding",
-            topics: [
-                "Encapsulation concept and real-world analogy",
-                "Using private variables and access control",
-                "Getter and setter methods implementation",
-                "Immutable classes design",
-                "Security and data protection techniques"
-            ]
-        },
-
-        {
-            title: "Inheritance in Java",
-            topics: [
-                "Types of inheritance (single, multilevel, hierarchical)",
-                "super keyword usage in constructors and methods",
-                "Method overriding and runtime polymorphism",
-                "Constructor chaining and execution order",
-                "IS-A relationship in object-oriented design"
-            ]
-        },
-
-        {
-            title: "Polymorphism",
-            topics: [
-                "Compile-time vs runtime polymorphism",
-                "Method overloading vs method overriding",
-                "Dynamic method dispatch mechanism",
-                "Real-world examples of polymorphism",
-                "Best practices for implementing polymorphism"
-            ]
-        },
-
-        {
-            title: "Abstraction",
-            topics: [
-                "Abstract classes and abstract methods",
-                "Difference between abstraction and encapsulation",
-                "When and why to use abstraction",
-                "Design principles using abstraction",
-                "Practical examples and use cases"
-            ]
-        },
-
-        {
-            title: "Interfaces",
-            topics: [
-                "Interface basics and implementation",
-                "Multiple inheritance using interfaces",
-                "Default and static methods in interfaces",
-                "Functional interfaces and lambda usage",
-                "Real-world interface design patterns"
-            ]
-        },
-
-        {
-            title: "Packages & Access Modifiers",
-            topics: [
-                "Creating and organizing packages",
-                "Access modifiers (public, private, protected, default)",
-                "Importing packages and classes",
-                "Jar files and packaging applications",
-                "Best practices for project structure"
-            ]
-        },
-
-        {
-            title: "Exception Handling",
-            topics: [
-                "Types of exceptions (checked vs unchecked)",
-                "try, catch, finally blocks usage",
-                "throw and throws keywords",
-                "Creating custom exceptions",
-                "Exception handling best practices"
-            ]
-        },
-
-        {
-            title: "Collections Framework",
-            topics: [
-                "List interface (ArrayList, LinkedList)",
-                "Set interface (HashSet, TreeSet)",
-                "Map interface (HashMap, TreeMap)",
-                "Iterators and traversal techniques",
-                "Comparable vs Comparator usage"
-            ]
-        },
-
-        {
-            title: "Multithreading & Concurrency",
-            topics: [
-                "Thread lifecycle and states",
-                "Creating threads using Thread and Runnable",
-                "Synchronization and thread safety",
-                "Deadlock and concurrency issues",
-                "Thread pools and Executor framework"
-            ]
-        },
-
-        {
-            title: "File Handling & I/O Streams",
-            topics: [
-                "File class and file operations",
-                "Reading and writing using FileReader/FileWriter",
-                "BufferedReader and performance optimization",
-                "Serialization and deserialization concepts",
-                "Working with binary and text files"
-            ]
-        },
-
-        {
-            title: "Java 8 Features",
-            topics: [
-                "Lambda expressions and functional programming",
-                "Streams API and data processing",
-                "Functional interfaces and usage",
-                "Method references and code simplification",
-                "Optional class and null handling"
-            ]
-        },
-
-        {
-            title: "JDBC (Database Connectivity)",
-            topics: [
-                "Connecting Java with databases",
-                "Statement and PreparedStatement usage",
-                "ResultSet and data retrieval",
-                "Transactions and commit/rollback",
-                "Best practices for database operations"
-            ]
-        },
-
-        {
-            title: "Servlets",
-            topics: [
-                "Servlet lifecycle and architecture",
-                "Handling requests using doGet and doPost",
-                "Session tracking and management",
-                "Cookies and filters",
-                "Building dynamic web applications"
-            ]
-        },
-
-        {
-            title: "JSP (Java Server Pages)",
-            topics: [
-                "JSP basics and lifecycle",
-                "Directives and scripting elements",
-                "Expression Language (EL)",
-                "JSTL and tag libraries",
-                "MVC architecture implementation"
-            ]
-        },
-
-        {
-            title: "Project Development",
-            topics: [
-                "Setting up a real-time project structure",
-                "Implementing CRUD operations",
-                "Integrating frontend and backend",
-                "Database integration and testing",
-                "Deploying application to server"
-            ]
-        },
-
-        {
-            title: "Interview Preparation & Placement",
-            topics: [
-                "Common Java interview questions and answers",
-                "Coding problem-solving strategies",
-                "HR interview preparation",
-                "Resume building and optimization",
-                "Mock interviews and feedback sessions"
-            ]
-        }
-
+    {
+      title: "Week 7: Map & Advanced",
+      topics: [
+        "Day 43: Map interface",
+        "Day 44: HashMap",
+        "Day 45: LinkedHashMap & TreeMap",
+        "Day 46: Map iteration",
+        "Day 47: Frequency counting",
+        "Day 48: Collections utility",
+        "Day 49: Final revision"
+      ]
+    }
     ],
 
     questions: [
@@ -476,284 +291,90 @@ export const COURSES: Course[] = [{
 
 // 🔥 Example second course
 {
-    id: 'python',
-    name: 'Python',
-    curriculum: [
+  id: 'python',
+  name: 'Python (45 Days)',
+  curriculum: [
 
-        {
-            title: "Python Fundamentals & Setup",
-            topics: [
-                "Introduction to Python, history, features, and real-world applications",
-                "Installing Python, setting up IDE (VS Code / PyCharm)",
-                "Understanding Python interpreter and execution flow",
-                "Writing and running your first Python program",
-                "Understanding indentation and Python syntax rules"
-            ]
-        },
+    {
+      title: "Week 1: Python Foundations",
+      topics: [
+        "Day 1: Introduction, Installation, Hello World",
+        "Day 2: Variables & Data Types",
+        "Day 3: Operators",
+        "Day 4: Strings & formatting",
+        "Day 5: Input/Output & Debugging",
+        "Day 6: Conditional statements",
+        "Day 7: Practice"
+      ]
+    },
 
-        {
-            title: "Variables & Data Types",
-            topics: [
-                "Python variables and dynamic typing concept",
-                "Built-in data types (int, float, str, bool)",
-                "Type checking and type conversion",
-                "Mutable vs immutable data types",
-                "Memory management and references in Python"
-            ]
-        },
+    {
+      title: "Week 2: Control Flow & Functions",
+      topics: [
+        "Day 8: While loop",
+        "Day 9: For loop",
+        "Day 10: Lists",
+        "Day 11: List comprehensions",
+        "Day 12: Functions",
+        "Day 13: Scope & Lambda",
+        "Day 14: Practice"
+      ]
+    },
 
-        {
-            title: "Operators in Python",
-            topics: [
-                "Arithmetic operators and precedence rules",
-                "Comparison and relational operators",
-                "Logical operators (and, or, not)",
-                "Bitwise operators and their usage",
-                "Assignment operators and shorthand operations"
-            ]
-        },
+    {
+      title: "Week 3: Data Structures",
+      topics: [
+        "Day 15: Tuples",
+        "Day 16: Sets",
+        "Day 17: Dictionaries",
+        "Day 18: Advanced dictionaries",
+        "Day 19: Mixed structures",
+        "Day 20: Regex & strings",
+        "Day 21: Practice"
+      ]
+    },
 
-        {
-            title: "Control Flow Statements",
-            topics: [
-                "if, elif, else statements with examples",
-                "Nested conditional statements",
-                "Using logical conditions effectively",
-                "Best practices for writing readable conditions",
-                "Real-world decision-making scenarios"
-            ]
-        },
+    {
+      title: "Week 4: File & Exception Handling",
+      topics: [
+        "Day 22: File reading",
+        "Day 23: File writing",
+        "Day 24: Exception handling",
+        "Day 25: Custom exceptions",
+        "Day 26: Context managers",
+        "Day 27: JSON",
+        "Day 28: Practice"
+      ]
+    },
 
-        {
-            title: "Loops & Iterations",
-            topics: [
-                "for loop and range function usage",
-                "while loop and loop control statements",
-                "Break, continue, and pass statements",
-                "Nested loops and pattern problems",
-                "Loop optimization and real-world examples"
-            ]
-        },
+    {
+      title: "Week 5: OOP",
+      topics: [
+        "Day 29: Classes & Objects",
+        "Day 30: Constructors",
+        "Day 31: Methods",
+        "Day 32: Inheritance",
+        "Day 33: Polymorphism",
+        "Day 34: Abstract classes",
+        "Day 35: Practice"
+      ]
+    },
 
-        {
-            title: "Strings & String Operations",
-            topics: [
-                "String creation and immutability",
-                "String slicing and indexing",
-                "Common string methods (split, join, replace)",
-                "String formatting (f-strings, format method)",
-                "Real-world text processing examples"
-            ]
-        },
-
-        {
-            title: "Lists & List Operations",
-            topics: [
-                "Creating and manipulating lists",
-                "List indexing, slicing, and iteration",
-                "List methods (append, remove, sort)",
-                "List comprehensions and advanced usage",
-                "Real-world list processing scenarios"
-            ]
-        },
-
-        {
-            title: "Tuples, Sets & Dictionaries",
-            topics: [
-                "Tuple creation and immutability",
-                "Set operations and uniqueness",
-                "Dictionary structure and key-value pairs",
-                "Dictionary methods and iteration",
-                "Choosing the right data structure"
-            ]
-        },
-
-        {
-            title: "Functions in Python",
-            topics: [
-                "Defining and calling functions",
-                "Arguments (positional, keyword, default)",
-                "Return values and multiple returns",
-                "Lambda functions and anonymous functions",
-                "Best practices for reusable functions"
-            ]
-        },
-
-        {
-            title: "Modules & Packages",
-            topics: [
-                "Importing modules and using libraries",
-                "Creating custom modules",
-                "Understanding __name__ and module execution",
-                "Working with packages and folder structure",
-                "Popular built-in modules overview"
-            ]
-        },
-
-        {
-            title: "Object-Oriented Programming (OOP)",
-            topics: [
-                "Classes and objects in Python",
-                "Constructors (__init__ method)",
-                "Instance variables and methods",
-                "Encapsulation and data hiding",
-                "Real-world OOP examples"
-            ]
-        },
-
-        {
-            title: "Inheritance & Polymorphism",
-            topics: [
-                "Types of inheritance in Python",
-                "Method overriding and super() usage",
-                "Polymorphism and dynamic typing",
-                "Multiple inheritance concepts",
-                "Best practices in OOP design"
-            ]
-        },
-
-        {
-            title: "Abstraction & Interfaces",
-            topics: [
-                "Abstract classes using abc module",
-                "Defining abstract methods",
-                "Difference between abstraction and encapsulation",
-                "Interface-like behavior in Python",
-                "Design principles using abstraction"
-            ]
-        },
-
-        {
-            title: "Exception Handling",
-            topics: [
-                "Types of exceptions in Python",
-                "try, except, else, finally blocks",
-                "Handling multiple exceptions",
-                "Creating custom exceptions",
-                "Best practices for error handling"
-            ]
-        },
-
-        {
-            title: "File Handling",
-            topics: [
-                "Reading and writing text files",
-                "Working with file modes (r, w, a, b)",
-                "Using with statement for file handling",
-                "Handling CSV and JSON files",
-                "Real-world file processing use cases"
-            ]
-        },
-
-        {
-            title: "Python Standard Libraries",
-            topics: [
-                "Working with math and random modules",
-                "Datetime module for date/time operations",
-                "OS module for system interaction",
-                "Sys module and command-line arguments",
-                "Exploring useful standard libraries"
-            ]
-        },
-
-        {
-            title: "Data Structures & Algorithms",
-            topics: [
-                "Introduction to algorithms and complexity",
-                "Sorting algorithms (bubble, merge, quick)",
-                "Searching algorithms (linear, binary)",
-                "Stacks, queues, and linked lists",
-                "Problem-solving techniques"
-            ]
-        },
-
-        {
-            title: "Functional Programming",
-            topics: [
-                "Lambda functions and map/filter/reduce",
-                "List, set, and dictionary comprehensions",
-                "Higher-order functions",
-                "Iterators and generators",
-                "Writing clean functional code"
-            ]
-        },
-
-        {
-            title: "Working with APIs",
-            topics: [
-                "Introduction to REST APIs",
-                "Making API calls using requests library",
-                "Handling JSON responses",
-                "Authentication and headers",
-                "Real-world API integration examples"
-            ]
-        },
-
-        {
-            title: "Database Connectivity",
-            topics: [
-                "Connecting Python with databases",
-                "Using SQLite and MySQL",
-                "Executing queries and transactions",
-                "ORM basics (SQLAlchemy)",
-                "Best practices for database handling"
-            ]
-        },
-
-        {
-            title: "Web Development with Python",
-            topics: [
-                "Introduction to Flask framework",
-                "Routing and request handling",
-                "Templates and dynamic rendering",
-                "Building REST APIs",
-                "Deploying web applications"
-            ]
-        },
-
-        {
-            title: "Data Analysis with Python",
-            topics: [
-                "Introduction to NumPy arrays",
-                "Working with Pandas DataFrames",
-                "Data cleaning and preprocessing",
-                "Basic data visualization",
-                "Real-world data analysis projects"
-            ]
-        },
-
-        {
-            title: "Automation & Scripting",
-            topics: [
-                "Writing automation scripts in Python",
-                "File and folder automation tasks",
-                "Web scraping basics (BeautifulSoup)",
-                "Task scheduling and cron jobs",
-                "Real-world automation examples"
-            ]
-        },
-
-        {
-            title: "Project Development",
-            topics: [
-                "Building real-world Python projects",
-                "Structuring project folders",
-                "Integrating APIs and databases",
-                "Testing and debugging applications",
-                "Deployment and hosting"
-            ]
-        },
-
-        {
-            title: "Interview Preparation",
-            topics: [
-                "Common Python interview questions",
-                "Coding problem-solving strategies",
-                "Data structures and algorithms revision",
-                "Resume building and portfolio creation",
-                "Mock interviews and feedback"
-            ]
-        }
+    {
+      title: "Week 6: Advanced Concepts",
+      topics: [
+        "Day 36: Decorators",
+        "Day 37: Generators",
+        "Day 38: Map/Filter/Reduce",
+        "Day 39: Modules",
+        "Day 40: Packages",
+        "Day 41: Data Structures intro",
+        "Day 42: Stack & Queue",
+        "Day 43: Linked List",
+        "Day 44: Searching",
+        "Day 45: Final practice"
+      ]
+    }
 
     ],
     questions: [
