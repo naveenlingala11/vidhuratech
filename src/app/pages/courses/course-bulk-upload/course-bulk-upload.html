@@ -1,0 +1,36 @@
+<div class="bulk-page">
+
+    <h2>📦 Bulk Course Upload</h2>
+
+    <textarea [(ngModel)]="jsonInput" rows="12" placeholder="Paste JSON here..."></textarea>
+
+    <div class="actions">
+        <button (click)="parseJSON()">Preview</button>
+        <button (click)="upload()" [disabled]="loading || !preview.length">
+            {{ loading ? 'Uploading...' : 'Upload' }}
+        </button>
+    </div>
+
+    <!-- PREVIEW -->
+    <div *ngIf="preview.length">
+        <h4>Preview ({{ preview.length }})</h4>
+
+        <div class="preview-card" *ngFor="let c of preview">
+            <strong>{{ c.title }}</strong> - {{ c.code }}
+        </div>
+    </div>
+
+    <!-- RESULT -->
+    <div *ngIf="result" class="result">
+        <p>✅ Success: {{ result.successCount }}</p>
+        <p>❌ Failed: {{ result.failedCount }}</p>
+
+        <div *ngIf="result.duplicateCodes?.length">
+            <h5>Duplicates:</h5>
+            <span *ngFor="let d of result.duplicateCodes" class="dup">
+                {{ d }}
+            </span>
+        </div>
+    </div>
+
+</div>

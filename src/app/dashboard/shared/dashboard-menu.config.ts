@@ -61,7 +61,14 @@ export const DASHBOARD_MENUS: Record<string, DashboardMenuItem[]> = {
   SUPER_ADMIN: [
     { label: 'Dashboard', icon: 'bi bi-grid', route: '/dashboard/super-admin' },
     { label: 'Users', icon: 'bi bi-people-fill', route: '/dashboard/super-admin/users' },
-    { label: 'Departments', icon: 'bi bi-diagram-2', route: '/dashboard/super-admin/departments' },
+    { label: 'Admin Actions', icon: 'bi bi-lightning-charge', route: '/dashboard/admin/actions' },
+    { label: 'Leads', icon: 'bi bi-person-lines-fill', route: '/admin/leads' },
+    { label: 'Bin', icon: 'bi bi-trash', route: '/admin/bin' },
+    { label: 'Jobs', icon: 'bi bi-briefcase', route: '/admin/jobs' },
+    { label: 'Companies', icon: 'bi bi-building', route: '/admin/companies' },
+    { label: 'Certificates', icon: 'bi bi-award', route: '/admin/certificates' },
+    { label: 'Invoices', icon: 'bi bi-receipt', route: '/admin/invoice' },
+    { label: 'Analytics', icon: 'bi bi-graph-up', route: '/invoice-analytics' },
     { label: 'Settings', icon: 'bi bi-gear', route: '/dashboard/super-admin/settings' }
   ]
 };

@@ -1,126 +1,225 @@
-<div class="dashboard-page">
+<div class="dashboard-page" [class.dark]="darkMode">
+  <div class="dashboard-bg"></div>
 
-  <!-- HEADER -->
-  <div class="dashboard-header">
+  <header class="top-header">
     <div>
-      <h1>Admin Dashboard</h1>
-      <p>Complete system overview & analytics</p>
+      <span class="kicker">Vidhura Tech Admin</span>
+      <h1>Executive Dashboard</h1>
+      <p>{{ todayDate }} · Revenue, leads, users, modules, and platform activity</p>
     </div>
 
     <div class="header-actions">
-      <button (click)="refreshDashboard()">🔄 Refresh</button>
-      <button (click)="toggleTheme()">🌓 Theme</button>
+      <button type="button" class="btn-soft" (click)="refreshDashboard()">Refresh</button>
+      <button type="button" class="btn-primary" (click)="toggleTheme()">
+        {{ darkMode ? 'Light Mode' : 'Dark Mode' }}
+      </button>
     </div>
+  </header>
+
+  <div class="loader" *ngIf="loading">
+    <span></span>
   </div>
 
-  <!-- ================= PRIMARY BUSINESS METRICS ================= -->
-  <div class="stats-grid">
+  <section class="hero-section">
+    <div class="hero-main">
+      <span class="live-badge">Live Control Room</span>
+      <h2>₹{{ revenueDisplay }}</h2>
+      <p>Total revenue tracked from invoices, admissions, payments, and business operations.</p>
 
-    <div class="stat-card">
-      <h3>Total Leads</h3>
-      <h2>{{stats.leads}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Revenue</h3>
-      <h2>₹{{stats.revenue}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Jobs</h3>
-      <h2>{{stats.jobs}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Certificates</h3>
-      <h2>{{stats.certificates}}</h2>
-    </div>
-
-  </div>
-
-  <!-- ================= USER / ROLE ANALYTICS ================= -->
-  <div class="stats-grid mt">
-
-    <div class="stat-card">
-      <h3>Total Users</h3>
-      <h2>{{stats.totalUsers}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Students</h3>
-      <h2>{{stats.totalStudents}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Trainers</h3>
-      <h2>{{stats.trainers}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Admins</h3>
-      <h2>{{stats.admins}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Mentors</h3>
-      <h2>{{stats.mentors}}</h2>
-    </div>
-
-  </div>
-
-  <!-- ================= SYSTEM HEALTH ================= -->
-  <div class="stats-grid mt">
-
-    <div class="stat-card">
-      <h3>Companies</h3>
-      <h2>{{extraStats.companies}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Deleted Leads</h3>
-      <h2>{{extraStats.deletedLeads}}</h2>
-    </div>
-
-    <div class="stat-card">
-      <h3>Conversion Rate</h3>
-      <h2>{{extraStats.conversionRate}}%</h2>
-    </div>
-
-  </div>
-
-  <!-- ================= INSIGHTS + ACTIVITY ================= -->
-  <div class="dashboard-grid mt">
-
-    <!-- QUICK INSIGHTS -->
-    <div class="panel">
-      <h4>Quick Insights</h4>
-
-      <div class="insight">
-        <span>Active Modules</span>
-        <strong>{{activeModules}}</strong>
-      </div>
-
-      <div class="insight">
-        <span>Revenue Growth</span>
-        <strong>{{revenueGrowth}}%</strong>
-      </div>
-
-      <div class="insight">
-        <span>Conversion Rate</span>
-        <strong>{{extraStats.conversionRate}}%</strong>
+      <div class="hero-actions">
+        <button type="button" (click)="navigate('/admin/leads')">Manage Leads</button>
+        <button type="button" (click)="navigate('/admin/invoice')">Create Invoice</button>
+        <button type="button" (click)="navigate('/invoice-analytics')">Open Analytics</button>
       </div>
     </div>
 
-    <!-- RECENT ACTIVITIES -->
-    <div class="panel">
-      <h4>Recent Activity</h4>
+    <div class="hero-side">
+      <div class="hero-mini-card highlight">
+        <span>Conversion</span>
+        <strong>{{ extraStats.conversionRate }}%</strong>
+      </div>
 
-      <div class="activity" *ngFor="let a of recentActivities">
-        <div class="dot"></div>
-        <div>{{a}}</div>
+      <div class="hero-mini-grid">
+        <div>
+          <span>Leads</span>
+          <strong>{{ stats.leads }}</strong>
+        </div>
+        <div>
+          <span>Modules</span>
+          <strong>{{ activeModules }}</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kpi-grid">
+    <div class="kpi-card teal">
+      <span>Total Leads</span>
+      <strong>{{ stats.leads }}</strong>
+      <p>{{ extraStats.todayFollowups }} follow-ups today</p>
+    </div>
+
+    <div class="kpi-card gold">
+      <span>Revenue</span>
+      <strong>₹{{ revenueDisplay }}</strong>
+      <p>{{ revenueGrowth }}% growth this cycle</p>
+    </div>
+
+    <div class="kpi-card blue">
+      <span>Jobs</span>
+      <strong>{{ stats.jobs }}</strong>
+      <p>Active job listings</p>
+    </div>
+
+    <div class="kpi-card violet">
+      <span>Certificates</span>
+      <strong>{{ stats.certificates }}</strong>
+      <p>Generated certificates</p>
+    </div>
+  </section>
+
+  <section class="command-grid">
+    <div class="panel module-panel">
+      <div class="panel-head">
+        <div>
+          <span>Workspace</span>
+          <h3>Module Launcher</h3>
+        </div>
+
+        <div class="module-search">
+          <input type="text" placeholder="Search module" [(ngModel)]="moduleSearch" />
+        </div>
+      </div>
+
+      <div class="module-grid">
+        <button type="button" class="module-card" *ngFor="let m of filteredModules" [class]="m.accent"
+          (click)="navigate(m.route)">
+          <b>{{ m.code }}</b>
+          <strong>{{ m.title }}</strong>
+          <small>{{ m.desc }}</small>
+        </button>
       </div>
     </div>
 
-  </div>
+    <div class="panel health-panel">
+      <div class="panel-head">
+        <div>
+          <span>Health</span>
+          <h3>Platform Pulse</h3>
+        </div>
+        <b class="status-chip">Online</b>
+      </div>
 
+      <div class="pulse-score">
+        <div>
+          <strong>{{ extraStats.conversionRate }}%</strong>
+          <span>Conversion</span>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div>
+          <span>Lead Conversion</span>
+          <b>{{ extraStats.conversionRate }}%</b>
+        </div>
+        <div class="track">
+          <i class="fill-teal" [style.width.%]="conversionWidth"></i>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div>
+          <span>Student Ratio</span>
+          <b>{{ studentRatio }}%</b>
+        </div>
+        <div class="track">
+          <i class="fill-gold" [style.width.%]="studentRatio"></i>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div>
+          <span>Mentor Ratio</span>
+          <b>{{ mentorRatio }}%</b>
+        </div>
+        <div class="track">
+          <i class="fill-blue" [style.width.%]="mentorRatio"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="role-grid">
+    <div class="role-card">
+      <span>Total Users</span>
+      <strong>{{ stats.totalUsers }}</strong>
+    </div>
+    <div class="role-card">
+      <span>Students</span>
+      <strong>{{ stats.totalStudents }}</strong>
+    </div>
+    <div class="role-card">
+      <span>Trainers</span>
+      <strong>{{ stats.trainers }}</strong>
+    </div>
+    <div class="role-card">
+      <span>Admins</span>
+      <strong>{{ stats.admins }}</strong>
+    </div>
+    <div class="role-card">
+      <span>Mentors</span>
+      <strong>{{ stats.mentors }}</strong>
+    </div>
+  </section>
+
+  <section class="bottom-grid">
+    <div class="panel intelligence-panel">
+      <div class="panel-head">
+        <div>
+          <span>Insights</span>
+          <h3>Business Intelligence</h3>
+        </div>
+        <b class="status-chip">Updated</b>
+      </div>
+
+      <div class="insight-list">
+        <div>
+          <span>Companies Registered</span>
+          <strong>{{ extraStats.companies }}</strong>
+        </div>
+        <div>
+          <span>Deleted Leads</span>
+          <strong>{{ extraStats.deletedLeads }}</strong>
+        </div>
+        <div>
+          <span>Conversion Rate</span>
+          <strong>{{ extraStats.conversionRate }}%</strong>
+        </div>
+        <div>
+          <span>Revenue Growth</span>
+          <strong>{{ revenueGrowth }}%</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel activity-panel">
+      <div class="panel-head">
+        <div>
+          <span>Timeline</span>
+          <h3>Recent Activity</h3>
+        </div>
+        <b class="status-chip">Latest</b>
+      </div>
+
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let a of recentActivities">
+          <i></i>
+          <div>
+            <strong>{{ a }}</strong>
+            <span>System updated recently</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>

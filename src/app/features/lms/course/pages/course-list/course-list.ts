@@ -38,13 +38,19 @@ export class CourseListComponent implements OnInit {
   loadCourses(): void {
     this.loading = true;
 
-    this.courseService.getCourses({
+    const params: any = {
       page: this.page,
-      size: this.size,
-      ...this.filters
-    }).subscribe({
+      size: this.size
+    };
+
+    if (this.filters.keyword) params.keyword = this.filters.keyword;
+    if (this.filters.level) params.level = this.filters.level;
+    if (this.filters.status) params.status = this.filters.status;
+    if (this.filters.active) params.active = this.filters.active;
+
+    this.courseService.getCourses(params).subscribe({
       next: (res) => {
-        this.courses = res.data.content;
+        this.courses = res.data.content || [];
         this.totalElements = res.data.totalElements;
         this.loading = false;
       },

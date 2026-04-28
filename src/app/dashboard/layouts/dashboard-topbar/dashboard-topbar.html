@@ -1,45 +1,56 @@
 <div class="topbar">
 
-  <!-- LEFT -->
   <div class="left">
 
     <div class="search-box">
-      <span class="icon">🔍</span>
-      <input placeholder="Search anything..." />
+      <i class="bi bi-search"></i>
+      <input placeholder="Search modules, users, reports..." />
     </div>
-
   </div>
 
-  <!-- RIGHT -->
   <div class="right">
+    <button class="icon-btn" type="button" (click)="toggleTheme()" title="Toggle theme">
+      <i class="bi bi-moon-stars"></i>
+    </button>
 
-    <!-- Theme Toggle -->
-    <button class="icon-btn" (click)="toggleTheme()">🌓</button>
+    <button class="icon-btn notification-btn" type="button" title="Notifications">
+      <i class="bi bi-bell"></i>
+      <span></span>
+    </button>
 
-    <!-- Profile -->
-    <div class="profile">
+    <div class="profile" (click)="$event.stopPropagation()">
+      <button class="profile-btn" type="button" (click)="toggleProfile($event)">
+        <div class="avatar">{{ getInitials() }}</div>
 
-      <button class="avatar-btn" (click)="toggleProfile()">
-        <div class="avatar">
-          {{ getInitials() }}
+        <div class="profile-meta">
+          <strong>{{ authService.getUser()?.name || 'User' }}</strong>
+          <span>{{ authService.getUser()?.role || 'Member' }}</span>
         </div>
+
+        <i class="bi bi-chevron-down caret"></i>
       </button>
 
-      <!-- Dropdown -->
       <div class="dropdown" *ngIf="profileOpen">
+        <div class="dropdown-user">
+          <div class="avatar large">{{ getInitials() }}</div>
 
-        <div class="user-info">
-          <strong>{{ authService.getUser()?.name }}</strong>
-          <span>{{ authService.getUser()?.role }}</span>
+          <div>
+            <strong>{{ authService.getUser()?.name || 'User' }}</strong>
+            <span>{{ authService.getUser()?.role || 'Member' }}</span>
+          </div>
         </div>
 
-        <button (click)="goToProfile()">View Profile</button>
-        <button (click)="logout()" class="logout">Logout</button>
+        <button type="button" (click)="goToProfile()">
+          <i class="bi bi-person-circle"></i>
+          View Profile
+        </button>
 
+        <button type="button" class="logout" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+          Logout
+        </button>
       </div>
-
     </div>
-
   </div>
 
 </div>

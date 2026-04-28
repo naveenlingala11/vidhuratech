@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,19 +18,34 @@ export class SetPassword implements OnInit {
   password = '';
   confirmPassword = '';
   token = '';
+
   loading = false;
+  resendLoading = false;
   error = '';
 
   passwordVisible = false;
   confirmVisible = false;
+
   strength = 0;
   strengthText = '';
+  strengthClass = '';
 
   isExpired = false;
   isUsed = false;
   initialized = false;
+  checkingToken = true;
+
+  email = '';
+  emailSent = false;
 
   suggestions: string[] = [];
+
+  rules = {
+    length: false,
+    uppercase: false,
+    number: false,
+    special: false
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -41,9 +56,11 @@ export class SetPassword implements OnInit {
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
+    this.email = this.route.snapshot.queryParamMap.get('email') || '';
 
     if (!this.token) {
-      this.isExpired = true;
+      this.checkingToken = false;
+      this.initialized = false;
       return;
     }
 
@@ -51,36 +68,29 @@ export class SetPassword implements OnInit {
   }
 
   validateToken() {
+    this.checkingToken = true;
+
     this.http.get(`${environment.apiUrl}/api/auth/validate-token`, {
       params: { token: this.token }
     }).subscribe({
       next: (res: any) => {
+        this.checkingToken = false;
 
-        setTimeout(() => {
-          if (res.used) {
-            this.isUsed = true;
-          } else {
-            this.initialized = true;
-          }
-        });
+        if (res?.used) {
+          this.isUsed = true;
+          return;
+        }
 
+        this.initialized = true;
       },
-      error: (err) => {
-
-        setTimeout(() => {
-          if (err?.error?.message === 'expired') {
-            this.isExpired = true;
-          } else {
-            this.isExpired = true;
-          }
-        });
-
+      error: () => {
+        this.checkingToken = false;
+        this.isExpired = true;
       }
     });
   }
 
   submit() {
-
     this.error = '';
 
     if (!this.password || this.password.length < 6) {
@@ -106,22 +116,23 @@ export class SetPassword implements OnInit {
       }
     ).subscribe({
       next: () => {
-
         this.toastr.success('Password set successfully');
 
         setTimeout(() => {
           this.router.navigate(['/login']);
-        }, 1200);
-
+        }, 900);
       },
       error: (err) => {
+        const message = err?.error?.message || 'Something went wrong';
 
-        if (err?.error?.message?.includes('expired')) {
+        if (message.includes('expired')) {
           this.isExpired = true;
-        } else if (err?.error?.message?.includes('used')) {
+          this.initialized = false;
+        } else if (message.includes('used')) {
           this.isUsed = true;
+          this.initialized = false;
         } else {
-          this.error = err?.error?.message || 'Something went wrong';
+          this.error = message;
         }
 
         this.loading = false;
@@ -129,53 +140,94 @@ export class SetPassword implements OnInit {
     });
   }
 
-  // 🔐 RESEND LINK
   resendLink() {
-    this.http.post(`${environment.apiUrl}/api/auth/resend-link`, {
-      token: this.token
-    }).subscribe(() => {
-      this.toastr.success('New link sent to your email');
-    });
+    if (this.resendLoading) return;
+
+    if (!this.email && !this.token) {
+      this.toastr.error('Please enter your email');
+      return;
+    }
+
+    this.resendLoading = true;
+
+    const body = this.token
+      ? { token: this.token }
+      : { email: this.email };
+
+    this.http.post(`${environment.apiUrl}/api/auth/resend-link`, body)
+      .subscribe({
+        next: () => {
+          this.emailSent = true;
+          this.toastr.success('Password reset link sent to your email');
+        },
+        error: (err) => {
+          this.toastr.error(err?.error?.message || 'Unable to send reset link');
+        },
+        complete: () => {
+          this.resendLoading = false;
+        }
+      });
   }
 
-  // 👁 TOGGLE
-  togglePassword() { this.passwordVisible = !this.passwordVisible; }
-  toggleConfirm() { this.confirmVisible = !this.confirmVisible; }
+  togglePassword() {
+    this.passwordVisible = !this.passwordVisible;
+  }
 
-  // 🔐 RULES
-  rules = {
-    length: false,
-    uppercase: false,
-    number: false,
-    special: false
-  };
+  toggleConfirm() {
+    this.confirmVisible = !this.confirmVisible;
+  }
 
   checkStrength() {
-    const p = this.password;
+    const p = this.password || '';
 
     this.rules.length = p.length >= 6;
     this.rules.uppercase = /[A-Z]/.test(p);
     this.rules.number = /[0-9]/.test(p);
     this.rules.special = /[^A-Za-z0-9]/.test(p);
 
-    let score = Object.values(this.rules).filter(v => v).length;
-
+    const score = Object.values(this.rules).filter(Boolean).length;
     this.strength = score;
 
-    if (score <= 1) this.strengthText = 'Weak';
-    else if (score === 2) this.strengthText = 'Medium';
-    else this.strengthText = 'Strong';
+    if (!p) {
+      this.strengthText = '';
+      this.strengthClass = '';
+    } else if (score <= 1) {
+      this.strengthText = 'Weak';
+      this.strengthClass = 'weak';
+    } else if (score === 2) {
+      this.strengthText = 'Medium';
+      this.strengthClass = 'medium';
+    } else if (score === 3) {
+      this.strengthText = 'Good';
+      this.strengthClass = 'good';
+    } else {
+      this.strengthText = 'Strong';
+      this.strengthClass = 'strong';
+    }
 
     this.generateSuggestions();
   }
 
-  // 🧠 AI-LIKE PASSWORD SUGGESTIONS
   generateSuggestions() {
     this.suggestions = [];
 
-    if (!this.rules.uppercase) this.suggestions.push('Add uppercase letter (A-Z)');
-    if (!this.rules.number) this.suggestions.push('Include numbers (0-9)');
-    if (!this.rules.special) this.suggestions.push('Use special characters (@, #, !)');
-    if (!this.rules.length) this.suggestions.push('Minimum 6 characters required');
+    if (!this.password) return;
+
+    if (!this.rules.length) this.suggestions.push('Use at least 6 characters');
+    if (!this.rules.uppercase) this.suggestions.push('Add one uppercase letter');
+    if (!this.rules.number) this.suggestions.push('Include one number');
+    if (!this.rules.special) this.suggestions.push('Add a special character for extra safety');
+  }
+
+  get passwordsMatch(): boolean {
+    return !!this.confirmPassword && this.password === this.confirmPassword;
+  }
+
+  get confirmMismatch(): boolean {
+    return !!this.confirmPassword && this.password !== this.confirmPassword;
+  }
+
+  get canSubmit(): boolean {
+    return this.password.length >= 6 && this.password === this.confirmPassword && !this.loading;
   }
 }

@@ -58,7 +58,6 @@ export class AdminBatchManagementComponent implements OnInit {
   // ================= INIT =================
   ngOnInit(): void {
     this.loadBatches();
-    this.loadDropdowns();
 
     this.searchSubject.pipe(
       debounceTime(400)
@@ -68,6 +67,11 @@ export class AdminBatchManagementComponent implements OnInit {
     });
   }
 
+  // ✅ only here
+  ngAfterViewInit() {
+    this.loadDropdowns();
+  }
+
   // ================= LOAD DATA =================
   loadBatches() {
     this.loading = true;
@@ -75,9 +79,14 @@ export class AdminBatchManagementComponent implements OnInit {
     this.batchService.getBatches(this.filters)
       .subscribe({
         next: (res: any) => {
-          this.batches = res.data?.content || [];
-          this.totalPages = res.data?.totalPages || 0;
+
+          this.batches = res?.data?.content || res?.content || [];
+          this.totalPages = res?.data?.totalPages || res?.totalPages || 0;
+
           this.loading = false;
+
+          // ✅ FIX
+          this.cd.detectChanges();
         },
         error: () => {
           this.loading = false;
@@ -87,15 +96,34 @@ export class AdminBatchManagementComponent implements OnInit {
   }
 
   loadDropdowns() {
+
     this.batchService.getCourses().subscribe((res: any) => {
-      this.courses = res.data?.content || res.data || [];
-      this.cd.detectChanges();
+      console.log("COURSES RES:", res);
+
+      this.courses = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.content)
+          ? res.content
+          : Array.isArray(res?.data?.content)
+            ? res.data.content
+            : [];
+
     });
 
     this.batchService.getTrainers().subscribe((res: any) => {
-      this.trainers = res.data || [];
-      this.cd.detectChanges();
+      console.log("TRAINERS RES:", res);
+
+      this.trainers = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.content)
+          ? res.content
+          : Array.isArray(res?.data?.content)
+            ? res.data.content
+            : [];
+      console.log("COURSES RES:", res);
+      console.log("TRAINERS RES:", res);
     });
+
   }
 
   // ================= SEARCH =================

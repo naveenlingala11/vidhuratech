@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -11,9 +12,11 @@ import { environment } from '../../../environments/environment';
   styleUrl: './leads.css',
 })
 export class LeadsComponent implements OnInit {
-
   leads: any[] = [];
   filteredLeads: any[] = [];
+
+  loading = false;
+  error = '';
 
   searchText = '';
   selectedStatus = '';
@@ -26,6 +29,7 @@ export class LeadsComponent implements OnInit {
   page = 0;
   size = 10;
   totalPages = 0;
+  totalElements = 0;
 
   stats = {
     total: 0,
@@ -35,7 +39,7 @@ export class LeadsComponent implements OnInit {
   };
 
   leadSortBy = 'date';
-  leadSortDirection = 'desc';
+  leadSortDirection: 'asc' | 'desc' = 'desc';
 
   todayDate = new Date().toISOString().split('T')[0];
 
@@ -45,43 +49,83 @@ export class LeadsComponent implements OnInit {
   selectedLeadToDelete: any = null;
   showDeletePopup = false;
 
-  constructor(private cd: ChangeDetectorRef) { }
+  constructor(
+    private http: HttpClient,
+    private cd: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.loadLeads();
+    this.loadAnalytics();
   }
 
-  // ================= LOAD =================
   loadLeads() {
-    fetch(`${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}&sortBy=${this.mapLeadSortField()}&direction=${this.leadSortDirection}`)
-      .then(res => res.json())
-      .then(data => {
+    this.loading = true;
+    this.error = '';
 
-        this.leads = data.content.map((item: any) => ({
-          id: item.id,
-          Date: item.createdAt,
-          Name: item.name,
-          Phone: item.phone,
-          Email: item.email,
-          Course: item.course,
-          Batch: item.batch,
-          City: item.city,
-          Message: item.message,
-          Status: item.status,
-          tempStatus: item.status,
-          isChanged: false,
-          FollowUp: item.followUpDate,
-          tempFollowUp: item.followUpDate,
-          isFollowUpChanged: false,
-        }));
+    const params = new HttpParams()
+      .set('search', this.searchText || '')
+      .set('page', this.page)
+      .set('size', this.size)
+      .set('sortBy', this.mapLeadSortField())
+      .set('direction', this.leadSortDirection);
 
-        this.totalPages = data.totalPages;
-        this.filteredLeads = [...this.leads];
+    this.http.get<any>(`${environment.apiUrl}/api/leads`, { params })
+      .subscribe({
+        next: (data) => {
+          const content = data?.content || [];
 
-        this.cities = [...new Set(this.leads.map(l => l.City).filter(Boolean))];
+          this.leads = content.map((item: any) => ({
+            id: item.id,
+            Date: item.createdAt,
+            Name: item.name || '',
+            Phone: item.phone || '',
+            Email: item.email || '',
+            Course: item.course || '',
+            Batch: item.batch || '',
+            City: item.city || '',
+            Message: item.message || '',
+            Status: item.status || 'New',
+            tempStatus: item.status || 'New',
+            isChanged: false,
+            FollowUp: item.followUpDate || '',
+            tempFollowUp: item.followUpDate || '',
+            isFollowUpChanged: false,
+          }));
 
-        this.calculateStats();
-        this.cd.detectChanges();
+          this.totalPages = data?.totalPages || 0;
+          this.totalElements = data?.totalElements || 0;
+
+          this.filteredLeads = [...this.leads];
+          this.cities = [...new Set(this.leads.map(l => l.City).filter(Boolean))];
+
+          this.calculatePageStats();
+          this.loading = false;
+          this.cd.detectChanges();
+        },
+        error: (err) => {
+          console.error('Leads API failed:', err);
+          this.loading = false;
+
+          if (err.status === 403) {
+            this.error = 'Access denied. Please login as Admin or Super Admin.';
+          } else {
+            this.error = 'Unable to load leads.';
+          }
+        }
+      });
+  }
+
+  loadAnalytics() {
+    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`)
+      .subscribe({
+        next: (res) => {
+          this.stats.total = res.total || 0;
+          this.stats.new = res.new || 0;
+          this.stats.contacted = res.contacted || 0;
+          this.stats.joined = res.joined || 0;
+        },
+        error: () => { }
       });
   }
 
@@ -99,39 +143,33 @@ export class LeadsComponent implements OnInit {
     }
   }
 
-  // ================= FILTER =================
   applyFilter() {
+    this.page = 0;
+    this.loadLeads();
+  }
 
+  applyLocalFilters() {
     let data = [...this.leads];
 
     data = data.filter((lead) => {
+      const search = this.searchText.toLowerCase();
+
       const matchSearch =
-        lead.Name.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        !search ||
+        lead.Name.toLowerCase().includes(search) ||
         lead.Phone.includes(this.searchText);
 
       const matchStatus = this.selectedStatus ? lead.Status === this.selectedStatus : true;
       const matchCity = this.selectedCity ? lead.City === this.selectedCity : true;
 
+      const leadDate = lead.Date ? lead.Date.split('T')[0] : '';
+
       const matchDate =
-        (!this.fromDate || lead.Date >= this.fromDate) &&
-        (!this.toDate || lead.Date <= this.toDate);
+        (!this.fromDate || leadDate >= this.fromDate) &&
+        (!this.toDate || leadDate <= this.toDate);
 
       return matchSearch && matchStatus && matchCity && matchDate;
     });
-
-    if (this.leadSortBy === 'name') {
-      data.sort((a, b) =>
-        this.leadSortDirection === 'asc'
-          ? a.Name.localeCompare(b.Name)
-          : b.Name.localeCompare(a.Name)
-      );
-    } else {
-      data.sort((a, b) =>
-        this.leadSortDirection === 'asc'
-          ? new Date(a.Date).getTime() - new Date(b.Date).getTime()
-          : new Date(b.Date).getTime() - new Date(a.Date).getTime()
-      );
-    }
 
     this.filteredLeads = data;
   }
@@ -140,18 +178,24 @@ export class LeadsComponent implements OnInit {
     return this.leadSortBy === 'name' ? 'name' : 'createdAt';
   }
 
-  // ================= STATUS =================
   onStatusChange(lead: any) {
-    lead.isChanged = true;
+    lead.isChanged = lead.tempStatus !== lead.Status;
   }
 
   saveStatus(lead: any) {
-    fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
-      method: 'POST'
-    }).then(() => {
-      lead.Status = lead.tempStatus;
-      lead.isChanged = false;
-    });
+    const params = new HttpParams()
+      .set('phone', lead.Phone)
+      .set('status', lead.tempStatus);
+
+    this.http.post(`${environment.apiUrl}/api/leads/status`, null, { params })
+      .subscribe({
+        next: () => {
+          lead.Status = lead.tempStatus;
+          lead.isChanged = false;
+          this.loadAnalytics();
+        },
+        error: () => alert('Failed to update status')
+      });
   }
 
   cancelStatus(lead: any) {
@@ -159,18 +203,23 @@ export class LeadsComponent implements OnInit {
     lead.isChanged = false;
   }
 
-  // ================= FOLLOWUP =================
   onFollowUpChange(lead: any) {
-    lead.isFollowUpChanged = true;
+    lead.isFollowUpChanged = lead.tempFollowUp !== lead.FollowUp;
   }
 
   saveFollowUp(lead: any) {
-    fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
-      method: 'POST'
-    }).then(() => {
-      lead.FollowUp = lead.tempFollowUp;
-      lead.isFollowUpChanged = false;
-    });
+    const params = new HttpParams()
+      .set('phone', lead.Phone)
+      .set('date', lead.tempFollowUp);
+
+    this.http.post(`${environment.apiUrl}/api/leads/followup`, null, { params })
+      .subscribe({
+        next: () => {
+          lead.FollowUp = lead.tempFollowUp;
+          lead.isFollowUpChanged = false;
+        },
+        error: () => alert('Failed to update follow-up')
+      });
   }
 
   cancelFollowUp(lead: any) {
@@ -178,15 +227,12 @@ export class LeadsComponent implements OnInit {
     lead.isFollowUpChanged = false;
   }
 
-  // ================= STATS =================
-  calculateStats() {
-    this.stats.total = this.leads.length;
+  calculatePageStats() {
     this.stats.new = this.leads.filter(l => l.Status === 'New').length;
     this.stats.contacted = this.leads.filter(l => l.Status === 'Contacted').length;
     this.stats.joined = this.leads.filter(l => l.Status === 'Joined').length;
   }
 
-  // ================= DELETE =================
   openDeletePopup(lead: any) {
     this.selectedLeadToDelete = lead;
     this.showDeletePopup = true;
@@ -198,15 +244,19 @@ export class LeadsComponent implements OnInit {
   }
 
   confirmDelete() {
-    fetch(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`, {
-      method: 'DELETE'
-    }).then(() => {
-      this.loadLeads();
-      this.closeDeletePopup();
-    });
+    if (!this.selectedLeadToDelete) return;
+
+    this.http.delete(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`)
+      .subscribe({
+        next: () => {
+          this.loadLeads();
+          this.loadAnalytics();
+          this.closeDeletePopup();
+        },
+        error: () => alert('Failed to delete lead')
+      });
   }
 
-  // ================= MESSAGE =================
   openMessagePopup(lead: any) {
     this.selectedMessageLead = lead;
     this.showMessagePopup = true;
@@ -214,9 +264,9 @@ export class LeadsComponent implements OnInit {
 
   closeMessagePopup() {
     this.showMessagePopup = false;
+    this.selectedMessageLead = null;
   }
 
-  // ================= WHATSAPP =================
   openWhatsAppLead(lead: any) {
     window.open(this.getWhatsappLink(lead), '_blank');
   }
@@ -225,27 +275,33 @@ export class LeadsComponent implements OnInit {
     return `https://api.whatsapp.com/send?phone=91${lead.Phone}`;
   }
 
-  // ================= CSV =================
   exportCSV() {
-    const headers = ['NAME', 'PHONE', 'COURSE', 'STATUS', 'CITY', 'REMARKS'];
+    const headers = ['NAME', 'PHONE', 'EMAIL', 'COURSE', 'STATUS', 'CITY', 'MESSAGE'];
 
-    const rows = this.leads.map(l =>
-      [l.Name, l.Phone, l.Course, l.Status, l.City, l.Message].join(',')
+    const rows = this.filteredLeads.map(l =>
+      [
+        l.Name,
+        l.Phone,
+        l.Email,
+        l.Course,
+        l.Status,
+        l.City,
+        `"${String(l.Message || '').replace(/"/g, '""')}"`
+      ].join(',')
     );
 
     const csvContent = [headers.join(','), ...rows].join('\n');
-
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `VT_Leads.csv`;
-
     link.click();
   }
 
   refreshLeads() {
     this.loadLeads();
+    this.loadAnalytics();
   }
 
   getTodayFollowups() {
@@ -254,7 +310,7 @@ export class LeadsComponent implements OnInit {
 
   @HostListener('window:beforeunload', ['$event'])
   confirmExit(event: any) {
-    const hasChanges = this.leads.some(l => l.isChanged);
+    const hasChanges = this.leads.some(l => l.isChanged || l.isFollowUpChanged);
     if (hasChanges) event.returnValue = true;
   }
 }

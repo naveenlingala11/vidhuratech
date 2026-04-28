@@ -22,7 +22,7 @@
         </li>
 
         <li class="nav-item">
-          <a routerLink="/curriculum" class="nav-link" (click)="closeMenu()">Curriculum</a>
+          <a routerLink="/courses" class="nav-link" (click)="closeMenu()">Courses</a>
         </li>
 
         <li class="nav-item">
@@ -30,18 +30,11 @@
         </li>
 
         <li class="nav-item">
-          <a routerLink="/jobs-home" class="nav-link" (click)="closeMenu()">Jobs</a>
+          <a routerLink="/contact" class="nav-link" (click)="closeMenu()">Contact</a>
         </li>
 
         <li class="nav-item">
           <a routerLink="/about" class="nav-link" (click)="closeMenu()">About</a>
-        </li>
-
-        <!-- CTA -->
-        <li class="nav-item mt-lg-0 mt-2">
-          <button class="btn enroll-btn w-100" (click)="openDemo()">
-            Join Demo
-          </button>
         </li>
 
         <!-- LOGIN -->
@@ -50,32 +43,61 @@
         </li>
 
         <!-- USER -->
-        <li *ngIf="authService.isLoggedIn()" class="nav-item mt-2">
+        <!-- AUTH ACTIONS -->
+        <li *ngIf="!authService.isLoggedIn()" class="nav-item auth-actions">
+          <a routerLink="/login" class="auth-link login-link" (click)="closeMenu()">Login</a>
+          <span class="auth-separator">/</span>
+          <a routerLink="/register" class="auth-link register-link" (click)="closeMenu()">Register</a>
+        </li>
+
+        <!-- USER -->
+        <li *ngIf="authService.isLoggedIn()" class="nav-item user-nav-item">
 
           <div class="user-wrapper">
 
-            <div class="user-display" (click)="toggleDropdown()">
-              <i class="fa-solid fa-user-circle"></i>
-              <span class="user-name">
-                {{ authService.getUser()?.name }}
+            <button class="user-display" type="button" (click)="toggleDropdown()">
+              <span class="user-avatar">
+                <i class="fa-solid fa-user"></i>
               </span>
-            </div>
+
+              <span class="user-meta">
+                <small>Welcome</small>
+                <b>{{ authService.getUser()?.name || 'User' }}</b>
+              </span>
+
+              <i class="fa-solid fa-chevron-down user-caret"></i>
+            </button>
 
             <div class="user-dropdown" *ngIf="showDropdown">
 
-              <div class="dropdown-item" (click)="goDashboard()">
-                Dashboard
-              </div>
-
-              <div class="dropdown-item" (click)="goToProfile()">
-                View Profile
+              <div class="dropdown-user">
+                <span class="dropdown-avatar">
+                  <i class="fa-solid fa-user"></i>
+                </span>
+                <div>
+                  <strong>{{ authService.getUser()?.name || 'User' }}</strong>
+                  <small>{{ authService.getUser()?.email || 'Vidhura Tech' }}</small>
+                </div>
               </div>
 
               <div class="divider"></div>
 
-              <div class="dropdown-item logout" (click)="logout()">
+              <button class="dropdown-item" type="button" (click)="goDashboard()">
+                <i class="fa-solid fa-grid-2"></i>
+                Dashboard
+              </button>
+
+              <button class="dropdown-item" type="button" (click)="goToProfile()">
+                <i class="fa-solid fa-id-card"></i>
+                View Profile
+              </button>
+
+              <div class="divider"></div>
+
+              <button class="dropdown-item logout" type="button" (click)="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
                 Logout
-              </div>
+              </button>
 
             </div>
 

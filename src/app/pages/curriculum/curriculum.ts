@@ -6,6 +6,7 @@ import { COURSES } from '../../data/courses.data';
 import { ModalService } from '../../services/modal';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { PublicCourseService } from '../courses/service/public-course';
 
 interface Module {
   title: string;
@@ -34,24 +35,19 @@ interface Course {
 })
 export class Curriculum {
 
-  selectedCourseId = 'python';
+  courses: any[] = [];
+  selectedCourseId!: number;
   selectedBatchId = 1;
   selectedLevel = 'All';
 
   selectedCourse!: Course;
 
-  // 🔒 LOCK STATE
-  isUnlocked = false;
-
-  constructor(private modalService: ModalService, private http: HttpClient) { }
+  constructor(private modalService: ModalService,
+    private http: HttpClient,
+    private courseService: PublicCourseService) { }
 
   ngOnInit() {
-    const unlocked = localStorage.getItem('courseUnlocked');
-    if (unlocked === 'true') {
-      this.isUnlocked = true;
-    }
     this.loadCurriculum();
-    this.checkUnlock();
   }
 
   // 🔥 LOAD FROM BACKEND
@@ -95,81 +91,7 @@ export class Curriculum {
     this.modalService.open();
   }
 
-  // 🔥 CALL THIS AFTER FORM SUCCESS
-  unlockAfterRegister() {
-    this.isUnlocked = true;
-    localStorage.setItem('courseUnlocked', 'true');
-  }
-
-  enteredPhone = '';
-
-  verifyAccess() {
-
-    if (!this.enteredPhone) {
-      alert('Enter phone number');
-      return;
-    }
-
-    fetch(`${environment.apiUrl}/api/access/check?phone=${this.enteredPhone}`)
-      .then(res => res.json())
-      .then(data => {
-
-        if (data.access) {
-
-          this.isUnlocked = true;
-
-          const unlockData = {
-            status: true,
-            time: new Date().getTime()
-          };
-
-          localStorage.setItem(
-            `unlock_${this.selectedCourseId}`,
-            JSON.stringify(unlockData)
-          );
-
-        } else {
-          alert('Access not granted yet');
-        }
-
-      });
-  }
-
-  scrollToUnlock() {
-    const el = document.querySelector('.locked-container');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  }
-  checkUnlock() {
-    const data = localStorage.getItem(`unlock_${this.selectedCourseId}`);
-
-    if (!data) {
-      this.isUnlocked = false;
-      return;
-    }
-
-    const parsed = JSON.parse(data);
-
-    const now = new Date().getTime();
-    const diff = now - parsed.time;
-
-    const hours = diff / (1000 * 60 * 60);
-
-    if (hours < 24 && parsed.status) {
-      this.isUnlocked = true;
-    } else {
-      this.isUnlocked = false;
-      localStorage.removeItem(`unlock_${this.selectedCourseId}`);
-    }
-  }
-
   downloadPDF() {
-    this.checkUnlock(); // 🔥 re-check
-    if (!this.isUnlocked) {
-      alert('Please unlock access first');
-      return;
-    }
     const doc = new jsPDF();
 
     const pageWidth = doc.internal.pageSize.getWidth();

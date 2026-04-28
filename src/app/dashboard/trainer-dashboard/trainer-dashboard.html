@@ -80,32 +80,54 @@
     <div class="panel">
       <h4>Quick Actions</h4>
       <div class="panel">
-        <h4>Upload Curriculum</h4>
-
-        <!-- SELECT BATCH -->
-        <select [(ngModel)]="selectedBatchId">
-          <option *ngFor="let b of batches" [value]="b.id">
-            {{ b.name }}
-          </option>
-        </select>
-
-        <!-- SELECT COURSE -->
-        <select [(ngModel)]="selectedCourseId">
-          <option value="java">Java</option>
-          <option value="python">Python</option>
-        </select>
-
-        <!-- FILE UPLOAD -->
-        <input type="file" (change)="onFileSelected($event)" />
-
-        <button (click)="uploadCurriculum()">Upload Curriculum</button>
+        <!-- 🔥 BUTTON -->
+        <button (click)="openPopup()">Upload Curriculum</button>
+        <button>Mark Attendance</button>
+        <button>Upload Content</button>
+        <button>Create Assignment</button>
+        <button>Schedule Session</button>
       </div>
-      <button>Mark Attendance</button>
-      <button>Upload Content</button>
-      <button>Create Assignment</button>
-      <button>Schedule Session</button>
+
     </div>
 
   </div>
 
-</div>
+  <!-- 🔥 GLOBAL MODAL -->
+  <div class="modal-overlay" *ngIf="showPopup">
+
+    <div class="modal-box">
+
+      <h3>Upload Curriculum</h3>
+
+      <!-- SELECT BATCH -->
+      <select [(ngModel)]="selectedBatchId">
+        <option value="">Select Batch</option>
+        <option *ngFor="let b of batches" [value]="b.id">
+          {{ b.name }} - Batch #{{ b.id }}
+        </option>
+      </select>
+
+      <!-- MODE SWITCH -->
+      <div class="tabs">
+        <button (click)="mode='file'" [class.active]="mode==='file'">Upload File</button>
+        <button (click)="mode='paste'" [class.active]="mode==='paste'">Paste JSON</button>
+      </div>
+
+      <!-- FILE -->
+      <div *ngIf="mode==='file'">
+        <input type="file" (change)="onFileSelected($event)" />
+      </div>
+
+      <!-- PASTE -->
+      <div *ngIf="mode==='paste'">
+        <textarea [(ngModel)]="jsonText" rows="10" placeholder="Paste JSON here..."></textarea>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <button class="primary-btn" (click)="submit()">Submit</button>
+        <button class="cancel-btn" (click)="closePopup()">Cancel</button>
+      </div>
+
+    </div>
+  </div>

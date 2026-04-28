@@ -49,4 +49,5 @@ export class BatchService {
       `${this.API}/${batchId}/sessions/${sessionId}`
     );
   }
+  
 }

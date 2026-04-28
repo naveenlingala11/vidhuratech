@@ -1,191 +1,258 @@
-<!-- HERO -->
-<section class="hero text-center text-white">
-  <div class="container">
-    <h1>Transform Your Career with Industry-Focused IT Courses 🚀</h1>
+<section class="courses-hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow glow-left"></div>
+  <div class="hero-glow glow-right"></div>
+
+  <div class="hero-inner">
+    <span class="hero-badge">
+      <span class="live-dot"></span>
+      Career-Focused Live Training
+    </span>
+
+    <h1>Build Real Skills. Join the Right Batch.</h1>
 
     <p>
-      At Vidhura Tech, we don’t just teach theory — we train you with real-world projects, practical
-      skills, and complete career support to help you land your dream job in IT.
+      Explore practical programs designed with live classes, real projects,
+      mentor support, interview preparation, and job-focused learning paths.
     </p>
 
-    <button class="btn btn-warning btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#enrollModal">
-      Join Free Demo
-    </button>
+    <div class="hero-stats">
+      <div>
+        <strong>100%</strong>
+        <span>Practical Training</span>
+      </div>
+
+      <div>
+        <strong>Live</strong>
+        <span>Mentor Support</span>
+      </div>
+
+      <div>
+        <strong>Job</strong>
+        <span>Focused Curriculum</span>
+      </div>
+    </div>
   </div>
 </section>
 
+<section class="filter-shell">
+  <div class="filters">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input placeholder="Search programs..." [(ngModel)]="keyword" (input)="applyFilters()" />
+    </div>
 
-<!-- 🔥 COURSES -->
-<section class="courses">
-  <div class="container">
-    <h2 class="text-center">Explore Our Courses</h2>
+    <div class="select-box">
+      <i class="fa-solid fa-layer-group"></i>
+      <select [(ngModel)]="selectedLevel" (change)="applyFilters()">
+        <option value="">All Levels</option>
+        <option *ngFor="let l of levels" [value]="l">{{ l }}</option>
+      </select>
+    </div>
+  </div>
+</section>
 
-    <div class="row g-4 mt-4">
-      <div class="col-lg-4 col-md-6" *ngFor="let c of courses">
-        <div class="course-card">
+<div *ngIf="loading" class="loader">
+  <span></span>
+  Loading courses, please wait...
+</div>
 
-          <!-- TOP -->
-          <div class="course-top">
-            <span class="course-status" [class.live]="c.status === 'Live Batch'">
-              {{ c.status }}
-            </span>
+<div *ngIf="error" class="error-state">
+  {{ error }}
+</div>
 
-            <span class="course-date">
-              {{ c.startDate }}
-            </span>
+<section *ngIf="activeCourse" class="active-section">
+  <div class="section-head">
+    <span class="section-badge">Live Now</span>
+    <h2>Currently Running Batch</h2>
+    <p>Enroll in the active batch and start learning with mentor-led sessions.</p>
+  </div>
+
+  <div class="active-card">
+    <div class="active-copy">
+      <div class="active-top">
+        <span class="live-chip">
+          <span class="live-dot"></span>
+          Live Batch Ongoing
+        </span>
+
+        <span class="level-chip">{{ activeCourse.level }}</span>
+      </div>
+
+      <h3>{{ activeCourse.title }}</h3>
+
+      <p class="desc">
+        {{ activeCourse.desc }}
+      </p>
+
+      <div class="active-meta">
+        <div>
+          <i class="fa-solid fa-clock"></i>
+          <span>Duration</span>
+          <b>{{ activeCourse.duration }}</b>
+        </div>
+
+        <div>
+          <i class="fa-solid fa-signal"></i>
+          <span>Level</span>
+          <b>{{ activeCourse.level }}</b>
+        </div>
+
+        <div *ngIf="activeCourse.batch">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Starts On</span>
+          <b>{{ activeCourse.batch.startDate }}</b>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <button class="outline-btn" (click)="viewCurriculum(activeCourse)">
+          View Curriculum
+        </button>
+
+        <button *ngIf="!isLoggedIn" class="primary-btn" (click)="goToCheckout(activeCourse)">
+          Enroll Now
+        </button>
+
+        <button *ngIf="isLoggedIn && !activeCourse?.isEnrolled" class="primary-btn"
+          (click)="goToCheckout(activeCourse)">
+          Join This Batch
+        </button>
+
+        <button *ngIf="isLoggedIn && activeCourse?.isEnrolled" class="success-btn" (click)="goToLearning(activeCourse)">
+          Continue Learning
+        </button>
+      </div>
+    </div>
+
+    <div class="active-visual">
+      <div class="code-window">
+        <div class="window-top">
+          <span></span><span></span><span></span>
+          <b>live-course.track</b>
+        </div>
+
+        <div class="code-body">
+          <p><em>course</em> = "{{ activeCourse.title }}"</p>
+          <p><em>status</em> = "LIVE"</p>
+          <p><em>duration</em> = "{{ activeCourse.duration }}"</p>
+          <p><em>goal</em> = "Job Ready"</p>
+          <p class="run-line">start_learning()</p>
+        </div>
+      </div>
+
+      <div class="floating-mini fm-one">
+        <strong>Live</strong>
+        <span>Batch Active</span>
+      </div>
+
+      <div class="floating-mini fm-two">
+        <strong>Project</strong>
+        <span>Based Training</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section *ngIf="showCurriculum" id="curriculum-section" class="curriculum-section">
+  <div class="section-head">
+    <span class="section-badge">Curriculum</span>
+    <h2>{{ selectedCurriculum.name }} Curriculum</h2>
+    <p>Preview the learning path and module-wise topics for this live batch.</p>
+  </div>
+
+  <div class="curriculum-shell">
+    <div *ngFor="let module of selectedCurriculum.curriculum; let mIndex = index" class="module">
+      <div class="module-header" (click)="module.open = !module.open" [class.active]="module.open">
+        <div>
+          <span>{{ mIndex + 1 }}</span>
+          <b>{{ module.title }}</b>
+        </div>
+
+        <i class="fa-solid" [ngClass]="module.open ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+      </div>
+
+      <div class="module-body" *ngIf="module.open">
+        <div class="topics-grid">
+          <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
+            <span class="topic-number">{{ mIndex + 1 }}.{{ i + 1 }}</span>
+            <span class="topic-text">{{ topic }}</span>
           </div>
-
-          <!-- TITLE -->
-          <h3>{{ c.title }}</h3>
-
-          <p class="course-desc">{{ c.desc }}</p>
-
-          <!-- META -->
-          <div class="course-meta">
-            <span>⏱ {{ c.duration }}</span>
-            <span>📈 {{ c.level }}</span>
-          </div>
-
-          <div class="course-rating">
-            ⭐ {{ c.rating }} | 👨‍🎓 {{ c.students }} Students
-          </div>
-
-          <!-- TECH TAGS -->
-          <div class="tech-tags">
-            <span *ngFor="let t of c.technologies">{{ t }}</span>
-          </div>
-
-          <!-- ACCORDION BUTTON -->
-          <button class="accordion-toggle" (click)="toggleCourse(c)">
-            {{ c.open ? 'Hide Details' : 'View Full Details' }}
-          </button>
-
-          <!-- ACCORDION BODY -->
-          <div class="accordion-body" *ngIf="c.open">
-
-            <h5>Course Highlights</h5>
-            <ul>
-              <li *ngFor="let h of c.highlights">✔ {{ h }}</li>
-            </ul>
-
-            <h5>What You Will Achieve</h5>
-            <ul>
-              <li *ngFor="let o of c.outcomes">✔ {{ o }}</li>
-            </ul>
-
-          </div>
-
-          <!-- BUTTON -->
-          <button class="btn btn-primary w-100 enroll-btn" data-bs-toggle="modal" data-bs-target="#enrollModal">
-            Enroll Now
-          </button>
-
         </div>
       </div>
     </div>
+
+    <div *ngIf="!isLoggedIn" class="unlock-cta">
+      Login and enroll to unlock the full curriculum
+    </div>
   </div>
 </section>
 
-<!-- 🔥 STATS -->
-<section class="stats text-center">
-  <div class="stat" *ngFor="let s of stats">
-    <h2 class="stat-number" [attr.data-target]="s.value">
-      {{ s.value }}
-    </h2>
-    <p>{{ s.label }}</p>
+<section class="courses-section">
+  <div class="section-head">
+    <span class="section-badge">Upcoming Tracks</span>
+    <h2>Explore Upcoming Programs</h2>
+    <p>These programs are being prepared for future batches. Open a course to preview the learning focus.</p>
   </div>
-</section>
 
-<!-- 🔥 ABOUT TRAINING -->
-<section class="why-training">
-  <div class="container">
-
-    <div class="section-head text-center">
-      <h2>Why Our Training Stands Out</h2>
-      <p>Designed to make you industry-ready, not just course-complete.</p>
-    </div>
-
-    <div class="why-grid">
-      <div class="why-card">💻 Live Coding Sessions</div>
-      <div class="why-card">🚀 Real-Time Projects</div>
-      <div class="why-card">📚 Industry Curriculum</div>
-      <div class="why-card">🎯 Interview Preparation</div>
-      <div class="why-card">👨‍🏫 Mentor Support</div>
-      <div class="why-card">📈 Placement Assistance</div>
-    </div>
-
+  <div *ngIf="!filteredCourses.length && !loading" class="empty-state">
+    <i class="fa-solid fa-folder-open"></i>
+    <h3>No courses found</h3>
+    <p>Try changing your search or level filter.</p>
   </div>
-</section>
 
-<!-- 🔥 LEARNING JOURNEY -->
-<section class="journey-section">
-  <div class="container">
+  <div class="course-grid">
+    <div class="course-card" *ngFor="let c of filteredCourses">
+      <div class="course-card-top">
+        <span class="upcoming-chip">Upcoming</span>
+        <span class="level-chip">{{ c.level }}</span>
+      </div>
 
-    <div class="section-head text-center">
-      <h2>Your Learning Journey</h2>
-      <p>Our structured process ensures consistent progress and real outcomes.</p>
-    </div>
+      <h3 (click)="toggle(c)">
+        {{ c.title }}
+      </h3>
 
-    <div class="journey-timeline">
-      <div class="journey-step">📘 Learn Fundamentals</div>
-      <div class="journey-step">💻 Daily Practice</div>
-      <div class="journey-step">🚀 Build Projects</div>
-      <div class="journey-step">🎯 Crack Interviews</div>
-    </div>
+      <p class="desc">{{ c.desc }}</p>
 
-  </div>
-</section>
+      <div class="course-mini-meta">
+        <span><i class="fa-solid fa-clock"></i> {{ c.duration }}</span>
+        <span><i class="fa-solid fa-signal"></i> {{ c.level }}</span>
+      </div>
 
-<!-- 🔥 TESTIMONIAL SLIDER -->
-<section class="testimonial-section">
-  <div class="container">
+      <button class="details-btn" (click)="toggle(c)">
+        {{ c.open ? 'Hide Details' : 'View Details' }}
+      </button>
 
-    <div class="section-head text-center">
-      <h2>What Students Say</h2>
-      <p>Success stories from our learners.</p>
-    </div>
+      <div *ngIf="c.open" class="accordion">
+        <div class="block" *ngIf="c.highlights?.length">
+          <h4>What You'll Learn</h4>
+          <ul>
+            <li *ngFor="let h of c.highlights">{{ h }}</li>
+          </ul>
+        </div>
 
-    <div class="testimonial-card">
-      <div class="slide" *ngFor="let t of testimonials; let i = index" [class.active]="i === currentSlide">
+        <div class="block" *ngIf="c.syllabus?.length">
+          <h4>Course Syllabus</h4>
+          <ul>
+            <li *ngFor="let s of c.syllabus">{{ s }}</li>
+          </ul>
+        </div>
 
-        <p>"{{ t.text }}"</p>
-        <h6>{{ t.name }}</h6>
+        <div class="block" *ngIf="c.outcomes?.length">
+          <h4>Outcomes</h4>
+          <ul>
+            <li *ngFor="let o of c.outcomes">{{ o }}</li>
+          </ul>
+        </div>
 
+        <div class="coming">
+          This course will be available soon. Stay tuned.
+        </div>
+
+        <button class="disabled-btn">
+          Coming Soon
+        </button>
       </div>
     </div>
-
-  </div>
-</section>
-
-<!-- 🔥 PLACEMENT SUPPORT -->
-<section class="placement-section">
-  <div class="container">
-
-    <div class="section-head text-center">
-      <h2>Placement Assistance</h2>
-      <p>We support you until you get hired.</p>
-    </div>
-
-    <div class="placement-grid">
-      <div class="placement-card">📄 Resume Preparation</div>
-      <div class="placement-card">🎤 Mock Technical Interviews</div>
-      <div class="placement-card">💼 HR Interview Training</div>
-      <div class="placement-card">🤝 Job Referrals</div>
-    </div>
-
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-
-    <h2>Start Your IT Career Today</h2>
-    <p>Join our upcoming batch and begin your transformation.</p>
-
-    <button class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#enrollModal">
-      Join Free Demo
-    </button>
-
   </div>
 </section>

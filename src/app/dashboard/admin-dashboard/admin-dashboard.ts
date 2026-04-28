@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -10,7 +11,6 @@ interface DashboardStats {
   revenue: number;
   jobs: number;
   certificates: number;
-
   totalUsers: number;
   totalStudents: number;
   trainers: number;
@@ -21,14 +21,14 @@ interface DashboardStats {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
 export class AdminDashboard implements OnInit, OnDestroy {
-
   loading = true;
   darkMode = false;
+  moduleSearch = '';
 
   stats: DashboardStats = {
     leads: 0,
@@ -52,14 +52,14 @@ export class AdminDashboard implements OnInit, OnDestroy {
   recentActivities: string[] = [];
 
   modules = [
-    { title: 'Leads', icon: '📋', route: '/admin/leads' },
-    { title: 'Bin', icon: '🗑️', route: '/admin/bin' },
-    { title: 'Jobs', icon: '💼', route: '/admin/jobs' },
-    { title: 'Companies', icon: '🏢', route: '/admin/companies' },
-    { title: 'Certificates', icon: '🎓', route: '/admin/certificates' },
-    { title: 'Interview Prep', icon: '🧠', route: '/admin/questions' },
-    { title: 'Invoices', icon: '🧾', route: '/admin/invoice' },
-    { title: 'Analytics', icon: '📊', route: '/invoice-analytics' }
+    { title: 'Leads', code: 'LD', route: '/admin/leads', desc: 'Manage enquiries, follow-ups, and conversions', accent: 'teal' },
+    { title: 'Lead Bin', code: 'BN', route: '/admin/bin', desc: 'Review and restore deleted lead records', accent: 'rose' },
+    { title: 'Jobs', code: 'JB', route: '/admin/jobs', desc: 'Publish and manage job openings', accent: 'blue' },
+    { title: 'Companies', code: 'CO', route: '/admin/companies', desc: 'Maintain hiring company directory', accent: 'gold' },
+    { title: 'Certificates', code: 'CR', route: '/admin/certificates', desc: 'Generate and manage certificates', accent: 'violet' },
+    { title: 'Interview Prep', code: 'IP', route: '/admin/questions', desc: 'Manage question bank and preparation content', accent: 'cyan' },
+    { title: 'Invoices', code: 'IV', route: '/admin/invoice', desc: 'Create invoices and payment records', accent: 'green' },
+    { title: 'Analytics', code: 'AN', route: '/invoice-analytics', desc: 'Track revenue, trends, and reports', accent: 'orange' }
   ];
 
   refreshInterval: any;
@@ -67,8 +67,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private dashboardService: AdminDashboardService
-  ) {}
+    private dashboardService: AdminDashboardService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -82,7 +83,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
     clearInterval(this.refreshInterval);
   }
 
-  // ================= MAIN =================
   loadDashboard(showLoader: boolean = true) {
     if (showLoader) this.loading = true;
 
@@ -97,10 +97,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
 
     setTimeout(() => {
       this.loading = false;
-    }, 800);
+    }, 700);
   }
 
-  // ================= ROLE =================
   loadRoleStats() {
     this.dashboardService.getDashboard().subscribe({
       next: (res) => {
@@ -110,104 +109,92 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.stats.admins = res.admins || 0;
         this.stats.mentors = res.mentors || 0;
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
-  // ================= EXISTING =================
   loadLeadStats() {
-    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`)
-      .subscribe({
-        next: (res) => {
-          this.animateCounter('leads', res.total || 0);
-
-          this.extraStats.conversionRate =
-            res.total > 0 ? Math.round((res.joined / res.total) * 100) : 0;
-
-          this.extraStats.todayFollowups = res.todayFollowups || 0;
-        },
-        error: () => {}
-      });
+    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`).subscribe({
+      next: (res) => {
+        this.stats.leads = res.total || 0;
+        this.cdr.detectChanges();
+        this.extraStats.conversionRate =
+          res.total > 0 ? Math.round((res.joined / res.total) * 100) : 0;
+        this.extraStats.todayFollowups = res.todayFollowups || 0;
+      },
+      error: () => { }
+    });
   }
 
   loadRevenueStats() {
-    this.http.get<any>(`${environment.apiUrl}/invoices/analytics/summary`)
-      .subscribe({
-        next: (res) => {
-          this.animateCounter('revenue', res.totalRevenue || 0);
-        },
-        error: () => {}
-      });
+    this.http.get<any>(`${environment.apiUrl}/invoices/analytics/summary`).subscribe({
+      next: (res) => {
+        this.stats.revenue = res.totalRevenue || 0;
+        this.cdr.detectChanges();
+      },
+      error: () => { }
+    });
   }
 
   loadJobStats() {
-    this.http.get<any>(`${environment.apiUrl}/jobs?page=0&size=100`)
-      .subscribe({
-        next: (res) => {
-          const count = res?.content?.length || 0;
-          this.animateCounter('jobs', count);
-        },
-        error: () => {}
-      });
+    this.http.get<any>(`${environment.apiUrl}/jobs?page=0&size=100`).subscribe({
+      next: (res) => {
+        this.stats.jobs = res?.content?.length || 0;
+        this.cdr.detectChanges();
+      },
+      error: () => { }
+    });
   }
 
   loadCertificateStats() {
-    this.http.get<any[]>(`${environment.apiUrl}/certificates`)
-      .subscribe({
-        next: (res) => {
-          this.animateCounter('certificates', res.length || 0);
-        },
-        error: () => {}
-      });
+    this.http.get<any[]>(`${environment.apiUrl}/certificates`).subscribe({
+      next: (res) => {
+        this.stats.certificates = res.length || 0;
+        this.cdr.detectChanges();
+      },
+      error: () => { }
+    });
   }
 
   loadCompanyStats() {
-    this.http.get<any>(`${environment.apiUrl}/admin/companies?page=0&size=1`)
-      .subscribe({
-        next: (res) => {
-          this.extraStats.companies = res.totalElements || 0;
-        },
-        error: () => {}
-      });
+    this.http.get<any>(`${environment.apiUrl}/admin/companies?page=0&size=1`).subscribe({
+      next: (res) => {
+        this.extraStats.companies = res.totalElements || 0;
+      },
+      error: () => { }
+    });
   }
 
   loadBinStats() {
-    this.http.get<any>(`${environment.apiUrl}/api/leads/bin?page=0&size=1`)
-      .subscribe({
-        next: (res) => {
-          this.extraStats.deletedLeads = res.totalElements || 0;
-        },
-        error: () => {}
-      });
+    this.http.get<any>(`${environment.apiUrl}/api/leads/bin?page=0&size=1`).subscribe({
+      next: (res) => {
+        this.extraStats.deletedLeads = res.totalElements || 0;
+      },
+      error: () => { }
+    });
   }
 
   loadRecentActivities() {
     this.recentActivities = [
-      'New Lead Added',
-      'Invoice Payment Received',
-      'Certificate Generated',
-      'Job Posted Successfully',
-      'Company Added To Portal'
+      'New lead enquiry captured',
+      'Invoice payment updated',
+      'Certificate generated successfully',
+      'New job opening published',
+      'Company profile added'
     ];
   }
 
-  // ================= ANIMATION =================
   animateCounter(key: keyof DashboardStats, target: number) {
-    const duration = 800;
-    const steps = 40;
-
+    const duration = 700;
+    const steps = 35;
     const start = this.stats[key];
     const increment = (target - start) / steps;
-
     let current = start;
 
     const interval = setInterval(() => {
       current += increment;
 
-      if (
-        (increment >= 0 && current >= target) ||
-        (increment < 0 && current <= target)
-      ) {
+      if ((increment >= 0 && current >= target) || (increment < 0 && current <= target)) {
         this.stats[key] = target;
         clearInterval(interval);
       } else {
@@ -216,7 +203,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
     }, duration / steps);
   }
 
-  // ================= UI =================
   navigate(route: string) {
     this.router.navigate([route]);
   }
@@ -229,11 +215,53 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadDashboard();
   }
 
+  get filteredModules() {
+    const search = this.moduleSearch.trim().toLowerCase();
+
+    if (!search) {
+      return this.modules;
+    }
+
+    return this.modules.filter((module) =>
+      module.title.toLowerCase().includes(search) ||
+      module.desc.toLowerCase().includes(search)
+    );
+  }
+
   get activeModules() {
     return this.modules.length;
   }
 
   get revenueGrowth() {
     return 18.6;
+  }
+
+  get revenueDisplay() {
+    return new Intl.NumberFormat('en-IN').format(this.stats.revenue);
+  }
+
+  get todayDate() {
+    return new Date().toLocaleDateString('en-IN', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  get conversionWidth() {
+    return Math.min(this.extraStats.conversionRate, 100);
+  }
+
+  get studentRatio() {
+    return this.stats.totalUsers
+      ? Math.round((this.stats.totalStudents / this.stats.totalUsers) * 100)
+      : 0;
+  }
+
+  get mentorRatio() {
+    return this.stats.totalUsers
+      ? Math.round((this.stats.mentors / this.stats.totalUsers) * 100)
+      : 0;
   }
 }

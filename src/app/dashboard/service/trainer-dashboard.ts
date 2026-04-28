@@ -21,8 +21,12 @@ export class TrainerDashboardService {
     return this.http.post(`${this.API}/upload-curriculum`, formData);
   }
 
-  getCurriculum(batchId: number, courseId: string) {
-    return this.http.get(`${this.API}/curriculum?batchId=${batchId}&courseId=${courseId}`);
+  uploadJsonCurriculum(payload: any) {
+    return this.http.post(`${this.API}/upload-json-curriculum`, payload);
+  }
+
+  getCurriculum(batchId: number) {
+    return this.http.get(`${this.API}/curriculum?batchId=${batchId}`);
   }
 
   // ✅ BATCHES
@@ -36,7 +40,7 @@ export class TrainerDashboardService {
   }
 
   // ✅ CONTENT (same as curriculum)
-  getContent(batchId: number, courseId: string) {
-    return this.getCurriculum(batchId, courseId);
+  getContent(batchId: number, courseId?: string) {
+    return this.http.get(`${this.API}/curriculum?batchId=${batchId}`);
   }
 }

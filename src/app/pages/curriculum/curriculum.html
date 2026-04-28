@@ -1,111 +1,90 @@
-<div class="hero">
+<section class="hero">
   <div class="hero-content">
-    <h1>Master Your Skills with Industry-Ready Courses</h1>
-    <p>Select a course, explore structured curriculum, and download complete syllabus instantly.</p>
+    <h1>Explore Course Curriculum 📘</h1>
+    <p>Select a course and dive into complete structured learning</p>
 
     <div class="hero-actions">
-
-      <!-- 🔥 ONLY MODEL CHANGE (NO courses, NO setCourse) -->
       <select [(ngModel)]="selectedCourseId" (change)="loadCurriculum()">
-        <option value="java">Java</option>
-        <option value="python">Python</option>
+        <option *ngFor="let c of courses" [value]="c.id">
+          {{ c.title }}
+        </option>
       </select>
 
-      <!-- 🔒 DOWNLOAD -->
-      <button class="primary-btn" *ngIf="isUnlocked" (click)="downloadPDF()">
-        Download Curriculum PDF
+      <button class="primary-btn" (click)="downloadPDF()">
+        📄 Download Curriculum
       </button>
-
-      <button class="primary-btn locked-btn" *ngIf="!isUnlocked" (click)="scrollToUnlock()">
-        🔒 Unlock to Access
-      </button>
-
     </div>
   </div>
-</div>
+</section>
 
-<!-- ================= LOCK ================= -->
+<!-- 🔥 LIVE COURSE CARD -->
+<div class="live-card" *ngIf="selectedCourse">
 
-<div *ngIf="!isUnlocked" class="locked-container">
-
-  <div class="lock-overlay">
-    <h3>🔒 Unlock Full Course Access</h3>
-
-    <input placeholder="Enter your phone number" [(ngModel)]="enteredPhone" />
-
-    <button (click)="verifyAccess()">Unlock</button>
-
-    <p class="small-text">
-      Unlock curriculum, coding questions & downloads
-    </p>
+  <div class="live-header">
+    <h2>{{ selectedCourse.name }}</h2>
+    <span class="live-badge">🔥 Live Curriculum</span>
   </div>
 
-  <!-- 🔥 SAFE NAVIGATION ADDED -->
-  <h2>Course Curriculum</h2>
+  <!-- 📘 CURRICULUM -->
+  <div class="curriculum">
 
-  <div *ngFor="let module of selectedCourse.curriculum | slice:0:2" class="module blurred">
-    <div class="module-header">
-      {{ module.title }}
-    </div>
-  </div>
+    <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
 
-  <h2>Coding Questions</h2>
+      <div class="module-header" (click)="toggleModule(module)" [class.active]="module.open">
 
-  <div class="grid blurred">
-    <div class="card" *ngFor="let q of selectedCourse.questions | slice:0:6">
-      {{ q.text }}
-      <span class="badge">{{ q.level }}</span>
-    </div>
-  </div>
+        <span>{{ mIndex + 1 }}. {{ module.title }}</span>
+      </div>
 
-</div>
+      <div class="module-body" *ngIf="module.open">
 
-<!-- ================= UNLOCKED ================= -->
+        <div class="topics-grid">
 
-<div *ngIf="isUnlocked">
+          <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
 
-  <h2>Course Curriculum</h2>
+            <span class="topic-number">
+              {{ mIndex + 1 }}.{{ i + 1 }}
+            </span>
 
-  <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
+            <span class="topic-text">
+              {{ topic }}
+            </span>
 
-    <div class="module-header" (click)="toggleModule(module)">
-      {{ module.title }}
-    </div>
+          </div>
 
-    <div class="module-body" *ngIf="module.open">
-      <div class="topics-grid">
-
-        <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
-          <span class="topic-number">{{ mIndex + 1 }}.{{ i + 1 }}</span>
-          <span class="topic-text">{{ topic }}</span>
         </div>
 
       </div>
+
     </div>
 
   </div>
 
-  <h2>Coding Questions</h2>
+  <!-- 💻 QUESTIONS -->
+  <div class="questions">
 
-  <select [(ngModel)]="selectedLevel">
-    <option>All</option>
-    <option>Easy</option>
-    <option>Medium</option>
-    <option>Hard</option>
-  </select>
+    <h3>Coding Questions</h3>
 
-  <div class="grid">
-    <div class="card" *ngFor="let q of filterQuestions()">
-      {{ q.text }}
+    <select [(ngModel)]="selectedLevel">
+      <option>All</option>
+      <option>Easy</option>
+      <option>Medium</option>
+      <option>Hard</option>
+    </select>
 
-      <span class="badge" [ngClass]="{
-        easy: q.level === 'Easy',
-        medium: q.level === 'Medium',
-        hard: q.level === 'Hard'
-      }">
-        {{ q.level }}
-      </span>
+    <div class="grid">
+      <div class="card" *ngFor="let q of filterQuestions()">
+        {{ q.text }}
+
+        <span class="badge" [ngClass]="{
+          easy: q.level === 'Easy',
+          medium: q.level === 'Medium',
+          hard: q.level === 'Hard'
+        }">
+          {{ q.level }}
+        </span>
+      </div>
     </div>
+
   </div>
 
 </div>

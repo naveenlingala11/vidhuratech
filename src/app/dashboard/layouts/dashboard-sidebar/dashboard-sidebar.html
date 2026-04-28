@@ -1,17 +1,22 @@
-<div class="sidebar" [class.collapsed]="collapsed" [class.mobile]="mobile">
+<aside class="sidebar" [class.collapsed]="collapsed" [class.mobile]="mobile">
 
-  <!-- HEADER -->
-  <div class="brand" (click)="goHome()">
-    <button class="menu-btn" (click)="menuToggle.emit(); $event.stopPropagation()">☰</button>
+  <div class="brand">
+    <button class="menu-btn" type="button" (click)="menuToggle.emit(); $event.stopPropagation()">
+      <i class="bi bi-list"></i>
+    </button>
 
-    <img src="VidhuraTechLogo.png" />
-
-    <span *ngIf="!collapsed">Vidhura Tech</span>
+    <div class="brand-logo" (click)="goHome()">
+      <img src="VidhuraTechLogo.png" alt="Vidhura Tech" />
+      <span *ngIf="!collapsed">Vidhura Tech</span>
+    </div>
   </div>
 
-  <!-- MENU -->
-  <div class="menu">
+  <div class="user-strip" *ngIf="!collapsed">
+    <small>{{ user?.role || 'Dashboard' }}</small>
+    <strong>{{ user?.name || 'User' }}</strong>
+  </div>
 
+  <nav class="menu">
     <a *ngFor="let item of menuItems" [routerLink]="item.route" routerLinkActive="active"
       [routerLinkActiveOptions]="{ exact: true }">
 
@@ -20,9 +25,7 @@
       <span *ngIf="!collapsed">
         {{ item.label }}
       </span>
-
     </a>
+  </nav>
 
-  </div>
-
-</div>
+</aside>

@@ -1,27 +1,24 @@
 <div class="dashboard-shell">
 
-  <div
-    class="sidebar-overlay"
-    *ngIf="mobile && sidebarOpen"
-    (click)="closeSidebar()">
+  <div class="sidebar-overlay" *ngIf="mobile && sidebarOpen" (click)="closeSidebar()">
   </div>
 
-  <app-dashboard-sidebar
-    [collapsed]="!sidebarOpen"
-    [mobile]="mobile">
+  <app-dashboard-sidebar [collapsed]="!sidebarOpen" [mobile]="mobile" (menuToggle)="toggleSidebar()">
   </app-dashboard-sidebar>
 
-  <div class="dashboard-main">
+  <main class="dashboard-main" [class.sidebar-collapsed]="!sidebarOpen && !mobile">
 
-    <app-dashboard-topbar
-      (menuToggle)="toggleSidebar()">
+    <app-dashboard-topbar (menuToggle)="toggleSidebar()">
     </app-dashboard-topbar>
 
-    <div class="dashboard-content">
+    <div class="dashboard-content" (click)="closeSidebar()">
       <app-dashboard-breadcrumb></app-dashboard-breadcrumb>
-      <router-outlet></router-outlet>
+
+      <div class="page-surface">
+        <router-outlet></router-outlet>
+      </div>
     </div>
 
-  </div>
+  </main>
 
 </div>

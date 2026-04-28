@@ -1,292 +1,272 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component } from '@angular/core';
-
-interface Course {
-  title: string;
-  duration: string;
-  level: string;
-  rating: number;
-  students: number;
-  startDate: string;
-  status: string;
-  technologies: string[];
-  highlights: string[];
-  syllabus: string[];
-  outcomes: string[];
-  desc: string;
-  open?: boolean;
-}
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { BatchService } from '../../features/lms/batch/services/batch';
+import { PublicCourseService } from './service/public-course';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../features/auth/services/auth.service';
 
 @Component({
   selector: 'app-courses',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './courses.html',
-  styleUrl: './courses.css',
+  styleUrls: ['./courses.css']
 })
-export class Courses implements AfterViewInit {
-  /* ================= STATS ================= */
-  stats = [
-    { label: 'Students', value: 500 },
-    { label: 'Placements', value: 120 },
-    { label: 'Courses', value: 10 },
-    { label: 'Success Rate', value: 95 },
-  ];
+export class CoursesComponent implements OnInit {
 
-  /* ================= TESTIMONIALS ================= */
-  testimonials = [
-    { name: 'Rahul', text: 'Got placed in 3 months!' },
-    { name: 'Sneha', text: 'Best training with real projects.' },
-    { name: 'Kiran', text: 'Excellent mentorship & support.' },
-  ];
+  courses: any[] = [];
+  filteredCourses: any[] = [];
 
-  /* ================= COURSES ================= */
-courses: Course[] = [
-  {
-    title: 'Core Python + Data Structures',
-    duration: '45 Days',
-    level: 'Beginner Friendly',
-    rating: 4.9,
-    students: 320,
-    startDate: 'May 02, 2026',
-    status: 'Live Batch',
-    technologies: ['Python', 'Logic Building', 'DSA', 'Problem Solving'],
-    highlights: [
-      'Perfect for beginners',
-      'Daily coding practice',
-      'Interview-focused DSA',
-      'Placement preparation'
-    ],
-    syllabus: [
-      'Python Fundamentals',
-      'Advanced Python',
-      'Data Structures',
-      'Problem Solving'
-    ],
-    outcomes: [
-      'Become Job-Ready Python Developer',
-      'Crack Coding Interviews',
-      'Build Strong Programming Logic'
-    ],
-    desc: 'Start your software career with Python and Data Structures from scratch.',
-    open: false
-  },
+  activeCourse: any = null;
+  upcomingCourses: any[] = [];
 
-  {
-    title: 'Java Full Stack',
-    duration: '4 Months',
-    level: 'Beginner → Advanced',
-    rating: 4.8,
-    students: 250,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['Java', 'Spring Boot', 'Angular', 'Microservices', 'MySQL'],
-    highlights: [
-      'Enterprise backend development',
-      'Real-time project architecture',
-      'REST API mastery',
-      'Placement support'
-    ],
-    syllabus: [
-      'Core Java',
-      'Advanced Java',
-      'Spring Boot',
-      'Angular',
-      'Microservices'
-    ],
-    outcomes: [
-      'Become Java Full Stack Developer',
-      'Build Enterprise Apps',
-      'Crack Backend Interviews'
-    ],
-    desc: 'Complete enterprise-grade Java full stack developer program.',
-    open: false
-  },
+  loading = false;
+  error = '';
+  keyword = '';
+  selectedLevel = '';
+  isLoggedIn = false;
 
-  {
-    title: 'React JS Mastery',
-    duration: '30 Days',
-    level: 'Intermediate',
-    rating: 4.8,
-    students: 140,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['React', 'Redux', 'Hooks', 'Routing'],
-    highlights: [
-      'Modern frontend architecture',
-      'Hooks & State Management',
-      'Reusable Components'
-    ],
-    syllabus: ['React Basics', 'Hooks', 'Redux', 'Projects'],
-    outcomes: ['Build Modern UIs', 'Become React Developer'],
-    desc: 'Master React JS with projects and production-level practices.',
-    open: false
-  },
+  selectedCurriculum: any = null;
+  showCurriculum = false;
 
-  {
-    title: 'Angular Enterprise Development',
-    duration: '35 Days',
-    level: 'Intermediate',
-    rating: 4.9,
-    students: 110,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['Angular', 'RxJS', 'Signals', 'NgRx'],
-    highlights: [
-      'Enterprise Angular patterns',
-      'State management',
-      'Real-world architecture'
-    ],
-    syllabus: ['Angular Basics', 'RxJS', 'Signals', 'NgRx'],
-    outcomes: ['Become Angular Developer'],
-    desc: 'Enterprise Angular training for real-world frontend development.',
-    open: false
-  },
+  levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 
-  {
-    title: 'Power BI + Data Analytics',
-    duration: '30 Days',
-    level: 'Beginner Friendly',
-    rating: 4.7,
-    students: 150,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['Excel', 'SQL', 'Power BI', 'Analytics'],
-    highlights: ['Dashboards', 'Business Insights', 'Visualization'],
-    syllabus: ['Excel', 'SQL', 'Power BI'],
-    outcomes: ['Become Data Analyst'],
-    desc: 'Learn analytics and dashboarding with real business datasets.',
-    open: false
-  },
+  constructor(
+    private courseService: PublicCourseService,
+    private batchService: BatchService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    private auth: AuthService
+  ) { }
 
-  {
-    title: 'DevOps Engineering',
-    duration: '45 Days',
-    level: 'Intermediate',
-    rating: 4.8,
-    students: 90,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['Docker', 'Kubernetes', 'Jenkins', 'AWS'],
-    highlights: ['CI/CD', 'Deployment Pipelines', 'Infra Automation'],
-    syllabus: ['Docker', 'K8s', 'Jenkins', 'AWS'],
-    outcomes: ['Become DevOps Engineer'],
-    desc: 'Learn deployment, automation, CI/CD and cloud DevOps practices.',
-    open: false
-  },
+  isAdmin = false;
 
-  {
-    title: 'AWS Cloud Fundamentals',
-    duration: '30 Days',
-    level: 'Beginner Friendly',
-    rating: 4.7,
-    students: 70,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['AWS', 'EC2', 'S3', 'IAM'],
-    highlights: ['Cloud Basics', 'Deployments', 'Security'],
-    syllabus: ['Cloud Intro', 'AWS Services'],
-    outcomes: ['Cloud Fundamentals'],
-    desc: 'Start your cloud journey with AWS essentials.',
-    open: false
-  },
+  ngOnInit(): void {
 
-  {
-    title: 'SQL + Database Development',
-    duration: '20 Days',
-    level: 'Beginner Friendly',
-    rating: 4.6,
-    students: 100,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['SQL', 'Joins', 'Optimization', 'Procedures'],
-    highlights: ['Database Design', 'Optimization', 'Real Queries'],
-    syllabus: ['SQL Basics', 'Advanced SQL'],
-    outcomes: ['Become SQL Pro'],
-    desc: 'Master relational databases and SQL development.',
-    open: false
-  },
+    const role = localStorage.getItem('role');
+    this.isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
 
-  {
-    title: 'SAP FICO',
-    duration: '50 Days',
-    level: 'Professional',
-    rating: 4.7,
-    students: 60,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['SAP FICO'],
-    highlights: ['Finance Workflows', 'ERP Training'],
-    syllabus: ['SAP FICO Modules'],
-    outcomes: ['Become SAP Consultant'],
-    desc: 'Comprehensive SAP FICO training.',
-    open: false
-  },
+    // 🔥 REACTIVE LOGIN STATE
+    this.auth.authState.subscribe(isLogged => {
+      this.isLoggedIn = isLogged;
 
-  {
-    title: 'SAP MM',
-    duration: '45 Days',
-    level: 'Professional',
-    rating: 4.6,
-    students: 50,
-    startDate: 'Coming Soon',
-    status: 'Upcoming',
-    technologies: ['SAP MM'],
-    highlights: ['Material Management', 'ERP Procurement'],
-    syllabus: ['SAP MM Modules'],
-    outcomes: ['Become SAP MM Consultant'],
-    desc: 'Master SAP MM procurement and inventory workflows.',
-    open: false
-  }
-];
+      // Optional: reload batches if login happens
+      if (isLogged) {
+        this.attachActiveBatches();
+      }
+    });
 
-  /* ================= SLIDER ================= */
-  currentSlide = 0;
-
-  /* ================= LIFECYCLE ================= */
-  ngAfterViewInit() {
-    this.animateStats();
-    this.autoSlide();
-
-    setTimeout(() => {
-      this.animateStats();
-    }, 200); // small delay ensures DOM ready
-
-    this.autoSlide();
+    this.loadCourses();
   }
 
-  /* ================= ACCORDION ================= */
-  toggleCourse(course: Course) {
-    course.open = !course.open;
-  }
+  loadCourses() {
+    this.loading = true;
+    console.log(this.courses);
 
-  /* ================= STATS ANIMATION ================= */
-  animateStats() {
-    const elements = document.querySelectorAll('.stat-number');
+    this.courseService.getCourses(this.isAdmin).subscribe({
+      next: (res: any) => {
 
-    elements.forEach((el: any) => {
-      let count = 0;
-      const target = +el.getAttribute('data-target');
+        const list = res?.data || [];
 
-      const update = () => {
-        count += Math.ceil(target / 50);
+        this.courses = list.map((c: any) => {
 
-        if (count < target) {
-          el.innerText = count;
-          requestAnimationFrame(update);
-        } else {
-          el.innerText = target;
-        }
-      };
+          let meta: any = {};
+          try {
+            meta = c.metadataJson ? JSON.parse(c.metadataJson) : {};
+          } catch { }
 
-      update();
+          return {
+            id: c.id,
+            title: c.title,
+            desc: c.description || '',
+            duration: (c.durationHours || 0) + ' hrs',
+            level: c.level,
+            status: c.status,
+            batch: null,
+            open: false,
+
+            highlights: meta.highlights || [],
+            syllabus: meta.syllabus || [],
+            outcomes: meta.outcomes || []
+          };
+        });
+
+        this.attachActiveBatches();
+      },
+      error: () => {
+        this.error = 'Failed to load courses';
+        this.loading = false;
+      }
     });
   }
 
-  /* ================= TESTIMONIAL SLIDER ================= */
-  autoSlide() {
-    setInterval(() => {
-      this.currentSlide = (this.currentSlide + 1) % this.testimonials.length;
-    }, 3000);
+  publish(course: any) {
+    this.http.patch(
+      `${environment.apiUrl}/api/lms/courses/${course.id}/publish`, {}
+    ).subscribe(() => {
+      course.status = 'PUBLISHED';
+      alert('✅ Published');
+    });
   }
+
+  attachActiveBatches() {
+    let completed = 0;
+
+    this.courses.forEach(course => {
+
+      this.batchService.getActiveBatch(course.id).subscribe({
+        next: (res: any) => {
+          course.batch = res?.data || null;
+
+          // ✅ CORRECT PLACE
+          const role = localStorage.getItem('role');
+
+          if (course.batch && this.auth.isLoggedIn() && role === 'STUDENT') {
+            this.http.get(
+              `${environment.apiUrl}/api/lms/batches/${course.batch.id}/is-enrolled`
+            ).subscribe((res: any) => {
+              course.isEnrolled = res.data;
+            });
+          }
+        },
+        error: () => {
+          course.batch = null;
+        },
+        complete: () => {
+          completed++;
+
+          if (completed === this.courses.length) {
+            this.processCourses();
+          }
+        }
+      });
+    });
+  }
+
+  goToCheckout(course: any) {
+
+    if (!this.auth.isLoggedIn()) {
+      localStorage.setItem('checkoutCourse', course.id);
+      window.location.href = '/login';
+      return;
+    }
+
+    window.location.href = `/checkout?courseId=${course.id}`;
+  }
+
+  goToLearning(course: any) {
+    window.location.href = `/dashboard/student/lms/${course.batch.id}`;
+  }
+
+  processCourses() {
+
+    this.activeCourse = this.courses.find(c =>
+      c.batch?.status === 'ACTIVE'
+    );
+
+    this.upcomingCourses = this.courses.filter(c =>
+      c.batch?.status !== 'ACTIVE'
+    );
+
+    this.applyFilters();
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+
+  applyFilters() {
+
+    let data = [...this.upcomingCourses];
+
+    if (this.keyword) {
+      data = data.filter(c =>
+        c.title.toLowerCase().includes(this.keyword.toLowerCase())
+      );
+    }
+
+    if (this.selectedLevel) {
+      data = data.filter(c => c.level === this.selectedLevel);
+    }
+
+    this.filteredCourses = data;
+  }
+
+  toggle(c: any) {
+    c.open = !c.open;
+  }
+
+  viewCurriculum(course: any) {
+    const batchId = course?.batch?.id;
+
+    if (!batchId) {
+      alert('No active batch found');
+      return;
+    }
+
+    this.http.get<any>(`${environment.apiUrl}/api/trainer/public-curriculum`, {
+      params: { batchId: batchId.toString() }
+    }).subscribe({
+      next: (res) => {
+        const raw = res?.data;
+
+        if (!raw) {
+          alert('Curriculum not available');
+          return;
+        }
+
+        let full: any;
+
+        try {
+          full = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch {
+          console.error('Invalid curriculum JSON:', raw);
+          alert('Curriculum data corrupted');
+          return;
+        }
+
+        if (!full?.curriculum || !Array.isArray(full.curriculum)) {
+          alert('Curriculum not available');
+          return;
+        }
+
+        this.selectedCurriculum = this.auth.isLoggedIn()
+          ? full
+          : {
+            ...full,
+            curriculum: full.curriculum.slice(0, 2)
+          };
+
+        this.selectedCurriculum.curriculum.forEach((m: any) => {
+          m.open = false;
+        });
+
+        this.showCurriculum = true;
+
+        setTimeout(() => {
+          document
+            .getElementById('curriculum-section')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Curriculum API failed:', err);
+
+        if (err.status === 403) {
+          alert('Curriculum API is blocked. Please allow public access in backend.');
+          return;
+        }
+
+        if (err.status === 404) {
+          alert('Curriculum not available for this batch');
+          return;
+        }
+
+        alert('Failed to load curriculum');
+      }
+    });
+  }
+
 }
