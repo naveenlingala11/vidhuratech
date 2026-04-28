@@ -2,14 +2,17 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, PLATFORM_ID } from '@angular/core';
 import { ModalService } from '../../services/modal';
 import { FormsModule } from '@angular/forms';
-import { signal } from '@angular/core';
-import { interval } from 'rxjs';
 import { TimerService } from '../../services/timer';
 import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-enroll-modal',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './enroll-modal.html',
   styleUrl: './enroll-modal.css',
@@ -19,26 +22,15 @@ export class EnrollModal {
   step = 1;
   submitted = false;
 
-  nextStep() {
-    if (this.step === 1) {
-      if (!this.formData.name || !this.formData.phone) {
-        alert('Please fill required fields');
-        return;
-      }
-    }
-    this.step++;
-  }
+  liveCourses: any[] = [];
+  selectedLiveCourse: any = null;
+  requestedCourse = '';
 
-  prevStep() {
-    this.step--;
-  }
-
-  // ✅ KEEPING YOUR ORIGINAL FORM STRUCTURE (UNCHANGED)
   formData = {
     name: '',
     phone: '',
     email: '',
-    course: 'Java Full Stack',
+    course: '',
     experience: '',
     city: '',
     message: '',
@@ -51,10 +43,16 @@ export class EnrollModal {
 
   constructor(
     private modalService: ModalService,
+    private http: HttpClient,
     private cd: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object,
     public timer: TimerService,
   ) { }
+
+  ngOnInit() {
+    this.resetForm();
+    this.loadLiveCourses();
+  }
 
   ngAfterViewInit() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -64,21 +62,17 @@ export class EnrollModal {
     const modalElement = document.getElementById('enrollModal');
     if (!modalElement) return;
 
-    // ✅ INIT MODAL
     this.modalInstance = new bootstrap.Modal(modalElement);
 
-    // ✅ OPEN MODAL
     this.subscription = this.modalService.modal$.subscribe((payload) => {
-      if (payload?.course) {
-        this.formData.course = payload.course;
-      }
+      this.requestedCourse = payload?.course || '';
+      this.pickDefaultCourse();
 
       setTimeout(() => {
         this.modalInstance.show();
       });
     });
 
-    // ✅ AUTO SCROLL FIX
     modalElement.addEventListener('shown.bs.modal', () => {
       const inputs = modalElement.querySelectorAll('input, select, textarea');
 
@@ -96,50 +90,105 @@ export class EnrollModal {
     });
   }
 
-  ngOnInit() {
-    this.formData.course = '';
-    this.resetForm();
-  }
-
   ngOnDestroy() {
     this.subscription?.unsubscribe();
   }
 
+  loadLiveCourses() {
+    this.http.get<any>(`${environment.apiUrl}/api/public/courses`)
+      .subscribe({
+        next: (res) => {
+          const list = res?.data || [];
+
+          if (!list.length) {
+            this.liveCourses = [];
+            this.pickDefaultCourse();
+            return;
+          }
+
+          const activeChecks: Observable<any | null>[] = list.map((course: any) =>
+            this.http.get<any>(`${environment.apiUrl}/api/lms/batches/course/${course.id}/active`)
+              .pipe(
+                map(batchRes => ({
+                  id: course.id,
+                  title: course.title,
+                  price: course.price,
+                  activeBatch: batchRes?.data || null
+                })),
+                catchError(() => of(null))
+              )
+          );
+
+          forkJoin(activeChecks).subscribe((courses: any[]) => {
+            this.liveCourses = courses.filter(course =>
+              course &&
+              course.activeBatch &&
+              course.activeBatch.status === 'ACTIVE'
+            );
+
+            this.pickDefaultCourse();
+          });
+        },
+        error: () => {
+          this.liveCourses = [];
+          this.pickDefaultCourse();
+        }
+      });
+  }
+
+  pickDefaultCourse() {
+    let match = null;
+
+    if (this.requestedCourse) {
+      match = this.liveCourses.find(course =>
+        course.title === this.requestedCourse ||
+        course.title.toLowerCase().includes(this.requestedCourse.toLowerCase()) ||
+        this.requestedCourse.toLowerCase().includes(course.title.toLowerCase())
+      );
+    }
+
+    this.selectedLiveCourse = match || this.liveCourses[0] || null;
+    this.formData.course = this.selectedLiveCourse?.title || '';
+    this.cd.detectChanges();
+  }
+
   resetForm(form?: any) {
+    this.step = 1;
 
     this.formData = {
       name: '',
       phone: '',
       email: '',
-      course: '',
+      course: this.selectedLiveCourse?.title || '',
       experience: '',
       city: '',
       message: '',
     };
 
-    // 🔥 Angular form state reset
-    form?.resetForm();
-
+    form?.resetForm(this.formData);
     this.isSubmitting = false;
   }
 
   submitForm() {
-
     if (this.isSubmitting) return;
 
-    // ✅ Required
+    if (!this.selectedLiveCourse) {
+      alert('No live course available right now');
+      return;
+    }
+
+    this.formData.course = this.selectedLiveCourse.title;
+
     if (!this.formData.name || !this.formData.phone) {
       alert('Please fill required fields');
       return;
     }
 
-    // ✅ Phone
     if (!/^[6-9][0-9]{9}$/.test(this.formData.phone)) {
       alert('Enter valid mobile number');
       return;
     }
 
-    // ✅ Email
     if (
       this.formData.email &&
       !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.formData.email)
@@ -158,33 +207,19 @@ export class EnrollModal {
       body: JSON.stringify(this.formData),
     })
       .then(async (res) => {
-
-        // 🔥 HANDLE BACKEND ERROR MESSAGE
         if (!res.ok) {
           const msg = await res.text();
           throw new Error(msg);
         }
 
-        // ✅ STORE DATA FOR WHATSAPP
         this.lastSubmittedData = { ...this.formData };
 
-        // ✅ Close modal
         this.modalInstance?.hide();
 
-        // ✅ Success popup
         this.submitted = true;
         this.cd.detectChanges();
 
-        // ✅ Reset form
-        this.formData = {
-          name: '',
-          phone: '',
-          email: '',
-          course: '',
-          experience: '',
-          city: '',
-          message: '',
-        };
+        this.resetForm();
 
         setTimeout(() => {
           this.submitted = false;
@@ -193,8 +228,6 @@ export class EnrollModal {
       })
       .catch((err) => {
         console.error(err);
-
-        // 🔥 SHOW BACKEND MESSAGE (important)
         alert(err.message || 'Error submitting form');
       })
       .finally(() => {

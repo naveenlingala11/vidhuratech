@@ -2,16 +2,21 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ModalService } from '../../services/modal';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './about.html',
   styleUrl: './about.css',
 })
 export class About {
-  constructor(private modalService: ModalService) {}
+  constructor(
+    private modalService: ModalService,
+    private http: HttpClient
+  ) { }
 
   contactData = {
     name: '',
@@ -20,36 +25,49 @@ export class About {
     message: '',
   };
 
-  submitted = false;
+  submitting = false;
+  successMessage = '';
+  errorMessage = '';
 
   submitContact() {
-    console.log('Contact Data:', this.contactData);
+    this.submitting = true;
+    this.successMessage = '';
+    this.errorMessage = '';
 
-    this.submitted = true;
+    this.http.post(`${environment.apiUrl}/api/public/contact`, this.contactData)
+      .subscribe({
+        next: () => {
+          this.successMessage = 'Message sent successfully. Our team will contact you soon.';
 
-    setTimeout(() => {
-      this.submitted = false;
-      this.contactData = { name: '', email: '', phone: '', message: '' };
-    }, 3000);
+          this.contactData = {
+            name: '',
+            email: '',
+            phone: '',
+            message: '',
+          };
+
+          this.submitting = false;
+
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 4500);
+        },
+        error: () => {
+          this.errorMessage = 'Message not sent. Please try again after some time.';
+          this.submitting = false;
+
+          setTimeout(() => {
+            this.errorMessage = '';
+          }, 4500);
+        }
+      });
   }
 
   features = [
-    {
-      title: 'Industry Based Training',
-      desc: 'Courses designed based on real industry requirements.',
-    },
-    {
-      title: 'Hands-on Projects',
-      desc: 'Work on real world mini and major projects.',
-    },
-    {
-      title: 'Interview Preparation',
-      desc: 'Mock interviews and resume preparation.',
-    },
-    {
-      title: 'Placement Guidance',
-      desc: 'Support until you get placed in IT companies.',
-    },
+    { title: 'Industry Based Training', desc: 'Courses designed based on real industry requirements.' },
+    { title: 'Hands-on Projects', desc: 'Work on real world mini and major projects.' },
+    { title: 'Interview Preparation', desc: 'Mock interviews and resume preparation.' },
+    { title: 'Placement Guidance', desc: 'Support until you get placed in IT companies.' },
   ];
 
   workflow = [
@@ -70,7 +88,7 @@ export class About {
       name: 'Sneha Reddy',
       role: 'Frontend Developer',
       company: 'Infosys',
-      msg: 'Best vidhura Tech for Angular. Interview training was excellent.',
+      msg: 'Best Vidhura Tech for Angular. Interview training was excellent.',
     },
     {
       name: 'Arjun',

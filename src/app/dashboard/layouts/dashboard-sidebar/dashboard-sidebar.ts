@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
+  Router,
   RouterLink,
   RouterLinkActive
 } from '@angular/router';
@@ -20,8 +21,7 @@ import { DASHBOARD_MENUS } from '../../shared/dashboard-menu.config';
   imports: [
     CommonModule,
     RouterLink,
-    RouterLinkActive,
-    RouterLink
+    RouterLinkActive
   ],
   templateUrl: './dashboard-sidebar.html',
   styleUrls: ['./dashboard-sidebar.css']
@@ -29,24 +29,23 @@ import { DASHBOARD_MENUS } from '../../shared/dashboard-menu.config';
 export class DashboardSidebar implements OnInit {
 
   @Input() collapsed = false;
+  @Input() mobile = false;
   @Output() menuToggle = new EventEmitter<void>();
 
   user: any = {};
   menuItems: any[] = [];
 
-  @Input() mobile = false;
-
   constructor(
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
     this.user = this.authService.getUser();
-    this.menuItems = DASHBOARD_MENUS[this.user.role] || [];
+    this.menuItems = DASHBOARD_MENUS[this.user?.role] || [];
   }
 
   goHome() {
-    const role = this.user.role.toLowerCase();
-    window.location.href = ``;
+    this.router.navigate(['/']);
   }
 }

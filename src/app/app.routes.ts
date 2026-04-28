@@ -4,7 +4,6 @@ import { Routes } from '@angular/router';
    PUBLIC PAGES
 ========================= */
 import { Home } from './pages/home/home';
-import { Courses } from './pages/courses/courses';
 import { About } from './pages/about/about';
 import { Contact } from './pages/contact/contact';
 import { Curriculum } from './pages/curriculum/curriculum';
@@ -86,6 +85,8 @@ import { ProfileComponent } from './dashboard/profile/profile.component/profile.
 import { AdminActionsComponent } from './admin/admin-actions.component/admin-actions.component';
 import { AdminUsersComponent } from './admin/admin-users.component/admin-users.component';
 import { AdminCreateUserComponent } from './admin/admin-create-users.component/admin-create-users.component';
+import { CoursesComponent } from './pages/courses/courses';
+import { CourseBulkUploadComponent } from './pages/courses/course-bulk-upload/course-bulk-upload';
 
 /* =========================
    ROUTES CONFIG
@@ -95,7 +96,7 @@ export const routes: Routes = [
 
   /* ===== PUBLIC ROUTES ===== */
   { path: '', component: Home },
-  { path: 'courses', component: Courses },
+  { path: 'courses', component: CoursesComponent },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
   { path: 'curriculum', component: Curriculum },
@@ -185,6 +186,7 @@ export const routes: Routes = [
   /* ===== LMS EXTRA ROUTES ===== */
   { path: 'dashboard/lms/courses/create', component: CourseFormComponent },
   { path: 'dashboard/lms/courses/:id/edit', component: CourseFormComponent },
+  { path: 'dashboard/admin/course-bulk', component: CourseBulkUploadComponent },
 
   /* ===== BATCH MANAGEMENT ===== */
   {

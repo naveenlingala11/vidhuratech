@@ -1,117 +1,223 @@
-<div class="profile-container">
+<div class="profile-page">
 
-  <!-- HEADER -->
-  <div class="profile-header">
-
-    <div class="avatar">
-      {{ getInitials() }}
-    </div>
-
-    <div>
-      <h2>{{ user?.name }}</h2>
-      <p>{{ user?.role }}</p>
-    </div>
-
-    <button class="edit-btn" (click)="toggleEdit()">
-      {{ editMode ? 'Close' : 'Edit Profile' }}
-    </button>
-
+  <div class="toast success" *ngIf="message">
+    <span>{{ message }}</span>
+    <button type="button" (click)="message = ''">x</button>
   </div>
 
-  <!-- PROFILE CARD -->
-  <div class="profile-card">
+  <div class="toast error" *ngIf="error">
+    <span>{{ error }}</span>
+    <button type="button" (click)="error = ''">x</button>
+  </div>
 
-    <h3>Profile Details</h3>
+  <div class="loading-card" *ngIf="loading">
+    <div class="spinner"></div>
+    <h3>Loading Profile</h3>
+    <p>Preparing your account workspace...</p>
+  </div>
 
-    <div class="profile-grid">
+  <ng-container *ngIf="!loading">
 
-      <!-- NAME -->
-      <div class="profile-item">
-        <label>Name</label>
+    <section class="profile-cover">
+      <div class="cover-grid"></div>
 
-        <input *ngIf="editMode"
-               [(ngModel)]="form.name" />
+      <div class="profile-identity">
+        <div class="avatar-shell">
+          <div class="avatar">{{ getInitials() }}</div>
+          <span class="status-dot"></span>
+        </div>
 
-        <span *ngIf="!editMode">{{ user?.name }}</span>
+        <div class="identity-copy">
+          <span class="eyebrow">Vidhura Tech Account</span>
+          <h1>{{ user?.name || 'User Profile' }}</h1>
+          <p>{{ roleLabel }} Workspace · {{ accountStatus }}</p>
+
+          <div class="identity-tags">
+            <span>{{ user?.email || 'Email not available' }}</span>
+            <span>{{ user?.phone || 'Phone not added' }}</span>
+            <span>ID: {{ user?.id || '-' }}</span>
+          </div>
+        </div>
       </div>
 
-      <!-- PHONE -->
-      <div class="profile-item">
-        <label>Phone</label>
+      <div class="cover-actions">
+        <button class="ghost-btn" type="button" (click)="copyEmail()">Copy Email</button>
+        <button class="primary-btn" type="button" (click)="toggleEdit()">
+          {{ editMode ? 'Close Edit' : 'Edit Profile' }}
+        </button>
+      </div>
+    </section>
 
-        <input *ngIf="editMode"
-               [(ngModel)]="form.phone" />
-
-        <span *ngIf="!editMode">{{ user?.phone || '-' }}</span>
+    <section class="profile-stats">
+      <div class="stat-card">
+        <span>Profile Completion</span>
+        <strong>{{ profileCompletion }}%</strong>
+        <div class="track"><i [style.width.%]="profileCompletion"></i></div>
       </div>
 
-      <!-- EMAIL -->
-      <div class="profile-item">
-        <label>Email</label>
-        <span>{{ user?.email }}</span>
+      <div class="stat-card">
+        <span>Account Status</span>
+        <strong>{{ accountStatus }}</strong>
+        <small>Ready to use</small>
       </div>
 
-      <!-- STATUS -->
-      <div class="profile-item">
-        <label>Status</label>
-        <span class="active">Active</span>
+      <div class="stat-card">
+        <span>Role Access</span>
+        <strong>{{ roleLabel }}</strong>
+        <small>Permissions enabled</small>
       </div>
 
-    </div>
+      <div class="stat-card">
+        <span>Security</span>
+        <strong>Protected</strong>
+        <small>Secure dashboard session</small>
+      </div>
+    </section>
 
-    <!-- ACTION BUTTONS -->
-    <div *ngIf="editMode" class="actions">
-      <button class="save" (click)="saveProfile()">Save</button>
-      <button class="cancel" (click)="cancelEdit()">Cancel</button>
-    </div>
+    <section class="profile-layout">
 
-  </div>
+      <main class="profile-main">
 
-  <!-- ROLE BASED ACTIONS -->
+        <section class="profile-panel">
+          <div class="panel-heading">
+            <div>
+              <span>Personal Details</span>
+              <h2>Account Information</h2>
+              <p>Keep your profile updated for course communication, invoices, and support.</p>
+            </div>
+          </div>
 
-  <!-- STUDENT -->
-  <div *ngIf="user?.role === 'STUDENT'" class="profile-card">
-    <h3>Student Actions</h3>
-    <button>View Certificates</button>
-    <button>Resume Builder</button>
-    <button>Placement Tracker</button>
-  </div>
+          <div class="form-grid">
+            <div class="info-field">
+              <label>Full Name</label>
+              <input *ngIf="editMode" type="text" [(ngModel)]="form.name" placeholder="Enter full name" />
+              <strong *ngIf="!editMode">{{ user?.name || '-' }}</strong>
+            </div>
 
-  <!-- TRAINER -->
-  <div *ngIf="user?.role === 'TRAINER'" class="profile-card">
-    <h3>Trainer Actions</h3>
-    <button>Manage Batches</button>
-    <button>Upload Content</button>
-    <button>Create Assignment</button>
-  </div>
+            <div class="info-field">
+              <label>Phone Number</label>
+              <input *ngIf="editMode" type="tel" [(ngModel)]="form.phone" placeholder="Enter phone number" />
+              <strong *ngIf="!editMode">{{ user?.phone || '-' }}</strong>
+            </div>
 
-  <!-- ADMIN -->
-  <div *ngIf="user?.role === 'ADMIN'" class="profile-card">
-    <h3>Admin Actions</h3>
-    <button>Manage Users</button>
-    <button>Reports</button>
-    <button>Analytics</button>
-  </div>
+            <div class="info-field">
+              <label>Email Address</label>
+              <strong>{{ user?.email || '-' }}</strong>
+            </div>
 
-  <!-- HR -->
-  <div *ngIf="user?.role === 'HR'" class="profile-card">
-    <h3>HR Actions</h3>
-    <button>View Candidates</button>
-    <button>Schedule Interview</button>
-  </div>
+            <div class="info-field">
+              <label>Role</label>
+              <strong>{{ roleLabel }}</strong>
+            </div>
 
-  <!-- MANAGER -->
-  <div *ngIf="user?.role === 'MANAGER'" class="profile-card">
-    <h3>Manager Actions</h3>
-    <button>Team Overview</button>
-    <button>Approvals</button>
-  </div>
+            <div class="info-field">
+              <label>User ID</label>
+              <strong>{{ user?.id || '-' }}</strong>
+            </div>
 
-  <!-- MENTOR -->
-  <div *ngIf="user?.role === 'MENTOR'" class="profile-card">
-    <h3>Mentor Actions</h3>
-    <button>My Mentees</button>
-    <button>Sessions</button>
-  </div>
+            <div class="info-field">
+              <label>Status</label>
+              <strong class="status-text">{{ accountStatus }}</strong>
+            </div>
+          </div>
+
+          <div class="edit-actions" *ngIf="editMode">
+            <button class="primary-btn" type="button" (click)="saveProfile()" [disabled]="saving">
+              {{ saving ? 'Saving...' : 'Save Changes' }}
+            </button>
+
+            <button class="danger-soft-btn" type="button" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <div class="panel-heading">
+            <div>
+              <span>Workspace</span>
+              <h2>{{ roleLabel }} Quick Actions</h2>
+              <p>Useful tools based on your current platform role.</p>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <button type="button" class="quick-card" *ngFor="let action of roleActions">
+              <b>{{ action.code }}</b>
+              <div>
+                <strong>{{ action.title }}</strong>
+                <small>{{ action.desc }}</small>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <div class="panel-heading">
+            <div>
+              <span>Preferences</span>
+              <h2>Notification Settings</h2>
+              <p>Choose which platform updates you want to receive.</p>
+            </div>
+          </div>
+
+          <div class="preferences">
+            <div class="preference-item" *ngFor="let pref of preferences">
+              <div>
+                <strong>{{ pref.title }}</strong>
+                <span>{{ pref.desc }}</span>
+              </div>
+
+              <label class="switch">
+                <input type="checkbox" [(ngModel)]="pref.enabled" />
+                <i></i>
+              </label>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <aside class="profile-side">
+
+        <section class="side-card score-card">
+          <div class="score-circle" [style.--score]="profileCompletion">
+            <div>
+              <strong>{{ profileCompletion }}%</strong>
+              <span>Complete</span>
+            </div>
+          </div>
+
+          <h3>Profile Strength</h3>
+          <p>Add accurate contact details to improve account quality and support communication.</p>
+        </section>
+
+        <section class="side-card">
+          <div class="side-heading">
+            <span>Activity</span>
+            <h3>Recent Timeline</h3>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-item" *ngFor="let item of activities">
+              <i></i>
+              <div>
+                <strong>{{ item }}</strong>
+                <span>Updated recently</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="support-card">
+          <span>Need Help?</span>
+          <h3>Contact Support</h3>
+          <p>For account, course, or dashboard help, reach out to Vidhura Tech support.</p>
+          <a href="mailto:support@vidhuratech.com">support@vidhuratech.com</a>
+        </section>
+
+      </aside>
+
+    </section>
+
+  </ng-container>
 
 </div>

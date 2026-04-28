@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, tap } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { TokenService } from './token.service';
 
@@ -8,9 +8,8 @@ import { TokenService } from './token.service';
   providedIn: 'root',
 })
 export class AuthService {
-
   private API = `${environment.apiUrl}/api/auth`;
-  authState!: BehaviorSubject<boolean>;
+  authState: BehaviorSubject<boolean>;
 
   constructor(
     private http: HttpClient,
@@ -21,23 +20,70 @@ export class AuthService {
     );
   }
 
+  private authHeaders() {
+    const token = this.tokenService.getToken();
+
+    if (!token) {
+      return null;
+    }
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
+
   register(data: any) {
-    return this.http.post<any>(`${this.API}/register`, data);
+    return this.http.post<any>(`${this.API}/register`, data).pipe(
+      tap(res => this.saveAuthUser(res))
+    );
   }
 
   login(data: any) {
     return this.http.post<any>(`${this.API}/login`, data).pipe(
-      tap(res => {
-        this.tokenService.setToken(res.token);
-
-        this.tokenService.setUser({
-          name: res.name,
-          role: res.role,
-        });
-
-        this.authState.next(true);
-      })
+      tap(res => this.saveAuthUser(res))
     );
+  }
+
+  getProfile() {
+    const options = this.authHeaders();
+
+    if (!options) {
+      return throwError(() => ({ status: 401, message: 'No token found' }));
+    }
+
+    return this.http.get<any>(`${this.API}/me`, options).pipe(
+      tap(user => this.tokenService.setUser(user))
+    );
+  }
+
+  updateProfile(data: any) {
+    const options = this.authHeaders();
+
+    if (!options) {
+      return throwError(() => ({ status: 401, message: 'No token found' }));
+    }
+
+    return this.http.put<any>(`${this.API}/me`, data, options).pipe(
+      tap(user => this.tokenService.setUser(user))
+    );
+  }
+
+  private saveAuthUser(res: any) {
+    this.tokenService.setToken(res.token);
+
+    this.tokenService.setUser({
+      id: res.id,
+      name: res.name,
+      email: res.email,
+      phone: res.phone,
+      role: res.role,
+      active: res.active,
+      firstLogin: res.firstLogin
+    });
+
+    this.authState.next(true);
   }
 
   logout() {
@@ -58,9 +104,10 @@ export class AuthService {
   }
 
   verifyRegister(email: string, otp: string) {
-    return this.http.post(`${this.API}/register/verify`, null, {
+    return this.http.post<any>(`${this.API}/register/verify`, null, {
       params: { email, otp }
-    });
+    }).pipe(
+      tap(res => this.saveAuthUser(res))
+    );
   }
-
 }

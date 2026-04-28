@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, HostListener, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -13,6 +13,8 @@ import { DashboardThemeService } from '../../shared/dashboard-theme';
 })
 export class DashboardTopbar {
 
+  @Output() menuToggle = new EventEmitter<void>();
+
   profileOpen = false;
 
   constructor(
@@ -21,11 +23,17 @@ export class DashboardTopbar {
     public themeService: DashboardThemeService
   ) { }
 
+  @HostListener('document:click')
+  closeProfile() {
+    this.profileOpen = false;
+  }
+
   toggleTheme() {
     this.themeService.toggleTheme();
   }
 
-  toggleProfile() {
+  toggleProfile(event: MouseEvent) {
+    event.stopPropagation();
     this.profileOpen = !this.profileOpen;
   }
 
@@ -40,8 +48,8 @@ export class DashboardTopbar {
   }
 
   getInitials(): string {
-    const name = this.authService.getUser()?.name || '';
-    const parts = name.trim().split(' ');
+    const name = this.authService.getUser()?.name || 'User';
+    const parts = name.trim().split(' ').filter(Boolean);
 
     if (parts.length === 1) {
       return parts[0].charAt(0).toUpperCase();

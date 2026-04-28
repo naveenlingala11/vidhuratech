@@ -1,148 +1,156 @@
-<!-- HERO -->
-
-<section class="contact-hero text-center text-white">
-
-    <div class="container">
-
-        <h1 class="display-5 fw-bold">
-            Contact vidhura Tech
-        </h1>
-
-        <p class="lead">
-            We are here to help you start your IT career
-        </p>
-
+<div class="contact-toast success" *ngIf="successMessage">
+    <div>
+        <strong>Success</strong>
+        <span>{{ successMessage }}</span>
     </div>
+    <button type="button" (click)="successMessage = ''">x</button>
+</div>
 
+<div class="contact-toast error" *ngIf="errorMessage">
+    <div>
+        <strong>Oops</strong>
+        <span>{{ errorMessage }}</span>
+    </div>
+    <button type="button" (click)="errorMessage = ''">x</button>
+</div>
+
+<section class="contact-hero">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="hero-tag">Contact Vidhura Tech</span>
+
+                <h1>Start your IT career with the right guidance.</h1>
+
+                <p>
+                    Talk to our team for course details, demo class registration,
+                    career guidance, and batch availability.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="btn btn-light" href="tel:9108057464">Call Now</a>
+                    <a class="btn btn-outline-light" href="mailto:support@vidhuratech.com">
+                        Email Us
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="quick-contact">
+                    <p class="quick-title">Quick Support</p>
+                    <a href="tel:9108057464">9108057464</a>
+                    <span>Phone / WhatsApp</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
-
-
-<!-- CONTACT SECTION -->
-
-<section class="py-5">
-
+<section class="contact-section">
     <div class="container">
-
         <div class="row g-4">
-
-            <!-- CONTACT FORM -->
-
-            <div class="col-md-6">
-
-                <div class="card contact-card">
-
-                    <div class="card-body">
-
-                        <h4 class="mb-4">
-                            Send Us a Message
-                        </h4>
-
-                        <form (ngSubmit)="submitContact()" #contactForm="ngForm">
-
-                            <div class="mb-3">
-
-                                <label>Full Name</label>
-
-                                <input class="form-control" name="name" [(ngModel)]="contactData.name" required>
-
-                            </div>
-
-                            <div class="mb-3">
-
-                                <label>Email</label>
-
-                                <input class="form-control" name="email" [(ngModel)]="contactData.email" required>
-
-                            </div>
-
-                            <div class="mb-3">
-
-                                <label>Phone</label>
-
-                                <input class="form-control" name="phone" [(ngModel)]="contactData.phone" required>
-
-                            </div>
-
-                            <div class="mb-3">
-
-                                <label>Message</label>
-
-                                <textarea class="form-control" rows="4" name="message" [(ngModel)]="contactData.message"
-                                    required></textarea>
-
-                            </div>
-
-                            <button class="btn btn-primary w-100" type="submit" [disabled]="contactForm.invalid">
-
-                                Send Message
-
-                            </button>
-
-                        </form>
-
+            <div class="col-lg-7">
+                <div class="contact-card">
+                    <div class="section-heading">
+                        <span>Send Message</span>
+                        <h2>We will get back to you soon</h2>
                     </div>
 
-                </div>
+                    <form (ngSubmit)="submitContact()" #contactForm="ngForm" novalidate>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name">Full Name</label>
+                                <input id="name" class="form-control" name="name" type="text"
+                                    placeholder="Enter your name" [(ngModel)]="contactData.name" required>
+                            </div>
 
+                            <div class="col-md-6">
+                                <label for="email">Email Address</label>
+                                <input id="email" class="form-control" name="email" type="email"
+                                    placeholder="Enter your email" [(ngModel)]="contactData.email" required email>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label for="phone">Phone Number</label>
+                                <input id="phone" class="form-control" name="phone" type="tel"
+                                    placeholder="Enter your phone number" [(ngModel)]="contactData.phone" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="message">Message</label>
+                                <textarea id="message" class="form-control" rows="5" name="message"
+                                    placeholder="Tell us which course or service you are interested in"
+                                    [(ngModel)]="contactData.message" required></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <button class="btn btn-primary submit-btn" type="submit"
+                                    [disabled]="contactForm.invalid || submitting">
+                                    {{ submitting ? 'Sending...' : 'Send Message' }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-
-
-            <!-- CONTACT INFO -->
-
-            <div class="col-md-6">
-
+            <div class="col-lg-5">
                 <div class="contact-info">
+                    <div class="section-heading">
+                        <span>Contact Info</span>
+                        <h2>Reach us anytime</h2>
+                    </div>
 
-                    <h4>
-                        Contact Information
-                    </h4>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <div class="info-icon">PH</div>
+                            <div>
+                                <strong>Phone / WhatsApp</strong>
+                                <a href="tel:9108057464">9108057464</a>
+                            </div>
+                        </div>
 
-                    <p>
-                        Feel free to reach out for course details or demo class registration.
-                    </p>
+                        <div class="info-item">
+                            <div class="info-icon">@</div>
+                            <div>
+                                <strong>Email</strong>
+                                <a href="mailto:support@vidhuratech.com">
+                                    support@vidhuratech.com
+                                </a>
+                            </div>
+                        </div>
 
-                    <hr>
+                        <div class="info-item">
+                            <div class="info-icon">WEB</div>
+                            <div>
+                                <strong>Website</strong>
+                                <a href="https://vidhuratech.com" target="_blank" rel="noopener">
+                                    vidhuratech.online
+                                </a>
+                            </div>
+                        </div>
 
-                    <p>
-                        <strong>Phone / WhatsApp</strong><br>
-                        9108057464
-                    </p>
+                        <div class="info-item">
+                            <div class="info-icon">IN</div>
+                            <div>
+                                <strong>Location</strong>
+                                <span>India - Online Training</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    <p>
-                        <strong>Email</strong><br>
-                        support@vidhuratech.com
-                    </p>
-
-                    <p>
-                        <strong>Website</strong><br>
-                        uptrixhub.online
-                    </p>
-
-                    <p>
-                        <strong>Location</strong><br>
-                        India (Online Training)
-                    </p>
-
+                    <div class="support-note">
+                        Demo class registration, course details, and career guidance are
+                        available through phone, WhatsApp, and email.
+                    </div>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </section>
 
-
-
-<!-- MAP -->
-
 <section class="map-section">
-
-    <iframe width="100%" height="350" style="border:0" loading="lazy" allowfullscreen
+    <iframe title="Vidhura Tech location map" width="100%" height="360" style="border:0" loading="lazy" allowfullscreen
         src="https://maps.google.com/maps?q=india&t=&z=5&ie=UTF8&iwloc=&output=embed">
     </iframe>
-
 </section>

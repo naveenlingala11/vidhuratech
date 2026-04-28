@@ -1,6 +1,12 @@
-<div class="breadcrumb">
+<nav class="breadcrumb" *ngIf="breadcrumbs.length">
 
-  <span *ngFor="let crumb of breadcrumbs; let last = last">
+  <span class="home-dot">
+    <i class="bi bi-house"></i>
+  </span>
+
+  <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
+
+    <span class="separator" *ngIf="!last || breadcrumbs.length">/</span>
 
     <a *ngIf="!last" [routerLink]="crumb.url">
       {{ crumb.label }}
@@ -10,8 +16,6 @@
       {{ crumb.label }}
     </span>
 
-    <span *ngIf="!last"> / </span>
+  </ng-container>
 
-  </span>
-
-</div>
+</nav>

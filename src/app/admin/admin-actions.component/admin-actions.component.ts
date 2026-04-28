@@ -18,6 +18,8 @@ export class AdminActionsComponent {
     { title: 'Users', route: '/dashboard/admin/users', icon: '👥' },
     { title: 'Batches', route: '/dashboard/admin/batches', icon: '📚' },
     { title: 'Courses', route: '/dashboard/lms/courses', icon: '📘' },
+    { title: 'Create Course', route: 'dashboard/lms/courses/create', icon: '📝' },
+    { title: 'Bulk Course Upload', route: '/dashboard/admin/course-bulk', icon: '📦' },
     { title: 'Leads', route: '/admin/leads', icon: '📋' },
     { title: 'Bin', route: '/admin/bin', icon: '🗑️' },
     { title: 'Jobs', route: '/admin/jobs', icon: '💼' },

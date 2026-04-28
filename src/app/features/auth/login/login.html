@@ -1,121 +1,138 @@
 <div class="auth-page">
-  <div class="auth-card">
+  <div class="auth-shell">
 
-    <div class="auth-header">
-      <img src="VidhuraTechLogo.png" class="auth-logo" />
-      <h2>Welcome Back 👋</h2>
-      <p>Login to continue your learning journey</p>
-    </div>
-
-    <!-- ================= TABS ================= -->
-    <div class="login-tabs">
-      <button [class.active]="activeTab === 'password'" (click)="activeTab = 'password'">
-        Password
-      </button>
-
-      <button [class.active]="activeTab === 'otp'" (click)="activeTab = 'otp'">
-        OTP
-      </button>
-    </div>
-
-    <!-- ================= PASSWORD LOGIN ================= -->
-    <form *ngIf="activeTab === 'password'" [formGroup]="form" (ngSubmit)="submit()">
-
-      <div class="auth-field">
-        <label>Email Address</label>
-        <input type="email" formControlName="email" placeholder="Enter your email" />
-        <small *ngIf="f['email'].touched && f['email'].invalid">
-          Valid email is required
-        </small>
+    <aside class="auth-visual">
+      <div class="visual-brand">
+        <img src="VidhuraTechLogo.png" alt="Vidhura Tech" />
       </div>
 
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" formControlName="password" placeholder="Enter password" />
-        <small *ngIf="f['password'].touched && f['password'].invalid">
-          Password minimum 6 characters
-        </small>
-      </div>
-
-      <div class="forgot-link" style="color: blue;">
-        <a (click)="goToForgot()">Forgot Password?</a>
-      </div>
-
-      <button type="submit" class="auth-btn" [disabled]="loading">
-        <span *ngIf="!loading">Login</span>
-        <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
-      </button>
-
-    </form>
-
-    <!-- ================= OTP LOGIN ================= -->
-    <div *ngIf="activeTab === 'otp'" class="otp-section">
-
-      <!-- EMAIL + SEND OTP INLINE -->
-      <div class="otp-email-row">
-
-        <div class="auth-field email-field">
-          <label>Email Address 📧</label>
-          <input [(ngModel)]="otpEmail" placeholder="Enter your email" />
+      <div class="visual-content">
+        <div class="visual-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
         </div>
 
-        <button class="otp-send-btn" (click)="sendOtp()" [disabled]="otpTimer > 0 || otpLoading">
+        <h1>Welcome back to your learning portal</h1>
 
-          <span *ngIf="!otpLoading && otpTimer === 0">Send OTP</span>
-          <span *ngIf="otpLoading" class="loader"></span>
-          <span *ngIf="otpTimer > 0">{{ otpTimer }}s</span>
+        <p>
+          Access your dashboard, continue lessons, track progress, and manage your course journey.
+        </p>
 
-        </button>
-
+        <div class="visual-points">
+          <span><i class="fa-solid fa-check"></i> Secure student dashboard</span>
+          <span><i class="fa-solid fa-check"></i> Course access after enrollment</span>
+          <span><i class="fa-solid fa-check"></i> OTP and password login</span>
+        </div>
       </div>
+    </aside>
 
-      <!-- HELPER TEXT -->
-      <p class="otp-hint">
-        We’ll send a 6-digit OTP to your email
-      </p>
+    <main class="auth-panel">
+      <section class="auth-card">
 
-      <!-- DIVIDER -->
-      <div class="otp-divider">
-        <span>Enter the 6-digit OTP</span>
-      </div>
+        <div class="panel-heading">
+          <span class="eyebrow">Secure Login</span>
+          <h2>Welcome Back</h2>
+          <p>Login to continue your learning journey with Vidhura Tech.</p>
+        </div>
 
-      <!-- OTP BOXES -->
-      <div class="otp-box-container" (paste)="onPasteOtp($event)">
-        <input *ngFor="let digit of otpArray; let i = index" type="text" maxlength="1" class="otp-box"
-          [class.error]="otpError" (input)="onOtpInput($event, i)" (keydown)="onOtpKeyDown($event, i)" #otpBox />
-      </div>
+        <div class="login-tabs">
+          <button type="button" [class.active]="activeTab === 'password'" (click)="switchTab('password')">
+            Password
+          </button>
 
-      <!-- ERROR -->
-      <small *ngIf="otpError" class="otp-error">
-        Invalid OTP. Please try again.
-      </small>
+          <button type="button" [class.active]="activeTab === 'otp'" (click)="switchTab('otp')">
+            Email OTP
+          </button>
+        </div>
 
-      <!-- VALIDITY INFO -->
-      <p class="otp-valid">
-        🔐 OTP valid for <b>5 minutes</b>
-      </p>
+        <form *ngIf="activeTab === 'password'" [formGroup]="form" (ngSubmit)="submit()">
 
-      <!-- LOGIN -->
-      <button class="auth-btn otp-login-btn" (click)="verifyOtp()" [disabled]="otpVerifying">
+          <div class="auth-field">
+            <label>Email Address</label>
+            <div class="field-shell">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" formControlName="email" placeholder="you@example.com" />
+            </div>
+            <small *ngIf="f['email'].touched && f['email'].invalid">Valid email is required</small>
+          </div>
 
-        <span *ngIf="!otpVerifying">🔓 Login with OTP</span>
-        <span *ngIf="otpVerifying" class="loader"></span>
+          <div class="auth-field">
+            <label>Password</label>
+            <div class="field-shell">
+              <i class="fa-solid fa-lock"></i>
+              <input [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                placeholder="Enter password" />
 
-      </button>
+              <button type="button" class="icon-btn" (click)="togglePassword()">
+                <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+              </button>
+            </div>
+            <small *ngIf="f['password'].touched && f['password'].invalid">Password is required</small>
+          </div>
 
-      <!-- SECURITY NOTE -->
-      <div class="otp-security">
-        🔒 Never share your OTP with anyone
-      </div>
+          <div class="forgot-link">
+            <a (click)="goToForgot()">Forgot Password?</a>
+          </div>
 
-    </div>
+          <button type="submit" class="auth-btn" [disabled]="loading">
+            <span *ngIf="!loading">Login</span>
+            <span *ngIf="loading" class="loader dark"></span>
+          </button>
 
-    <!-- ================= FOOTER ================= -->
+        </form>
 
-    <p class="switch-link">
-      Don’t have an account?
-      <a routerLink="/register">Register</a>
-    </p>
+        <div *ngIf="activeTab === 'otp'" class="otp-section">
+
+          <div class="otp-email-row">
+            <div class="auth-field email-field">
+              <label>Email Address</label>
+              <div class="field-shell">
+                <i class="fa-solid fa-envelope"></i>
+                <input [(ngModel)]="otpEmail" placeholder="you@example.com" />
+              </div>
+            </div>
+
+            <button type="button" class="otp-send-btn" (click)="sendOtp()" [disabled]="otpTimer > 0 || otpLoading">
+              <span *ngIf="!otpLoading && otpTimer === 0">Send</span>
+              <span *ngIf="otpLoading" class="loader"></span>
+              <span *ngIf="otpTimer > 0">{{ otpTimer }}s</span>
+            </button>
+          </div>
+
+          <p class="otp-hint">We will send a 6-digit verification code to your email.</p>
+
+          <div class="otp-divider">
+            <span>Enter OTP</span>
+          </div>
+
+          <div class="otp-box-container" (paste)="onPasteOtp($event)">
+            <input *ngFor="let digit of otpValues; let i = index; trackBy: trackByOtpIndex" type="text" maxlength="1"
+              inputmode="numeric" autocomplete="one-time-code" class="otp-box" [value]="otpValues[i]"
+              [class.error]="otpError" (input)="onOtpInput($event, i)" (keydown)="onOtpKeyDown($event, i)" #otpBox />
+          </div>
+
+          <small *ngIf="otpError" class="otp-error">Invalid OTP. Please try again.</small>
+
+          <p class="otp-valid">OTP valid for <b>5 minutes</b></p>
+
+          <button type="button" class="auth-btn" (click)="verifyOtp()" [disabled]="otpVerifying">
+            <span *ngIf="!otpVerifying">Login with OTP</span>
+            <span *ngIf="otpVerifying" class="loader dark"></span>
+          </button>
+
+          <div class="otp-security">
+            <i class="fa-solid fa-shield-halved"></i>
+            Never share your OTP with anyone.
+          </div>
+
+        </div>
+
+        <p class="switch-link">
+          Don’t have an account?
+          <a routerLink="/register">Create account</a>
+        </p>
+
+      </section>
+    </main>
 
   </div>
 </div>
