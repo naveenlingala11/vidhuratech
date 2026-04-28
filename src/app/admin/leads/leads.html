@@ -1,434 +1,554 @@
 <div class="leads-page">
 
-    <div class="page-header">
+    <section class="hero-panel">
         <div>
             <span class="eyebrow">CRM Leads</span>
-            <h1>Lead Management</h1>
-            <p>Track inquiries, follow-ups, conversions, and communication in one place.</p>
+            <h1>Lead Command Center</h1>
+            <p>Manage inquiries, follow-ups, conversions, and deleted records from one focused workspace.</p>
         </div>
 
         <div class="header-actions">
-            <button class="ghost-btn" (click)="refreshLeads()">Refresh</button>
-            <button class="primary-btn" (click)="exportCSV()">Export CSV</button>
+            <button class="soft-btn" type="button" (click)="refreshLeads()" [disabled]="loading || binLoading">
+                Refresh
+            </button>
+            <button class="primary-btn" type="button" (click)="exportCSV()"
+                [disabled]="!filteredLeads.length || activeView === 'bin'">
+                Export CSV
+            </button>
         </div>
+    </section>
+
+    <div class="view-tabs" role="tablist">
+        <button type="button" [class.active]="activeView === 'active'" (click)="switchView('active')">
+            Active Leads
+            <span>{{ totalElements }}</span>
+        </button>
+        <button type="button" [class.active]="activeView === 'bin'" (click)="switchView('bin')">
+            Bin
+            <span>{{ binTotalElements }}</span>
+        </button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span>Total Leads</span>
-            <strong>{{ stats.total }}</strong>
-            <small>All captured inquiries</small>
-        </div>
+    <ng-container *ngIf="activeView === 'active'">
+        <section class="metrics-grid" aria-label="Lead analytics">
+            <article class="metric-card metric-total">
+                <span>Total Leads</span>
+                <strong>{{ stats.total }}</strong>
+                <small>All captured inquiries</small>
+            </article>
 
-        <div class="stat-card blue">
-            <span>New</span>
-            <strong>{{ stats.new }}</strong>
-            <small>Fresh leads</small>
-        </div>
+            <article class="metric-card metric-new">
+                <span>New</span>
+                <strong>{{ stats.new }}</strong>
+                <small>Fresh leads</small>
+            </article>
 
-        <div class="stat-card orange">
-            <span>Contacted</span>
-            <strong>{{ stats.contacted }}</strong>
-            <small>Follow-up started</small>
-        </div>
+            <article class="metric-card metric-contacted">
+                <span>Contacted</span>
+                <strong>{{ stats.contacted }}</strong>
+                <small>Follow-up started</small>
+            </article>
 
-        <div class="stat-card green">
-            <span>Joined</span>
-            <strong>{{ stats.joined }}</strong>
-            <small>Converted students</small>
-        </div>
-    </div>
+            <article class="metric-card metric-joined">
+                <span>Joined</span>
+                <strong>{{ stats.joined }}</strong>
+                <small>{{ stats.conversionRate }}% conversion</small>
+            </article>
 
-    <div class="filter-card">
-        <div class="field search-field">
-            <label>Search</label>
-            <input placeholder="Name or phone..." [(ngModel)]="searchText" (input)="applyFilter()" />
-        </div>
+            <article class="metric-card metric-followup">
+                <span>Due Today</span>
+                <strong>{{ pageStats.todayFollowups }}</strong>
+                <small>On this page</small>
+            </article>
+        </section>
 
-        <div class="field">
-            <label>Status</label>
-            <select [(ngModel)]="selectedStatus" (change)="applyLocalFilters()">
-                <option value="">All Status</option>
-                <option>New</option>
-                <option>Contacted</option>
-                <option>Joined</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label>City</label>
-            <select [(ngModel)]="selectedCity" (change)="applyLocalFilters()">
-                <option value="">All Cities</option>
-                <option *ngFor="let c of cities">{{ c }}</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label>From Date</label>
-            <input type="date" [(ngModel)]="fromDate" (change)="applyLocalFilters()" />
-        </div>
-
-        <div class="field">
-            <label>To Date</label>
-            <input type="date" [(ngModel)]="toDate" (change)="applyLocalFilters()" />
-        </div>
-    </div>
-
-    <div *ngIf="loading" class="loading-state">
-        <span></span>
-        Loading leads...
-    </div>
-
-    <div *ngIf="error" class="error-state">
-        {{ error }}
-    </div>
-
-    <div class="table-card" *ngIf="!loading && !error">
-        <div class="table-head">
-            <div>
-                <h3>Lead Records</h3>
-                <p>{{ totalElements }} total leads found</p>
+        <section class="add-lead-panel">
+            <div class="add-lead-head">
+                <div>
+                    <span class="eyebrow">Quick Entry</span>
+                    <h3>Add Lead</h3>
+                    <p>Add leads from calls, references, walk-ins, or any offline contact source.</p>
+                </div>
+                <button class="soft-btn" type="button" (click)="resetManualLeadForm()" [disabled]="addLeadSaving">
+                    Reset
+                </button>
             </div>
 
-            <div class="page-size">
-                <span>Rows</span>
-                <select [(ngModel)]="size" (change)="page = 0; loadLeads()">
-                    <option [value]="10">10</option>
-                    <option [value]="25">25</option>
-                    <option [value]="50">50</option>
+            <div class="add-lead-grid">
+                <div class="field">
+                    <label>Name *</label>
+                    <input type="text" [(ngModel)]="addLeadForm.name" placeholder="Lead name" />
+                    <small class="field-error" *ngIf="formErrors.name">{{ formErrors.name }}</small>
+                </div>
+
+                <div class="field">
+                    <label>Phone *</label>
+                    <input type="tel" [(ngModel)]="addLeadForm.phone" (blur)="onAddLeadPhoneBlur()"
+                        placeholder="Phone number" />
+                    <small class="field-error" *ngIf="formErrors.phone">{{ formErrors.phone }}</small>
+                </div>
+
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" [(ngModel)]="addLeadForm.email" placeholder="Email address" />
+                    <small class="field-error" *ngIf="formErrors.email">{{ formErrors.email }}</small>
+                </div>
+
+                <div class="field">
+                    <label>Course</label>
+                    <input type="text" [(ngModel)]="addLeadForm.course" list="courseSuggestions"
+                        placeholder="Interested course" />
+                    <datalist id="courseSuggestions">
+                        <option *ngFor="let course of courseOptions" [value]="course"></option>
+                    </datalist>
+                </div>
+
+                <div class="field">
+                    <label>Source</label>
+                    <select [(ngModel)]="addLeadForm.source">
+                        <option *ngFor="let src of addLeadSources" [value]="src">{{ src }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Message</label>
+                <textarea [(ngModel)]="addLeadForm.message" rows="3" placeholder="Any notes or message"></textarea>
+            </div>
+
+            <div class="add-lead-actions">
+                <small *ngIf="formFeedback" class="form-feedback" [class.error]="formFeedbackType === 'error'"
+                    [class.success]="formFeedbackType === 'success'">
+                    {{ formFeedback }}
+                </small>
+                <button class="primary-btn" type="button" (click)="saveManualLead()" [disabled]="addLeadSaving">
+                    {{ addLeadSaving ? 'Saving...' : 'Save Lead' }}
+                </button>
+            </div>
+        </section>
+
+        <section class="control-panel">
+            <div class="field search-field">
+                <label>Search</label>
+                <input type="search" placeholder="Name or phone..." [(ngModel)]="searchText" (input)="onSearchInput()"
+                    (keyup.enter)="applyFilter()" />
+            </div>
+
+            <div class="field">
+                <label>Status</label>
+                <select [(ngModel)]="selectedStatus" (change)="applyLocalFilters()">
+                    <option value="">All Status</option>
+                    <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
                 </select>
             </div>
+
+            <div class="field">
+                <label>City</label>
+                <select [(ngModel)]="selectedCity" (change)="applyLocalFilters()">
+                    <option value="">All Cities</option>
+                    <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>From</label>
+                <input type="date" [(ngModel)]="fromDate" (change)="applyLocalFilters()" />
+            </div>
+
+            <div class="field">
+                <label>To</label>
+                <input type="date" [(ngModel)]="toDate" (change)="applyLocalFilters()" />
+            </div>
+
+            <div class="field">
+                <label>Sort</label>
+                <select [(ngModel)]="selectedSortIndex" (ngModelChange)="applySortByIndex($event)">
+                    <option *ngFor="let option of sortOptions; let i = index" [ngValue]="i">
+                        {{ option.label }}
+                    </option>
+                </select>
+            </div>
+
+            <button class="clear-btn" type="button" (click)="clearFilters()">
+                Clear
+            </button>
+        </section>
+
+        <section class="bulk-bar" *ngIf="selectedCount">
+            <strong>{{ selectedCount }} selected</strong>
+
+            <select [(ngModel)]="bulkStatus" aria-label="Bulk status">
+                <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+
+            <button class="soft-btn" type="button" (click)="bulkUpdateStatus()" [disabled]="bulkBusy">
+                Apply Status
+            </button>
+            <button class="danger-outline-btn" type="button" (click)="bulkDelete()" [disabled]="bulkBusy">
+                Move to Bin
+            </button>
+        </section>
+
+        <div *ngIf="loading" class="loading-state">
+            <span></span>
+            Loading leads...
         </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Lead</th>
-                        <th>Contact</th>
-                        <th>Course</th>
-                        <th>Message</th>
-                        <th>Status</th>
-                        <th>Follow-up</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr *ngFor="let lead of filteredLeads">
-                        <td>{{ lead.Date | date:'dd/MM/yyyy' }}</td>
-
-                        <td>
-                            <div class="lead-name">{{ lead.Name || '-' }}</div>
-                            <small>{{ lead.City || 'No city' }}</small>
-                        </td>
-
-                        <td>
-                            <div>{{ lead.Phone }}</div>
-                            <small>{{ lead.Email || '-' }}</small>
-                        </td>
-
-                        <td>{{ lead.Course || '-' }}</td>
-
-                        <td>
-                            <button class="text-btn" (click)="openMessagePopup(lead)">
-                                {{ lead.Message ? (lead.Message | slice:0:28) + '...' : 'No message' }}
-                            </button>
-                        </td>
-
-                        <td>
-                            <div class="inline-edit">
-                                <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
-                                    <option>New</option>
-                                    <option>Contacted</option>
-                                    <option>Joined</option>
-                                </select>
-
-                                <button *ngIf="lead.isChanged" class="mini-save"
-                                    (click)="saveStatus(lead)">Save</button>
-                                <button *ngIf="lead.isChanged" class="mini-cancel"
-                                    (click)="cancelStatus(lead)">Cancel</button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="inline-edit">
-                                <input type="date" [(ngModel)]="lead.tempFollowUp" (change)="onFollowUpChange(lead)" />
-
-                                <button *ngIf="lead.isFollowUpChanged" class="mini-save"
-                                    (click)="saveFollowUp(lead)">Save</button>
-                                <button *ngIf="lead.isFollowUpChanged" class="mini-cancel"
-                                    (click)="cancelFollowUp(lead)">Cancel</button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="row-actions">
-                                <button class="whatsapp-btn" (click)="openWhatsAppLead(lead)">WhatsApp</button>
-                                <button class="delete-btn" (click)="openDeletePopup(lead)">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr *ngIf="!filteredLeads.length">
-                        <td colspan="8" class="empty-row">No leads found</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div *ngIf="error" class="error-state">
+            {{ error }}
         </div>
 
-        <div class="pagination">
-            <button (click)="prevPage()" [disabled]="page === 0">Previous</button>
-            <span>Page {{ page + 1 }} of {{ totalPages || 1 }}</span>
-            <button (click)="nextPage()" [disabled]="page >= totalPages - 1">Next</button>
-        </div>
-    </div>
+        <section class="records-panel" *ngIf="!loading && !error">
+            <div class="records-head">
+                <div>
+                    <h2>Lead Records</h2>
+                    <p>{{ pageStats.showing }} showing from {{ totalElements }} total</p>
+                </div>
+
+                <div class="head-tools">
+                    <span *ngIf="pageStats.pendingEdits" class="pending-chip">
+                        {{ pageStats.pendingEdits }} unsaved
+                    </span>
+
+                    <label class="page-size">
+                        Rows
+                        <select [(ngModel)]="size" (change)="page = 0; loadLeads()">
+                            <option *ngFor="let option of pageSizeOptions" [value]="option">{{ option }}</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="table-scroll">
+                <table class="leads-table">
+                    <thead>
+                        <tr>
+                            <th class="select-col">
+                                <input type="checkbox" [checked]="areAllVisibleSelected()"
+                                    (change)="toggleSelectAll($any($event.target).checked)"
+                                    aria-label="Select all visible leads" />
+                            </th>
+                            <th>
+                                <button class="sort-header" type="button" (click)="toggleSort('date')">
+                                    Date <span>{{ getSortLabel('date') }}</span>
+                                </button>
+                            </th>
+                            <th>
+                                <button class="sort-header" type="button" (click)="toggleSort('name')">
+                                    Lead <span>{{ getSortLabel('name') }}</span>
+                                </button>
+                            </th>
+                            <th>Contact</th>
+                            <th>Course</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Follow-up</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let lead of filteredLeads" [class.selected-row]="isLeadSelected(lead)">
+                            <td class="select-col">
+                                <input type="checkbox" [checked]="isLeadSelected(lead)"
+                                    (change)="toggleLeadSelection(lead, $any($event.target).checked)"
+                                    [attr.aria-label]="'Select ' + (lead.Name || lead.Phone)" />
+                            </td>
+
+                            <td>
+                                <strong class="date-text">{{ lead.Date | date:'dd MMM yyyy' }}</strong>
+                                <small>{{ lead.Date | date:'hh:mm a' }}</small>
+                            </td>
+
+                            <td>
+                                <div class="lead-cell">
+                                    <span class="avatar">{{ getInitials(lead) }}</span>
+                                    <div>
+                                        <button class="lead-link" type="button" (click)="openLeadDrawer(lead)">
+                                            {{ lead.Name || 'Unnamed Lead' }}
+                                        </button>
+                                        <small>{{ lead.City || 'No city' }} <span *ngIf="lead.Source">- {{ lead.Source
+                                                }}</span></small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="contact-stack">
+                                    <button class="plain-link" type="button" (click)="copyPhone(lead)">{{ lead.Phone ||
+                                        '-' }}</button>
+                                    <small>{{ lead.Email || '-' }}</small>
+                                </div>
+                            </td>
+
+                            <td>
+                                <strong>{{ lead.Course || '-' }}</strong>
+                                <small *ngIf="lead.Batch">{{ lead.Batch }}</small>
+                                <small *ngIf="lead.ExpectedAmount !== null">Expected: {{ lead.ExpectedAmount |
+                                    currency:'INR':'symbol':'1.0-0' }}</small>
+                            </td>
+
+                            <td>
+                                <button class="message-btn" type="button" (click)="openMessagePopup(lead)">
+                                    {{ lead.Message ? (lead.Message | slice:0:34) + (lead.Message.length > 34 ? '...' :
+                                    '') : 'No message' }}
+                                </button>
+                            </td>
+
+                            <td>
+                                <div class="status-editor" [ngClass]="getStatusClass(lead.tempStatus)">
+                                    <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
+                                        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+                                    </select>
+                                </div>
+
+                                <div class="mini-actions" *ngIf="lead.isChanged">
+                                    <button class="mini-save" type="button" (click)="saveStatus(lead)">Save</button>
+                                    <button class="mini-cancel" type="button"
+                                        (click)="cancelStatus(lead)">Cancel</button>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="follow-cell" [ngClass]="getFollowUpClass(lead)">
+                                    <input type="date" [(ngModel)]="lead.tempFollowUp"
+                                        (change)="onFollowUpChange(lead)" />
+                                    <button *ngIf="!lead.FollowUp" class="tiny-btn" type="button"
+                                        (click)="markFollowUpToday(lead)">
+                                        Today
+                                    </button>
+                                </div>
+
+                                <div class="mini-actions" *ngIf="lead.isFollowUpChanged">
+                                    <button class="mini-save" type="button" (click)="saveFollowUp(lead)">Save</button>
+                                    <button class="mini-cancel" type="button"
+                                        (click)="cancelFollowUp(lead)">Cancel</button>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="row-actions">
+                                    <button class="soft-btn compact" type="button"
+                                        (click)="openLeadDrawer(lead)">View</button>
+                                    <button class="whatsapp-btn compact" type="button"
+                                        (click)="openWhatsAppLead(lead)">WhatsApp</button>
+                                    <button class="danger-btn compact" type="button"
+                                        (click)="openDeletePopup(lead)">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr *ngIf="!filteredLeads.length">
+                            <td colspan="9" class="empty-row">No leads found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button type="button" (click)="prevPage()" [disabled]="page === 0">Previous</button>
+                <span>Page {{ page + 1 }} of {{ totalPages || 1 }}</span>
+                <button type="button" (click)="nextPage()" [disabled]="page >= totalPages - 1">Next</button>
+            </div>
+        </section>
+    </ng-container>
+
+    <ng-container *ngIf="activeView === 'bin'">
+        <section class="records-panel">
+            <div class="records-head">
+                <div>
+                    <h2>Bin</h2>
+                    <p>{{ binTotalElements }} deleted leads</p>
+                </div>
+
+                <label class="page-size">
+                    Rows
+                    <select [(ngModel)]="binSize" (change)="binPage = 0; loadBin()">
+                        <option *ngFor="let option of pageSizeOptions" [value]="option">{{ option }}</option>
+                    </select>
+                </label>
+            </div>
+
+            <div *ngIf="binLoading" class="loading-state">
+                <span></span>
+                Loading bin...
+            </div>
+
+            <div *ngIf="binError" class="error-state">
+                {{ binError }}
+            </div>
+
+            <div class="table-scroll" *ngIf="!binLoading && !binError">
+                <table class="leads-table">
+                    <thead>
+                        <tr>
+                            <th>Deleted</th>
+                            <th>Lead</th>
+                            <th>Contact</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let lead of binLeads">
+                            <td>
+                                <strong class="date-text">{{ lead.DeletedAt | date:'dd MMM yyyy' }}</strong>
+                                <small>{{ lead.DeletedAt | date:'hh:mm a' }}</small>
+                            </td>
+
+                            <td>
+                                <div class="lead-cell">
+                                    <span class="avatar muted">{{ getInitials(lead) }}</span>
+                                    <div>
+                                        <strong>{{ lead.Name || 'Unnamed Lead' }}</strong>
+                                        <small>{{ lead.City || 'No city' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="contact-stack">
+                                    <span>{{ lead.Phone || '-' }}</span>
+                                    <small>{{ lead.Email || '-' }}</small>
+                                </div>
+                            </td>
+
+                            <td>{{ lead.Course || '-' }}</td>
+
+                            <td>
+                                <span class="status-pill" [ngClass]="getStatusClass(lead.Status)">
+                                    {{ lead.Status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="row-actions">
+                                    <button class="soft-btn compact" type="button" (click)="restoreLead(lead)"
+                                        [disabled]="actionBusy">
+                                        Restore
+                                    </button>
+                                    <button class="danger-btn compact" type="button" (click)="deletePermanent(lead)"
+                                        [disabled]="actionBusy">
+                                        Delete Forever
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr *ngIf="!binLeads.length">
+                            <td colspan="6" class="empty-row">Bin is empty</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" *ngIf="!binLoading && !binError">
+                <button type="button" (click)="prevBinPage()" [disabled]="binPage === 0">Previous</button>
+                <span>Page {{ binPage + 1 }} of {{ binTotalPages || 1 }}</span>
+                <button type="button" (click)="nextBinPage()" [disabled]="binPage >= binTotalPages - 1">Next</button>
+            </div>
+        </section>
+    </ng-container>
 
     <div class="popup-overlay" *ngIf="showMessagePopup">
-        <div class="popup-card">
+        <section class="popup-card">
             <div class="popup-header">
-                <h3>Lead Message</h3>
-                <button (click)="closeMessagePopup()">x</button>
+                <div>
+                    <span class="eyebrow">Message</span>
+                    <h3>{{ selectedMessageLead?.Name || 'Lead Message' }}</h3>
+                </div>
+                <button type="button" (click)="closeMessagePopup()" aria-label="Close message">x</button>
             </div>
 
             <p class="message-box">
                 {{ selectedMessageLead?.Message || 'No message available' }}
             </p>
-        </div>
+        </section>
     </div>
 
     <div class="popup-overlay" *ngIf="showDeletePopup">
-        <div class="popup-card danger">
+        <section class="popup-card danger">
             <div class="popup-header">
-                <h3>Move Lead to Bin?</h3>
-                <button (click)="closeDeletePopup()">x</button>
-            </div>
-
-            <p>This lead will be moved to bin. You can restore it later.</p>
-
-            <div class="popup-actions">
-                <button class="ghost-btn" (click)="closeDeletePopup()">Cancel</button>
-                <button class="delete-btn" (click)="confirmDelete()">Delete</button>
-            </div>
-        </div>
-    </div>
-
-</div>
-<div class="leads-page">
-
-    <div class="page-header">
-        <div>
-            <span class="eyebrow">CRM Leads</span>
-            <h1>Lead Management</h1>
-            <p>Track inquiries, follow-ups, conversions, and communication in one place.</p>
-        </div>
-
-        <div class="header-actions">
-            <button class="ghost-btn" (click)="refreshLeads()">Refresh</button>
-            <button class="primary-btn" (click)="exportCSV()">Export CSV</button>
-        </div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span>Total Leads</span>
-            <strong>{{ stats.total }}</strong>
-            <small>All captured inquiries</small>
-        </div>
-
-        <div class="stat-card blue">
-            <span>New</span>
-            <strong>{{ stats.new }}</strong>
-            <small>Fresh leads</small>
-        </div>
-
-        <div class="stat-card orange">
-            <span>Contacted</span>
-            <strong>{{ stats.contacted }}</strong>
-            <small>Follow-up started</small>
-        </div>
-
-        <div class="stat-card green">
-            <span>Joined</span>
-            <strong>{{ stats.joined }}</strong>
-            <small>Converted students</small>
-        </div>
-    </div>
-
-    <div class="filter-card">
-        <div class="field search-field">
-            <label>Search</label>
-            <input placeholder="Name or phone..." [(ngModel)]="searchText" (input)="applyFilter()" />
-        </div>
-
-        <div class="field">
-            <label>Status</label>
-            <select [(ngModel)]="selectedStatus" (change)="applyLocalFilters()">
-                <option value="">All Status</option>
-                <option>New</option>
-                <option>Contacted</option>
-                <option>Joined</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label>City</label>
-            <select [(ngModel)]="selectedCity" (change)="applyLocalFilters()">
-                <option value="">All Cities</option>
-                <option *ngFor="let c of cities">{{ c }}</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <label>From Date</label>
-            <input type="date" [(ngModel)]="fromDate" (change)="applyLocalFilters()" />
-        </div>
-
-        <div class="field">
-            <label>To Date</label>
-            <input type="date" [(ngModel)]="toDate" (change)="applyLocalFilters()" />
-        </div>
-    </div>
-
-    <div *ngIf="loading" class="loading-state">
-        <span></span>
-        Loading leads...
-    </div>
-
-    <div *ngIf="error" class="error-state">
-        {{ error }}
-    </div>
-
-    <div class="table-card" *ngIf="!loading && !error">
-        <div class="table-head">
-            <div>
-                <h3>Lead Records</h3>
-                <p>{{ totalElements }} total leads found</p>
-            </div>
-
-            <div class="page-size">
-                <span>Rows</span>
-                <select [(ngModel)]="size" (change)="page = 0; loadLeads()">
-                    <option [value]="10">10</option>
-                    <option [value]="25">25</option>
-                    <option [value]="50">50</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Lead</th>
-                        <th>Contact</th>
-                        <th>Course</th>
-                        <th>Message</th>
-                        <th>Status</th>
-                        <th>Follow-up</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr *ngFor="let lead of filteredLeads">
-                        <td>{{ lead.Date | date:'dd/MM/yyyy' }}</td>
-
-                        <td>
-                            <div class="lead-name">{{ lead.Name || '-' }}</div>
-                            <small>{{ lead.City || 'No city' }}</small>
-                        </td>
-
-                        <td>
-                            <div>{{ lead.Phone }}</div>
-                            <small>{{ lead.Email || '-' }}</small>
-                        </td>
-
-                        <td>{{ lead.Course || '-' }}</td>
-
-                        <td>
-                            <button class="text-btn" (click)="openMessagePopup(lead)">
-                                {{ lead.Message ? (lead.Message | slice:0:28) + '...' : 'No message' }}
-                            </button>
-                        </td>
-
-                        <td>
-                            <div class="inline-edit">
-                                <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
-                                    <option>New</option>
-                                    <option>Contacted</option>
-                                    <option>Joined</option>
-                                </select>
-
-                                <button *ngIf="lead.isChanged" class="mini-save"
-                                    (click)="saveStatus(lead)">Save</button>
-                                <button *ngIf="lead.isChanged" class="mini-cancel"
-                                    (click)="cancelStatus(lead)">Cancel</button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="inline-edit">
-                                <input type="date" [(ngModel)]="lead.tempFollowUp" (change)="onFollowUpChange(lead)" />
-
-                                <button *ngIf="lead.isFollowUpChanged" class="mini-save"
-                                    (click)="saveFollowUp(lead)">Save</button>
-                                <button *ngIf="lead.isFollowUpChanged" class="mini-cancel"
-                                    (click)="cancelFollowUp(lead)">Cancel</button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="row-actions">
-                                <button class="whatsapp-btn" (click)="openWhatsAppLead(lead)">WhatsApp</button>
-                                <button class="delete-btn" (click)="openDeletePopup(lead)">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr *ngIf="!filteredLeads.length">
-                        <td colspan="8" class="empty-row">No leads found</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination">
-            <button (click)="prevPage()" [disabled]="page === 0">Previous</button>
-            <span>Page {{ page + 1 }} of {{ totalPages || 1 }}</span>
-            <button (click)="nextPage()" [disabled]="page >= totalPages - 1">Next</button>
-        </div>
-    </div>
-
-    <div class="popup-overlay" *ngIf="showMessagePopup">
-        <div class="popup-card">
-            <div class="popup-header">
-                <h3>Lead Message</h3>
-                <button (click)="closeMessagePopup()">x</button>
+                <div>
+                    <span class="eyebrow">Delete</span>
+                    <h3>Move Lead to Bin?</h3>
+                </div>
+                <button type="button" (click)="closeDeletePopup()" aria-label="Close delete dialog">x</button>
             </div>
 
             <p class="message-box">
-                {{ selectedMessageLead?.Message || 'No message available' }}
+                {{ selectedLeadToDelete?.Name || selectedLeadToDelete?.Phone }} will be moved to bin. You can restore it
+                later.
             </p>
-        </div>
-    </div>
-
-    <div class="popup-overlay" *ngIf="showDeletePopup">
-        <div class="popup-card danger">
-            <div class="popup-header">
-                <h3>Move Lead to Bin?</h3>
-                <button (click)="closeDeletePopup()">x</button>
-            </div>
-
-            <p>This lead will be moved to bin. You can restore it later.</p>
 
             <div class="popup-actions">
-                <button class="ghost-btn" (click)="closeDeletePopup()">Cancel</button>
-                <button class="delete-btn" (click)="confirmDelete()">Delete</button>
+                <button class="soft-btn" type="button" (click)="closeDeletePopup()">Cancel</button>
+                <button class="danger-btn" type="button" (click)="confirmDelete()"
+                    [disabled]="actionBusy">Delete</button>
             </div>
-        </div>
+        </section>
     </div>
 
+    <div class="drawer-overlay" *ngIf="showLeadDrawer" (click)="closeLeadDrawer()">
+        <aside class="lead-drawer" (click)="$event.stopPropagation()">
+            <button class="drawer-close" type="button" (click)="closeLeadDrawer()" aria-label="Close details">x</button>
+
+            <div class="drawer-profile">
+                <span class="avatar large">{{ getInitials(selectedLead) }}</span>
+                <div>
+                    <span class="eyebrow">Lead Details</span>
+                    <h3>{{ selectedLead?.Name || 'Unnamed Lead' }}</h3>
+                    <p>{{ selectedLead?.Course || 'No course selected' }}</p>
+                </div>
+            </div>
+
+            <dl class="detail-grid">
+                <div>
+                    <dt>Phone</dt>
+                    <dd>{{ selectedLead?.Phone || '-' }}</dd>
+                </div>
+                <div>
+                    <dt>Email</dt>
+                    <dd>{{ selectedLead?.Email || '-' }}</dd>
+                </div>
+                <div>
+                    <dt>City</dt>
+                    <dd>{{ selectedLead?.City || '-' }}</dd>
+                </div>
+                <div>
+                    <dt>Status</dt>
+                    <dd>
+                        <span class="status-pill" [ngClass]="getStatusClass(selectedLead?.Status || '')">
+                            {{ selectedLead?.Status || '-' }}
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt>Follow-up</dt>
+                    <dd>{{ selectedLead?.FollowUp || '-' }}</dd>
+                </div>
+                <div>
+                    <dt>Source</dt>
+                    <dd>{{ selectedLead?.Source || '-' }}</dd>
+                </div>
+            </dl>
+
+            <div class="drawer-message">
+                <span>Message</span>
+                <p>{{ selectedLead?.Message || 'No message available' }}</p>
+            </div>
+
+            <div class="drawer-actions" *ngIf="selectedLead as drawerLead">
+                <button class="whatsapp-btn" type="button" (click)="openWhatsAppLead(drawerLead)">WhatsApp</button>
+                <button class="soft-btn" type="button" (click)="callLead(drawerLead)">Call</button>
+                <button class="soft-btn" type="button" (click)="copyPhone(drawerLead)">Copy Phone</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="toast" [class.error]="toastType === 'error'" *ngIf="toastMessage">
+        {{ toastMessage }}
+    </div>
 </div>

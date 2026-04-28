@@ -1,61 +1,31 @@
 <nav class="navbar navbar-expand-lg fixed-top" [class.navbar-scrolled]="scrolled" (click)="$event.stopPropagation()">
-
   <div class="container-fluid px-3">
 
-    <!-- LOGO -->
     <a class="navbar-brand" routerLink="/">
-      <img src="VidhuraTechLogo.png" class="logo" />
+      <img src="VidhuraTechLogo.png" class="logo" alt="VidhuraTech" />
     </a>
 
-    <!-- HAMBURGER -->
-    <button class="navbar-toggler" (click)="toggleMobileMenu()">
-      ☰
+    <button class="navbar-toggler" type="button" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <i class="fa-solid" [ngClass]="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
     </button>
 
-    <!-- MENU -->
     <div class="navbar-collapse" [class.show]="mobileMenuOpen">
-
       <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a routerLink="/" class="nav-link" (click)="closeMenu()">Home</a></li>
+        <li class="nav-item"><a routerLink="/courses" class="nav-link" (click)="closeMenu()">Courses</a></li>
+        <li class="nav-item"><a routerLink="/placements" class="nav-link" (click)="closeMenu()">Placements</a></li>
+        <li class="nav-item"><a routerLink="/contact" class="nav-link" (click)="closeMenu()">Contact</a></li>
+        <li class="nav-item"><a routerLink="/about" class="nav-link" (click)="closeMenu()">About</a></li>
 
-        <li class="nav-item">
-          <a routerLink="/" class="nav-link" (click)="closeMenu()">Home</a>
-        </li>
-
-        <li class="nav-item">
-          <a routerLink="/courses" class="nav-link" (click)="closeMenu()">Courses</a>
-        </li>
-
-        <li class="nav-item">
-          <a routerLink="/placements" class="nav-link" (click)="closeMenu()">Placements</a>
-        </li>
-
-        <li class="nav-item">
-          <a routerLink="/contact" class="nav-link" (click)="closeMenu()">Contact</a>
-        </li>
-
-        <li class="nav-item">
-          <a routerLink="/about" class="nav-link" (click)="closeMenu()">About</a>
-        </li>
-
-        <!-- LOGIN -->
-        <li *ngIf="!authService.isLoggedIn()" class="nav-item mt-2">
-          <a routerLink="/login" class="nav-link" (click)="closeMenu()">Login</a>
-        </li>
-
-        <!-- USER -->
-        <!-- AUTH ACTIONS -->
         <li *ngIf="!authService.isLoggedIn()" class="nav-item auth-actions">
           <a routerLink="/login" class="auth-link login-link" (click)="closeMenu()">Login</a>
           <span class="auth-separator">/</span>
           <a routerLink="/register" class="auth-link register-link" (click)="closeMenu()">Register</a>
         </li>
 
-        <!-- USER -->
         <li *ngIf="authService.isLoggedIn()" class="nav-item user-nav-item">
-
           <div class="user-wrapper">
-
-            <button class="user-display" type="button" (click)="toggleDropdown()">
+            <button class="user-display" type="button" (click)="toggleDropdown($event)">
               <span class="user-avatar">
                 <i class="fa-solid fa-user"></i>
               </span>
@@ -69,11 +39,8 @@
             </button>
 
             <div class="user-dropdown" *ngIf="showDropdown">
-
               <div class="dropdown-user">
-                <span class="dropdown-avatar">
-                  <i class="fa-solid fa-user"></i>
-                </span>
+                <span class="dropdown-avatar"><i class="fa-solid fa-user"></i></span>
                 <div>
                   <strong>{{ authService.getUser()?.name || 'User' }}</strong>
                   <small>{{ authService.getUser()?.email || 'Vidhura Tech' }}</small>
@@ -83,7 +50,7 @@
               <div class="divider"></div>
 
               <button class="dropdown-item" type="button" (click)="goDashboard()">
-                <i class="fa-solid fa-grid-2"></i>
+                <i class="fa-solid fa-table-columns"></i>
                 Dashboard
               </button>
 
@@ -98,20 +65,12 @@
                 <i class="fa-solid fa-right-from-bracket"></i>
                 Logout
               </button>
-
             </div>
-
           </div>
-
         </li>
-
       </ul>
-
     </div>
-
   </div>
 </nav>
 
-<!-- BACKDROP -->
-<div class="menu-backdrop" *ngIf="mobileMenuOpen" (click)="closeMenu()">
-</div>
+<div class="menu-backdrop" *ngIf="mobileMenuOpen" (click)="closeMenu()"></div>
