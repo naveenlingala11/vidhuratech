@@ -14,11 +14,13 @@ export class AdminActionsComponent {
   constructor(private router: Router) { }
 
   modules = [
+    { title: 'Admissions', route: '/dashboard/admin/admissions', icon: '🎓' },
     { title: 'Create Employee', route: '/dashboard/admin/create-user', icon: '➕' },
     { title: 'Users', route: '/dashboard/admin/users', icon: '👥' },
     { title: 'Batches', route: '/dashboard/admin/batches', icon: '📚' },
+    { title: 'Batch Communication', route: '/dashboard/admin/batch-communication', icon: '🎥' },
     { title: 'Courses', route: '/dashboard/lms/courses', icon: '📘' },
-    { title: 'Create Course', route: 'dashboard/lms/courses/create', icon: '📝' },
+    { title: 'Create Course', route: '/dashboard/lms/courses/create', icon: '📝' },
     { title: 'Bulk Course Upload', route: '/dashboard/admin/course-bulk', icon: '📦' },
     { title: 'Leads', route: '/admin/leads', icon: '📋' },
     { title: 'Bin', route: '/admin/bin', icon: '🗑️' },

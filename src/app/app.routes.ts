@@ -50,7 +50,6 @@ import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
    DASHBOARD (ROLE BASED)
 ========================= */
 import { DashboardLayout } from './dashboard/layouts/dashboard-layout/dashboard-layout';
-import { AdminDashboard } from './dashboard/admin-dashboard/admin-dashboard';
 import { HrDashboard } from './dashboard/hr-dashboard/hr-dashboard';
 import { ManagerDashboard } from './dashboard/manager-dashboard/manager-dashboard';
 import { MentorDashboard } from './dashboard/mentor-dashboard/mentor-dashboard';
@@ -87,6 +86,12 @@ import { AdminUsersComponent } from './admin/admin-users.component/admin-users.c
 import { AdminCreateUserComponent } from './admin/admin-create-users.component/admin-create-users.component';
 import { CoursesComponent } from './pages/courses/courses';
 import { CourseBulkUploadComponent } from './pages/courses/course-bulk-upload/course-bulk-upload';
+import { BatchCommunicationComponent } from './admin/batches/batch-communication/batch-communication';
+import { CreateAssessmentComponent } from './features/trainer/create-assessment/create-assessment';
+import { AssessmentListComponent } from './features/student/assessment-list/assessment-list';
+import { AssessmentAttemptComponent } from './features/student/assessment-attempt/assessment-attempt';
+import { AdminAdmissionsComponent } from './dashboard/admin/admin-admissions/admin-admissions';
+import { AdminDashboard } from './dashboard/admin/admin-dashboard/admin-dashboard';
 
 /* =========================
    ROUTES CONFIG
@@ -94,129 +99,135 @@ import { CourseBulkUploadComponent } from './pages/courses/course-bulk-upload/co
 
 export const routes: Routes = [
 
-  /* ===== PUBLIC ROUTES ===== */
-  { path: '', component: Home },
-  { path: 'courses', component: CoursesComponent },
-  { path: 'about', component: About },
-  { path: 'contact', component: Contact },
-  { path: 'curriculum', component: Curriculum },
-  { path: 'placements', component: Placements },
-  { path: 'resume', component: Resume },
-  { path: 'jobs', component: Jobs },
-  { path: 'jobs/:id', component: JobDetail },
-  { path: 'jobs-home', component: JobsHome },
-  { path: 'preparation', component: Preparation },
-  { path: 'company/:name', component: Company },
-  { path: 'certificate/:id', component: CertificateView },
-  { path: 'checkout', component: Checkout },
+   /* ===== PUBLIC ROUTES ===== */
+   { path: '', component: Home },
+   { path: 'courses', component: CoursesComponent },
+   { path: 'about', component: About },
+   { path: 'contact', component: Contact },
+   { path: 'curriculum', component: Curriculum },
+   { path: 'placements', component: Placements },
+   { path: 'resume', component: Resume },
+   { path: 'jobs', component: Jobs },
+   { path: 'jobs/:id', component: JobDetail },
+   { path: 'jobs-home', component: JobsHome },
+   { path: 'preparation', component: Preparation },
+   { path: 'company/:name', component: Company },
+   { path: 'certificate/:id', component: CertificateView },
+   { path: 'checkout', component: Checkout },
 
-  /* ===== POLICY ROUTES ===== */
-  { path: 'terms', component: Terms },
-  { path: 'privacy', component: Privacy },
-  { path: 'refund', component: Refund },
-  { path: 'disclaimer', component: Disclaimer },
-  { path: 'cookies', component: Cookies },
+   /* ===== POLICY ROUTES ===== */
+   { path: 'terms', component: Terms },
+   { path: 'privacy', component: Privacy },
+   { path: 'refund', component: Refund },
+   { path: 'disclaimer', component: Disclaimer },
+   { path: 'cookies', component: Cookies },
 
-  /* ===== AUTH ROUTES ===== */
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
-  { path: 'set-password', component: SetPassword },
+   /* ===== AUTH ROUTES ===== */
+   { path: 'login', component: Login },
+   { path: 'register', component: Register },
+   { path: 'set-password', component: SetPassword },
 
-  /* ===== ADMIN (LEGACY) ===== */
-  { path: 'admin', component: Admin },
-  { path: 'admin-home', component: AdminHomeComponent },
-  { path: 'admin/leads', component: LeadsComponent },
-  { path: 'admin/bin', component: BinComponent },
-  { path: 'admin/jobs', component: JobPostAdmin },
-  { path: 'admin/companies', component: CompaniesComponent },
-  { path: 'admin/certificates', component: CertificateComponent },
-  { path: 'admin/questions', component: Questions },
-  { path: 'admin/invoice', component: InvoiceComponent },
-  { path: 'invoice-analytics', component: InvoiceAnalytics },
+   /* ===== ADMIN (LEGACY) ===== */
+   { path: 'admin', component: Admin },
+   { path: 'admin-home', component: AdminHomeComponent },
+   { path: 'admin/leads', component: LeadsComponent },
+   { path: 'admin/bin', component: BinComponent },
+   { path: 'admin/jobs', component: JobPostAdmin },
+   { path: 'admin/companies', component: CompaniesComponent },
+   { path: 'admin/certificates', component: CertificateComponent },
+   { path: 'admin/questions', component: Questions },
+   { path: 'admin/invoice', component: InvoiceComponent },
+   { path: 'invoice-analytics', component: InvoiceAnalytics },
 
-  /* ===== DASHBOARD (PROTECTED) ===== */
-  {
-    path: 'dashboard',
-    component: DashboardLayout,
-    canActivate: [authGuard],
-    children: [
+   /* ===== DASHBOARD (PROTECTED) ===== */
+   {
+      path: 'dashboard',
+      component: DashboardLayout,
+      canActivate: [authGuard],
+      children: [
 
-      /* --- ROLE DASHBOARDS --- */
-      { path: 'student', component: StudentDashboard, canActivate: [roleGuard(['STUDENT'])] },
-      { path: 'trainer', component: TrainerDashboard, canActivate: [roleGuard(['TRAINER'])] },
-      { path: 'admin', component: AdminDashboard, canActivate: [roleGuard(['ADMIN'])] },
-      { path: 'hr', component: HrDashboard, canActivate: [roleGuard(['HR'])] },
-      { path: 'manager', component: ManagerDashboard, canActivate: [roleGuard(['MANAGER'])] },
-      { path: 'mentor', component: MentorDashboard, canActivate: [roleGuard(['MENTOR'])] },
+         /* --- ROLE DASHBOARDS --- */
+         { path: 'student', component: StudentDashboard, canActivate: [roleGuard(['STUDENT'])] },
+         { path: 'trainer', component: TrainerDashboard, canActivate: [roleGuard(['TRAINER'])] },
+         { path: 'admin', component: AdminDashboard, canActivate: [roleGuard(['ADMIN'])] },
+         { path: 'hr', component: HrDashboard, canActivate: [roleGuard(['HR'])] },
+         { path: 'manager', component: ManagerDashboard, canActivate: [roleGuard(['MANAGER'])] },
+         { path: 'mentor', component: MentorDashboard, canActivate: [roleGuard(['MENTOR'])] },
 
-      { path: 'student/profile', component: ProfileComponent },
-      { path: 'trainer/profile', component: ProfileComponent },
-      { path: 'admin/profile', component: ProfileComponent },
-      { path: 'hr/profile', component: ProfileComponent },
-      { path: 'manager/profile', component: ProfileComponent },
-      { path: 'mentor/profile', component: ProfileComponent },
+         { path: 'student/profile', component: ProfileComponent },
+         { path: 'trainer/profile', component: ProfileComponent },
+         { path: 'admin/profile', component: ProfileComponent },
+         { path: 'hr/profile', component: ProfileComponent },
+         { path: 'manager/profile', component: ProfileComponent },
+         { path: 'mentor/profile', component: ProfileComponent },
 
-      /* --- SUPER ADMIN --- */
-      {
-        path: 'super-admin', canActivate: [roleGuard(['SUPER_ADMIN'])],
-        children: [
-          { path: '', component: SuperAdminDashboard },
-          { path: 'users', component: SuperAdminDashboard }
-        ]
-      },
+         /* --- SUPER ADMIN --- */
+         {
+            path: 'super-admin', canActivate: [roleGuard(['SUPER_ADMIN'])],
+            children: [
+               { path: '', component: SuperAdminDashboard },
+               { path: 'users', component: SuperAdminDashboard }
+            ]
+         },
 
-      { path: 'admin/actions', component: AdminActionsComponent, canActivate: [roleGuard(['ADMIN'])] },
-      { path: 'admin/users', component: AdminUsersComponent, canActivate: [roleGuard(['ADMIN'])] },
-      { path: 'admin/create-user', component: AdminCreateUserComponent },
-      /* --- LMS COURSES --- */
-      { path: 'lms/courses', component: CourseListComponent, canActivate: [roleGuard(['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'MENTOR'])] },
+         { path: 'admin/actions', component: AdminActionsComponent, canActivate: [roleGuard(['ADMIN'])] },
+         { path: 'admin/users', component: AdminUsersComponent, canActivate: [roleGuard(['ADMIN'])] },
+         { path: 'admin/create-user', component: AdminCreateUserComponent },
+         { path: 'admin/batch-communication', component: BatchCommunicationComponent, canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])] },
 
-      // Student
-      { path: 'student/courses', component: StudentCoursesComponent, canActivate: [roleGuard(['STUDENT'])] },
-      { path: 'student/assignments', component: StudentAssignmentsComponent, canActivate: [roleGuard(['STUDENT'])] },
-      { path: 'student/certificates', component: StudentCertificatesComponent, canActivate: [roleGuard(['STUDENT'])] },
+         /* --- LMS COURSES --- */
+         { path: 'lms/courses', component: CourseListComponent, canActivate: [roleGuard(['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'MENTOR'])] },
 
-      // Trainer
-      { path: 'trainer/batches', component: TrainerBatchesComponent, canActivate: [roleGuard(['TRAINER'])] },
-      { path: 'trainer/students', component: TrainerStudentsComponent, canActivate: [roleGuard(['TRAINER'])] },
-      { path: 'trainer/content', component: TrainerContentComponent, canActivate: [roleGuard(['TRAINER'])] },
-    ]
-  },
+         // Student
+         { path: 'student/courses', component: StudentCoursesComponent, canActivate: [roleGuard(['STUDENT'])] },
+         { path: 'student/assignments', component: StudentAssignmentsComponent, canActivate: [roleGuard(['STUDENT'])] },
+         { path: 'student/certificates', component: StudentCertificatesComponent, canActivate: [roleGuard(['STUDENT'])] },
 
-  /* ===== LMS EXTRA ROUTES ===== */
-  { path: 'dashboard/lms/courses/create', component: CourseFormComponent },
-  { path: 'dashboard/lms/courses/:id/edit', component: CourseFormComponent },
-  { path: 'dashboard/admin/course-bulk', component: CourseBulkUploadComponent },
+         // Trainer
+         { path: 'trainer/batches', component: TrainerBatchesComponent, canActivate: [roleGuard(['TRAINER'])] },
+         { path: 'trainer/students', component: TrainerStudentsComponent, canActivate: [roleGuard(['TRAINER'])] },
+         { path: 'trainer/content', component: TrainerContentComponent, canActivate: [roleGuard(['TRAINER'])] },
+      ]
+   },
+   {
+      path: 'trainer/create-assessment',
+      loadComponent: () =>
+         import('./features/trainer/create-assessment/create-assessment')
+            .then(m => m.CreateAssessmentComponent)
+   },
 
-  /* ===== BATCH MANAGEMENT ===== */
-  {
-    path: 'dashboard/trainer/batches/:id',
-    component: TrainerBatchManagementComponent,
-    canActivate: [roleGuard(['TRAINER'])]
-  },
-  {
-    path: 'dashboard/admin/batches/:id/enrollments',
-    component: BatchEnrollmentComponent,
-    canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])]
-  },
-  {
-    path: 'dashboard/admin/batches',
-    component: AdminBatchManagementComponent,
-    canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])]
-  },
+   {
+      path: 'student/assessments',
+      loadComponent: () =>
+         import('./features/student/assessment-list/assessment-list')
+            .then(m => m.AssessmentListComponent)
+   },
 
-  /* ===== STUDENT LMS ===== */
-  {
-    path: 'dashboard/student/lms',
-    component: StudentBatchesComponent,
-    canActivate: [roleGuard(['STUDENT'])]
-  },
-  {
-    path: 'dashboard/student/lms/:id',
-    component: StudentPlayerComponent,
-    canActivate: [roleGuard(['STUDENT'])]
-  },
+   {
+      path: 'student/assessment-attempt/:id',
+      loadComponent: () =>
+         import('./features/student/assessment-attempt/assessment-attempt')
+            .then(m => m.AssessmentAttemptComponent)
+   },
+   /* ===== LMS EXTRA ROUTES ===== */
+   { path: 'dashboard/lms/courses/create', component: CourseFormComponent },
+   { path: 'dashboard/lms/courses/:id/edit', component: CourseFormComponent },
+   { path: 'dashboard/admin/course-bulk', component: CourseBulkUploadComponent },
 
-  /* ===== FALLBACK ===== */
-  { path: '**', redirectTo: '' }
+   /* ===== BATCH MANAGEMENT ===== */
+   { path: 'dashboard/trainer/batches/:id', component: TrainerBatchManagementComponent, canActivate: [roleGuard(['TRAINER'])] },
+   { path: 'dashboard/admin/batches/:id/enrollments', component: BatchEnrollmentComponent, canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])] },
+   { path: 'dashboard/admin/batches', component: AdminBatchManagementComponent, canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])] },
+
+   /* ===== STUDENT LMS ===== */
+   { path: 'dashboard/student/lms', component: StudentBatchesComponent, canActivate: [roleGuard(['STUDENT'])] },
+   { path: 'dashboard/student/lms/:id', component: StudentPlayerComponent, canActivate: [roleGuard(['STUDENT'])] },
+
+   {
+      path: 'dashboard/admin/admissions',
+      component: AdminAdmissionsComponent
+   },
+
+   /* ===== FALLBACK ===== */
+   { path: '**', redirectTo: '' }
 ];

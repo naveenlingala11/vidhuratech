@@ -14,7 +14,8 @@ import { BatchService } from '../../services/batch';
   selector: 'app-trainer-batch-management',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './trainer-batch-management.html'
+  templateUrl: './trainer-batch-management.html',
+  styleUrls: ['./trainer-batch-management.css']
 })
 export class TrainerBatchManagementComponent implements OnInit {
 

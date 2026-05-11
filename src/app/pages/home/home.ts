@@ -17,6 +17,7 @@ import { ModalService } from '../../services/modal';
 import { TimerService } from '../../services/timer';
 import { BatchService } from '../../features/lms/batch/services/batch';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { PublicCourseService } from '../courses/service/public-course';
 
 @Component({
   selector: 'app-home',
@@ -53,18 +54,23 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   popupInterval: any;
 
+  // =============== COURSES =================
+  courses: any[] = [];
+  featuredCourses: any[] = [];
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private modalService: ModalService,
     private zone: NgZone,
     public timer: TimerService,
     private batchService: BatchService,
-    private authService: AuthService
+    private authService: AuthService,
+    private courseService: PublicCourseService
   ) { }
 
   // ================= INIT =================
   ngOnInit() {
-
+    this.loadCourses();
     // seats animation
     this.zone.runOutsideAngular(() => {
       setInterval(() => {
@@ -116,7 +122,30 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       this.startPopupLoop();
     });
   }
+
   ngAfterViewInit() {
+    this.startTyping();
+    const card = document.querySelector('.premium-card') as HTMLElement;
+
+    if (!card) return;
+
+    card.addEventListener('mousemove', (e: any) => {
+      const rect = card.getBoundingClientRect();
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const rotateX = -(y / rect.height - 0.5) * 12;
+      const rotateY = (x / rect.width - 0.5) * 12;
+
+      card.style.transform =
+        `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = `rotateX(0deg) rotateY(0deg)`;
+    });
+    
     if (!isPlatformBrowser(this.platformId)) return;
 
     setTimeout(() => {
@@ -140,7 +169,62 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  startTyping() {
+    const text = 'print("Job Ready 🚀")';
+    let i = 0;
+
+    const el = document.querySelector('.typing-text') as HTMLElement;
+
+    const typing = setInterval(() => {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i);
+        i++;
+      } else {
+        clearInterval(typing);
+      }
+    }, 60);
+  }
+
+  isDark = true;
+
+  toggleTheme() {
+    this.isDark = !this.isDark;
+
+    if (this.isDark) {
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.add('light-mode');
+    }
+  }
+
   // ================= COURSE =================
+  loadCourses() {
+    this.courseService.getCourses(false).subscribe({
+      next: (res: any) => {
+        const list = res?.data || [];
+
+        this.courses = list.map((c: any) => {
+          let meta: any = {};
+
+          try {
+            meta = c.metadataJson ? JSON.parse(c.metadataJson) : {};
+          } catch { }
+
+          return {
+            id: c.id,
+            title: c.title,
+            desc: c.description,
+            duration: (c.durationHours || 0) + ' hrs',
+            level: c.level,
+            highlights: meta.highlights || []
+          };
+        });
+
+        // 🔥 only show top 3 (hero section style)
+        this.featuredCourses = this.courses.slice(0, 3);
+      }
+    });
+  }
   switchCourse(course: 'java' | 'python') {
     this.activeCourse.set(course);
 

@@ -43,4 +43,29 @@ export class TrainerDashboardService {
   getContent(batchId: number, courseId?: string) {
     return this.http.get(`${this.API}/curriculum?batchId=${batchId}`);
   }
+
+  getMockInterviewRequests() {
+    return this.http.get(`${this.API}/mock-interviews`);
+  }
+
+  updateMockInterview(id: number, payload: any) {
+    return this.http.patch(`${this.API}/mock-interviews/${id}`, payload);
+  }
+
+  createWorkItem(payload: any) {
+    return this.http.post(`${this.API}/work-items`, payload);
+  }
+
+  getWorkItems() {
+    return this.http.get(`${this.API}/work-items`);
+  }
+
+  getSubmissions() {
+    return this.http.get(`${this.API}/submissions`);
+  }
+
+  reviewSubmission(id: number, payload: any) {
+    return this.http.patch(`${this.API}/submissions/${id}/review`, payload);
+  }
+
 }

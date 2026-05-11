@@ -1,0 +1,94 @@
+<div
+  class="attempt-container"
+  *ngIf="assessment">
+
+  <h2>
+    {{ assessment.title }}
+  </h2>
+
+  <p>
+    {{ assessment.description }}
+  </p>
+
+  <div
+    class="question-card"
+    *ngFor="
+      let q of assessment.questions;
+      let i=index
+    ">
+
+    <h3>
+      {{ i + 1 }}.
+      {{ q.question }}
+    </h3>
+
+    <label>
+      <input
+        type="radio"
+        [name]="'q'+i"
+        value="A"
+        [(ngModel)]="answers[i].selectedAnswer">
+
+      A. {{ q.optionA }}
+    </label>
+
+    <label>
+      <input
+        type="radio"
+        [name]="'q'+i"
+        value="B"
+        [(ngModel)]="answers[i].selectedAnswer">
+
+      B. {{ q.optionB }}
+    </label>
+
+    <label>
+      <input
+        type="radio"
+        [name]="'q'+i"
+        value="C"
+        [(ngModel)]="answers[i].selectedAnswer">
+
+      C. {{ q.optionC }}
+    </label>
+
+    <label>
+      <input
+        type="radio"
+        [name]="'q'+i"
+        value="D"
+        [(ngModel)]="answers[i].selectedAnswer">
+
+      D. {{ q.optionD }}
+    </label>
+
+  </div>
+
+  <button
+    class="submit-btn"
+    (click)="submitAssessment()">
+
+    Submit Assessment
+  </button>
+
+  <div
+    class="result-box"
+    *ngIf="submitted">
+
+    <h3>
+      Assessment Submitted
+    </h3>
+
+    <p>
+      Score:
+      {{ result.score }}
+    </p>
+
+    <p>
+      Correct Answers:
+      {{ result.correctAnswers }}
+    </p>
+
+  </div>
+
+</div>

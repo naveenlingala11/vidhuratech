@@ -1,133 +1,157 @@
-<div class="trainer-dashboard">
+<section class="trainer-dashboard">
+  <div class="trainer-hero">
+    <div>
+      <span>Trainer Workspace</span>
+      <h1>Manage batches, students, reviews, and interviews</h1>
+      <p>Track registered students, post assignments or assessments, review submissions, and handle mock interview
+        requests.</p>
+    </div>
 
-  <div class="page-header">
-    <h2>Trainer Dashboard</h2>
-    <p>Manage your batches, students, and training sessions</p>
+    <div class="hero-actions">
+      <button type="button" (click)="openWorkPopup('ASSIGNMENT')">Create Assignment</button>
+      <button type="button" (click)="openWorkPopup('ASSESSMENT')">Create Assessment</button>
+      <button type="button" (click)="openCurriculumPopup()">Upload Curriculum</button>
+    </div>
   </div>
 
-  <div class="stats-grid">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
 
+  <div class="stats-grid">
     <div class="stat-card blue">
       <h3>{{ stats.assignedBatches }}</h3>
       <p>Assigned Batches</p>
     </div>
-
     <div class="stat-card green">
       <h3>{{ stats.totalStudents }}</h3>
-      <p>Total Students</p>
+      <p>Registered Students</p>
     </div>
-
     <div class="stat-card orange">
       <h3>{{ stats.pendingReviews }}</h3>
       <p>Pending Reviews</p>
     </div>
-
     <div class="stat-card purple">
-      <h3>{{ stats.todaysSessions }}</h3>
-      <p>Today's Sessions</p>
+      <h3>{{ pendingMockRequests.length }}</h3>
+      <p>Mock Requests</p>
     </div>
-
     <div class="stat-card teal">
       <h3>{{ stats.avgAttendance }}%</h3>
       <p>Avg Attendance</p>
     </div>
-
     <div class="stat-card gold">
       <h3>{{ stats.assignmentsSubmitted }}</h3>
-      <p>Assignments Submitted</p>
+      <p>Submissions</p>
     </div>
-
   </div>
 
   <div class="dashboard-grid">
-
     <div class="panel">
       <h4>Assigned Batches</h4>
 
       <div class="batch-item" *ngFor="let batch of batches">
         <strong>{{ batch.name }}</strong>
-        <p>{{ batch.students }} Students</p>
-
+        <p>{{ batch.course || 'Course' }} - {{ batch.students }} Students</p>
         <button class="manage-btn" [routerLink]="['/dashboard/trainer/batches', batch.id]">
           Manage Batch
         </button>
       </div>
+
+      <div class="empty" *ngIf="!batches.length && !loading">No assigned batches yet.</div>
     </div>
 
     <div class="panel">
-      <h4>Upcoming Sessions</h4>
+      <h4>Mock Interview Requests</h4>
 
-      <div class="session-item" *ngFor="let session of upcomingSessions">
-        <strong>{{ session.topic }}</strong>
-        <p>{{ session.batch }}</p>
-        <small>{{ session.time }}</small>
+      <div class="session-item" *ngFor="let item of mockRequests">
+        <strong>{{ item.student }}</strong>
+        <p>{{ item.topic }} - {{ item.preferredDate }} {{ item.preferredTime }}</p>
+
+        <input [(ngModel)]="item.meetingLink" placeholder="Meeting link" />
+        <textarea [(ngModel)]="item.trainerRemarks" placeholder="Trainer remarks"></textarea>
+
+        <div class="actions">
+          <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
+          <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
+          <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
+        </div>
       </div>
-    </div>
 
+      <div class="empty" *ngIf="!mockRequests.length">No mock interview requests.</div>
+    </div>
   </div>
 
   <div class="dashboard-grid second">
-
     <div class="panel">
-      <h4>Recent Student Activity</h4>
+      <h4>Submissions & Results</h4>
 
-      <div class="activity-item" *ngFor="let activity of studentActivities">
-        <strong>{{ activity.student }}</strong>
-        <p>{{ activity.action }}</p>
+      <div class="activity-item" *ngFor="let sub of submissions">
+        <strong>{{ sub.student }}</strong>
+        <p>{{ sub.title }} - {{ sub.type }} - {{ sub.status }}</p>
+
+        <div class="review-grid">
+          <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="Marks" />
+          <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Feedback" />
+          <button (click)="review(sub)">Save Result</button>
+        </div>
       </div>
+
+      <div class="empty" *ngIf="!submissions.length">No submissions yet.</div>
     </div>
 
     <div class="panel">
       <h4>Quick Actions</h4>
-      <div class="panel">
-        <!-- 🔥 BUTTON -->
-        <button (click)="openPopup()">Upload Curriculum</button>
-        <button>Mark Attendance</button>
-        <button>Upload Content</button>
-        <button>Create Assignment</button>
-        <button>Schedule Session</button>
-      </div>
-
+      <button (click)="openCurriculumPopup()">Upload Curriculum</button>
+      <button (click)="openWorkPopup('ASSIGNMENT')">Create Assignment</button>
+      <button (click)="openWorkPopup('ASSESSMENT')">Create Assessment</button>
+      <button routerLink="/dashboard/trainer/students">Students & Results</button>
+      <button routerLink="/dashboard/trainer/content">View Content</button>
     </div>
-
   </div>
 
-  <!-- 🔥 GLOBAL MODAL -->
-  <div class="modal-overlay" *ngIf="showPopup">
-
+  <div class="modal-overlay" *ngIf="showCurriculumPopup">
     <div class="modal-box">
-
+      <button class="close" type="button" (click)="closeCurriculumPopup()">x</button>
       <h3>Upload Curriculum</h3>
 
-      <!-- SELECT BATCH -->
       <select [(ngModel)]="selectedBatchId">
         <option value="">Select Batch</option>
-        <option *ngFor="let b of batches" [value]="b.id">
-          {{ b.name }} - Batch #{{ b.id }}
-        </option>
+        <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} - Batch #{{ b.id }}</option>
       </select>
 
-      <!-- MODE SWITCH -->
       <div class="tabs">
-        <button (click)="mode='file'" [class.active]="mode==='file'">Upload File</button>
-        <button (click)="mode='paste'" [class.active]="mode==='paste'">Paste JSON</button>
+        <button type="button" (click)="mode='file'" [class.active]="mode==='file'">Upload File</button>
+        <button type="button" (click)="mode='paste'" [class.active]="mode==='paste'">Paste JSON</button>
       </div>
 
-      <!-- FILE -->
-      <div *ngIf="mode==='file'">
-        <input type="file" (change)="onFileSelected($event)" />
-      </div>
+      <input *ngIf="mode==='file'" type="file" (change)="onFileSelected($event)" />
+      <textarea *ngIf="mode==='paste'" [(ngModel)]="jsonText" rows="10" placeholder="Paste JSON here..."></textarea>
 
-      <!-- PASTE -->
-      <div *ngIf="mode==='paste'">
-        <textarea [(ngModel)]="jsonText" rows="10" placeholder="Paste JSON here..."></textarea>
-      </div>
-
-      <!-- ACTIONS -->
       <div class="actions">
-        <button class="primary-btn" (click)="submit()">Submit</button>
-        <button class="cancel-btn" (click)="closePopup()">Cancel</button>
+        <button class="primary-btn" type="button" (click)="submitCurriculum()">Submit</button>
+        <button class="cancel-btn" type="button" (click)="closeCurriculumPopup()">Cancel</button>
       </div>
-
     </div>
   </div>
+
+  <div class="modal-overlay" *ngIf="showWorkPopup">
+    <div class="modal-box">
+      <button class="close" type="button" (click)="closeWorkPopup()">x</button>
+      <h3>Create {{ workForm.type === 'ASSIGNMENT' ? 'Assignment' : 'Assessment' }}</h3>
+
+      <select [(ngModel)]="workForm.batchId">
+        <option value="">Select Batch</option>
+        <option *ngFor="let b of batches" [value]="b.id">{{ b.name }}</option>
+      </select>
+
+      <input [(ngModel)]="workForm.title" placeholder="Title" />
+      <textarea [(ngModel)]="workForm.description" rows="5" placeholder="Instructions"></textarea>
+      <input type="date" [(ngModel)]="workForm.dueDate" />
+      <input type="time" [(ngModel)]="workForm.dueTime" />
+      <input type="number" [(ngModel)]="workForm.totalMarks" placeholder="Total marks" />
+
+      <div class="actions">
+        <button class="primary-btn" type="button" [disabled]="saving" (click)="createWorkItem()">Create</button>
+        <button class="cancel-btn" type="button" (click)="closeWorkPopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</section>
