@@ -1,87 +1,80 @@
-<div class="hr-dashboard">
+<section class="role-dashboard">
+  <header class="role-hero">
+    <div>
+      <span class="eyebrow">HR Workspace</span>
+      <h1>Manage recruitment and hiring pipeline</h1>
+      <p>Follow candidates from application to joining with interviews, offers, reviews, and recent hiring activity in one view.</p>
+    </div>
 
-  <div class="page-header">
-    <h2>HR Dashboard</h2>
-    <p>Manage recruitment and hiring pipeline</p>
-  </div>
+    <div class="hero-summary">
+      <span>Hiring This Month</span>
+      <strong>{{ stats.hiredThisMonth }}</strong>
+      <span>{{ stats.interviewsToday }} interviews today</span>
+    </div>
+  </header>
 
   <div class="stats-grid">
-
-    <div class="stat-card blue">
-      <h3>{{ stats.totalCandidates }}</h3>
-      <p>Total Candidates</p>
-    </div>
-
-    <div class="stat-card green">
-      <h3>{{ stats.interviewsToday }}</h3>
-      <p>Interviews Today</p>
-    </div>
-
-    <div class="stat-card orange">
-      <h3>{{ stats.offersReleased }}</h3>
-      <p>Offers Released</p>
-    </div>
-
-    <div class="stat-card purple">
-      <h3>{{ stats.pendingReviews }}</h3>
-      <p>Pending Reviews</p>
-    </div>
-
-    <div class="stat-card teal">
-      <h3>{{ stats.hiredThisMonth }}</h3>
-      <p>Hired This Month</p>
-    </div>
-
-    <div class="stat-card red">
-      <h3>{{ stats.rejected }}</h3>
-      <p>Rejected</p>
-    </div>
-
+    <article class="stat-card" *ngFor="let card of statCards; trackBy: trackByTitle" [class]="card.tone">
+      <h3>{{ card.value }}</h3>
+      <p>{{ card.label }}</p>
+      <small>{{ card.helper }}</small>
+    </article>
   </div>
 
   <div class="dashboard-grid">
-
-    <div class="panel">
-      <h4>Recruitment Pipeline</h4>
-
-      <div class="pipeline-item" *ngFor="let item of pipeline">
-        <strong>{{ item.stage }}</strong>
-        <span>{{ item.count }}</span>
+    <article class="panel" *ngFor="let panel of panels.slice(0, 2); trackBy: trackByTitle">
+      <div class="panel-head">
+        <span class="panel-eyebrow">{{ panel.eyebrow }}</span>
+        <h2>{{ panel.title }}</h2>
       </div>
-    </div>
 
-    <div class="panel">
-      <h4>Upcoming Interviews</h4>
-
-      <div class="interview-item" *ngFor="let interview of interviews">
-        <strong>{{ interview.candidate }}</strong>
-        <p>{{ interview.role }}</p>
-        <small>{{ interview.time }}</small>
+      <div class="item-list" *ngIf="panel.items.length; else emptyPanel">
+        <div class="dashboard-item" *ngFor="let item of panel.items; trackBy: trackByTitle">
+          <div class="item-row">
+            <strong>{{ item.title }}</strong>
+            <span class="item-value" *ngIf="item.value !== undefined">{{ item.value }}</span>
+          </div>
+          <p *ngIf="item.description">{{ item.description }}</p>
+          <small *ngIf="item.meta">{{ item.meta }}</small>
+          <div class="progress-track" *ngIf="item.progress !== undefined">
+            <span [style.width.%]="item.progress"></span>
+          </div>
+        </div>
       </div>
-    </div>
-
+    </article>
   </div>
 
-  <div class="dashboard-grid second">
-
-    <div class="panel">
-      <h4>Recent Activities</h4>
-
-      <div class="activity-item" *ngFor="let activity of activities">
-        <strong>{{ activity.title }}</strong>
-        <p>{{ activity.description }}</p>
+  <div class="dashboard-grid secondary">
+    <article class="panel">
+      <div class="panel-head">
+        <span class="panel-eyebrow">{{ panels[2]?.eyebrow }}</span>
+        <h2>{{ panels[2]?.title }}</h2>
       </div>
-    </div>
 
-    <div class="panel">
-      <h4>Quick Actions</h4>
+      <div class="item-list" *ngIf="panels[2]?.items?.length; else emptyPanel">
+        <div class="dashboard-item" *ngFor="let item of panels[2].items; trackBy: trackByTitle">
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.description }}</p>
+        </div>
+      </div>
+    </article>
 
-      <button>Add Candidate</button>
-      <button>Schedule Interview</button>
-      <button>Release Offer</button>
-      <button>Generate Hiring Report</button>
-    </div>
+    <article class="panel">
+      <div class="panel-head">
+        <span class="panel-eyebrow">Tools</span>
+        <h2>Quick Actions</h2>
+      </div>
 
+      <div class="action-grid">
+        <button class="action-card" *ngFor="let action of actions; trackBy: trackByTitle" [class]="action.tone">
+          <strong>{{ action.label }}</strong>
+          <small>{{ action.helper }}</small>
+        </button>
+      </div>
+    </article>
   </div>
 
-</div>
+  <ng-template #emptyPanel>
+    <div class="empty">No data available.</div>
+  </ng-template>
+</section>

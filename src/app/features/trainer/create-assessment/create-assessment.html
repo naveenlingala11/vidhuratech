@@ -1,0 +1,118 @@
+<div class="assessment-container">
+
+  <div class="header">
+    <h2>Create Assessment</h2>
+  </div>
+
+  <div class="form-group">
+    <label>Batch ID</label>
+
+    <input
+      type="number"
+      [(ngModel)]="assessment.batchId">
+  </div>
+
+  <div class="form-group">
+    <label>Title</label>
+
+    <input
+      type="text"
+      [(ngModel)]="assessment.title">
+  </div>
+
+  <div class="form-group">
+    <label>Description</label>
+
+    <textarea
+      rows="4"
+      [(ngModel)]="assessment.description">
+    </textarea>
+  </div>
+
+  <div class="form-grid">
+
+    <div class="form-group">
+      <label>Total Marks</label>
+
+      <input
+        type="number"
+        [(ngModel)]="assessment.totalMarks">
+    </div>
+
+    <div class="form-group">
+      <label>Duration (Minutes)</label>
+
+      <input
+        type="number"
+        [(ngModel)]="assessment.durationMinutes">
+    </div>
+
+  </div>
+
+  <button
+    class="add-btn"
+    (click)="addQuestion()">
+
+    Add Question
+  </button>
+
+  <div
+    class="question-card"
+    *ngFor="let q of assessment.questions; let i=index">
+
+    <h3>
+      Question {{ i + 1 }}
+    </h3>
+
+    <input
+      placeholder="Question"
+      [(ngModel)]="q.question">
+
+    <input
+      placeholder="Option A"
+      [(ngModel)]="q.optionA">
+
+    <input
+      placeholder="Option B"
+      [(ngModel)]="q.optionB">
+
+    <input
+      placeholder="Option C"
+      [(ngModel)]="q.optionC">
+
+    <input
+      placeholder="Option D"
+      [(ngModel)]="q.optionD">
+
+    <input
+      placeholder="Correct Answer (A/B/C/D)"
+      [(ngModel)]="q.correctAnswer">
+
+    <input
+      type="number"
+      placeholder="Marks"
+      [(ngModel)]="q.marks">
+
+    <button
+      class="remove-btn"
+      (click)="removeQuestion(i)">
+
+      Remove Question
+    </button>
+
+  </div>
+
+  <button
+    class="submit-btn"
+    [disabled]="loading"
+    (click)="submitAssessment()">
+
+    {{
+      loading
+      ? 'Creating...'
+      : 'Publish Assessment'
+    }}
+
+  </button>
+
+</div>
