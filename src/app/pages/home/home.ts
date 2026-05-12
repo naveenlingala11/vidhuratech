@@ -41,6 +41,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   popupMessage = signal('');
   popupClosedUntil = signal<number | null>(null);
 
+  days = signal(0);
   hours = signal(0);
   minutes = signal(0);
   seconds = signal(0);
@@ -81,8 +82,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     });
 
     this.loadBatch(2);
-    this.timer.startCountdown();
-
+    this.startCountdown();
     if (isPlatformBrowser(this.platformId)) {
       const saved = localStorage.getItem('popupBlockUntil');
 
@@ -145,7 +145,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     card.addEventListener('mouseleave', () => {
       card.style.transform = `rotateX(0deg) rotateY(0deg)`;
     });
-    
+
     if (!isPlatformBrowser(this.platformId)) return;
 
     setTimeout(() => {
@@ -199,32 +199,100 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   // ================= COURSE =================
   loadCourses() {
+
     this.courseService.getCourses(false).subscribe({
+
       next: (res: any) => {
+
         const list = res?.data || [];
 
+        // 🔥 CURRENT LIVE COURSE
+        const LIVE_COURSE_TITLE =
+          'Python + Data Structures';
+
         this.courses = list.map((c: any) => {
+
           let meta: any = {};
 
           try {
-            meta = c.metadataJson ? JSON.parse(c.metadataJson) : {};
+            meta = c.metadataJson
+              ? JSON.parse(c.metadataJson)
+              : {};
           } catch { }
 
+          // ✅ LIVE CHECK
+          const isLive =
+            c.title?.trim()?.toLowerCase() ===
+            LIVE_COURSE_TITLE.toLowerCase();
+
+          // ✅ NEXT BATCH DATE
+          const today = new Date();
+
+          const cycleDays = 15;
+
+          const baseDate = new Date(2026, 4, 2);
+
+          const diff =
+            Math.floor(
+              (today.getTime() - baseDate.getTime()) /
+              (1000 * 60 * 60 * 24)
+            );
+
+          const cycles =
+            Math.floor(diff / cycleDays);
+
+          const nextBatchDate = new Date(baseDate);
+
+          nextBatchDate.setDate(
+            baseDate.getDate() +
+            ((cycles + 1) * cycleDays)
+          );
+
           return {
+
             id: c.id,
+
             title: c.title,
+
             desc: c.description,
-            duration: (c.durationHours || 0) + ' hrs',
+
+            duration:
+              (c.durationHours || 0) + ' hrs',
+
             level: c.level,
-            highlights: meta.highlights || []
+
+            highlights:
+              meta.highlights || [],
+
+            // ✅ NEW
+            isLive,
+
+            // ✅ ONLY LIVE COURSE GETS BATCH
+            batch: isLive
+              ? {
+                id: c.id,
+                startDate: nextBatchDate,
+                name: `${c.title} Live Batch`
+              }
+              : null
           };
         });
 
-        // 🔥 only show top 3 (hero section style)
-        this.featuredCourses = this.courses.slice(0, 3);
+        // ✅ LIVE FIRST
+        this.featuredCourses = [
+
+          ...this.courses.filter(c => c.isLive),
+
+          ...this.courses.filter(c => !c.isLive)
+
+        ].slice(0, 4);
+
       }
+
     });
+
   }
+  
   switchCourse(course: 'java' | 'python') {
     this.activeCourse.set(course);
 
@@ -237,20 +305,43 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   }
 
   loadBatch(courseId: number) {
-    const batchMap: any = {
-      1: {
-        id: 101,
-        name: 'Java Batch Jan 2026',
-        startDate: '2026-01-10'
-      },
-      2: {
-        id: 202,
-        name: 'Python Batch May 2026',
-        startDate: '2026-05-01'
-      }
-    };
 
-    this.activeBatch = batchMap[courseId] || null;
+    const today = new Date();
+
+    // Every 15 days new batch
+    const cycleDays = 15;
+
+    // Base date
+    const baseDate = new Date(2026, 4, 2); // May 2, 2026
+
+    const diff =
+      Math.floor(
+        (today.getTime() - baseDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+      );
+
+    const cycles = Math.floor(diff / cycleDays);
+
+    const nextBatchDate = new Date(baseDate);
+
+    nextBatchDate.setDate(
+      baseDate.getDate() + ((cycles + 1) * cycleDays)
+    );
+
+    const batchName =
+      `${courseId === 1 ? 'Java' : 'Python'} Batch ${nextBatchDate.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      })}`;
+
+    this.activeBatch = {
+      id: courseId === 1 ? 101 : 202,
+      name: batchName,
+      startDate: nextBatchDate,
+      courseTitle: courseId === 1
+        ? 'Java Full Stack'
+        : 'Python + Data Structures'
+    };
   }
 
   // ================= MODAL =================
@@ -262,19 +353,67 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   // ================= COUNTDOWN =================
   startCountdown() {
+
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const endTime = new Date().getTime() + 5 * 60 * 60 * 1000;
+    const today = new Date();
+
+    // Base batch date
+    const baseDate = new Date(2026, 4, 2); // May 2 2026
+
+    // Every 15 days
+    const cycleDays = 15;
+
+    const diffDays = Math.floor(
+      (today.getTime() - baseDate.getTime()) /
+      (1000 * 60 * 60 * 24)
+    );
+
+    const cycles = Math.floor(diffDays / cycleDays);
+
+    // Next batch date
+    const nextBatchDate = new Date(baseDate);
+
+    nextBatchDate.setDate(
+      baseDate.getDate() + ((cycles + 1) * cycleDays)
+    );
+
+    // Optional batch time
+    nextBatchDate.setHours(19, 30, 0, 0);
 
     interval(1000).subscribe(() => {
+
       const now = new Date().getTime();
-      const distance = endTime - now;
+
+      const distance =
+        nextBatchDate.getTime() - now;
 
       if (distance <= 0) return;
 
-      this.hours.set(Math.floor(distance / (1000 * 60 * 60)));
-      this.minutes.set(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)));
-      this.seconds.set(Math.floor((distance % (1000 * 60)) / 1000));
+      this.days.set(
+        Math.floor(distance / (1000 * 60 * 60 * 24))
+      );
+
+      this.hours.set(
+        Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) /
+          (1000 * 60 * 60)
+        )
+      );
+
+      this.minutes.set(
+        Math.floor(
+          (distance % (1000 * 60 * 60)) /
+          (1000 * 60)
+        )
+      );
+
+      this.seconds.set(
+        Math.floor(
+          (distance % (1000 * 60)) / 1000
+        )
+      );
+
     });
   }
 
