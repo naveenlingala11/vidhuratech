@@ -27,6 +27,6 @@ export class Footer {
   }
 
   openWebsite() {
-    window.open('https://uptrixhub.online', '_blank');
+    window.open('https://www.vidhuratech.com', '_blank');
   }
 }
