@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Mode } from 'fs';
 import { ModalService } from '../../services/modal';
-
 @Component({
   selector: 'app-jobs-home',
   standalone: true,
@@ -14,40 +13,30 @@ import { ModalService } from '../../services/modal';
   styleUrl: './jobs-home.css',
 })
 export class JobsHome {
-
   jobs: Job[] = [];
   companies: any[] = [];
-
   searchText = '';
   selectedLocation = '';
   experience = '';
-
   totalJobs = 0;
-
   isLoading = true;
   skeletons = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
   suggestions: string[] = [];
   allSuggestions: string[] = [
     'Java', 'Angular', 'React', 'Python', 'Fresher', 'Remote'
   ];
-
   constructor(
     private jobService: JobService,
     private router: Router,
     private cd: ChangeDetectorRef,
     private modalService: ModalService
-
   ) { }
-
   ngOnInit() {
     this.loadJobs();
     this.loadFilters();
   }
-
   loadJobs() {
     this.isLoading = true;
-
     this.jobService.getJobs(0).subscribe(res => {
       this.jobs = res.content.slice(0, 9);
       this.totalJobs = res.totalElements;
@@ -55,14 +44,12 @@ export class JobsHome {
       this.cd.detectChanges();
     });
   }
-
   loadFilters() {
     this.jobService.getFilters().subscribe(res => {
       this.companies = res.companies || [];
       this.cd.detectChanges();
     });
   }
-
   goToJobs() {
     this.router.navigate(['/jobs'], {
       queryParams: {
@@ -72,29 +59,24 @@ export class JobsHome {
       }
     });
   }
-
   quickSearch(skill: string) {
     this.searchText = skill;
     this.goToJobs();
   }
-
   goToDetail(id: number | undefined) {
     if (!id) return;
     this.router.navigate(['/jobs', id]);
   }
-
   onSearchChange() {
     const val = this.searchText.toLowerCase();
     this.suggestions = this.allSuggestions.filter(s =>
       s.toLowerCase().includes(val)
     );
   }
-
   selectSuggestion(s: string) {
     this.searchText = s;
     this.suggestions = [];
   }
-
   getCompanyLogo(company: string | undefined): string {
     if (!company) {
       return 'https://ui-avatars.com/api/?name=?';
@@ -102,17 +84,13 @@ export class JobsHome {
     const clean = company.toLowerCase().replace(/\s+/g, '');
     return `https://www.google.com/s2/favicons?domain=${clean}.com&sz=128`;
   }
-
   onImgError(event: any) {
     event.target.src = 'https://ui-avatars.com/api/?name=Company';
   }
-
   trackById(index: number, job: Job) {
     return job.id;
   }
-
   activeCourse = signal<'java' | 'python'>('python');
-
   openEnrollModal() {
     this.modalService.open({
       course: this.activeCourse() === 'java'

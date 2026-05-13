@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-
 @Component({
   selector: 'app-assessment-results',
   imports: [],
@@ -7,5 +6,4 @@ import { Component } from '@angular/core';
   styleUrl: './assessment-results.css',
 })
 export class AssessmentResults {
-
 }

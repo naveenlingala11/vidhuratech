@@ -1,36 +1,26 @@
 <div class="card main-card shadow-sm">
-
     <!-- HEADER -->
     <div class="card-header header-bar">
         <h5>👥 Users Management</h5>
     </div>
-
     <div class="card-body">
-
         <!-- FILTERS -->
         <div class="filters mb-3">
-
             <input class="form-control search-box" [(ngModel)]="filters.keyword" (keyup)="search()"
                 placeholder="🔍 Search users..." />
-
             <div class="status-filters mt-2">
                 <button class="chip" [class.active]="filters.role === ''" (click)="setRole('')">All</button>
-
                 <button *ngFor="let r of roles" class="chip" [class.active]="filters.role === r" (click)="setRole(r)">
                     {{ r }}
                 </button>
             </div>
-
         </div>
-
         <!-- LOADING -->
         <div class="text-center py-4" *ngIf="loading">
             <div class="spinner-border text-primary"></div>
         </div>
-        
         <!-- TABLE -->
         <table class="table" *ngIf="!loading">
-
             <thead>
                 <tr>
                     <th>Name</th>
@@ -39,9 +29,7 @@
                     <th>Status</th>
                 </tr>
             </thead>
-
             <tbody>
-
                 <tr *ngFor="let u of users">
                     <td>{{ u.name }}</td>
                     <td>{{ u.email }}</td>
@@ -55,21 +43,16 @@
                         </span>
                     </td>
                 </tr>
-
                 <tr *ngIf="users.length === 0">
                     <td colspan="4" class="text-center">No users found</td>
                 </tr>
-
             </tbody>
-
         </table>
-
         <!-- PAGINATION -->
         <div class="d-flex justify-content-between mt-3">
             <button (click)="prevPage()">⬅ Prev</button>
             <span>Page {{filters.page + 1}} / {{totalPages}}</span>
             <button (click)="nextPage()">Next ➡</button>
         </div>
-
     </div>
 </div>

@@ -4,9 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AdminBatchService } from '../../services/admin-batch';
-
 import { Subject, debounceTime } from 'rxjs';
-
 @Component({
   selector: 'app-admin-batch-management',
   standalone: true,
@@ -15,15 +13,12 @@ import { Subject, debounceTime } from 'rxjs';
   styleUrls: ['./admin-batch-management.css']
 })
 export class AdminBatchManagementComponent implements OnInit {
-
   // ================= DATA =================
   batches: any[] = [];
   courses: any[] = [];
   trainers: any[] = [];
-
   loading = false;
   totalPages = 0;
-
   // ================= FILTERS =================
   filters = {
     keyword: '',
@@ -33,13 +28,10 @@ export class AdminBatchManagementComponent implements OnInit {
     page: 0,
     size: 10
   };
-
   private searchSubject = new Subject<string>();
-
   // ================= MODAL =================
   showModal = false;
   editingId: number | null = null;
-
   form: any = {
     name: '',
     courseId: null,
@@ -48,17 +40,14 @@ export class AdminBatchManagementComponent implements OnInit {
     endDate: '',
     status: 'ACTIVE'
   };
-
   constructor(
     private batchService: AdminBatchService,
     private toastr: ToastrService,
     private cd: ChangeDetectorRef
   ) { }
-
   // ================= INIT =================
   ngOnInit(): void {
     this.loadBatches();
-
     this.searchSubject.pipe(
       debounceTime(400)
     ).subscribe(() => {
@@ -66,25 +55,19 @@ export class AdminBatchManagementComponent implements OnInit {
       this.loadBatches();
     });
   }
-
   // ✅ only here
   ngAfterViewInit() {
     this.loadDropdowns();
   }
-
   // ================= LOAD DATA =================
   loadBatches() {
     this.loading = true;
-
     this.batchService.getBatches(this.filters)
       .subscribe({
         next: (res: any) => {
-
           this.batches = res?.data?.content || res?.content || [];
           this.totalPages = res?.data?.totalPages || res?.totalPages || 0;
-
           this.loading = false;
-
           // ✅ FIX
           this.cd.detectChanges();
         },
@@ -94,12 +77,9 @@ export class AdminBatchManagementComponent implements OnInit {
         }
       });
   }
-
   loadDropdowns() {
-
     this.batchService.getCourses().subscribe((res: any) => {
       console.log("COURSES RES:", res);
-
       this.courses = Array.isArray(res)
         ? res
         : Array.isArray(res?.content)
@@ -107,12 +87,9 @@ export class AdminBatchManagementComponent implements OnInit {
           : Array.isArray(res?.data?.content)
             ? res.data.content
             : [];
-
     });
-
     this.batchService.getTrainers().subscribe((res: any) => {
       console.log("TRAINERS RES:", res);
-
       this.trainers = Array.isArray(res)
         ? res
         : Array.isArray(res?.content)
@@ -123,37 +100,30 @@ export class AdminBatchManagementComponent implements OnInit {
       console.log("COURSES RES:", res);
       console.log("TRAINERS RES:", res);
     });
-
   }
-
   // ================= SEARCH =================
   triggerSearch() {
     this.searchSubject.next(this.filters.keyword);
   }
-
   setStatus(status: string) {
     this.filters.status = status;
     this.filters.page = 0;
     this.loadBatches();
   }
-
   // ================= PAGINATION =================
   nextPage() {
     if (this.filters.page + 1 >= this.totalPages) return;
     this.filters.page++;
     this.loadBatches();
   }
-
   prevPage() {
     if (this.filters.page === 0) return;
     this.filters.page--;
     this.loadBatches();
   }
-
   // ================= DELETE =================
   deleteBatch(id: number) {
     if (!confirm('Delete this batch?')) return;
-
     this.batchService.deleteBatch(id)
       .subscribe({
         next: () => {
@@ -163,18 +133,15 @@ export class AdminBatchManagementComponent implements OnInit {
         error: () => this.toastr.error('Delete failed')
       });
   }
-
   // ================= MODAL =================
   openCreateModal() {
     this.showModal = true;
     this.editingId = null;
     this.resetForm();
   }
-
   openEditModal(batch: any) {
     this.showModal = true;
     this.editingId = batch.id;
-
     this.form = {
       name: batch.name,
       courseId: batch.courseId,
@@ -184,11 +151,9 @@ export class AdminBatchManagementComponent implements OnInit {
       status: batch.status
     };
   }
-
   closeModal() {
     this.showModal = false;
   }
-
   resetForm() {
     this.form = {
       name: '',
@@ -199,12 +164,10 @@ export class AdminBatchManagementComponent implements OnInit {
       status: 'ACTIVE'
     };
   }
-
   saveBatch() {
     const apiCall = this.editingId
       ? this.batchService.updateBatch(this.editingId, this.form)
       : this.batchService.createBatch(this.form);
-
     apiCall.subscribe({
       next: () => {
         this.toastr.success(this.editingId ? 'Updated successfully' : 'Created successfully');

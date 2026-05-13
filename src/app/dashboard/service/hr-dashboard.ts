@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
-
 @Injectable({
   providedIn: 'root'
 })
 export class HrDashboardService {
-
   getDashboardData() {
     return of({
       stats: {
@@ -16,7 +14,6 @@ export class HrDashboardService {
         hiredThisMonth: 24,
         rejected: 43
       },
-
       pipeline: [
         { stage: 'Applied', count: 84 },
         { stage: 'Screening', count: 41 },
@@ -24,7 +21,6 @@ export class HrDashboardService {
         { stage: 'Offer', count: 18 },
         { stage: 'Joined', count: 11 }
       ],
-
       interviews: [
         {
           candidate: 'Rahul Kumar',
@@ -37,7 +33,6 @@ export class HrDashboardService {
           time: 'Today 2:00 PM'
         }
       ],
-
       activities: [
         {
           title: 'Candidate Shortlisted',

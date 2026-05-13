@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-
 @Component({
   selector: 'app-admin-actions',
   standalone: true,
@@ -10,9 +9,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin-actions.component.css']
 })
 export class AdminActionsComponent {
-
   constructor(private router: Router) { }
-
   modules = [
     { title: 'Admissions', route: '/dashboard/admin/admissions', icon: '🎓' },
     { title: 'Create Employee', route: '/dashboard/admin/create-user', icon: '➕' },
@@ -31,7 +28,6 @@ export class AdminActionsComponent {
     { title: 'Invoices', route: '/admin/invoice', icon: '🧾' },
     { title: 'Analytics', route: '/invoice-analytics', icon: '📊' }
   ];
-
   navigate(route: string) {
     this.router.navigate([route]);
   }

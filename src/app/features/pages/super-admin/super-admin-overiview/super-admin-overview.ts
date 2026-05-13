@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SuperAdminService } from '../service/super-admin';
-
 @Component({
   selector: 'app-super-admin-overview',
   standalone: true,
@@ -10,11 +9,8 @@ import { SuperAdminService } from '../service/super-admin';
   styleUrls: ['./super-admin-overview.css']
 })
 export class SuperAdminOverview implements OnInit {
-
   stats: any = {};
-
   constructor(private service: SuperAdminService) {}
-
   ngOnInit() {
     this.service.getDashboardStats().subscribe(res => {
       this.stats = res;

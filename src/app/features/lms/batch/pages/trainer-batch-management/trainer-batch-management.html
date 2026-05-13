@@ -1,9 +1,7 @@
 <!-- ===================================== -->
 <!-- TOP BAR -->
 <!-- ===================================== -->
-
 <div class="top-navigation">
-
     <button
         class="back-btn"
         routerLink="/dashboard/trainer/batches"
@@ -11,33 +9,23 @@
         <span>←</span>
         Back to Batches
     </button>
-
 </div>
-
 <div class="trainer-batch-page">
-
     <!-- ===================================== -->
     <!-- HERO -->
     <!-- ===================================== -->
-
     <div class="batch-hero" *ngIf="batch">
-
         <div class="hero-left">
-
             <div class="hero-badge">
                 🚀 Trainer Workspace
             </div>
-
             <h1>
                 {{ batch.name }}
             </h1>
-
             <p>
                 {{ batch.courseName }}
             </p>
-
             <div class="hero-meta">
-
                 <div class="meta-card">
                     <span>📅</span>
                     <div>
@@ -45,7 +33,6 @@
                         <strong>{{ batch.startDate }}</strong>
                     </div>
                 </div>
-
                 <div class="meta-card">
                     <span>🏁</span>
                     <div>
@@ -53,216 +40,154 @@
                         <strong>{{ batch.endDate }}</strong>
                     </div>
                 </div>
-
             </div>
-
         </div>
-
         <div class="hero-right">
-
             <div class="hero-circle">
                 🎓
             </div>
-
         </div>
-
     </div>
-
     <!-- ===================================== -->
     <!-- CREATE SESSION -->
     <!-- ===================================== -->
-
     <div class="upload-card">
-
         <div class="section-header">
             <div>
                 <h2>Upload New Session</h2>
                 <p>Create and publish learning content</p>
             </div>
-
             <div class="header-icon">
                 🎥
             </div>
         </div>
-
         <form
             [formGroup]="form"
             (ngSubmit)="submitSession()"
         >
-
             <div class="row g-4">
-
                 <div class="col-md-6">
-
                     <label class="field-label">
                         Session Title
                     </label>
-
                     <input
                         class="modern-input"
                         placeholder="Enter session title"
                         formControlName="title"
                     />
-
                 </div>
-
                 <div class="col-md-6">
-
                     <label class="field-label">
                         Video URL
                     </label>
-
                     <input
                         class="modern-input"
                         placeholder="Paste Zoom / YouTube URL"
                         formControlName="videoUrl"
                     />
-
                 </div>
-
                 <div class="col-12">
-
                     <label class="field-label">
                         Description
                     </label>
-
                     <textarea
                         rows="5"
                         class="modern-input"
                         placeholder="Explain what students will learn..."
                         formControlName="description"
                     ></textarea>
-
                 </div>
-
                 <div class="col-md-6">
-
                     <label class="field-label">
                         Duration (Minutes)
                     </label>
-
                     <input
                         type="number"
                         class="modern-input"
                         formControlName="durationMinutes"
                     />
-
                 </div>
-
                 <div class="col-md-6">
-
                     <label class="field-label">
                         Session Date
                     </label>
-
                     <input
                         type="date"
                         class="modern-input"
                         formControlName="sessionDate"
                     />
-
                 </div>
-
             </div>
-
             <div class="publish-box">
-
                 <div class="form-check">
-
                     <input
                         class="form-check-input"
                         type="checkbox"
                         formControlName="published"
                     />
-
                     <label class="form-check-label">
                         Publish immediately for students
                     </label>
-
                 </div>
-
             </div>
-
             <button
                 class="upload-btn"
                 type="submit"
             >
                 🚀 Upload Session
             </button>
-
         </form>
-
     </div>
-
     <!-- ===================================== -->
     <!-- SESSION LIST -->
     <!-- ===================================== -->
-
     <div class="sessions-card">
-
         <div class="section-header">
-
             <div>
                 <h2>All Sessions</h2>
                 <p>
                     Manage uploaded learning sessions
                 </p>
             </div>
-
             <div class="session-count">
                 {{ sessions.length }}
             </div>
-
         </div>
-
         <div
             *ngIf="loading"
             class="loader-box"
         >
             <div class="spinner-border text-primary"></div>
         </div>
-
         <div
             *ngIf="!loading && sessions.length === 0"
             class="empty-state"
         >
-
             <div class="empty-icon">
                 📚
             </div>
-
             <h4>No Sessions Yet</h4>
-
             <p>
                 Start uploading sessions for students
             </p>
-
         </div>
-
         <div
             *ngIf="!loading && sessions.length > 0"
             class="sessions-grid"
         >
-
             <div
                 class="session-item"
                 *ngFor="let session of sessions"
             >
-
                 <div class="session-top">
-
                     <div>
-
                         <h3>
                             {{ session.title }}
                         </h3>
-
                         <p>
                             {{ session.sessionDate }}
                         </p>
-
                     </div>
-
                     <span
                         class="status-badge"
                         [ngClass]="{
@@ -272,19 +197,13 @@
                     >
             {{ session.published ? 'Published' : 'Draft' }}
           </span>
-
                 </div>
-
                 <div class="session-middle">
-
                     <div class="info-chip">
                         ⏱ {{ session.durationMinutes }} mins
                     </div>
-
                 </div>
-
                 <div class="session-actions">
-
                     <button
                         *ngIf="!session.published"
                         class="publish-btn"
@@ -292,7 +211,6 @@
                     >
                         Publish
                     </button>
-
                     <button
                         *ngIf="session.published"
                         class="unpublish-btn"
@@ -300,20 +218,14 @@
                     >
                         Unpublish
                     </button>
-
                     <button
                         class="delete-btn"
                         (click)="delete(session.id)"
                     >
                         Delete
                     </button>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>

@@ -5,12 +5,9 @@
             <h1>Students, Mock Requests & Results</h1>
             <p>Registered students, interview requests, and assessment outcomes in one premium view.</p>
         </div>
-
         <input [(ngModel)]="search" placeholder="Search student, email, batch, course" />
     </div>
-
     <div class="toast" *ngIf="toast">{{ toast }}</div>
-
     <div class="tabs">
         <button [class.active]="activeTab==='students'" (click)="activeTab='students'">
             Students
@@ -25,7 +22,6 @@
             <strong>{{ submissions.length }}</strong>
         </button>
     </div>
-
     <article class="panel" *ngIf="activeTab==='students'">
         <div class="table-shell">
             <table>
@@ -38,7 +34,6 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     <tr *ngFor="let s of filteredStudents">
                         <td>
@@ -57,39 +52,32 @@
                     </tr>
                 </tbody>
             </table>
-
             <div class="empty" *ngIf="!filteredStudents.length">
                 No registered students found.
             </div>
         </div>
     </article>
-
     <article class="cards-grid" *ngIf="activeTab==='mocks'">
         <div class="request-card" *ngFor="let item of mockRequests">
             <div class="card-top">
                 <span class="badge">{{ item.status }}</span>
                 <small>{{ item.preferredDate }} {{ item.preferredTime }}</small>
             </div>
-
             <h3>{{ item.student }}</h3>
             <p>{{ item.topic }}</p>
             <small>{{ item.batch }} - {{ item.email }}</small>
-
             <input [(ngModel)]="item.meetingLink" placeholder="Meeting link" />
             <textarea [(ngModel)]="item.trainerRemarks" placeholder="Remarks"></textarea>
-
             <div class="actions">
                 <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
                 <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
                 <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
             </div>
         </div>
-
         <div class="empty" *ngIf="!mockRequests.length">
             No mock interview requests yet.
         </div>
     </article>
-
     <article class="panel" *ngIf="activeTab==='results'">
         <div class="result-list">
             <div class="result-card" *ngFor="let sub of submissions">
@@ -98,14 +86,12 @@
                     <p>{{ sub.title }} - {{ sub.type }} - {{ sub.batch }}</p>
                     <small>{{ sub.submittedAt }}</small>
                 </div>
-
                 <div class="review-grid">
                     <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="Marks" />
                     <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Feedback" />
                     <button (click)="review(sub)">Save</button>
                 </div>
             </div>
-
             <div class="empty" *ngIf="!submissions.length">
                 No submissions or results yet.
             </div>

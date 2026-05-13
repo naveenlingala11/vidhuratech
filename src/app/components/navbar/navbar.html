@@ -1,14 +1,11 @@
 <nav class="navbar navbar-expand-lg fixed-top" [class.navbar-scrolled]="scrolled" (click)="$event.stopPropagation()">
   <div class="container-fluid px-3">
-
     <a class="navbar-brand" routerLink="/">
       <img src="VidhuraTechLogo.png" class="logo" alt="VidhuraTech" />
     </a>
-
     <button class="navbar-toggler" type="button" (click)="toggleMobileMenu()" aria-label="Toggle menu">
       <i class="fa-solid" [ngClass]="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
     </button>
-
     <div class="navbar-collapse" [class.show]="mobileMenuOpen">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a routerLink="/" class="nav-link" (click)="closeMenu()">Home</a></li>
@@ -16,28 +13,23 @@
         <li class="nav-item"><a routerLink="/placements" class="nav-link" (click)="closeMenu()">Placements</a></li>
         <li class="nav-item"><a routerLink="/contact" class="nav-link" (click)="closeMenu()">Contact</a></li>
         <li class="nav-item"><a routerLink="/about" class="nav-link" (click)="closeMenu()">About</a></li>
-
         <li *ngIf="!authService.isLoggedIn()" class="nav-item auth-actions">
           <a routerLink="/login" class="auth-link login-link" (click)="closeMenu()">Login</a>
           <span class="auth-separator">/</span>
           <a routerLink="/register" class="auth-link register-link" (click)="closeMenu()">Register</a>
         </li>
-
         <li *ngIf="authService.isLoggedIn()" class="nav-item user-nav-item">
           <div class="user-wrapper">
             <button class="user-display" type="button" (click)="toggleDropdown($event)">
               <span class="user-avatar">
                 <i class="fa-solid fa-user"></i>
               </span>
-
               <span class="user-meta">
                 <small>Welcome</small>
                 <b>{{ authService.getUser()?.name || 'User' }}</b>
               </span>
-
               <i class="fa-solid fa-chevron-down user-caret"></i>
             </button>
-
             <div class="user-dropdown" *ngIf="showDropdown">
               <div class="dropdown-user">
                 <span class="dropdown-avatar"><i class="fa-solid fa-user"></i></span>
@@ -46,21 +38,16 @@
                   <small>{{ authService.getUser()?.email || 'Vidhura Tech' }}</small>
                 </div>
               </div>
-
               <div class="divider"></div>
-
               <button class="dropdown-item" type="button" (click)="goDashboard()">
                 <i class="fa-solid fa-table-columns"></i>
                 Dashboard
               </button>
-
               <button class="dropdown-item" type="button" (click)="goToProfile()">
                 <i class="fa-solid fa-id-card"></i>
                 View Profile
               </button>
-
               <div class="divider"></div>
-
               <button class="dropdown-item logout" type="button" (click)="logout()">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 Logout
@@ -72,5 +59,4 @@
     </div>
   </div>
 </nav>
-
 <div class="menu-backdrop" *ngIf="mobileMenuOpen" (click)="closeMenu()"></div>

@@ -8,7 +8,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { debounceTime, Subject } from 'rxjs';
 import { RouterLink } from '@angular/router';
-
 @Component({
   selector: 'app-invoice',
   standalone: true,
@@ -22,23 +21,17 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./invoice.css']
 })
 export class InvoiceComponent implements OnInit {
-
   searchMobile = '';
   showSuggestions = false;
   showPreviewModal = false;
-
   leadSuggestions: any[] = [];
   invoices: any[] = [];
-
   page = 0;
   totalPages = 0;
-
   today = new Date();
-
   editingInvoiceId: string | null = null;
   selectedInstallments: any[] = [];
   showInstallmentModal = false;
-
   invoiceData: any = {
     id: '',
     name: '',
@@ -59,18 +52,13 @@ export class InvoiceComponent implements OnInit {
     installmentEnabled: false,
     installments: []
   };
-
   private searchSubject = new Subject<void>();
-
   constructor(
     private http: HttpClient,
     private cd: ChangeDetectorRef
   ) { }
-
   ngOnInit(): void {
-
     this.loadInvoices();
-
     this.searchSubject
       .pipe(debounceTime(500))
       .subscribe(() => {
@@ -78,14 +66,12 @@ export class InvoiceComponent implements OnInit {
         this.searchInvoices();
       });
   }
-
   onSearchMobile(): void {
     if (this.searchMobile.length < 3) {
       this.leadSuggestions = [];
       this.showSuggestions = false;
       return;
     }
-
     this.http.get<any[]>(
       `${environment.apiUrl}/api/leads/search?phone=${this.searchMobile}`
     ).subscribe(res => {
@@ -93,7 +79,6 @@ export class InvoiceComponent implements OnInit {
       this.showSuggestions = true;
     });
   }
-
   selectLead(lead: any): void {
     this.invoiceData.name = lead.name || '';
     this.invoiceData.email = lead.email || '';
@@ -102,25 +87,20 @@ export class InvoiceComponent implements OnInit {
     this.searchMobile = lead.phone || '';
     this.showSuggestions = false;
   }
-
   openPreview(inv?: any): void {
     if (inv) {
       this.invoiceData = { ...inv };
     }
     this.showPreviewModal = true;
   }
-
   closePreview(): void {
     this.showPreviewModal = false;
   }
-
   generateInvoice(): void {
-
     if (this.editingInvoiceId) {
       this.updateInvoice();
       return;
     }
-
     const payload = {
       invoice: {
         ...this.invoiceData,
@@ -128,39 +108,27 @@ export class InvoiceComponent implements OnInit {
       },
       installments: this.invoiceData.installments
     };
-
     this.http.post<any>(
       `${environment.apiUrl}/invoices`,
       payload
     ).subscribe(res => {
-
       this.invoiceData.id = res.id;
-
       this.loadInvoices();
-
       alert('Invoice Created');
-
       this.resetForm();
     });
   }
-
   updateInvoice(): void {
-
     this.http.put<any>(
       `${environment.apiUrl}/invoices/${this.editingInvoiceId}`,
       this.invoiceData
     ).subscribe(() => {
-
       alert('Invoice Updated Successfully');
-
       this.editingInvoiceId = null;
-
       this.loadInvoices();
-
       this.resetForm();
     });
   }
-
   loadInvoices(): void {
     this.http.get<any>(
       `${environment.apiUrl}/invoices/paged?page=${this.page}&size=5`
@@ -170,7 +138,6 @@ export class InvoiceComponent implements OnInit {
       this.cd.detectChanges();
     });
   }
-
   nextPage(): void {
     if (this.page < this.totalPages - 1) {
       this.page++;
@@ -178,7 +145,6 @@ export class InvoiceComponent implements OnInit {
       this.searchInvoices();
     }
   }
-
   prevPage(): void {
     if (this.page > 0) {
       this.page--;
@@ -186,36 +152,26 @@ export class InvoiceComponent implements OnInit {
       this.searchInvoices();
     }
   }
-
   async downloadInvoice(): Promise<void> {
     const invoiceElement = document.getElementById('invoice');
-
     if (!invoiceElement) return;
-
     const canvas = await html2canvas(invoiceElement, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       scrollY: -window.scrollY
     });
-
     const imgData = canvas.toDataURL('image/png');
-
     const pdf = new jsPDF('p', 'mm', 'a4');
-
     const pdfWidth = 210;
     const pdfHeight = 297;
-
     const margin = 8;
     const usableWidth = pdfWidth - margin * 2;
     const usableHeight = pdfHeight - margin * 2;
-
     const imgWidth = usableWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
     let heightLeft = imgHeight;
     let position = margin;
-
     pdf.addImage(
       imgData,
       'PNG',
@@ -226,14 +182,10 @@ export class InvoiceComponent implements OnInit {
       '',
       'FAST'
     );
-
     heightLeft -= usableHeight;
-
     while (heightLeft > 0) {
       position = heightLeft - imgHeight + margin;
-
       pdf.addPage();
-
       pdf.addImage(
         imgData,
         'PNG',
@@ -244,27 +196,20 @@ export class InvoiceComponent implements OnInit {
         '',
         'FAST'
       );
-
       heightLeft -= usableHeight;
     }
-
     pdf.save(`${this.invoiceData.id || 'invoice'}.pdf`);
   }
-
   downloadSavedInvoice(inv: any): void {
     this.invoiceData = { ...inv };
-
     setTimeout(() => {
       this.downloadInvoice();
     }, 300);
   }
-
   addInstallment(): void {
-
     if (!this.invoiceData.installments) {
       this.invoiceData.installments = [];
     }
-
     this.invoiceData.installments.push({
       installmentNo: this.invoiceData.installments.length + 1,
       amount: 0,
@@ -273,30 +218,23 @@ export class InvoiceComponent implements OnInit {
       status: 'Pending'
     });
   }
-
   removeInstallment(index: number): void {
     this.invoiceData.installments.splice(index, 1);
-
     this.invoiceData.installments.forEach((x: any, i: number) => {
       x.installmentNo = i + 1;
     });
   }
-
   editInvoice(inv: any): void {
-
     this.editingInvoiceId = inv.id;
-
     this.invoiceData = {
       ...inv,
       installments: inv.installments || []
     };
-
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
   }
-
   resetForm(): void {
     this.invoiceData = {
       id: '',
@@ -319,36 +257,25 @@ export class InvoiceComponent implements OnInit {
       notes: ''
     };
   }
-
   manageInstallments(inv: any): void {
-
     this.http.get<any[]>(
       `${environment.apiUrl}/invoices/${inv.id}/installments`
     ).subscribe(res => {
-
       this.selectedInstallments = res;
-
       this.showInstallmentModal = true;
     });
   }
-
   payInstallment(inst: any): void {
-
     this.http.post<any>(
       `${environment.apiUrl}/invoices/installments/${inst.id}/pay`,
       {}
     ).subscribe(() => {
-
       alert('Installment Marked Paid');
-
       this.showInstallmentModal = false;
-
       this.loadInvoices();
     });
   }
-
   // filters
-
   filterData: any = {
     name: '',
     course: '',
@@ -358,32 +285,24 @@ export class InvoiceComponent implements OnInit {
     fromDate: '',
     toDate: ''
   };
-
   onFilterChange(): void {
     this.searchSubject.next();
   }
-
   searchInvoices(): void {
-
     const payload = {
       ...this.filterData,
       page: this.page,
       size: 5
     };
-
     this.http.post<any>(
       `${environment.apiUrl}/invoices/search`,
       payload
     ).subscribe(res => {
-
       this.invoices = res.content;
       this.totalPages = res.totalPages;
-
     });
   }
-
   clearFilters(): void {
-
     this.filterData = {
       name: '',
       course: '',
@@ -393,10 +312,8 @@ export class InvoiceComponent implements OnInit {
       fromDate: '',
       toDate: ''
     };
-
     this.searchInvoices();
   }
-
   // validations
   get finalInvoiceAmount(): number {
     return (
@@ -405,49 +322,35 @@ export class InvoiceComponent implements OnInit {
       - Number(this.invoiceData.scholarship || 0)
     );
   }
-
   get totalInstallmentAmount(): number {
     return (this.invoiceData.installments || [])
       .reduce((sum: number, inst: any) => sum + Number(inst.amount || 0), 0);
   }
-
   get installmentAmountMismatch(): boolean {
     return this.invoiceData.installmentEnabled &&
       this.invoiceData.installments?.length > 0 &&
       this.totalInstallmentAmount !== this.finalInvoiceAmount;
   }
-
   get installmentCompletionPercentage(): number {
     const installments = this.invoiceData.installments || [];
-
     if (!installments.length) return 0;
-
     const paid = installments.filter((x: any) => x.status === 'Paid').length;
-
     return Math.round((paid / installments.length) * 100);
   }
-
   isOverdue(inst: any): boolean {
     if (!inst?.dueDate) return false;
-
     return (
       inst.status !== 'Paid' &&
       new Date(inst.dueDate) < new Date()
     );
   }
-
   async approvePayment(invoiceId: string): Promise<void> {
-
     const confirmed = confirm(
       'Approve this payment and grant student access?'
     );
-
     if (!confirmed) return;
-
     const invoice = this.invoices.find(x => x.id === invoiceId);
-
     if (!invoice) return;
-
     // MUTATE TO FINAL PAID STATE BEFORE PDF GENERATION
     this.invoiceData = {
       ...invoice,
@@ -456,78 +359,55 @@ export class InvoiceComponent implements OnInit {
       paidAmount: invoice.amount,
       remainingAmount: 0
     };
-
     await new Promise(resolve => setTimeout(resolve, 500));
-
     const pdfBlob = await this.generateInvoicePdfBlob();
-
     if (!pdfBlob) {
       alert('Failed to generate invoice PDF');
       return;
     }
-
     const formData = new FormData();
-
     formData.append('invoiceId', invoiceId);
     formData.append(
       'invoicePdf',
       pdfBlob,
       `${invoiceId}.pdf`
     );
-
     this.http.post(
       `${environment.apiUrl}/api/checkout/approve`,
       formData
     ).subscribe(() => {
-
       alert('Payment Approved + Email Sent');
-
       this.loadInvoices();
     });
   }
-  
   async generateInvoicePdfBlob(): Promise<Blob | null> {
     const invoiceElement = document.getElementById('invoice');
-
     if (!invoiceElement) return null;
-
     const canvas = await html2canvas(invoiceElement, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       scrollY: -window.scrollY
     });
-
     const imgData = canvas.toDataURL('image/png');
-
     const pdf = new jsPDF('p', 'mm', 'a4');
-
     const pdfWidth = 210;
     const pdfHeight = 297;
     const margin = 8;
-
     const usableWidth = pdfWidth - margin * 2;
     const usableHeight = pdfHeight - margin * 2;
-
     const imgWidth = usableWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
     let heightLeft = imgHeight;
     let position = margin;
-
     pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-
     heightLeft -= usableHeight;
-
     while (heightLeft > 0) {
       position = heightLeft - imgHeight + margin;
-
       pdf.addPage();
       pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-
       heightLeft -= usableHeight;
     }
-
     return pdf.output('blob');
   }
 }

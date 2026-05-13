@@ -5,8 +5,6 @@ import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import QRCode from 'qrcode';
-
-
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -17,21 +15,17 @@ import QRCode from 'qrcode';
 export class Admin implements OnInit {
   activeTab: 'leads' | 'jobs' | 'companies' | 'bin' | 'questions' | 'certificate' = 'leads'; leads: any[] = [];
   filteredLeads: any[] = [];
-
   searchText = '';
   selectedStatus = '';
-
   isScraping = false;
   completed = false;
   statusInterval: any;
-
   stats = {
     total: 0,
     new: 0,
     contacted: 0,
     joined: 0,
   };
-
   // 🔥 PAGINATION
   companyPage = 0;
   companySize = 10;
@@ -39,22 +33,17 @@ export class Admin implements OnInit {
   page = 0;
   size = 10;
   totalPages = 0;
-
   binTotal = 0;
   binReady = false;
   isCollapsed = false;
   showProfile = false;
-
   newLeadsCount = 0;
   previousTotal = 0;
-
   isLoggedIn = false;
-
   loginData = {
     username: '',
     password: ''
   };
-
   errorMsg = '';
   idleTimer: any;
   timeout = 24 * 60 * 60 * 1000; // 24 hours
@@ -62,23 +51,18 @@ export class Admin implements OnInit {
   processMessage = '';
   progress = 0;
   showSuccess = false;
-
   leadSortBy = 'date';          // default sort by date
   leadSortDirection = 'desc';   // latest first
-
   constructor(
     private cd: ChangeDetectorRef,
     private http: HttpClient,
     private router: Router
   ) { }
-
   // ================= INIT =================
   ngOnInit() {
     const saved = localStorage.getItem('adminLogin');
-
     setTimeout(() => {
       this.isLoggedIn = saved === 'true';
-
       if (this.isLoggedIn) {
         this.loadLeads();
         this.loadCategories();
@@ -90,13 +74,11 @@ export class Admin implements OnInit {
       }
     });
   }
-
   ngAfterViewInit() {
     setTimeout(() => {
       this.cd.detectChanges();
     });
   }
-
   login() {
     if (
       this.loginData.username === 'admin' &&
@@ -105,24 +87,19 @@ export class Admin implements OnInit {
       this.isProcessing = true;
       this.processMessage = 'Logging in...';
       this.progress = 30;
-
       setTimeout(() => {
         this.progress = 70;
       }, 300);
-
       setTimeout(() => {
         this.progress = 100;
         this.showSuccess = true;
       }, 600);
-
       setTimeout(() => {
         this.isLoggedIn = true;
         localStorage.setItem('adminLogin', 'true');
-
         this.isProcessing = false;
         this.showSuccess = false;
         this.errorMsg = '';
-
         // 🔥 LOAD DATA AFTER UI FREE
         setTimeout(() => {
           this.loadLeads();
@@ -133,41 +110,32 @@ export class Admin implements OnInit {
           this.startLeadPolling();
           this.startIdleTimer();
         }, 100);
-
       }, 1000);
-
     } else {
       this.errorMsg = 'Invalid credentials ❌';
     }
   }
-
   logout(force = false) {
     if (!force && !confirm('Logout?')) return;
-
     this.isProcessing = true;
     this.processMessage = 'Logging out...';
     this.progress = 50;
-
     setTimeout(() => {
       this.progress = 100;
       this.showSuccess = true;
     }, 400);
-
     setTimeout(() => {
       localStorage.clear();
       location.reload();
     }, 900);
   }
-
   startIdleTimer() {
     clearTimeout(this.idleTimer);
-
     this.idleTimer = setTimeout(() => {
       alert('Session expired. Please login again');
       this.logout(true); // ✅ force logout
     }, this.timeout);
   }
-
   @HostListener('document:mousemove')
   @HostListener('document:keydown')
   @HostListener('document:click')
@@ -176,58 +144,46 @@ export class Admin implements OnInit {
       this.startIdleTimer();
     }
   }
-
   openTab(tab: 'leads' | 'jobs' | 'companies' | 'bin' | 'questions' | 'certificate') {
     this.activeTab = tab;
-
     if (tab === 'bin') {
       this.loadBin();
     }
-
     if (tab === 'leads') {
       this.loadLeads();
     }
   }
-
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
   }
-
   toggleProfile() {
     setTimeout(() => {
       this.showProfile = !this.showProfile;
     });
   }
-
   clearNotifications() {
     setTimeout(() => {
       this.newLeadsCount = 0;
     });
   }
-
   /* 🔔 LIVE NOTIFICATION */
   startLeadPolling() {
     setInterval(() => {
       fetch(`${environment.apiUrl}/api/leads/analytics`)
         .then(res => res.json())
         .then(data => {
-
           if (this.previousTotal && data.total > this.previousTotal) {
             this.newLeadsCount += (data.total - this.previousTotal);
           }
-
           this.previousTotal = data.total;
-
         });
     }, 5000); // every 5 sec
   }
-
   // ================= LEADS =================
   loadLeads() {
     fetch(`${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}&sortBy=${this.mapLeadSortField()}&direction=${this.leadSortDirection}`)
       .then(res => res.json())
       .then(data => {
-
         this.leads = data.content.map((item: any) => ({
           id: item.id,
           Date: item.createdAt,
@@ -245,35 +201,28 @@ export class Admin implements OnInit {
           tempFollowUp: item.followUpDate,
           isFollowUpChanged: false,
         }));
-
         this.totalPages = data.totalPages; // ✅ works now
-
         this.filteredLeads = [...this.leads];
         this.calculateStats();
         this.cd.detectChanges();
       });
   }
-
   nextPage() {
     if (this.page < this.totalPages - 1) {
       this.page++;
       this.loadLeads();
     }
   }
-
   prevPage() {
     if (this.page > 0) {
       this.page--;
       this.loadLeads();
     }
   }
-
   onFollowUpChange(lead: any) {
     lead.isFollowUpChanged = true;
   }
-
   saveFollowUp(lead: any) {
-
     fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
       method: 'POST'
     })
@@ -284,40 +233,30 @@ export class Admin implements OnInit {
       .catch(() => {
         alert('Failed to save follow-up');
       });
-
   }
-
   cancelFollowUp(lead: any) {
     lead.tempFollowUp = lead.FollowUp;
     lead.isFollowUpChanged = false;
   }
-
   mapLeadSortField() {
     if (this.leadSortBy === 'date') return 'createdAt';
     if (this.leadSortBy === 'name') return 'name';
     return 'createdAt';
   }
-
   applyFilter() {
-
     let data = [...this.leads];
-
     // 🔍 FILTER
     data = data.filter((lead) => {
       const matchSearch =
         lead.Name.toLowerCase().includes(this.searchText.toLowerCase()) ||
         lead.Phone.includes(this.searchText);
-
       const matchStatus = this.selectedStatus ? lead.Status === this.selectedStatus : true;
       const matchCity = this.selectedCity ? lead.City === this.selectedCity : true;
-
       const matchDate =
         (!this.fromDate || lead.Date >= this.fromDate) &&
         (!this.toDate || lead.Date <= this.toDate);
-
       return matchSearch && matchStatus && matchCity && matchDate;
     });
-
     // 🔥 DEFAULT SORT → latest first
     if (this.leadSortBy === 'name') {
       data.sort((a, b) =>
@@ -333,10 +272,8 @@ export class Admin implements OnInit {
           : new Date(b.Date).getTime() - new Date(a.Date).getTime()
       );
     }
-
     this.filteredLeads = data;
   }
-
   saveStatus(lead: any) {
     fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
       method: 'POST'
@@ -346,21 +283,17 @@ export class Admin implements OnInit {
         lead.isChanged = false;
       });
   }
-
   cancelStatus(lead: any) {
     lead.tempStatus = lead.Status;
     lead.isChanged = false;
   }
-
   calculateStats() {
     this.stats.total = this.leads.length;
     this.stats.new = this.leads.filter((l) => l.Status === 'New').length;
     this.stats.contacted = this.leads.filter((l) => l.Status === 'Contacted').length;
     this.stats.joined = this.leads.filter((l) => l.Status === 'Joined').length;
   }
-
   updateLead(lead: any) {
-
     fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
       method: 'POST'
     })
@@ -372,7 +305,6 @@ export class Admin implements OnInit {
       .catch(() => {
         alert('Failed to update status');
       });
-
     // FOLLOWUP
     if (lead.isFollowUpChanged) {
       fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
@@ -382,33 +314,25 @@ export class Admin implements OnInit {
         lead.isFollowUpChanged = false;
       });
     }
-
   }
-
   refreshLeads() {
     this.loadLeads();
   }
-
   onStatusChange(lead: any) {
     lead.isChanged = true; // don't overwrite
   }
-
   selectedLeadToDelete: any = null;
   showDeletePopup = false;
-
   openDeletePopup(lead: any) {
     this.selectedLeadToDelete = lead;
     this.showDeletePopup = true;
   }
-
   closeDeletePopup() {
     this.showDeletePopup = false;
     this.selectedLeadToDelete = null;
   }
-
   confirmDelete() {
     if (!this.selectedLeadToDelete?.id) return;
-
     fetch(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`, {
       method: 'DELETE'
     })
@@ -421,81 +345,56 @@ export class Admin implements OnInit {
         alert('Delete failed');
       });
   }
-
   todayDate = new Date().toISOString().split('T')[0];
-
   exportCSV() {
-
     const headers = ['NAME', 'PHONE', 'COURSE', 'STATUS', 'CITY', 'REMARKS'];
-
     const rows = this.leads.map(l =>
       [l.Name, l.Phone, l.Course, l.Status, l.City, l.Message].join(',')
     );
-
     const csvContent = [headers.join(','), ...rows].join('\n');
-
     const today = new Date().toISOString().split('T')[0];
-
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `VT_Leads_${today}.csv`;
-
     link.click();
   }
-
   selectedMessageLead: any = null;
   showMessagePopup = false;
-
   openMessagePopup(lead: any) {
     this.selectedMessageLead = lead;
     this.showMessagePopup = true;
   }
-
   closeMessagePopup() {
     this.showMessagePopup = false;
     this.selectedMessageLead = null;
   }
-
   getTodayFollowups() {
     const today = new Date().toISOString().split('T')[0];
     return this.leads.filter((l) => l.FollowUp === today).length;
   }
-
   @HostListener('window:beforeunload', ['$event'])
   confirmExit(event: any) {
     const hasChanges = this.leads.some(l => l.isChanged);
-
     if (hasChanges) {
       event.returnValue = true;
     }
   }
-
   openWhatsAppLead(lead: any) {
     const url = this.getWhatsappLink(lead);
     window.open(url, '_blank');
   }
-
   getWhatsappLink(lead: any) {
-
     const courseKey = lead.Course?.toLowerCase();
-
     let message = '';
-
     if (courseKey?.includes('java')) {
-
       message = `👋 Hello,
-
 Thanks for reaching out to Vidhura Tech!
-
 🎯 You're interested in:
 ➡️ Java + Data Structures (Telugu) Crash Course
-
 📅 May 02, 2026
 ⏳ Daily 1.5-hour sessions
 💰 Offer Fee: ₹2999
-
 📚 Includes:
 ✔ Core Java  
 ✔ Data Structures  
@@ -503,97 +402,68 @@ Thanks for reaching out to Vidhura Tech!
 ✔ Mock Interviews  
 ✔ Real-time Projects  
 ✔ Placement Support  
-
 🚀 Let me know if you'd like to enroll or need more details 🙂
-
 🙏 Thank you  
 Vidhura Tech Team`;
-
     } else if (courseKey?.includes('python')) {
-
       message = `👋 Hello,
-
 Thanks for reaching out to Vidhura Tech!
-
 🎯 You're interested in:
 ➡️ Python Course
-
 📅 May 02nd, 2026
 ⏳ Daily 1.5-hour sessions
 💰 Offer Fee: ₹2999
-
 📚 Includes:
 ✔ Python Fundamentals  
 ✔ Problem Solving  
 ✔ Projects  
 ✔ Placement Support  
-
 🚀 Let me know if you'd like to enroll 🙂
-
 🙏 Thank you  
 Vidhura Tech Team`;
-
     } else {
-
       message = `👋 Hello,
-
 Thanks for reaching out to Vidhura Tech!
-
 🎯 I'm interested in your courses.
-
 📌 Please share more details 🙂
-
 🙏 Thank you`;
     }
-
     // ✅ WORKING URL (IMPORTANT CHANGE)
     return `https://api.whatsapp.com/send?phone=91${lead.Phone}&text=${encodeURIComponent(message)}`;
   }
-
   canDeactivate() {
     return !this.leads.some(l => l.isChanged) || confirm("Save changes?");
   }
-
   get binCount() {
     return this.binTotal;
   }
-
   loadBin() {
     this.isBinLoading = true;
-
     fetch(`${environment.apiUrl}/api/leads/bin?page=0&size=10`)
       .then(res => res.json())
       .then(data => {
-
         this.binLeads = data.content;
         this.binTotal = data.totalElements;
-
         this.isBinLoading = false;
         this.binReady = true; // ✅ important
         this.cd.detectChanges();
       });
   }
-
   restoreLead(lead: any) {
     fetch(`${environment.apiUrl}/api/leads/restore/${lead.id}`, {
       method: 'PUT'
     }).then(() => this.loadBin());
   }
-
   deletePermanent(lead: any) {
-
     if (!confirm('Delete permanently?')) return;
-
     fetch(`${environment.apiUrl}/api/leads/permanent/${lead.id}`, {
       method: 'DELETE'
     }).then(() => this.loadBin());
   }
-
   openBin() {
     this.activeTab = 'bin';
     this.loadBin(); // 🔥 VERY IMPORTANT
   }
-
   // ================= JOB =================
   jobForm = {
     title: '',
@@ -604,19 +474,15 @@ Thanks for reaching out to Vidhura Tech!
     category: '',
     link: '',
   };
-
   categories: string[] = [];
   showPreview = false;
-
   selectedCity = '';
   fromDate = '';
   toDate = '';
   cities: string[] = [];
-
   loadCategories() {
     this.categories = ['IT', 'Non-IT', 'Core', 'Finance', 'HR'];
   }
-
   previewJob() {
     if (!this.jobForm.title || !this.jobForm.company) {
       alert('Fill required fields');
@@ -624,12 +490,10 @@ Thanks for reaching out to Vidhura Tech!
     }
     this.showPreview = true;
   }
-
   confirmPost() {
     this.showPreview = false;
     this.postJob();
   }
-
   postJob() {
     const payload = {
       title: this.jobForm.title,
@@ -641,14 +505,12 @@ Thanks for reaching out to Vidhura Tech!
       applyLink: this.jobForm.link,
       source: 'Admin',
     };
-
     fetch(`${environment.apiUrl}/jobs/admin/add`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).then(() => {
       alert('Job Posted ✅');
-
       this.jobForm = {
         title: '',
         company: '',
@@ -660,52 +522,42 @@ Thanks for reaching out to Vidhura Tech!
       };
     });
   }
-
   companies: any[] = [];
   analytics: any = {};
-
   newCompany = {
     company: '',
     type: 'greenhouse',
     url: '',
   };
-
   searchCompany = '';
   sortBy = 'company';
   direction = 'asc';
   activeFilter: any = '';
-
   binLeads: any[] = [];
   isBinLoading = false;
-
   loadCompanies() {
     let url = `${environment.apiUrl}/admin/companies?page=${this.companyPage}&size=${this.companySize}&search=${this.searchCompany}&sortBy=${this.sortBy}&direction=${this.direction}`;
-
     if (this.activeFilter !== '') {
       url += `&active=${this.activeFilter}`;
     }
-
     this.http.get<any>(url).subscribe((data) => {
       this.companies = data.content;
       this.totalCompanies = data.totalElements;
       this.cd.detectChanges();
     });
   }
-
   nextCompanyPage() {
     if ((this.companyPage + 1) * this.companySize < this.totalCompanies) {
       this.companyPage++;
       this.loadCompanies();
     }
   }
-
   prevCompanyPage() {
     if (this.companyPage > 0) {
       this.companyPage--;
       this.loadCompanies();
     }
   }
-
   addCompany() {
     fetch(`${environment.apiUrl}/admin/companies`, {
       method: 'POST',
@@ -713,40 +565,33 @@ Thanks for reaching out to Vidhura Tech!
       body: JSON.stringify(this.newCompany),
     }).then(() => {
       alert('Company Added ✅');
-
       this.newCompany = {
         company: '',
         type: 'greenhouse',
         url: '',
       };
-
       this.loadCompanies();
     });
   }
-
   deleteCompany(id: number) {
     fetch(`${environment.apiUrl}/admin/companies/${id}`, {
       method: 'DELETE',
     }).then(() => this.loadCompanies());
   }
-
   toggleCompany(c: any) {
     fetch(`${environment.apiUrl}/admin/companies/${c.id}/toggle`, {
       method: 'PUT',
     }).then(() => this.loadCompanies());
   }
-
   loadAnalytics() {
     this.http.get<any>(`${environment.apiUrl}/admin/analytics`).subscribe((data) => {
       this.analytics = data;
       this.cd.detectChanges(); // 🔥 FIX
     });
   }
-
   triggerScrape() {
     this.isScraping = true;
     this.completed = false;
-
     this.http.get<{ message: string }>(`${environment.apiUrl}/jobs/scrape`).subscribe({
       next: () => {
         this.startPolling();
@@ -757,33 +602,26 @@ Thanks for reaching out to Vidhura Tech!
       },
     });
   }
-
   startPolling() {
     this.statusInterval = setInterval(() => {
       this.http
         .get<{ running: boolean }>(`${environment.apiUrl}/admin/scrape/status`)
         .subscribe((res) => {
           this.isScraping = res.running;
-
           if (!res.running) {
             clearInterval(this.statusInterval);
-
             this.isScraping = false;
             this.completed = true; // 🔥 NEW
-
             console.log('✅ Scraping completed');
           }
         });
     }, 3000);
   }
-
   // ------------------------------------------------ Interview Questions -----------------------------------------------------------------
-
   questionsJson = '';
   parsedQuestions: any[] = [];
   previewMode = false;
   uploadSuccess = false;
-
   previewQuestions() {
     try {
       this.parsedQuestions = JSON.parse(this.questionsJson);
@@ -792,7 +630,6 @@ Thanks for reaching out to Vidhura Tech!
       alert('Invalid JSON ❌');
     }
   }
-
   uploadQuestions() {
     fetch(`${environment.apiUrl}/api/questions/bulk`, {
       method: 'POST',
@@ -807,34 +644,25 @@ Thanks for reaching out to Vidhura Tech!
     });
   }
   // ================= CERTIFICATE =================
-
   certificateData = {
     name: '',
     course: '',
     email: '',
     mobile: ''
   };
-
   certificateId = '';
   qrCodeUrl = '';
   today = new Date().toLocaleDateString();
-
   mobileSuggestions: any[] = [];
   showSuggestions = false;
   showCertPopup = false;
-
   generateQRCode(id: string) {
-
     const url = `${window.location.origin}/certificate/${id}`;
-
     QRCode.toDataURL(url)
       .then(qr => {
-
         this.qrCodeUrl = qr;
-
         // 🔥 FORCE SYNC WITH ANGULAR
         this.cd.detectChanges();
-
       });
   }
   // 🔥 Save to backend
@@ -850,55 +678,37 @@ Thanks for reaching out to Vidhura Tech!
       })
     });
   }
-
   async generateAndDownload() {
-
     this.showCertPopup = false;
-
     this.http.post(`${environment.apiUrl}/certificates`, {
       name: this.certificateData.name,
       course: this.certificateData.course,
       email: this.certificateData.email
     }).subscribe(async (res: any) => {
-
       this.certificateId = res.id;
       this.generateQRCode(res.id);
       this.cd.detectChanges();
-
     });
   }
-
   downloadCertificate() {
-
     if (!this.certificateId) {
       alert("Generate certificate first");
       return;
     }
-
     setTimeout(async () => {
-
       const element = document.getElementById('certificate');
-
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(element!, { scale: 3 });
-
       const imgData = canvas.toDataURL('image/png');
-
       const jsPDF = (await import('jspdf')).jsPDF;
       const pdf = new jsPDF('landscape', 'px', [1120, 794]);
-
       pdf.addImage(imgData, 'PNG', 0, 0, 1120, 794);
-
       pdf.save(`${this.certificateData.name}_certificate.pdf`);
-
     }, 500);
   }
-
   fetchUserByMobile() {
     const mobile = this.certificateData.mobile;
-
     if (!mobile || mobile.length < 5) return; // avoid unnecessary calls
-
     this.http.get<any>(`${environment.apiUrl}/api/leads/by-phone?phone=${mobile}`)
       .subscribe({
         next: (user) => {
@@ -913,47 +723,34 @@ Thanks for reaching out to Vidhura Tech!
         }
       });
   }
-
   shareLinkedIn() {
-
     if (!this.certificateId) {
       alert("Generate certificate first");
       return;
     }
-
     const url = `${window.location.origin}/certificate/${this.certificateId}`;
-
     const linkedInUrl =
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-
     window.open(linkedInUrl, '_blank');
   }
-
   searchTimeout: any;
-
   searchMobile() {
     clearTimeout(this.searchTimeout);
-
     this.searchTimeout = setTimeout(() => {
       const mobile = this.certificateData.mobile;
-
       if (!mobile || mobile.length < 3) return;
-
       this.http.get<any[]>(`${environment.apiUrl}/api/leads/search?phone=${mobile}`)
         .subscribe(data => {
           this.mobileSuggestions = data;
           this.showSuggestions = data.length > 0;
         });
-
     }, 300); // 300ms delay
   }
-
   selectSuggestion(user: any) {
     this.certificateData.mobile = user.phone;
     this.certificateData.name = user.name;
     this.certificateData.email = user.email;
     this.certificateData.course = user.course;
-
     this.showSuggestions = false;
   }
 }

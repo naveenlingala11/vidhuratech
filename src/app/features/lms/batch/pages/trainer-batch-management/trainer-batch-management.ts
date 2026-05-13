@@ -9,7 +9,6 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { BatchService } from '../../services/batch';
-
 @Component({
   selector: 'app-trainer-batch-management',
   standalone: true,
@@ -18,31 +17,23 @@ import { BatchService } from '../../services/batch';
   styleUrls: ['./trainer-batch-management.css']
 })
 export class TrainerBatchManagementComponent implements OnInit {
-
   batchId!: number;
-
   batch: any;
   sessions: any[] = [];
-
   loading = false;
-
   form!: FormGroup;
-
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private batchService: BatchService,
     private toastr: ToastrService
   ) {}
-
   ngOnInit(): void {
     this.batchId = Number(this.route.snapshot.paramMap.get('id'));
-
     this.initForm();
     this.loadBatch();
     this.loadSessions();
   }
-
   initForm() {
     this.form = this.fb.group({
       title: ['', Validators.required],
@@ -53,17 +44,14 @@ export class TrainerBatchManagementComponent implements OnInit {
       published: [false]
     });
   }
-
   loadBatch() {
     this.batchService.getBatchById(this.batchId)
       .subscribe((res: any) => {
         this.batch = res.data;
       });
   }
-
   loadSessions() {
     this.loading = true;
-
     this.batchService.getSessions(this.batchId)
       .subscribe({
         next: (res: any) => {
@@ -76,13 +64,11 @@ export class TrainerBatchManagementComponent implements OnInit {
         }
       });
   }
-
   submitSession() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
     this.batchService.createSession(
       this.batchId,
       this.form.value
@@ -92,7 +78,6 @@ export class TrainerBatchManagementComponent implements OnInit {
       this.loadSessions();
     });
   }
-
   publish(sessionId: number) {
     this.batchService.publishSession(this.batchId, sessionId)
       .subscribe(() => {
@@ -100,7 +85,6 @@ export class TrainerBatchManagementComponent implements OnInit {
         this.loadSessions();
       });
   }
-
   unpublish(sessionId: number) {
     this.batchService.unpublishSession(this.batchId, sessionId)
       .subscribe(() => {
@@ -108,10 +92,8 @@ export class TrainerBatchManagementComponent implements OnInit {
         this.loadSessions();
       });
   }
-
   delete(sessionId: number) {
     if (!confirm('Delete this session?')) return;
-
     this.batchService.deleteSession(this.batchId, sessionId)
       .subscribe(() => {
         this.toastr.success('Session deleted');

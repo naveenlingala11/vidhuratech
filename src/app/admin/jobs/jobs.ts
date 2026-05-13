@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 @Component({
   selector: 'app-jobs',
   imports: [CommonModule, FormsModule],
@@ -10,7 +9,6 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './jobs.css',
 })
 export class JobPostAdmin {
-
   jobForm = {
     title: '',
     company: '',
@@ -20,19 +18,15 @@ export class JobPostAdmin {
     category: '',
     link: '',
   };
-
   categories: string[] = [];
   showPreview = false;
-
   selectedCity = '';
   fromDate = '';
   toDate = '';
   cities: string[] = [];
-
   loadCategories() {
     this.categories = ['IT', 'Non-IT', 'Core', 'Finance', 'HR'];
   }
-
   previewJob() {
     if (!this.jobForm.title || !this.jobForm.company) {
       alert('Fill required fields');
@@ -40,12 +34,10 @@ export class JobPostAdmin {
     }
     this.showPreview = true;
   }
-
   confirmPost() {
     this.showPreview = false;
     this.postJob();
   }
-
   postJob() {
     const payload = {
       title: this.jobForm.title,
@@ -57,14 +49,12 @@ export class JobPostAdmin {
       applyLink: this.jobForm.link,
       source: 'Admin',
     };
-
     fetch(`${environment.apiUrl}/jobs/admin/add`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).then(() => {
       alert('Job Posted ✅');
-
       this.jobForm = {
         title: '',
         company: '',
@@ -76,5 +66,4 @@ export class JobPostAdmin {
       };
     });
   }
-
 }

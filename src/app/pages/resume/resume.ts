@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
 /* 🔥 MODELS (STRUCTURED DATA) */
 interface Employment {
   company: string;
@@ -12,7 +11,6 @@ interface Employment {
   current: boolean;
   responsibilities: string;
 }
-
 interface Project {
   title: string;
   tech: string;
@@ -20,13 +18,11 @@ interface Project {
   link: string;
   desc: string;
 }
-
 interface Education {
   degree: string;
   college: string;
   year: string;
 }
-
 @Component({
   selector: 'app-resume',
   standalone: true,
@@ -40,7 +36,6 @@ export class Resume {
   activeSection = 'summary';
   dragIndex = -1;
   profileScore = 0;
-
   /* ================= SKILLS SYSTEM ================= */
   allSkills: string[] = [
     'Java',
@@ -77,16 +72,13 @@ export class Resume {
     'Testing',
     'JUnit',
   ];
-
   maxSkills = 25;
   skillInput = '';
   filteredSkills: string[] = [];
   selectedSkills: string[] = [];
-
   /* ================= LANGUAGES ================= */
   allLanguages = ['English', 'Telugu', 'Hindi', 'Tamil', 'Kannada', 'Malayalam'];
   selectedLanguages: string[] = [];
-
   /* ================= SECTIONS ================= */
   sections = [
     { id: 'summary', label: 'Profile Summary' },
@@ -96,7 +88,6 @@ export class Resume {
     { id: 'education', label: 'Education' },
     { id: 'personal', label: 'Personal Details' },
   ];
-
   /* ================= MAIN DATA ================= */
   data = {
     name: '',
@@ -105,7 +96,6 @@ export class Resume {
     photo: '',
     headline: '',
     summary: '',
-
     employment: <Employment[]>[
       {
         company: '',
@@ -117,11 +107,8 @@ export class Resume {
         responsibilities: '',
       },
     ],
-
     projects: <Project[]>[{ title: '', tech: '', role: '', link: '', desc: '' }],
-
     education: <Education[]>[{ degree: '', college: '', year: '' }],
-
     personal: {
       dob: '',
       gender: '',
@@ -131,22 +118,18 @@ export class Resume {
       github: '',
     },
   };
-
   /* ================= SECTION ================= */
   setSection(id: string) {
     this.activeSection = id;
   }
-
   /* ================= DRAG ================= */
   onDragStart(i: number) {
     this.dragIndex = i;
   }
-
   onDrop(i: number) {
     const moved = this.sections.splice(this.dragIndex, 1)[0];
     this.sections.splice(i, 0, moved);
   }
-
   /* ================= SKILLS ================= */
   onSkillInput() {
     this.filteredSkills = this.allSkills.filter(
@@ -154,7 +137,6 @@ export class Resume {
         s.toLowerCase().includes(this.skillInput.toLowerCase()) && !this.selectedSkills.includes(s),
     );
   }
-
   addSkill(skill: string) {
     if (this.selectedSkills.length >= this.maxSkills) {
       alert('Max 25 skills allowed');
@@ -165,12 +147,10 @@ export class Resume {
     this.filteredSkills = [];
     this.updateScore();
   }
-
   removeSkill(i: number) {
     this.selectedSkills.splice(i, 1);
     this.updateScore();
   }
-
   /* ================= LANGUAGES ================= */
   toggleLanguage(lang: string) {
     if (this.selectedLanguages.includes(lang)) {
@@ -179,7 +159,6 @@ export class Resume {
       this.selectedLanguages.push(lang);
     }
   }
-
   /* ================= ADD / REMOVE ================= */
   addItem(type: 'employment' | 'projects' | 'education') {
     if (type === 'employment') {
@@ -193,7 +172,6 @@ export class Resume {
         responsibilities: '',
       });
     }
-
     if (type === 'projects') {
       this.data.projects.push({
         title: '',
@@ -203,7 +181,6 @@ export class Resume {
         desc: '',
       });
     }
-
     if (type === 'education') {
       this.data.education.push({
         degree: '',
@@ -211,57 +188,44 @@ export class Resume {
         year: '',
       });
     }
-
     this.updateScore();
   }
-
   removeItem(type: 'employment' | 'projects' | 'education', i: number) {
     this.data[type].splice(i, 1);
     this.updateScore();
   }
-
   /* ================= PHOTO ================= */
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
-
     reader.onload = () => {
       if (typeof reader.result === 'string') {
         this.data.photo = reader.result;
       }
     };
-
     reader.readAsDataURL(file);
   }
-
   /* ================= SCORE ================= */
   updateScore() {
     let score = 0;
-
     if (this.data.summary) score += 10;
     if (this.selectedSkills.length > 3) score += 15;
     if (this.data.projects.length > 0) score += 15;
     if (this.data.employment.length > 0) score += 20;
     if (this.data.education.length > 0) score += 10;
     if (this.data.photo) score += 5;
-
     this.profileScore = score;
   }
-
   /* ================= PDF ================= */
   // 🔥 ZOOM CONTROL
   zoomLevel = 1;
-
   zoomIn() {
     this.zoomLevel += 0.1;
   }
-
   zoomOut() {
     if (this.zoomLevel > 0.6) this.zoomLevel -= 0.1;
   }
-
   // 🔥 TEMPLATE LIST
   templates = [
     { id: 'template1', name: 'ATS', color: '#0d6efd' },
@@ -270,21 +234,16 @@ export class Resume {
     { id: 'template4', name: 'Creative', color: '#fd7e14' },
     { id: 'template5', name: 'Corporate', color: '#343a40' },
   ];
-
   // 🔥 REAL PDF DOWNLOAD
   async downloadPDF() {
     if (!this.validate()) {
       alert('Please fix errors before downloading');
       return;
     }
-
     if (typeof window === 'undefined') return;
-
     const element = document.getElementById('preview');
     if (!element) return;
-
     const html2pdf = (await import('html2pdf.js')).default;
-
     html2pdf()
       .set({
         margin: 0,
@@ -296,63 +255,46 @@ export class Resume {
       .from(element)
       .save();
   }
-
   errors: any = {};
-
   validate() {
     this.errors = {};
-
     if (!this.data.name || this.data.name.length < 3) {
       this.errors.name = 'Name must be at least 3 characters';
     }
-
     if (!this.data.email || !/^\S+@\S+\.\S+$/.test(this.data.email)) {
       this.errors.email = 'Invalid email';
     }
-
     if (!this.data.phone || !/^\d{10}$/.test(this.data.phone)) {
       this.errors.phone = 'Phone must be 10 digits';
     }
-
     if (this.data.summary.length > 300) {
       this.errors.summary = 'Max 300 characters';
     }
-
     return Object.keys(this.errors).length === 0;
   }
-
   getDuration(start: string, end: string) {
     if (!start || !end) return '';
-
     const s = new Date(start);
     const e = new Date(end);
-
     const years = e.getFullYear() - s.getFullYear();
     const months = e.getMonth() - s.getMonth();
-
     return `${years}y ${months}m`;
   }
-
   /* ================= AI ================= */
   aiRole = '';
   aiExperience = 'Fresher';
-
   generateAIResume() {
     if (!this.aiRole) {
       alert('Enter role');
       return;
     }
-
     this.data.summary = `Results-driven ${this.aiRole} with ${this.aiExperience} experience in designing, developing, and optimizing scalable applications. Strong expertise in modern technologies and problem-solving with a focus on performance and quality.`;
-
     const roleSkills: any = {
       'Java Developer': ['Java', 'Spring Boot', 'Microservices', 'SQL', 'REST API'],
       'Frontend Developer': ['HTML', 'CSS', 'JavaScript', 'Angular', 'React'],
       'Full Stack Developer': ['Java', 'Angular', 'Node.js', 'MongoDB'],
     };
-
     this.selectedSkills = roleSkills[this.aiRole] || ['Problem Solving', 'Communication'];
-
     this.data.projects = [
       {
         title: `${this.aiRole} Project`,
@@ -362,7 +304,6 @@ export class Resume {
         desc: 'Developed scalable application with modern architecture and optimized performance.',
       },
     ];
-
     this.data.employment = [
       {
         company: 'ABC Tech',
@@ -374,16 +315,13 @@ export class Resume {
         responsibilities: 'Developed APIs, optimized performance, collaborated with team.',
       },
     ];
-
     this.updateScore();
   }
-
   /* ================= FUTURE READY ================= */
   // 🔥 future: save to backend
   saveResume() {
     console.log('Save to DB (future)');
   }
-
   // 🔥 future: load resume
   loadResume() {
     console.log('Load from DB (future)');

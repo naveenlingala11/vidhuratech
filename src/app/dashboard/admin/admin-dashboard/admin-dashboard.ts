@@ -5,7 +5,6 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AdminDashboardService } from '../../service/admin-dashboard';
 import { environment } from '../../../../environments/environment';
-
 interface DashboardStats {
   leads: number;
   revenue: number;
@@ -17,7 +16,6 @@ interface DashboardStats {
   admins: number;
   mentors: number;
 }
-
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -29,7 +27,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
   loading = true;
   darkMode = false;
   moduleSearch = '';
-
   stats: DashboardStats = {
     leads: 0,
     revenue: 0,
@@ -41,16 +38,13 @@ export class AdminDashboard implements OnInit, OnDestroy {
     admins: 0,
     mentors: 0
   };
-
   extraStats = {
     companies: 0,
     deletedLeads: 0,
     todayFollowups: 0,
     conversionRate: 0
   };
-
   recentActivities: string[] = [];
-
   modules = [
     { title: 'Leads', code: 'LD', route: '/admin/leads', desc: 'Manage enquiries, follow-ups, and conversions', accent: 'teal' },
     { title: 'Lead Bin', code: 'BN', route: '/admin/bin', desc: 'Review and restore deleted lead records', accent: 'rose' },
@@ -61,31 +55,24 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { title: 'Invoices', code: 'IV', route: '/admin/invoice', desc: 'Create invoices and payment records', accent: 'green' },
     { title: 'Analytics', code: 'AN', route: '/invoice-analytics', desc: 'Track revenue, trends, and reports', accent: 'orange' }
   ];
-
   refreshInterval: any;
-
   constructor(
     private http: HttpClient,
     private router: Router,
     private dashboardService: AdminDashboardService,
     private cdr: ChangeDetectorRef
   ) { }
-
   ngOnInit(): void {
     this.loadDashboard();
-
     this.refreshInterval = setInterval(() => {
       this.loadDashboard(false);
     }, 30000);
   }
-
   ngOnDestroy(): void {
     clearInterval(this.refreshInterval);
   }
-
   loadDashboard(showLoader: boolean = true) {
     if (showLoader) this.loading = true;
-
     this.loadLeadStats();
     this.loadRevenueStats();
     this.loadJobStats();
@@ -94,12 +81,10 @@ export class AdminDashboard implements OnInit, OnDestroy {
     this.loadBinStats();
     this.loadRoleStats();
     this.loadRecentActivities();
-
     setTimeout(() => {
       this.loading = false;
     }, 700);
   }
-
   loadRoleStats() {
     this.dashboardService.getDashboard().subscribe({
       next: (res) => {
@@ -112,7 +97,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadLeadStats() {
     this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`).subscribe({
       next: (res) => {
@@ -125,7 +109,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadRevenueStats() {
     this.http.get<any>(`${environment.apiUrl}/invoices/analytics/summary`).subscribe({
       next: (res) => {
@@ -135,7 +118,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadJobStats() {
     this.http.get<any>(`${environment.apiUrl}/jobs?page=0&size=100`).subscribe({
       next: (res) => {
@@ -145,7 +127,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadCertificateStats() {
     this.http.get<any[]>(`${environment.apiUrl}/certificates`).subscribe({
       next: (res) => {
@@ -155,7 +136,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadCompanyStats() {
     this.http.get<any>(`${environment.apiUrl}/admin/companies?page=0&size=1`).subscribe({
       next: (res) => {
@@ -164,7 +144,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadBinStats() {
     this.http.get<any>(`${environment.apiUrl}/api/leads/bin?page=0&size=1`).subscribe({
       next: (res) => {
@@ -173,7 +152,6 @@ export class AdminDashboard implements OnInit, OnDestroy {
       error: () => { }
     });
   }
-
   loadRecentActivities() {
     this.recentActivities = [
       'New lead enquiry captured',
@@ -183,17 +161,14 @@ export class AdminDashboard implements OnInit, OnDestroy {
       'Company profile added'
     ];
   }
-
   animateCounter(key: keyof DashboardStats, target: number) {
     const duration = 700;
     const steps = 35;
     const start = this.stats[key];
     const increment = (target - start) / steps;
     let current = start;
-
     const interval = setInterval(() => {
       current += increment;
-
       if ((increment >= 0 && current >= target) || (increment < 0 && current <= target)) {
         this.stats[key] = target;
         clearInterval(interval);
@@ -202,44 +177,34 @@ export class AdminDashboard implements OnInit, OnDestroy {
       }
     }, duration / steps);
   }
-
   navigate(route: string) {
     this.router.navigate([route]);
   }
-
   toggleTheme() {
     this.darkMode = !this.darkMode;
   }
-
   refreshDashboard() {
     this.loadDashboard();
   }
-
   get filteredModules() {
     const search = this.moduleSearch.trim().toLowerCase();
-
     if (!search) {
       return this.modules;
     }
-
     return this.modules.filter((module) =>
       module.title.toLowerCase().includes(search) ||
       module.desc.toLowerCase().includes(search)
     );
   }
-
   get activeModules() {
     return this.modules.length;
   }
-
   get revenueGrowth() {
     return 18.6;
   }
-
   get revenueDisplay() {
     return new Intl.NumberFormat('en-IN').format(this.stats.revenue);
   }
-
   get todayDate() {
     return new Date().toLocaleDateString('en-IN', {
       weekday: 'long',
@@ -248,17 +213,14 @@ export class AdminDashboard implements OnInit, OnDestroy {
       year: 'numeric'
     });
   }
-
   get conversionWidth() {
     return Math.min(this.extraStats.conversionRate, 100);
   }
-
   get studentRatio() {
     return this.stats.totalUsers
       ? Math.round((this.stats.totalStudents / this.stats.totalUsers) * 100)
       : 0;
   }
-
   get mentorRatio() {
     return this.stats.totalUsers
       ? Math.round((this.stats.mentors / this.stats.totalUsers) * 100)

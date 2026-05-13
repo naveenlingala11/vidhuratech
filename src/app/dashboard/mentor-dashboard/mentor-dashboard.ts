@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MentorDashboardService } from '../service/mentor-dashboard';
 import { RoleAction, RolePanel, RoleStatCard } from '../shared/role-dashboard.model';
-
 @Component({
   selector: 'app-mentor-dashboard',
   standalone: true,
@@ -11,9 +10,7 @@ import { RoleAction, RolePanel, RoleStatCard } from '../shared/role-dashboard.mo
   styleUrls: ['./mentor-dashboard.css']
 })
 export class MentorDashboard implements OnInit {
-
   loading = true;
-
   stats = {
     mentees: 0,
     upcomingSessions: 0,
@@ -21,7 +18,6 @@ export class MentorDashboard implements OnInit {
     pendingFeedback: 0,
     avgProgress: 0
   };
-
   menteeProgress: any[] = [];
   upcomingMeetings: any[] = [];
   goals: any[] = [];
@@ -33,15 +29,12 @@ export class MentorDashboard implements OnInit {
     { label: 'Review Goals', helper: 'Track mentee action items', tone: 'tone-purple' },
     { label: 'Progress Report', helper: 'Open mentee progress view', tone: 'tone-teal' }
   ];
-
   constructor(
     private mentorService: MentorDashboardService
   ) {}
-
   ngOnInit(): void {
     this.loadDashboard();
   }
-
   loadDashboard() {
     this.mentorService.getDashboardData().subscribe({
       next: (res: any) => {
@@ -57,7 +50,6 @@ export class MentorDashboard implements OnInit {
       }
     });
   }
-
   buildViewModel() {
     this.statCards = [
       { label: 'Assigned Mentees', value: this.stats.mentees, helper: 'Active guidance list', tone: 'tone-blue' },
@@ -66,7 +58,6 @@ export class MentorDashboard implements OnInit {
       { label: 'Pending Feedback', value: this.stats.pendingFeedback, helper: 'Needs mentor note', tone: 'tone-red' },
       { label: 'Average Progress', value: `${this.stats.avgProgress}%`, helper: 'Mentee progress health', tone: 'tone-purple' }
     ];
-
     this.panels = [
       {
         eyebrow: 'Progress',
@@ -98,7 +89,6 @@ export class MentorDashboard implements OnInit {
       }
     ];
   }
-
   trackByTitle(_: number, item: { title?: string; label?: string }) {
     return item.title || item.label;
   }

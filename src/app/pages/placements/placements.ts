@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component } from '@angular/core';
 import { ModalService } from '../../services/modal';
-
 @Component({
   selector: 'app-placements',
   standalone: true,
@@ -16,11 +15,9 @@ export class Placements implements AfterViewInit {
     { label: 'Success Rate', value: 0, target: 95 },
     { label: 'Interviews Scheduled', value: 0, target: 300 },
   ];
-
   ngAfterViewInit() {
     this.animateCounters();
   }
-
   animateCounters() {
     this.counters.forEach((counter) => {
       let count = 0;
@@ -31,7 +28,6 @@ export class Placements implements AfterViewInit {
       }, 20);
     });
   }
-
   companies = [
     { name: 'TCS' },
     { name: 'Infosys' },
@@ -40,7 +36,6 @@ export class Placements implements AfterViewInit {
     { name: 'Tech Mahindra' },
     { name: 'Capgemini' },
   ];
-
   process = [
     {
       step: '01',
@@ -63,7 +58,6 @@ export class Placements implements AfterViewInit {
       desc: 'Continuous support until you get placed successfully.',
     },
   ];
-
   successStories = [
     {
       name: 'Karthik',
@@ -84,9 +78,7 @@ export class Placements implements AfterViewInit {
       msg: 'From beginner to professional — amazing journey.',
     },
   ];
-
   constructor(private modalService: ModalService) {}
-
   openEnrollModal() {
     this.modalService.open();
   }

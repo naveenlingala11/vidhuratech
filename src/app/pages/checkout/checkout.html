@@ -1,44 +1,32 @@
 <section class="payment-page">
-
     <div class="payment-shell">
-
         <!-- HEADER -->
         <div class="payment-header">
-
             <div class="brand">
                 <img src="VidhuraTechIcon.png" alt="Vidhura Tech" />
-
                 <div>
                     <h3>Vidhura Tech</h3>
                     <p>Secure Course Enrollment Payment</p>
                 </div>
             </div>
-
             <div class="contact-box">
                 <span>Need Help?</span>
                 <b><i>+91 {{ supportNumber }}</i></b>
             </div>
-
         </div>
-
         <!-- PAYMENT BODY -->
         <div *ngIf="!paymentSuccess()" class="payment-body">
-
             <!-- LEFT SUMMARY -->
             <div class="left-panel">
-
                 <div class="offer-banner">
                     🔥 Limited Time Offer Active
                 </div>
-
                 <div class="amount-box">
                     <small>Total Amount</small>
                     <h2>₹{{ formData.amount }}</h2>
                     <span class="strike">₹4999</span>
                 </div>
-
                 <div class="payment-methods-ui">
-
                     <div class="method-card active">
                         <div class="icon">💳</div>
                         <div>
@@ -47,7 +35,6 @@
                         </div>
                         <div class="badge">Recommended</div>
                     </div>
-
                     <div class="method-icons">
                         <span>💳 Visa</span>
                         <span>💳 MasterCard</span>
@@ -55,94 +42,73 @@
                         <span>📱 UPI</span>
                         <span>🏦 NetBanking</span>
                     </div>
-
                 </div>
-
                 <div class="course-summary">
-
                     <h4>Enrollment Summary</h4>
-
                     <p>
                         <span>Course</span>
                         <b>{{ formData.course }}</b>
                     </p>
-
                     <p>
                         <span>Batch</span>
                         <b>{{ formData.batch }}</b>
                     </p>
-
                     <p>
                         <span>Duration</span>
                         <b>45 Days</b>
                     </p>
-
                     <p>
                         <span>Mode</span>
                         <b>Online Live</b>
                     </p>
-
                     <p>
                         <span>Projects</span>
                         <b>Mini + Major</b>
                     </p>
-
                     <p>
                         <span>Placement Support</span>
                         <b>Included</b>
                     </p>
-
                 </div>
-
                 <div class="trust-box">
                     🔒 100% Secure Payment <br>
                     Instant Access Activation After Verification
                 </div>
-
             </div>
-
             <!-- RIGHT FORM / QR -->
             <div class="right-panel">
-
                 <!-- FORM -->
                 <div class="checkout-form">
-
                     <h2>Complete Your Enrollment</h2>
                     <p class="subtitle">Secure & Instant Access</p>
-
                     <!-- PRICE -->
                     <div class="price-card">
                         <span>Total Amount</span>
                         <h1>₹{{ formData.amount }}</h1>
                         <small class="strike">₹4999</small>
                     </div>
-
                     <!-- NAME -->
                     <div class="input-group">
                         <input [(ngModel)]="formData.name" required />
                         <label>Full Name</label>
                     </div>
-
                     <!-- PHONE -->
                     <div class="input-group">
                         <input [(ngModel)]="formData.phone" [class.valid]="isValidPhone()"
                             [class.invalid]="formData.phone && !isValidPhone()" />
                         <label>Mobile Number</label>
                     </div>
-
                     <!-- EMAIL -->
                     <div class="input-group">
                         <input [(ngModel)]="formData.email" [class.valid]="isValidEmail()"
                             [class.invalid]="formData.email && !isValidEmail()" />
                         <label>Email Address</label>
                     </div>
-
                     <!-- CITY -->
                     <div class="input-group">
                         <input [(ngModel)]="formData.city" />
                         <label>City</label>
                     </div>
-
                     <!-- EXPERIENCE -->
                     <div class="input-group select-group">
                         <select [(ngModel)]="formData.experience">
@@ -152,107 +118,72 @@
                             <option>Working Professional</option>
                         </select>
                     </div>
-
                     <!-- COURSE -->
                     <div class="course-cards">
-
                         <!-- LOADING -->
                         <div *ngIf="!coursesList.length" class="empty-state">
                             Loading courses...
                         </div>
-
                         <!-- COURSES -->
                         <div *ngFor="let c of coursesList" class="course-card"
                             [class.active]="formData.course === c.title" (click)="selectCourse(c)">
-
                             <div>
                                 <div class="course-title">{{ c.title }}</div>
                                 <div class="batch-chip">Live Batch • {{ c.activeBatch?.name || 'Active batch' }}</div>
                             </div>
-
                             <div class="course-price">₹{{ c.price }}</div>
                         </div>
-
-
                     </div>
-
                     <!-- TRUST -->
                     <div class="trust-line">
                         🔒 Secure Payment • 🛡 Razorpay • ⭐ 10,000+ Students
                     </div>
-
                     <!-- CTA -->
                     <button class="generate-btn" [disabled]="!isValidPhone() || !isValidEmail()"
                         (click)="startCheckoutAndPay()">
                         Pay ₹{{ formData.amount }} →
                     </button>
-
                 </div>
-
                 <!-- QR PAYMENT -->
                 <div *ngIf="paymentInitiated()" class="qr-section">
-
                     <div class="qr-header">
                         <h3>Scan & Pay</h3>
                         <p>Use any UPI app to complete payment</p>
                     </div>
-
                     <div class="qr-wrapper">
                         <img [src]="qrImageUrl" class="qr-image" />
                     </div>
-
                     <div class="upi-icons">
                         GPay • PhonePe • Paytm • BHIM • Any UPI
                     </div>
-
                     <button class="upi-open-btn" (click)="openUpiIntent()">
                         Open UPI App
                     </button>
-
                     <div class="proof-box">
-
                         <input [(ngModel)]="utrNumber" placeholder="Enter UTR / Transaction ID">
-
                         <input type="file" (change)="onScreenshotUpload($event)">
-
                         <button class="confirm-btn" (click)="submitProof()">
-
                             Submit Payment Proof
                         </button>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
         <!-- SUCCESS -->
         <div *ngIf="paymentSuccess()" class="success-screen">
-
             <div class="success-icon">✓</div>
-
             <h2>Payment Successful!</h2>
-
             <h1>₹{{ formData.amount }}</h1>
-
             <p>Your enrollment has been completed successfully.</p>
-
             <div class="success-details">
-
                 <p><span>Invoice ID</span><b>{{ invoiceId }}</b></p>
                 <p><span>Course</span><b>{{ formData.course }}</b></p>
                 <p><span>Phone</span><b>{{ formData.phone }}</b></p>
-
             </div>
-
             <button (click)="goToAccess()" class="home-btn">
                 Access Course →
             </button>
-
         </div>
-
     </div>
     <!-- HIDDEN INVOICE FOR PDF -->
     <div style="position:absolute; left:-9999px; top:0;">

@@ -6,7 +6,6 @@ import { ToastrService } from 'ngx-toastr';
 import { BatchEnrollmentService } from '../../services/batch-enrollment';
 import { finalize } from 'rxjs/operators';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of } from 'rxjs';
-
 @Component({
   selector: 'app-batch-enrollment',
   standalone: true,
@@ -15,28 +14,21 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of 
   styleUrls: ['./batch-enrollment.css']
 })
 export class BatchEnrollmentComponent implements OnInit {
-
   batchId!: number;
-
   batch: any = null;
   enrollments: any[] = [];
   students: any[] = [];
-
   keyword = '';
   loading = false;
-
   searchSubject = new Subject<string>();
-
   constructor(
     private route: ActivatedRoute,
     private service: BatchEnrollmentService,
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef
   ) { }
-
   ngOnInit(): void {
     this.batchId = Number(this.route.snapshot.paramMap.get('id'));
-
     this.loadBatch();
     this.loadEnrollments();
     // ✅ SMART SEARCH
@@ -62,7 +54,6 @@ export class BatchEnrollmentComponent implements OnInit {
       this.students = [];
       return;
     }
-
     this.searchSubject.next(this.keyword);
   }
   loadBatch() {
@@ -72,10 +63,8 @@ export class BatchEnrollmentComponent implements OnInit {
         this.cdr.detectChanges(); // ✅ FIX NG0100
       });
   }
-
   loadEnrollments() {
     this.loading = true;
-
     this.service.getEnrollments(this.batchId)
       .subscribe({
         next: (res: any) => {
@@ -88,17 +77,14 @@ export class BatchEnrollmentComponent implements OnInit {
         }
       });
   }
-
   searchStudents() {
     if (!this.keyword.trim()) {
       this.students = [];
       return;
     }
-
     this.service.searchStudents(this.keyword)
       .subscribe((res: any) => this.students = res.data || []);
   }
-
   enroll(studentId: number) {
     this.service.enrollStudent(this.batchId, studentId)
       .subscribe(() => {
@@ -108,10 +94,8 @@ export class BatchEnrollmentComponent implements OnInit {
         this.loadEnrollments();
       });
   }
-
   remove(enrollmentId: number) {
     if (!confirm('Remove student from batch?')) return;
-
     this.service.removeEnrollment(enrollmentId)
       .subscribe(() => {
         this.toastr.success('Enrollment removed');
