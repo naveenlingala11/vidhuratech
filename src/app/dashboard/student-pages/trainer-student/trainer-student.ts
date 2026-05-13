@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrainerDashboardService } from '../../service/trainer-dashboard';
-
 @Component({
   selector: 'app-trainer-students',
   standalone: true,
@@ -18,17 +17,13 @@ export class TrainerStudentsComponent implements OnInit {
   search = '';
   toast = '';
   reviewDraft: Record<number, { marks: number; feedback: string }> = {};
-
   constructor(private service: TrainerDashboardService) { }
-
   ngOnInit(): void {
     this.load();
   }
-
   load() {
     this.service.getStudents().subscribe((res: any) => this.students = res?.data || []);
     this.service.getMockInterviewRequests().subscribe((res: any) => this.mockRequests = res?.data || []);
-
     this.service.getSubmissions().subscribe((res: any) => {
       this.submissions = res?.data || [];
       this.submissions.forEach(item => {
@@ -39,18 +34,15 @@ export class TrainerStudentsComponent implements OnInit {
       });
     });
   }
-
   get filteredStudents() {
     const q = this.search.toLowerCase().trim();
     if (!q) return this.students;
-
     return this.students.filter(s =>
       [s.name, s.email, s.phone, s.batch, s.course].some(value =>
         String(value || '').toLowerCase().includes(q)
       )
     );
   }
-
   updateMock(item: any, status: string) {
     this.service.updateMockInterview(item.id, {
       status,
@@ -64,7 +56,6 @@ export class TrainerStudentsComponent implements OnInit {
       error: () => this.showToast('Update failed')
     });
   }
-
   review(submission: any) {
     this.service.reviewSubmission(submission.id, this.reviewDraft[submission.id]).subscribe({
       next: () => {
@@ -74,7 +65,6 @@ export class TrainerStudentsComponent implements OnInit {
       error: () => this.showToast('Result save failed')
     });
   }
-
   showToast(message: string) {
     this.toast = message;
     setTimeout(() => this.toast = '', 2500);

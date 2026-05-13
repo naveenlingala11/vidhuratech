@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
-
 @Injectable({
   providedIn: 'root'
 })
 export class MentorDashboardService {
-
   getDashboardData() {
     return of({
       stats: {
@@ -15,7 +13,6 @@ export class MentorDashboardService {
         pendingFeedback: 3,
         avgProgress: 84
       },
-
       menteeProgress: [
         {
           name: 'Rahul',
@@ -30,7 +27,6 @@ export class MentorDashboardService {
           progress: 82
         }
       ],
-
       upcomingMeetings: [
         {
           mentee: 'Rahul',
@@ -41,7 +37,6 @@ export class MentorDashboardService {
           date: 'Tomorrow 11:00 AM'
         }
       ],
-
       goals: [
         {
           title: 'Resume Improvement',

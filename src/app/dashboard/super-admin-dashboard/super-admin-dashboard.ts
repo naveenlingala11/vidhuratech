@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-
 @Component({
   selector: 'app-super-admin-dashboard',
   imports: [],
@@ -7,5 +6,4 @@ import { Component } from '@angular/core';
   styleUrl: './super-admin-dashboard.css',
 })
 export class SuperAdminDashboard {
-
 }

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TrainerDashboardService } from '../service/trainer-dashboard';
-
 @Component({
   selector: 'app-trainer-dashboard',
   standalone: true,
@@ -15,7 +14,6 @@ export class TrainerDashboard implements OnInit {
   loading = true;
   saving = false;
   toast = '';
-
   stats = {
     assignedBatches: 0,
     totalStudents: 0,
@@ -24,7 +22,6 @@ export class TrainerDashboard implements OnInit {
     avgAttendance: 0,
     assignmentsSubmitted: 0
   };
-
   upcomingSessions: any[] = [];
   studentActivities: any[] = [];
   batches: any[] = [];
@@ -32,14 +29,12 @@ export class TrainerDashboard implements OnInit {
   mockRequests: any[] = [];
   workItems: any[] = [];
   submissions: any[] = [];
-
   showCurriculumPopup = false;
   showWorkPopup = false;
   selectedBatchId = '';
   selectedFile?: File;
   mode: 'file' | 'paste' = 'file';
   jsonText = '';
-
   workForm = {
     batchId: '',
     type: 'ASSIGNMENT',
@@ -49,22 +44,17 @@ export class TrainerDashboard implements OnInit {
     dueTime: '',
     totalMarks: 100
   };
-
   reviewDraft: Record<number, { marks: number; feedback: string }> = {};
-
   constructor(
     private trainerService: TrainerDashboardService,
     private cdr: ChangeDetectorRef
   ) { }
-
   ngOnInit(): void {
     this.loadDashboard();
     this.loadWorkspace();
   }
-
   loadDashboard() {
     this.loading = true;
-
     this.trainerService.getDashboardData().subscribe({
       next: (res: any) => {
         const data = res?.data || {};
@@ -81,12 +71,10 @@ export class TrainerDashboard implements OnInit {
       }
     });
   }
-
   loadWorkspace() {
     this.trainerService.getStudents().subscribe((res: any) => this.students = res?.data || []);
     this.trainerService.getMockInterviewRequests().subscribe((res: any) => this.mockRequests = res?.data || []);
     this.trainerService.getWorkItems().subscribe((res: any) => this.workItems = res?.data || []);
-
     this.trainerService.getSubmissions().subscribe((res: any) => {
       this.submissions = res?.data || [];
       this.submissions.forEach(item => {
@@ -97,25 +85,20 @@ export class TrainerDashboard implements OnInit {
       });
     });
   }
-
   get pendingMockRequests() {
     return this.mockRequests.filter(item => item.status === 'REQUESTED');
   }
-
   get pendingSubmissions() {
     return this.submissions.filter(item => item.status === 'SUBMITTED');
   }
-
   openCurriculumPopup() {
     this.showCurriculumPopup = true;
   }
-
   closeCurriculumPopup() {
     this.showCurriculumPopup = false;
     this.selectedFile = undefined;
     this.jsonText = '';
   }
-
   openWorkPopup(type: 'ASSIGNMENT' | 'ASSESSMENT') {
     this.workForm = {
       batchId: this.batches[0]?.id || '',
@@ -128,32 +111,26 @@ export class TrainerDashboard implements OnInit {
     };
     this.showWorkPopup = true;
   }
-
   closeWorkPopup() {
     this.showWorkPopup = false;
   }
-
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     this.selectedFile = input.files?.[0];
   }
-
   submitCurriculum() {
     if (!this.selectedBatchId) {
       this.showToast('Select batch first');
       return;
     }
-
     if (this.mode === 'file') {
       if (!this.selectedFile) {
         this.showToast('Select curriculum file');
         return;
       }
-
       const formData = new FormData();
       formData.append('file', this.selectedFile);
       formData.append('batchId', this.selectedBatchId);
-
       this.trainerService.uploadCurriculum(formData).subscribe({
         next: () => {
           this.showToast('Curriculum uploaded successfully');
@@ -163,10 +140,8 @@ export class TrainerDashboard implements OnInit {
       });
       return;
     }
-
     try {
       const parsed = JSON.parse(this.jsonText);
-
       this.trainerService.uploadJsonCurriculum({
         batchId: this.selectedBatchId,
         json: JSON.stringify(parsed)
@@ -181,15 +156,12 @@ export class TrainerDashboard implements OnInit {
       this.showToast('Invalid JSON format');
     }
   }
-
   createWorkItem() {
     if (!this.workForm.batchId || !this.workForm.title || !this.workForm.dueDate || !this.workForm.dueTime) {
       this.showToast('Fill batch, title, date, and time');
       return;
     }
-
     this.saving = true;
-
     this.trainerService.createWorkItem({
       batchId: this.workForm.batchId,
       type: this.workForm.type,
@@ -211,7 +183,6 @@ export class TrainerDashboard implements OnInit {
       }
     });
   }
-
   updateMock(item: any, status: string) {
     this.trainerService.updateMockInterview(item.id, {
       status,
@@ -226,10 +197,8 @@ export class TrainerDashboard implements OnInit {
       error: () => this.showToast('Unable to update request')
     });
   }
-
   review(submission: any) {
     const draft = this.reviewDraft[submission.id];
-
     this.trainerService.reviewSubmission(submission.id, draft).subscribe({
       next: () => {
         this.showToast('Result saved');
@@ -239,7 +208,6 @@ export class TrainerDashboard implements OnInit {
       error: () => this.showToast('Unable to save result')
     });
   }
-
   showToast(message: string) {
     this.toast = message;
     setTimeout(() => this.toast = '', 2600);

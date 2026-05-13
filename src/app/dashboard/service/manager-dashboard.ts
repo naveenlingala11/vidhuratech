@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
-
 @Injectable({
   providedIn: 'root'
 })
 export class ManagerDashboardService {
-
   getDashboardData() {
     return of({
       stats: {
@@ -16,7 +14,6 @@ export class ManagerDashboardService {
         avgPerformance: 89,
         attendanceRate: 94
       },
-
       departments: [
         {
           name: 'Engineering',
@@ -31,7 +28,6 @@ export class ManagerDashboardService {
           members: 6
         }
       ],
-
       teamPerformance: [
         {
           employee: 'Rahul',
@@ -46,7 +42,6 @@ export class ManagerDashboardService {
           score: 91
         }
       ],
-
       recentActivities: [
         {
           title: 'Leave Approval Pending',

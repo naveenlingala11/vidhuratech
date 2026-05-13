@@ -6,16 +6,13 @@ import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-
     provideZoneChangeDetection({
       eventCoalescing: true,
       runCoalescing: true,
     }),
-
     provideAnimations(),
     provideToastr({
       positionClass: 'toast-top-right',
@@ -25,7 +22,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([authInterceptor])
     ),
-
     provideRouter(
       routes,
       withInMemoryScrolling({

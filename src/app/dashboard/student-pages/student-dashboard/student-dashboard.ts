@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { StudentDashboardService } from '../../service/student-dashboard';
 import { StudentWorkflowService } from '../service/student-workflow';
-
 interface StudentStats {
   enrolledCourses: number;
   attendance: number;
@@ -13,7 +12,6 @@ interface StudentStats {
   certificates: number;
   placementStatus: string;
 }
-
 interface StudentCourse {
   name?: string;
   courseName?: string;
@@ -23,13 +21,11 @@ interface StudentCourse {
   mentor?: string;
   nextClass?: string;
 }
-
 interface DashboardItem {
   title: string;
   message?: string;
   date?: string;
 }
-
 interface StatCard {
   label: string;
   value: string | number;
@@ -38,7 +34,6 @@ interface StatCard {
   tone: string;
   route?: string;
 }
-
 interface QuickAction {
   label: string;
   helper: string;
@@ -46,7 +41,6 @@ interface QuickAction {
   route: string;
   tone: string;
 }
-
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
@@ -58,9 +52,7 @@ export class StudentDashboard implements OnInit {
   loading = true;
   error = '';
   toast = '';
-
   showMockPopup = false;
-
   stats: StudentStats = {
     enrolledCourses: 0,
     attendance: 0,
@@ -69,13 +61,11 @@ export class StudentDashboard implements OnInit {
     certificates: 0,
     placementStatus: 'Not Eligible'
   };
-
   myCourses: StudentCourse[] = [];
   notifications: DashboardItem[] = [];
   mentorSessions: DashboardItem[] = [];
   workItems: any[] = [];
   mockRequests: any[] = [];
-
   mockForm = {
     batchId: '',
     topic: '',
@@ -83,7 +73,6 @@ export class StudentDashboard implements OnInit {
     preferredTime: '',
     notes: ''
   };
-
   quickActions: QuickAction[] = [
     {
       label: 'Open LMS',
@@ -121,33 +110,27 @@ export class StudentDashboard implements OnInit {
       tone: 'action-rose'
     }
   ];
-
   constructor(
     private studentService: StudentDashboardService,
     private workflow: StudentWorkflowService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) { }
-
   ngOnInit(): void {
     this.loadDashboard();
     this.loadStudentWorkflow();
   }
-
   loadDashboard() {
     this.loading = true;
     this.error = '';
-
     this.studentService.getDashboardData().subscribe({
       next: (res: any) => {
         const data = res?.data || {};
         const sections = data.sections || {};
-
         this.stats = { ...this.stats, ...(data.stats || {}) };
         this.myCourses = sections.myCourses || [];
         this.notifications = sections.notifications || [];
         this.mentorSessions = sections.mentorSessions || [];
-
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -158,19 +141,16 @@ export class StudentDashboard implements OnInit {
       }
     });
   }
-
   loadStudentWorkflow() {
     this.workflow.getWorkItems().subscribe({
       next: (res: any) => this.workItems = res?.data || [],
       error: () => this.workItems = []
     });
-
     this.workflow.getMockInterviews().subscribe({
       next: (res: any) => this.mockRequests = res?.data || [],
       error: () => this.mockRequests = []
     });
   }
-
   get studentName(): string {
     try {
       const user = JSON.parse(localStorage.getItem('vt_user') || '{}');
@@ -179,39 +159,32 @@ export class StudentDashboard implements OnInit {
       return 'Student';
     }
   }
-
   get totalPending(): number {
     return Number(this.stats.assignmentsPending || 0) + Number(this.stats.assessmentsUpcoming || 0);
   }
-
   get averageProgress(): number {
     if (!this.myCourses.length) return 0;
     const total = this.myCourses.reduce((sum, course) => sum + Number(course.progress || 0), 0);
     return Math.round(total / this.myCourses.length);
   }
-
   get activeCourse(): StudentCourse | null {
     if (!this.myCourses.length) return null;
     return [...this.myCourses].sort((a, b) => Number(b.progress || 0) - Number(a.progress || 0))[0];
   }
-
   get pendingWorkItems() {
     return this.workItems.filter(item => !item.submitted).slice(0, 5);
   }
-
   get placementTone(): string {
     const status = String(this.stats.placementStatus || '').toLowerCase();
     if (status.includes('eligible') && !status.includes('not')) return 'ready';
     if (this.averageProgress >= 70 && this.stats.attendance >= 75) return 'almost';
     return 'focus';
   }
-
   get placementMessage(): string {
     if (this.placementTone === 'ready') return 'You are ready for placement activities.';
     if (this.placementTone === 'almost') return 'You are close. Finish pending work to unlock more readiness.';
     return 'Improve attendance, course progress, and assignments to become placement ready.';
   }
-
   get statCards(): StatCard[] {
     return [
       {
@@ -254,7 +227,6 @@ export class StudentDashboard implements OnInit {
       }
     ];
   }
-
   get learningPlan() {
     return [
       {
@@ -279,24 +251,19 @@ export class StudentDashboard implements OnInit {
       }
     ];
   }
-
   get activityFeed(): DashboardItem[] {
     const courseActivities = this.myCourses.slice(0, 2).map(course => ({
       title: this.getCourseName(course),
       message: `${course.progress || 0}% course progress`
     }));
-
     return [...courseActivities, ...this.notifications].slice(0, 5);
   }
-
   getCourseName(course: StudentCourse): string {
     return course.name || course.courseName || 'Course';
   }
-
   goTo(route: string) {
     this.router.navigate([route]);
   }
-
   openMockInterviewPopup() {
     this.mockForm = {
       batchId: String(this.myCourses[0]?.batchId || ''),
@@ -305,20 +272,16 @@ export class StudentDashboard implements OnInit {
       preferredTime: '',
       notes: ''
     };
-
     this.showMockPopup = true;
   }
-
   closeMockInterviewPopup() {
     this.showMockPopup = false;
   }
-
   submitMockInterviewRequest() {
     if (!this.mockForm.batchId || !this.mockForm.topic || !this.mockForm.preferredDate || !this.mockForm.preferredTime) {
       this.showToast('Fill batch, topic, date, and time');
       return;
     }
-
     this.workflow.requestMockInterview(this.mockForm).subscribe({
       next: () => {
         this.showToast('Mock interview request sent');
@@ -328,16 +291,13 @@ export class StudentDashboard implements OnInit {
       error: () => this.showToast('Unable to send request')
     });
   }
-
   showToast(message: string) {
     this.toast = message;
     setTimeout(() => this.toast = '', 2600);
   }
-
   progressStyle(value: number | undefined) {
     return { width: `${Math.min(Math.max(Number(value || 0), 0), 100)}%` };
   }
-
   trackByTitle(_: number, item: { title?: string; label?: string; name?: string; courseName?: string }) {
     return item.title || item.label || item.name || item.courseName;
   }

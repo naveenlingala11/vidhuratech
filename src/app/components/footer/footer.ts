@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-
 @Component({
   selector: 'app-footer',
   standalone: true,
@@ -11,21 +10,16 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './footer.css'
 })
 export class Footer {
-
   year = new Date().getFullYear();
-
   email = '';
-
   subscribe() {
     if (!this.email) {
       alert('Please enter email');
       return;
     }
-
     alert('Subscribed successfully!');
     this.email = '';
   }
-
   openWebsite() {
     window.open('https://www.vidhuratech.com', '_blank');
   }

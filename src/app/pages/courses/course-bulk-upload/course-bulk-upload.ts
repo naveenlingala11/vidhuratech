@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-
 @Component({
   selector: 'app-course-bulk-upload',
   standalone: true,
@@ -12,14 +11,11 @@ import { environment } from '../../../../environments/environment';
   styleUrls: ['./course-bulk-upload.css']
 })
 export class CourseBulkUploadComponent {
-
   jsonInput = '';
   preview: any[] = [];
   loading = false;
   result: any = null;
-
   constructor(private http: HttpClient) { }
-
   // 🔥 PREVIEW JSON
   parseJSON() {
     try {
@@ -29,13 +25,10 @@ export class CourseBulkUploadComponent {
       this.preview = [];
     }
   }
-
   // 🔥 UPLOAD
   upload() {
     if (!this.preview.length) return;
-
     this.loading = true;
-
     this.http.post(`${environment.apiUrl}/api/lms/courses/bulk`, this.preview)
       .subscribe({
         next: (res: any) => {

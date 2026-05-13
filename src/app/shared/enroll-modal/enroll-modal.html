@@ -13,7 +13,6 @@
       <div class="countdown-banner">
         <!-- 🔥 SEATS + URGENCY -->
         <p class="urgency-text">🔥 Only few seats left — Filling fast!</p>
-
         <!-- 🔥 TIMER -->
         <div class="countdown flip" [class.shake]="timer.hours() === 0">
           <ng-container *ngIf="timer.days() > 0; else hoursView">
@@ -21,36 +20,30 @@
               <span>{{ timer.days() }}</span>
               <small>Days</small>
             </div>
-
             <div class="time flip-card yellow">
               <span>{{ timer.hours() }}</span>
               <small>Hrs</small>
             </div>
-
             <div class="time flip-card blue">
               <span>{{ timer.minutes() }}</span>
               <small>Min</small>
             </div>
           </ng-container>
-
           <ng-template #hoursView>
             <div class="time flip-card yellow">
               <span>{{ timer.hours() }}</span>
               <small>Hrs</small>
             </div>
-
             <div class="time flip-card blue">
               <span>{{ timer.minutes() }}</span>
               <small>Min</small>
             </div>
-
             <div class="time flip-card red">
               <span>{{ timer.seconds() }}</span>
               <small>Sec</small>
             </div>
           </ng-template>
         </div>
-
         <!-- 🔥 PROGRESS BAR -->
         <div class="time-progress">
           <div class="time-progress-fill" [style.width.%]="timer.progress()"></div>
@@ -63,14 +56,12 @@
           🧹 Clear
         </button>
       </div>
-
       <!-- BODY -->
       <div class="modal-body">
         <form #enrollForm="ngForm">
           <div class="progress-bar">
             <div class="progress-fill" [style.width.%]="step * 33"></div>
           </div>
-
           <!-- STEP 1 -->
           <div class="row">
             <div class="col-md-6">
@@ -78,33 +69,28 @@
                 <input type="text" name="name" [(ngModel)]="formData.name" required minlength="3" #name="ngModel"
                   placeholder=" " />
                 <label>Name *</label>
-
                 <small class="v-error" *ngIf="name.invalid && (name.dirty || name.touched)">
                   Name must be at least 3 characters
                 </small>
               </div>
             </div>
-
             <div class="col-md-6">
               <div class="field">
                 <input type="tel" name="phone" [(ngModel)]="formData.phone" required pattern="^[6-9][0-9]{9}$"
                   #phone="ngModel" placeholder=" " />
                 <label>Phone *</label>
-
                 <small class="v-error" *ngIf="phone.invalid && (phone.dirty || phone.touched)">
                   Enter valid 10-digit mobile number
                 </small>
               </div>
             </div>
           </div>
-
           <div class="row">
             <div class="col-md-6">
               <div class="field">
                 <input type="email" name="email" [(ngModel)]="formData.email" #email="ngModel"
                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" placeholder=" " />
                 <label>Email</label>
-
                 <small class="v-error" *ngIf="email.invalid && (email.dirty || email.touched)">
                   Enter valid email (example@gmail.com)
                 </small>
@@ -116,9 +102,7 @@
                 <label>City</label>
               </div>
             </div>
-
             <div class="row">
-
               <div class="col-md-6">
                 <div class="live-course-card" *ngIf="selectedLiveCourse; else noLiveCourse">
                   <span class="live-dot"></span>
@@ -128,7 +112,6 @@
                     <em>{{ selectedLiveCourse.activeBatch?.name }}</em>
                   </div>
                 </div>
-
                 <ng-template #noLiveCourse>
                   <div class="live-course-card warning">
                     <span class="live-dot"></span>
@@ -139,7 +122,6 @@
                   </div>
                 </ng-template>
               </div>
-
               <div class="col-md-6">
                 <div class="field">
                   <select name="experience" [(ngModel)]="formData.experience">
@@ -151,7 +133,6 @@
                 </div>
               </div>
             </div>
-
             <div class="col-12">
               <div class="field">
                 <textarea name="message" [(ngModel)]="formData.message"
@@ -159,7 +140,6 @@
               </div>
             </div>
           </div>
-
           <div class="d-flex gap-2">
             <button type="button" (click)="submitForm()" [disabled]="isSubmitting || !selectedLiveCourse"
               class="btn submit-btn w-100">
@@ -171,13 +151,11 @@
     </div>
   </div>
 </div>
-
 <!-- ================= SUCCESS POPUP ================= -->
 <div class="success-popup" *ngIf="submitted">
   <div class="success-box">
     <!-- CLOSE -->
     <button class="close-btn" (click)="submitted = false">✕</button>
-
     <!-- CONFETTI -->
     <div class="confetti-container">
       <span *ngFor="let i of [].constructor(80); let idx = index" class="confetti" [ngClass]="{
@@ -187,18 +165,14 @@
         }" [style.left.%]="idx * 1.2" [style.animationDelay]="idx * 0.05 + 's'"
         [style.animationDuration]="3 + (idx % 5) + 's'"></span>
     </div>
-
     <!-- CHECK -->
     <div class="checkmark"></div>
-
     <h4>Successfully Registered 🎉</h4>
     <p>We will contact you soon</p>
-
     <!-- ACTION -->
     <button class="btn whatsapp-btn w-100 mb-2" (click)="openWhatsApp()">
       💬 Contact on WhatsApp
     </button>
-
     <button class="btn cancel-btn w-100" (click)="submitted = false">Cancel</button>
   </div>
 </div>

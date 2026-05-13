@@ -9,14 +9,12 @@ import { environment } from '../environments/environment';
 import { filter } from 'rxjs';
 import { AuthService } from './features/auth/services/auth.service';
 import { DashboardLayout } from "./dashboard/layouts/dashboard-layout/dashboard-layout";
-
 interface ChatMessage {
   text: string;
   type: 'bot' | 'user';
   showCTA?: boolean;
   options?: string[];
 }
-
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule, RouterOutlet, Navbar, Footer, EnrollModal],
@@ -26,16 +24,12 @@ interface ChatMessage {
 export class App {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
   hideLayout = false;
-
   isAuthPage = false;
-
   chatOpen = false;
   typing = false;
   userInput = '';
   selectedCourse = '';
-
   isDashboardRoute = false;
-
   constructor(
     private cd: ChangeDetectorRef,
     private router: Router,
@@ -44,17 +38,13 @@ export class App {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
-
         const url = event.urlAfterRedirects;
-
         this.isAuthPage =
           url.includes('/login') ||
           url.includes('/register');
-
         this.isDashboardRoute = url.startsWith('/dashboard');
       });
   }
-  
   messages: ChatMessage[] = [
     { text: `👋 Hello! Welcome to Vidhura Tech 🚀`, type: 'bot' },
     {
@@ -71,30 +61,23 @@ export class App {
       options: ['☕ Java + DS', 'Python + DS'],
     },
   ];
-
   toggleChat() {
     this.chatOpen = !this.chatOpen;
     setTimeout(() => this.scrollToBottom(), 100);
   }
-
   /* ================= OPTION CLICK ================= */
-
   handleOption(option: string) {
     this.messages.push({ text: option, type: 'user' });
-
     if (option.toLowerCase().includes('java')) {
       this.selectedCourse = 'Java + Data Structures';
     }
     if (option.toLowerCase().includes('python')) {
       this.selectedCourse = 'Python + Data Structures';
     }
-
     this.typing = true;
     this.scrollToBottom();
-
     setTimeout(() => {
       this.typing = false;
-
       if (option.includes('Java')) {
         this.messages.push({
           text: `☕ *Java + Data Structures*\n\n⏳ Duration: 45 Days\n💻 Core Java + OOPs + DS\n📦 Real-time Projects\n🎯 Placement Assistance`,
@@ -109,7 +92,6 @@ export class App {
           options: ['💰 Fees', '🏢 Placement', '⏳ Duration'],
         });
       }
-
       // 🔥 COMMON RESPONSE (AFTER ANY CLICK)
       if (this.selectedCourse) {
         this.messages.push({
@@ -118,30 +100,21 @@ export class App {
           showCTA: true,
         });
       }
-
       this.cd.detectChanges();
       this.scrollToBottom();
     }, 800);
   }
-
   /* ================= USER INPUT ================= */
   sendUserMessage() {
     if (!this.userInput.trim()) return;
-
     const userMsg = this.userInput;
-
     this.messages.push({ text: userMsg, type: 'user' });
-
     this.userInput = '';
     this.typing = true;
-
     this.scrollToBottom();
-
     setTimeout(() => {
       this.typing = false;
-
       let reply = '';
-
       if (userMsg.toLowerCase().includes('java')) {
         reply = `☕ Java + Data Structures\n\n⏳ 45 Days\n💻 Core Java + OOPs\n📦 Real-time Projects\n🎯 Placement Assistance`;
       }
@@ -152,45 +125,34 @@ export class App {
       } else {
         reply = `🤖 I can help with:\n\n📚 Courses\n💰 Fees\n🏢 Placement\n⏳ Duration`;
       }
-
       this.messages.push({
         text: reply,
         type: 'bot',
         showCTA: true,
       });
-
       this.cd.detectChanges();
       this.scrollToBottom();
     }, 1200);
   }
-
   /* ================= WHATSAPP ================= */
   openWhatsApp(course: string) {
     if (!course) {
       course = 'General Inquiry';
     }
-
     const message =
       `👋 Hello Vidhura Tech Team,
-
 🎯 I'm interested in joining:
 ➡️ ${course}
-
 📌 Could you please share more details about the course?
-
 📚 Syllabus & curriculum  
 💰 Fees & payment options  
 ⏳ Duration & schedule  
 🏢 Placement support  
-
 🚀 Excited to start my journey with you!
-
 🙏 Thank you`;
-
     const url = `https://api.whatsapp.com/send?phone=919108057464&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   }
-
   scrollToBottom() {
     try {
       setTimeout(() => {

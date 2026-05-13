@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HrDashboardService } from '../service/hr-dashboard';
 import { RoleAction, RolePanel, RoleStatCard } from '../shared/role-dashboard.model';
-
 @Component({
   selector: 'app-hr-dashboard',
   standalone: true,
@@ -11,9 +10,7 @@ import { RoleAction, RolePanel, RoleStatCard } from '../shared/role-dashboard.mo
   styleUrls: ['./hr-dashboard.css']
 })
 export class HrDashboard implements OnInit {
-
   loading = true;
-
   stats = {
     totalCandidates: 0,
     interviewsToday: 0,
@@ -22,7 +19,6 @@ export class HrDashboard implements OnInit {
     hiredThisMonth: 0,
     rejected: 0
   };
-
   pipeline: any[] = [];
   interviews: any[] = [];
   activities: any[] = [];
@@ -34,15 +30,12 @@ export class HrDashboard implements OnInit {
     { label: 'Release Offer', helper: 'Prepare offer communication', tone: 'tone-purple' },
     { label: 'Generate Hiring Report', helper: 'Review pipeline performance', tone: 'tone-teal' }
   ];
-
   constructor(
     private hrService: HrDashboardService
   ) {}
-
   ngOnInit(): void {
     this.loadDashboard();
   }
-
   loadDashboard() {
     this.hrService.getDashboardData().subscribe({
       next: (res: any) => {
@@ -58,7 +51,6 @@ export class HrDashboard implements OnInit {
       }
     });
   }
-
   buildViewModel() {
     this.statCards = [
       { label: 'Total Candidates', value: this.stats.totalCandidates, helper: 'All active profiles', tone: 'tone-blue' },
@@ -68,7 +60,6 @@ export class HrDashboard implements OnInit {
       { label: 'Hired This Month', value: this.stats.hiredThisMonth, helper: 'Monthly hiring wins', tone: 'tone-teal' },
       { label: 'Rejected', value: this.stats.rejected, helper: 'Closed as rejected', tone: 'tone-red' }
     ];
-
     this.panels = [
       {
         eyebrow: 'Pipeline',
@@ -101,12 +92,10 @@ export class HrDashboard implements OnInit {
       }
     ];
   }
-
   pipelinePercent(count: number): number {
     const max = Math.max(...this.pipeline.map(item => Number(item.count || 0)), 1);
     return Math.round((Number(count || 0) / max) * 100);
   }
-
   trackByTitle(_: number, item: { title?: string; label?: string }) {
     return item.title || item.label;
   }

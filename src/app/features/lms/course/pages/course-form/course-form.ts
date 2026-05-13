@@ -9,7 +9,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CourseService } from '../../services/course';
 import { ToastrService } from 'ngx-toastr';
-
 @Component({
   selector: 'app-course-form',
   standalone: true,
@@ -17,13 +16,10 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './course-form.html'
 })
 export class CourseFormComponent implements OnInit {
-
   form!: FormGroup;
   isEditMode = false;
   courseId!: number;
-
   levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
-
   constructor(
     private fb: FormBuilder,
     private courseService: CourseService,
@@ -31,18 +27,14 @@ export class CourseFormComponent implements OnInit {
     private router: Router,
     private toastr: ToastrService
   ) { }
-
   ngOnInit(): void {
     this.initForm();
-
     this.courseId = Number(this.route.snapshot.paramMap.get('id'));
-
     if (this.courseId) {
       this.isEditMode = true;
       this.loadCourse();
     }
   }
-
   initForm(): void {
     this.form = this.fb.group({
       title: ['', Validators.required],
@@ -53,7 +45,6 @@ export class CourseFormComponent implements OnInit {
       durationHours: [1, [Validators.required, Validators.min(1)]]
     });
   }
-
   loadCourse(): void {
     this.courseService.getCourseById(this.courseId)
       .subscribe({
@@ -65,17 +56,14 @@ export class CourseFormComponent implements OnInit {
         }
       });
   }
-
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
     const request = this.isEditMode
       ? this.courseService.updateCourse(this.courseId, this.form.value)
       : this.courseService.createCourse(this.form.value);
-
     request.subscribe({
       next: () => {
         this.toastr.success(
@@ -83,7 +71,6 @@ export class CourseFormComponent implements OnInit {
             ? 'Course updated successfully'
             : 'Course created successfully'
         );
-
         this.router.navigate(['/dashboard/lms/courses']);
       },
       error: (err) => {

@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-
 @Component({
   selector: 'app-preparation',
   imports: [CommonModule],
@@ -26,9 +25,7 @@ export class Preparation {
     { name: 'Tech Mahindra', logo: 'logos/tech-mahindra.svg', desc: 'IT services' },
     { name: 'Salesforce', logo: 'logos/salesforce.svg', desc: 'Cloud CRM leader' }
   ];
-
   constructor(private router: Router) { }
-
   openCompany(company: any) {
     this.router.navigate(['/company', company.name]);
   }

@@ -1,27 +1,22 @@
 export type Level = 'Easy' | 'Medium' | 'Hard';
-
 export interface Question {
     text: string;
     level: Level;
 }
-
 export interface Module {
     title: string;
     topics: string[];
 }
-
 export interface Course {
     id: string;
     name: string;
     curriculum: Module[];
     questions: Question[];
 }
-
 export const COURSES: Course[] = [{
   id: 'java',
   name: 'Core Java (45 Days)',
   curriculum: [
-
     {
       title: "Week 1: Java Foundations",
       topics: [
@@ -34,7 +29,6 @@ export const COURSES: Course[] = [{
         "Day 7: Practice - Basic problem solving"
       ]
     },
-
     {
       title: "Week 2: Control Flow & Methods",
       topics: [
@@ -47,7 +41,6 @@ export const COURSES: Course[] = [{
         "Day 14: Practice - Loops & methods"
       ]
     },
-
     {
       title: "Week 3: Arrays & Strings",
       topics: [
@@ -60,7 +53,6 @@ export const COURSES: Course[] = [{
         "Day 21: Practice - Arrays & strings"
       ]
     },
-
     {
       title: "Week 4: Object-Oriented Programming",
       topics: [
@@ -73,7 +65,6 @@ export const COURSES: Course[] = [{
         "Day 28: Practice - OOP"
       ]
     },
-
     {
       title: "Week 5: Collections - List",
       topics: [
@@ -86,7 +77,6 @@ export const COURSES: Course[] = [{
         "Day 35: Practice - List problems"
       ]
     },
-
     {
       title: "Week 6: Collections - Set",
       topics: [
@@ -99,7 +89,6 @@ export const COURSES: Course[] = [{
         "Day 42: Practice - Set problems"
       ]
     },
-
     {
       title: "Week 7: Map & Advanced",
       topics: [
@@ -113,9 +102,7 @@ export const COURSES: Course[] = [{
       ]
     }
     ],
-
     questions: [
-
         // ===== ARRAY & TWO POINTER (1–20) =====
         { text: "Two Sum", level: "Easy" },
         { text: "Two Sum II (Sorted Input)", level: "Easy" },
@@ -137,7 +124,6 @@ export const COURSES: Course[] = [{
         { text: "Best Time to Buy and Sell Stock II", level: "Medium" },
         { text: "Jump Game", level: "Medium" },
         { text: "Jump Game II", level: "Hard" },
-
         // ===== BINARY SEARCH (21–30) =====
         { text: "Binary Search", level: "Easy" },
         { text: "Search Insert Position", level: "Easy" },
@@ -149,7 +135,6 @@ export const COURSES: Course[] = [{
         { text: "First Bad Version", level: "Easy" },
         { text: "Search a 2D Matrix", level: "Medium" },
         { text: "Sqrt(x)", level: "Easy" },
-
         // ===== STRINGS (31–50) =====
         { text: "Valid Palindrome", level: "Easy" },
         { text: "Longest Substring Without Repeating Characters", level: "Medium" },
@@ -171,7 +156,6 @@ export const COURSES: Course[] = [{
         { text: "Palindrome Partitioning", level: "Medium" },
         { text: "Palindrome Partitioning II", level: "Hard" },
         { text: "Shortest Palindrome", level: "Hard" },
-
         // ===== STACK & QUEUE (51–60) =====
         { text: "Valid Parentheses", level: "Easy" },
         { text: "Min Stack", level: "Medium" },
@@ -183,7 +167,6 @@ export const COURSES: Course[] = [{
         { text: "Daily Temperatures", level: "Medium" },
         { text: "Sliding Window Maximum", level: "Hard" },
         { text: "Simplify Path", level: "Medium" },
-
         // ===== LINKED LIST (61–70) =====
         { text: "Reverse Linked List", level: "Easy" },
         { text: "Merge Two Sorted Lists", level: "Easy" },
@@ -195,7 +178,6 @@ export const COURSES: Course[] = [{
         { text: "Sort List", level: "Medium" },
         { text: "Merge K Sorted Lists", level: "Hard" },
         { text: "Copy List with Random Pointer", level: "Hard" },
-
         // ===== HASHING (71–80) =====
         { text: "Contains Duplicate", level: "Easy" },
         { text: "Contains Duplicate II", level: "Easy" },
@@ -207,7 +189,6 @@ export const COURSES: Course[] = [{
         { text: "Intersection of Two Arrays", level: "Easy" },
         { text: "Isomorphic Strings", level: "Easy" },
         { text: "Top K Frequent Elements", level: "Medium" },
-
         // ===== HEAP / PRIORITY QUEUE (81–90) =====
         { text: "Kth Largest Element in Array", level: "Medium" },
         { text: "Merge K Sorted Lists (Heap)", level: "Hard" },
@@ -219,7 +200,6 @@ export const COURSES: Course[] = [{
         { text: "K Closest Points to Origin", level: "Medium" },
         { text: "Sliding Window Median", level: "Hard" },
         { text: "Smallest Range Covering Elements", level: "Hard" },
-
         // ===== GRAPH (91–110) =====
         { text: "Clone Graph", level: "Medium" },
         { text: "Course Schedule", level: "Medium" },
@@ -241,7 +221,6 @@ export const COURSES: Course[] = [{
         { text: "Bipartite Graph Check", level: "Medium" },
         { text: "Shortest Path in Grid", level: "Medium" },
         { text: "Number of Connected Components", level: "Medium" },
-
         // ===== DYNAMIC PROGRAMMING (111–140) =====
         { text: "Climbing Stairs", level: "Easy" },
         { text: "House Robber", level: "Easy" },
@@ -273,7 +252,6 @@ export const COURSES: Course[] = [{
         { text: "Paint House", level: "Medium" },
         { text: "Stock Buy Sell III", level: "Hard" },
         { text: "Stock Buy Sell IV", level: "Hard" },
-
         // ===== BACKTRACKING (141–150) =====
         { text: "Permutations", level: "Medium" },
         { text: "Permutations II", level: "Medium" },
@@ -285,16 +263,13 @@ export const COURSES: Course[] = [{
         { text: "Letter Combinations of Phone Number", level: "Medium" },
         { text: "Restore IP Addresses", level: "Medium" },
         { text: "N-Queens Problem", level: "Hard" }
-
     ]
 },
-
 // 🔥 Example second course
 {
   id: 'python',
   name: 'Python (45 Days)',
   curriculum: [
-
     {
       title: "Week 1: Python Foundations",
       topics: [
@@ -307,7 +282,6 @@ export const COURSES: Course[] = [{
         "Day 7: Practice"
       ]
     },
-
     {
       title: "Week 2: Control Flow & Functions",
       topics: [
@@ -320,7 +294,6 @@ export const COURSES: Course[] = [{
         "Day 14: Practice"
       ]
     },
-
     {
       title: "Week 3: Data Structures",
       topics: [
@@ -333,7 +306,6 @@ export const COURSES: Course[] = [{
         "Day 21: Practice"
       ]
     },
-
     {
       title: "Week 4: File & Exception Handling",
       topics: [
@@ -346,7 +318,6 @@ export const COURSES: Course[] = [{
         "Day 28: Practice"
       ]
     },
-
     {
       title: "Week 5: OOP",
       topics: [
@@ -359,7 +330,6 @@ export const COURSES: Course[] = [{
         "Day 35: Practice"
       ]
     },
-
     {
       title: "Week 6: Advanced Concepts",
       topics: [
@@ -375,10 +345,8 @@ export const COURSES: Course[] = [{
         "Day 45: Final practice"
       ]
     }
-
     ],
     questions: [
-
         // ===== ARRAY & TWO POINTER (1–20) =====
         { text: "Two Sum (Python implementation)", level: "Easy" },
         { text: "Two Sum II (Sorted array)", level: "Easy" },
@@ -400,7 +368,6 @@ export const COURSES: Course[] = [{
         { text: "Jump Game II", level: "Hard" },
         { text: "Find Pivot Index", level: "Easy" },
         { text: "Product of Array Except Self", level: "Medium" },
-
         // ===== BINARY SEARCH (21–30) =====
         { text: "Binary Search implementation", level: "Easy" },
         { text: "Search Insert Position", level: "Easy" },
@@ -412,7 +379,6 @@ export const COURSES: Course[] = [{
         { text: "Search a 2D Matrix", level: "Medium" },
         { text: "Sqrt(x)", level: "Easy" },
         { text: "Koko Eating Bananas", level: "Medium" },
-
         // ===== STRINGS (31–50) =====
         { text: "Valid Palindrome", level: "Easy" },
         { text: "Longest Substring Without Repeating Characters", level: "Medium" },
@@ -434,7 +400,6 @@ export const COURSES: Course[] = [{
         { text: "Shortest Palindrome", level: "Hard" },
         { text: "Longest Repeating Character Replacement", level: "Medium" },
         { text: "Check if two strings are rotations", level: "Easy" },
-
         // ===== STACK & QUEUE (51–60) =====
         { text: "Valid Parentheses", level: "Easy" },
         { text: "Min Stack", level: "Medium" },
@@ -446,7 +411,6 @@ export const COURSES: Course[] = [{
         { text: "Daily Temperatures", level: "Medium" },
         { text: "Sliding Window Maximum", level: "Hard" },
         { text: "Simplify Path", level: "Medium" },
-
         // ===== LINKED LIST (61–70) =====
         { text: "Reverse Linked List", level: "Easy" },
         { text: "Merge Two Sorted Lists", level: "Easy" },
@@ -458,7 +422,6 @@ export const COURSES: Course[] = [{
         { text: "Sort List", level: "Medium" },
         { text: "Merge K Sorted Lists", level: "Hard" },
         { text: "Copy List with Random Pointer", level: "Hard" },
-
         // ===== HASHING (71–80) =====
         { text: "Contains Duplicate", level: "Easy" },
         { text: "Contains Duplicate II", level: "Easy" },
@@ -470,7 +433,6 @@ export const COURSES: Course[] = [{
         { text: "Top K Frequent Elements", level: "Medium" },
         { text: "Find all anagrams in a string", level: "Medium" },
         { text: "Check if array is subset of another", level: "Easy" },
-
         // ===== HEAP (81–90) =====
         { text: "Kth Largest Element in Array", level: "Medium" },
         { text: "Find Median from Data Stream", level: "Hard" },
@@ -482,7 +444,6 @@ export const COURSES: Course[] = [{
         { text: "Sliding Window Median", level: "Hard" },
         { text: "Smallest Range Covering Elements", level: "Hard" },
         { text: "Merge K Sorted Lists using heap", level: "Hard" },
-
         // ===== GRAPH (91–110) =====
         { text: "Clone Graph", level: "Medium" },
         { text: "Course Schedule", level: "Medium" },
@@ -504,7 +465,6 @@ export const COURSES: Course[] = [{
         { text: "Number of Connected Components", level: "Medium" },
         { text: "Union Find implementation", level: "Medium" },
         { text: "Rotting Oranges", level: "Medium" },
-
         // ===== DYNAMIC PROGRAMMING (111–140) =====
         { text: "Climbing Stairs", level: "Easy" },
         { text: "House Robber", level: "Easy" },
@@ -536,7 +496,6 @@ export const COURSES: Course[] = [{
         { text: "Stock Buy Sell IV", level: "Hard" },
         { text: "Fibonacci using DP", level: "Easy" },
         { text: "Subset Sum Problem", level: "Medium" },
-
         // ===== BACKTRACKING (141–150) =====
         { text: "Permutations", level: "Medium" },
         { text: "Permutations II", level: "Medium" },
@@ -548,7 +507,6 @@ export const COURSES: Course[] = [{
         { text: "Letter Combinations of Phone Number", level: "Medium" },
         { text: "Restore IP Addresses", level: "Medium" },
         { text: "N-Queens Problem", level: "Hard" }
-
     ]
 }
 ];

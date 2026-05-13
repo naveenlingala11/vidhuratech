@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 /* =========================
    PUBLIC PAGES
 ========================= */
@@ -16,7 +15,6 @@ import { Preparation } from './pages/preparation/preparation';
 import { Company } from './pages/company/company';
 import { CertificateView } from './certificate-view/certificate-view';
 import { Checkout } from './pages/checkout/checkout';
-
 /* =========================
    POLICY PAGES
 ========================= */
@@ -25,13 +23,11 @@ import { Privacy } from './components/policy/privacy/privacy';
 import { Refund } from './components/policy/refund/refund';
 import { Disclaimer } from './components/policy/disclaimer/disclaimer';
 import { Cookies } from './components/policy/cookies/cookies';
-
 /* =========================
    AUTH
 ========================= */
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
-
 /* =========================
    ADMIN (OLD PAGES)
 ========================= */
@@ -45,7 +41,6 @@ import { CertificateComponent } from './admin/certificate/certificate';
 import { Questions } from './admin/questions/questions';
 import { InvoiceComponent } from './admin/invoice/invoice';
 import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
-
 /* =========================
    DASHBOARD (ROLE BASED)
 ========================= */
@@ -56,7 +51,6 @@ import { MentorDashboard } from './dashboard/mentor-dashboard/mentor-dashboard';
 import { StudentDashboard } from './dashboard/student-pages/student-dashboard/student-dashboard';
 import { SuperAdminDashboard } from './dashboard/super-admin-dashboard/super-admin-dashboard';
 import { TrainerDashboard } from './dashboard/trainer-dashboard/trainer-dashboard';
-
 /* =========================
    LMS / FEATURE MODULES
 ========================= */
@@ -67,7 +61,6 @@ import { BatchEnrollmentComponent } from './features/lms/batch/pages/batch-enrol
 import { AdminBatchManagementComponent } from './features/lms/batch/pages/admin-batch-management/admin-batch-management';
 import { StudentBatchesComponent } from './features/lms/batch/pages/student/student-batch/student-batch';
 import { StudentPlayerComponent } from './features/lms/batch/pages/student/student-player/student-player';
-
 /* =========================
    GUARDS
 ========================= */
@@ -92,13 +85,10 @@ import { AssessmentListComponent } from './features/student/assessment-list/asse
 import { AssessmentAttemptComponent } from './features/student/assessment-attempt/assessment-attempt';
 import { AdminAdmissionsComponent } from './dashboard/admin/admin-admissions/admin-admissions';
 import { AdminDashboard } from './dashboard/admin/admin-dashboard/admin-dashboard';
-
 /* =========================
    ROUTES CONFIG
 ========================= */
-
 export const routes: Routes = [
-
    /* ===== PUBLIC ROUTES ===== */
    { path: '', component: Home },
    { path: 'courses', component: CoursesComponent },
@@ -114,19 +104,16 @@ export const routes: Routes = [
    { path: 'company/:name', component: Company },
    { path: 'certificate/:id', component: CertificateView },
    { path: 'checkout', component: Checkout },
-
    /* ===== POLICY ROUTES ===== */
    { path: 'terms', component: Terms },
    { path: 'privacy', component: Privacy },
    { path: 'refund', component: Refund },
    { path: 'disclaimer', component: Disclaimer },
    { path: 'cookies', component: Cookies },
-
    /* ===== AUTH ROUTES ===== */
    { path: 'login', component: Login },
    { path: 'register', component: Register },
    { path: 'set-password', component: SetPassword },
-
    /* ===== ADMIN (LEGACY) ===== */
    { path: 'admin', component: Admin },
    { path: 'admin-home', component: AdminHomeComponent },
@@ -138,14 +125,12 @@ export const routes: Routes = [
    { path: 'admin/questions', component: Questions },
    { path: 'admin/invoice', component: InvoiceComponent },
    { path: 'invoice-analytics', component: InvoiceAnalytics },
-
    /* ===== DASHBOARD (PROTECTED) ===== */
    {
       path: 'dashboard',
       component: DashboardLayout,
       canActivate: [authGuard],
       children: [
-
          /* --- ROLE DASHBOARDS --- */
          { path: 'student', component: StudentDashboard, canActivate: [roleGuard(['STUDENT'])] },
          { path: 'trainer', component: TrainerDashboard, canActivate: [roleGuard(['TRAINER'])] },
@@ -153,14 +138,12 @@ export const routes: Routes = [
          { path: 'hr', component: HrDashboard, canActivate: [roleGuard(['HR'])] },
          { path: 'manager', component: ManagerDashboard, canActivate: [roleGuard(['MANAGER'])] },
          { path: 'mentor', component: MentorDashboard, canActivate: [roleGuard(['MENTOR'])] },
-
          { path: 'student/profile', component: ProfileComponent },
          { path: 'trainer/profile', component: ProfileComponent },
          { path: 'admin/profile', component: ProfileComponent },
          { path: 'hr/profile', component: ProfileComponent },
          { path: 'manager/profile', component: ProfileComponent },
          { path: 'mentor/profile', component: ProfileComponent },
-
          /* --- SUPER ADMIN --- */
          {
             path: 'super-admin', canActivate: [roleGuard(['SUPER_ADMIN'])],
@@ -169,20 +152,16 @@ export const routes: Routes = [
                { path: 'users', component: SuperAdminDashboard }
             ]
          },
-
          { path: 'admin/actions', component: AdminActionsComponent, canActivate: [roleGuard(['ADMIN'])] },
          { path: 'admin/users', component: AdminUsersComponent, canActivate: [roleGuard(['ADMIN'])] },
          { path: 'admin/create-user', component: AdminCreateUserComponent },
          { path: 'admin/batch-communication', component: BatchCommunicationComponent, canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])] },
-
          /* --- LMS COURSES --- */
          { path: 'lms/courses', component: CourseListComponent, canActivate: [roleGuard(['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'MENTOR'])] },
-
          // Student
          { path: 'student/courses', component: StudentCoursesComponent, canActivate: [roleGuard(['STUDENT'])] },
          { path: 'student/assignments', component: StudentAssignmentsComponent, canActivate: [roleGuard(['STUDENT'])] },
          { path: 'student/certificates', component: StudentCertificatesComponent, canActivate: [roleGuard(['STUDENT'])] },
-
          // Trainer
          { path: 'trainer/batches', component: TrainerBatchesComponent, canActivate: [roleGuard(['TRAINER'])] },
          { path: 'trainer/students', component: TrainerStudentsComponent, canActivate: [roleGuard(['TRAINER'])] },
@@ -195,14 +174,12 @@ export const routes: Routes = [
          import('./features/trainer/create-assessment/create-assessment')
             .then(m => m.CreateAssessmentComponent)
    },
-
    {
       path: 'student/assessments',
       loadComponent: () =>
          import('./features/student/assessment-list/assessment-list')
             .then(m => m.AssessmentListComponent)
    },
-
    {
       path: 'student/assessment-attempt/:id',
       loadComponent: () =>
@@ -213,21 +190,17 @@ export const routes: Routes = [
    { path: 'dashboard/lms/courses/create', component: CourseFormComponent },
    { path: 'dashboard/lms/courses/:id/edit', component: CourseFormComponent },
    { path: 'dashboard/admin/course-bulk', component: CourseBulkUploadComponent },
-
    /* ===== BATCH MANAGEMENT ===== */
    { path: 'dashboard/trainer/batches/:id', component: TrainerBatchManagementComponent, canActivate: [roleGuard(['TRAINER'])] },
    { path: 'dashboard/admin/batches/:id/enrollments', component: BatchEnrollmentComponent, canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])] },
    { path: 'dashboard/admin/batches', component: AdminBatchManagementComponent, canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])] },
-
    /* ===== STUDENT LMS ===== */
    { path: 'dashboard/student/lms', component: StudentBatchesComponent, canActivate: [roleGuard(['STUDENT'])] },
    { path: 'dashboard/student/lms/:id', component: StudentPlayerComponent, canActivate: [roleGuard(['STUDENT'])] },
-
    {
       path: 'dashboard/admin/admissions',
       component: AdminAdmissionsComponent
    },
-
    /* ===== FALLBACK ===== */
    { path: '**', redirectTo: '' }
 ];

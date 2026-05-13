@@ -2,79 +2,56 @@
   <div class="hero-content">
     <h1>Explore Course Curriculum 📘</h1>
     <p>Select a course and dive into complete structured learning</p>
-
     <div class="hero-actions">
       <select [(ngModel)]="selectedCourseId" (change)="loadCurriculum()">
         <option *ngFor="let c of courses" [value]="c.id">
           {{ c.title }}
         </option>
       </select>
-
       <button class="primary-btn" (click)="downloadPDF()">
         📄 Download Curriculum
       </button>
     </div>
   </div>
 </section>
-
 <!-- 🔥 LIVE COURSE CARD -->
 <div class="live-card" *ngIf="selectedCourse">
-
   <div class="live-header">
     <h2>{{ selectedCourse.name }}</h2>
     <span class="live-badge">🔥 Live Curriculum</span>
   </div>
-
   <!-- 📘 CURRICULUM -->
   <div class="curriculum">
-
     <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
-
       <div class="module-header" (click)="toggleModule(module)" [class.active]="module.open">
-
         <span>{{ mIndex + 1 }}. {{ module.title }}</span>
       </div>
-
       <div class="module-body" *ngIf="module.open">
-
         <div class="topics-grid">
-
           <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
-
             <span class="topic-number">
               {{ mIndex + 1 }}.{{ i + 1 }}
             </span>
-
             <span class="topic-text">
               {{ topic }}
             </span>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
-
   <!-- 💻 QUESTIONS -->
   <div class="questions">
-
     <h3>Coding Questions</h3>
-
     <select [(ngModel)]="selectedLevel">
       <option>All</option>
       <option>Easy</option>
       <option>Medium</option>
       <option>Hard</option>
     </select>
-
     <div class="grid">
       <div class="card" *ngFor="let q of filterQuestions()">
         {{ q.text }}
-
         <span class="badge" [ngClass]="{
           easy: q.level === 'Easy',
           medium: q.level === 'Medium',
@@ -84,7 +61,5 @@
         </span>
       </div>
     </div>
-
   </div>
-
 </div>

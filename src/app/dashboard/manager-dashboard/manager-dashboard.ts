@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ManagerDashboardService } from '../service/manager-dashboard';
 import { RoleAction, RolePanel, RoleStatCard } from '../shared/role-dashboard.model';
-
 @Component({
   selector: 'app-manager-dashboard',
   standalone: true,
@@ -11,9 +10,7 @@ import { RoleAction, RolePanel, RoleStatCard } from '../shared/role-dashboard.mo
   styleUrls: ['./manager-dashboard.css']
 })
 export class ManagerDashboard implements OnInit {
-
   loading = true;
-
   stats = {
     teamMembers: 0,
     activeProjects: 0,
@@ -22,7 +19,6 @@ export class ManagerDashboard implements OnInit {
     avgPerformance: 0,
     attendanceRate: 0
   };
-
   departments: any[] = [];
   teamPerformance: any[] = [];
   recentActivities: any[] = [];
@@ -34,15 +30,12 @@ export class ManagerDashboard implements OnInit {
     { label: 'View Reports', helper: 'Open team and project reports', tone: 'tone-purple' },
     { label: 'Schedule Review', helper: 'Plan performance check-in', tone: 'tone-teal' }
   ];
-
   constructor(
     private managerService: ManagerDashboardService
   ) {}
-
   ngOnInit(): void {
     this.loadDashboard();
   }
-
   loadDashboard() {
     this.managerService.getDashboardData().subscribe({
       next: (res: any) => {
@@ -58,7 +51,6 @@ export class ManagerDashboard implements OnInit {
       }
     });
   }
-
   buildViewModel() {
     this.statCards = [
       { label: 'Team Members', value: this.stats.teamMembers, helper: 'Across departments', tone: 'tone-blue' },
@@ -68,7 +60,6 @@ export class ManagerDashboard implements OnInit {
       { label: 'Avg Performance', value: `${this.stats.avgPerformance}%`, helper: 'Team health score', tone: 'tone-purple' },
       { label: 'Attendance Rate', value: `${this.stats.attendanceRate}%`, helper: 'Current attendance', tone: 'tone-teal' }
     ];
-
     this.panels = [
       {
         eyebrow: 'Teams',
@@ -101,12 +92,10 @@ export class ManagerDashboard implements OnInit {
       }
     ];
   }
-
   departmentPercent(members: number): number {
     const max = Math.max(...this.departments.map(item => Number(item.members || 0)), 1);
     return Math.round((Number(members || 0) / max) * 100);
   }
-
   trackByTitle(_: number, item: { title?: string; label?: string }) {
     return item.title || item.label;
   }
