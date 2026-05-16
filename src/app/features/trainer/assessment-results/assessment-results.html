@@ -1,1 +1,163 @@
-<p>assessment-results works!</p>
+<div class="assessment-results-container">
+  <!-- SUMMARY -->
+  <div
+    *ngIf="!showDetailedView"
+    class="results-summary">
+    <div class="summary-header">
+      <h2>
+        Assessment Results
+      </h2>
+      <p class="subtitle">
+        Student Performance Analytics
+      </p>
+    </div>
+    <!-- STATS -->
+    <div class="statistics-cards">
+      <div class="stat-card">
+        <span class="stat-label">
+          Attempts
+        </span>
+        <span class="stat-value">
+          {{ attempts.length }}
+        </span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">
+          Average
+        </span>
+        <span class="stat-value">
+          {{ getAverageScore() }}%
+        </span>
+      </div>
+      <div class="stat-card pass">
+        <span class="stat-label">
+          Pass Rate
+        </span>
+        <span class="stat-value">
+          {{ getPassRate() }}%
+        </span>
+      </div>
+    </div>
+    <!-- TABLE -->
+    <div
+      *ngIf="!loading && attempts.length"
+      class="results-table-wrapper">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>
+              Student
+            </th>
+            <th>
+              Score
+            </th>
+            <th>
+              Percentage
+            </th>
+            <th>
+              Status
+            </th>
+            <th>
+              Submitted
+            </th>
+            <th>
+              Action
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let attempt of attempts"
+            [ngClass]="getStatusClass(attempt)">
+            <td>
+              {{
+                attempt.studentName
+              }}
+            </td>
+            <td>
+              {{
+                attempt.totalScore
+              }}/{{ attempt.totalMarks }}
+            </td>
+            <td>
+              {{
+                attempt.percentageScore
+              }}%
+            </td>
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(attempt)">
+                {{
+                  getStatusClass(attempt)
+                  === 'pass'
+                    ? 'PASS'
+                    : 'FAIL'
+                }}
+              </span>
+            </td>
+            <td>
+              {{
+                formatDate(
+                  attempt.submittedAt
+                )
+              }}
+            </td>
+            <td>
+              <button
+                class="details-btn"
+                (click)="viewAttemptDetails(attempt)">
+                View
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+  <!-- DETAILED VIEW -->
+  <div
+    *ngIf="showDetailedView && selectedAttempt"
+    class="attempt-details">
+    <button
+      class="back-btn"
+      (click)="closeDetailedView()">
+      ← Back to Results
+    </button>
+    <h2>
+      {{ selectedAttempt.studentName }}'s Attempt
+    </h2>
+    <div class="attempt-summary">
+      <span>
+        Score:
+        {{ selectedAttempt.totalScore }}/{{ selectedAttempt.totalMarks }}
+      </span>
+      <span>
+        Percentage:
+        {{ selectedAttempt.percentageScore }}%
+      </span>
+      <span>
+        Status:
+        <span
+          class="status-badge"
+          [ngClass]="getStatusClass(selectedAttempt)">
+          {{
+            getStatusClass(selectedAttempt)
+            === 'pass'
+              ? 'PASS'
+              : 'FAIL'
+          }}
+        </span>
+      </span>
+      <span>
+        Submitted:
+        {{
+          formatDate(
+            selectedAttempt.submittedAt
+          )
+        }}
+      </span>
+    </div>
+    <div class="questions-breakdown"></div>
+  </div>

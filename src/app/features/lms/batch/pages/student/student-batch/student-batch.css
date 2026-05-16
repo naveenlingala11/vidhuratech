@@ -1,65 +1,384 @@
+/* =========================================================
+MAIN WRAPPER
+========================================================= */
 .student-batches {
-  padding: 24px;
+  position: relative;
+  padding: 34px;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.14), transparent 30%),
+    linear-gradient(135deg, #f8fbff 0%, #f1f5ff 100%);
 }
+/* =========================================================
+BACKGROUND ORBS
+========================================================= */
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  animation: floatOrb 10s ease-in-out infinite;
+}
+.orb-1 {
+  width: 280px;
+  height: 280px;
+  background: rgba(37, 99, 235, 0.18);
+  top: -80px;
+  right: -50px;
+}
+.orb-2 {
+  width: 240px;
+  height: 240px;
+  background: rgba(139, 92, 246, 0.16);
+  bottom: -100px;
+  left: -80px;
+}
+@keyframes floatOrb {
+  0%,100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+/* =========================================================
+HEADER
+========================================================= */
 .page-header {
-  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.header-left {
+  max-width: 700px;
+}
+.mini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.7);
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.08);
 }
 .page-header h2 {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-size: 42px;
+  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 14px;
+  color: #0f172a;
+  letter-spacing: -1px;
 }
 .page-header p {
+  max-width: 650px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1.8;
 }
-.batch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+/* =========================================================
+HEADER STATS
+========================================================= */
+.header-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-.batch-card {
-  background: #ffffff;
-  border-radius: 18px;
+.stat-card {
+  min-width: 160px;
   padding: 22px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-  transition: all 0.25s ease;
-  border: 1px solid #f1f5f9;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.stat-card span {
+  display: block;
+  font-size: 34px;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 4px;
+}
+.stat-card small {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+/* =========================================================
+GRID
+========================================================= */
+.batch-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 28px;
+}
+/* =========================================================
+CARD
+========================================================= */
+.batch-card {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border-radius: 30px;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 12px 40px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  transition: all 0.45s ease;
+}
+.batch-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(37, 99, 235, 0.05),
+      rgba(139, 92, 246, 0.05)
+    );
+  opacity: 0;
+  transition: 0.4s ease;
+}
+.batch-card:hover::before {
+  opacity: 1;
 }
 .batch-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
+  transform: translateY(-10px) scale(1.02);
+  box-shadow:
+    0 22px 55px rgba(37, 99, 235, 0.18),
+    0 10px 25px rgba(139, 92, 246, 0.12);
 }
-.batch-title {
-  font-size: 18px;
+/* =========================================================
+GLOW
+========================================================= */
+.card-glow {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(
+    circle,
+    rgba(37, 99, 235, 0.18),
+    transparent 70%
+  );
+  top: -60px;
+  right: -60px;
+  opacity: 0;
+  transition: 0.5s ease;
+}
+.batch-card:hover .card-glow {
+  opacity: 1;
+  transform: scale(1.2);
+}
+/* =========================================================
+TOP
+========================================================= */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.batch-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(37, 99, 235, 0.15),
+      rgba(139, 92, 246, 0.15)
+    );
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    0 10px 24px rgba(37, 99, 235, 0.12);
+  transition: 0.4s ease;
+}
+.batch-card:hover .batch-icon {
+  transform: rotate(-8deg) scale(1.08);
+}
+.batch-status {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 8px;
+  border: 1px solid rgba(34, 197, 94, 0.18);
+}
+/* =========================================================
+CONTENT
+========================================================= */
+.batch-content h3 {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 12px;
   color: #0f172a;
 }
-.batch-meta {
+.batch-content p {
   color: #64748b;
+  line-height: 1.8;
   font-size: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 26px;
 }
+/* =========================================================
+META
+========================================================= */
+.batch-meta-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.meta-box {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+.meta-box span {
+  display: block;
+  color: #94a3b8;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.meta-box strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+}
+/* =========================================================
+BUTTON
+========================================================= */
 .open-btn {
   width: 100%;
+  height: 58px;
   border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  transition: 0.2s ease;
+  border-radius: 18px;
   cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #4f46e5,
+      #7c3aed
+    );
+  box-shadow:
+    0 12px 24px rgba(37, 99, 235, 0.28);
+  transition: all 0.35s ease;
+}
+.open-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.3),
+      transparent
+    );
+  transition: 0.6s ease;
+}
+.open-btn:hover::before {
+  left: 120%;
 }
 .open-btn:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 35px rgba(79, 70, 229, 0.35);
 }
+.open-btn i {
+  font-style: normal;
+  transition: 0.3s ease;
+}
+.open-btn:hover i {
+  transform: translateX(6px);
+}
+/* =========================================================
+EMPTY
+========================================================= */
 .empty-state {
+  position: relative;
+  z-index: 2;
+  padding: 80px 30px;
+  border-radius: 34px;
   text-align: center;
-  padding: 50px;
-  color: #94a3b8;
-  background: #f8fafc;
-  border-radius: 18px;
-  border: 1px dashed #cbd5e1;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow:
+    0 15px 40px rgba(15, 23, 42, 0.08);
+}
+.empty-icon {
+  font-size: 70px;
+  margin-bottom: 20px;
+}
+.empty-state h3 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #0f172a;
+}
+.empty-state p {
+  color: #64748b;
+  font-size: 15px;
+}
+/* =========================================================
+RESPONSIVE
+========================================================= */
+@media (max-width: 768px) {
+  .student-batches {
+    padding: 18px;
+  }
+  .page-header h2 {
+    font-size: 32px;
+  }
+  .batch-grid {
+    grid-template-columns: 1fr;
+  }
+  .batch-card {
+    padding: 22px;
+  }
+  .header-stats {
+    width: 100%;
+  }
+  .stat-card {
+    flex: 1;
+  }
 }

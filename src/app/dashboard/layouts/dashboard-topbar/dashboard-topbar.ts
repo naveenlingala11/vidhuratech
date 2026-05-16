@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -21,6 +21,7 @@ export class DashboardTopbar {
   @HostListener('document:click')
   closeProfile() {
     this.profileOpen = false;
+    this.notificationOpen = false;
   }
   toggleTheme() {
     this.themeService.toggleTheme();
@@ -33,8 +34,15 @@ export class DashboardTopbar {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
-  goToProfile() {
+  isProfilePage(): boolean {
+    return this.router.url.includes('/profile');
+  }
+  goToMainPage() {
     const role = this.authService.getUser()?.role?.toLowerCase();
+    if (this.isProfilePage()) {
+      this.router.navigate([`/dashboard/${role}`]);
+      return;
+    }
     this.router.navigate([`/dashboard/${role}/profile`]);
   }
   getInitials(): string {
@@ -44,5 +52,12 @@ export class DashboardTopbar {
       return parts[0].charAt(0).toUpperCase();
     }
     return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  @Input() notifications: any[] = [];
+  notificationOpen = false;
+  toggleNotifications(event: MouseEvent) {
+    event.stopPropagation();
+    this.notificationOpen = !this.notificationOpen;
+    this.profileOpen = false;
   }
 }

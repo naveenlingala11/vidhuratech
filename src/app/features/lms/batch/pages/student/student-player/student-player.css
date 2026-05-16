@@ -1,131 +1,512 @@
-.lms-container {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-  background: #f1f5f9;
+/* =========================================================
+MAIN PAGE
+========================================================= */
+.lms-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(37,99,235,0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(139,92,246,0.12), transparent 30%),
+    linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
 }
-/* LEFT */
+/* =========================================================
+BACKGROUND GLOWS
+========================================================= */
+.bg-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  animation: floatGlow 10s ease-in-out infinite;
+}
+.glow-1 {
+  width: 300px;
+  height: 300px;
+  background: rgba(37,99,235,0.18);
+  top: -120px;
+  right: -80px;
+}
+.glow-2 {
+  width: 260px;
+  height: 260px;
+  background: rgba(139,92,246,0.16);
+  bottom: -120px;
+  left: -80px;
+}
+@keyframes floatGlow {
+  0%,100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-25px);
+  }
+}
+/* =========================================================
+LAYOUT
+========================================================= */
+.lms-container {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.8fr 420px;
+  gap: 28px;
+  align-items: start;
+}
+/* =========================================================
+LEFT PANEL
+========================================================= */
 .lms-main {
-  flex: 2;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
 }
-/* HEADER */
+/* =========================================================
+HEADER
+========================================================= */
 .video-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.header-content {
+  flex: 1;
+}
+.badge {
+  display: inline-flex;
   align-items: center;
-  gap: 20px;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.7);
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  margin-bottom: 18px;
+  box-shadow:
+    0 8px 22px rgba(37,99,235,0.08);
 }
 .video-header h2 {
   margin: 0;
-  font-weight: 700;
+  font-size: 40px;
+  line-height: 1.15;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -1px;
 }
-/* PROGRESS */
-.progress-wrapper {
-  margin-top: 6px;
+.video-header p {
+  margin-top: 14px;
+  max-width: 700px;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.8;
+}
+/* =========================================================
+RIGHT HEADER ACTIONS
+========================================================= */
+.header-actions {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+/* =========================================================
+PROGRESS CARD
+========================================================= */
+.progress-card {
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 12px 34px rgba(15,23,42,0.08);
+}
+.progress-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.progress-top span {
+  color: #64748b;
   font-size: 13px;
+  font-weight: 600;
 }
+.progress-top strong {
+  color: #2563eb;
+  font-size: 24px;
+  font-weight: 800;
+}
+/* =========================================================
+PROGRESS BAR
+========================================================= */
 .progress-bar {
-  height: 8px;
-  background: #e2e8f0;
+  height: 12px;
   border-radius: 999px;
-  margin-top: 4px;
   overflow: hidden;
+  background: #e2e8f0;
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2563eb, #22c55e);
-}
-/* NEXT BUTTON */
-.next-btn {
-  background: #22c55e;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.next-btn:hover {
-  background: #16a34a;
-}
-/* 🔥 VIDEO FIX (IMPORTANT) */
-.video-container {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: black;
-  border-radius: 14px;
-  overflow: hidden;
-}
-.video-frame {
-  width: 100%;
-  height: 100%;
-}
-/* RIGHT PANEL */
-.lms-sidebar {
-  flex: 1;
-  background: white;
-  border-radius: 16px;
-  padding: 16px;
-  height: 80vh;
-  overflow-y: auto;
-}
-/* TABS */
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.tabs button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: #e2e8f0;
-  border-radius: 10px;
-  cursor: pointer;
-}
-.tabs button.active {
-  background: #2563eb;
-  color: white;
-}
-/* LIST */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.list-item {
-  padding: 12px;
-  border-radius: 12px;
-  background: #f8fafc;
-  cursor: pointer;
-}
-.list-item.active {
-  background: #2563eb;
-  color: white;
-}
-/* CURRICULUM */
-.module-title {
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.video-container {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 14px;
-  overflow: hidden;
-  background: black;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #4f46e5,
+      #22c55e
+    );
   position: relative;
 }
-/* 🔥 KEY FIX */
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.35),
+      transparent
+    );
+  animation: shimmer 2s linear infinite;
+}
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+/* =========================================================
+NEXT BUTTON
+========================================================= */
+.next-btn {
+  height: 60px;
+  border: none;
+  cursor: pointer;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #4f46e5,
+      #7c3aed
+    );
+  box-shadow:
+    0 14px 28px rgba(79,70,229,0.28);
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+.next-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.35),
+      transparent
+    );
+  transition: 0.6s ease;
+}
+.next-btn:hover::before {
+  left: 120%;
+}
+.next-btn:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 40px rgba(79,70,229,0.35);
+}
+.next-btn i {
+  font-style: normal;
+  transition: 0.3s ease;
+}
+.next-btn:hover i {
+  transform: translateX(5px);
+}
+/* =========================================================
+VIDEO
+========================================================= */
+.video-wrapper {
+  position: relative;
+  border-radius: 30px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.6);
+  padding: 14px;
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 18px 45px rgba(15,23,42,0.1);
+}
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(37,99,235,0.06),
+      rgba(139,92,246,0.04)
+    );
+  pointer-events: none;
+}
+.video-container {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #000;
+}
 .video-frame,
 .video-container iframe {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100% !important;
   height: 100% !important;
+}
+/* =========================================================
+SIDEBAR
+========================================================= */
+.lms-sidebar {
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border-radius: 30px;
+  background: rgba(255,255,255,0.74);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow:
+    0 18px 45px rgba(15,23,42,0.08);
+  overflow: hidden;
+}
+/* =========================================================
+SIDEBAR TOP
+========================================================= */
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.sidebar-top h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.lesson-count {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(37,99,235,0.1);
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+}
+/* =========================================================
+TABS
+========================================================= */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.tabs button {
+  height: 52px;
+  border: none;
+  cursor: pointer;
+  border-radius: 16px;
+  background: #edf2ff;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+.tabs button.active {
+  color: white;
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #4f46e5
+    );
+  box-shadow:
+    0 10px 24px rgba(37,99,235,0.25);
+}
+/* =========================================================
+LIST
+========================================================= */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+.list::-webkit-scrollbar {
+  width: 6px;
+}
+.list::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,0.5);
+  border-radius: 999px;
+}
+/* =========================================================
+LESSON ITEM
+========================================================= */
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(248,250,252,0.85);
+  border: 1px solid rgba(226,232,240,0.7);
+  cursor: pointer;
+  transition: all 0.35s ease;
+}
+.list-item:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 28px rgba(37,99,235,0.1);
+}
+.list-item.active {
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #4f46e5
+    );
+  color: white;
+  box-shadow:
+    0 16px 36px rgba(37,99,235,0.25);
+}
+.lesson-left {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.lesson-number {
+  min-width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  background: rgba(37,99,235,0.12);
+  color: #2563eb;
+}
+.list-item.active .lesson-number {
+  background: rgba(255,255,255,0.18);
+  color: white;
+}
+.item-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.item-meta {
+  font-size: 12px;
+  opacity: 0.8;
+}
+.play-icon {
+  font-size: 18px;
+  opacity: 0.8;
+}
+/* =========================================================
+CURRICULUM
+========================================================= */
+.curriculum-list {
+  gap: 18px;
+}
+.module {
+  padding: 20px;
+  border-radius: 22px;
+  background: rgba(248,250,252,0.8);
+  border: 1px solid rgba(226,232,240,0.7);
+}
+.module-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 14px;
+}
+.module ul {
+  padding-left: 18px;
+  margin: 0;
+}
+.module li {
+  color: #64748b;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+/* =========================================================
+MOBILE RESPONSIVE
+========================================================= */
+@media (max-width: 1200px) {
+  .lms-container {
+    grid-template-columns: 1fr;
+  }
+  .lms-sidebar {
+    position: relative;
+    top: unset;
+    height: auto;
+  }
+}
+@media (max-width: 768px) {
+  .lms-page {
+    padding: 14px;
+  }
+  .video-header h2 {
+    font-size: 28px;
+  }
+  .video-header {
+    flex-direction: column;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .tabs {
+    gap: 10px;
+  }
+  .tabs button {
+    font-size: 13px;
+  }
+  .list-item {
+    padding: 16px;
+  }
+  .lesson-number {
+    min-width: 40px;
+    height: 40px;
+  }
+  .sidebar-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }

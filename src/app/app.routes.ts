@@ -172,19 +172,29 @@ export const routes: Routes = [
       path: 'trainer/create-assessment',
       loadComponent: () =>
          import('./features/trainer/create-assessment/create-assessment')
-            .then(m => m.CreateAssessmentComponent)
+            .then(m => m.CreateAssessmentComponent),
+      canActivate: [authGuard, roleGuard(['TRAINER'])]
+   },
+   {
+      path: 'trainer/assessments/:id/results',
+      loadComponent: () =>
+         import('./features/trainer/assessment-results/assessment-results')
+            .then(m => m.AssessmentResults),
+      canActivate: [authGuard, roleGuard(['TRAINER'])]
    },
    {
       path: 'student/assessments',
       loadComponent: () =>
          import('./features/student/assessment-list/assessment-list')
-            .then(m => m.AssessmentListComponent)
+            .then(m => m.AssessmentListComponent),
+      canActivate: [authGuard, roleGuard(['STUDENT'])]
    },
    {
       path: 'student/assessment-attempt/:id',
       loadComponent: () =>
          import('./features/student/assessment-attempt/assessment-attempt')
-            .then(m => m.AssessmentAttemptComponent)
+            .then(m => m.AssessmentAttemptComponent),
+      canActivate: [authGuard, roleGuard(['STUDENT'])]
    },
    /* ===== LMS EXTRA ROUTES ===== */
    { path: 'dashboard/lms/courses/create', component: CourseFormComponent },

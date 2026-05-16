@@ -1,51 +1,120 @@
-<div class="lms-container">
-    <!-- LEFT -->
-    <div class="lms-main">
-        <!-- HEADER ROW -->
-        <div class="video-header">
-            <div class="left">
-                <h2>{{ selected?.title }}</h2>
-                <div class="progress-wrapper">
-                    <span>{{ progress }}% completed</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" [style.width.%]="progress"></div>
+<div class="lms-page">
+    <!-- BACKGROUND -->
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+    <div class="lms-container">
+        <!-- =========================
+             LEFT SIDE
+        ========================== -->
+        <div class="lms-main">
+            <!-- HEADER -->
+            <div class="video-header">
+                <div class="header-content">
+                    <div class="badge">
+                        🚀 Premium Learning Experience
+                    </div>
+                    <h2>
+                        {{ selected?.title }}
+                    </h2>
+                    <p>
+                        Continue your learning journey with structured sessions,
+                        projects, recordings, and practical training.
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <div class="progress-card">
+                        <div class="progress-top">
+                            <span>Course Progress</span>
+                            <strong>{{ progress }}%</strong>
+                        </div>
+                        <div class="progress-bar">
+                            <div
+                                class="progress-fill"
+                                [style.width.%]="progress">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="next-btn" (click)="onVideoEnd()">
+                        <span>
+                            Next Lesson
+                        </span>
+                        <i>
+                            →
+                        </i>
+                    </button>
+                </div>
+            </div>
+            <!-- VIDEO -->
+            <div class="video-wrapper">
+                <div class="video-overlay"></div>
+                <div class="video-container">
+                    <div #playerContainer class="video-frame"></div>
+                </div>
+            </div>
+        </div>
+        <!-- =========================
+             RIGHT SIDEBAR
+        ========================== -->
+        <div class="lms-sidebar">
+            <!-- TOP -->
+            <div class="sidebar-top">
+                <h3>
+                    Learning Panel
+                </h3>
+                <div class="lesson-count">
+                    {{ sessions.length }} Lessons
+                </div>
+            </div>
+            <!-- TABS -->
+            <div class="tabs">
+                <button
+                    (click)="activeTab='sessions'"
+                    [class.active]="activeTab==='sessions'">
+                    📺 Sessions
+                </button>
+                <button
+                    (click)="activeTab='curriculum'"
+                    [class.active]="activeTab==='curriculum'">
+                    📚 Curriculum
+                </button>
+            </div>
+            <!-- SESSIONS -->
+            <div *ngIf="activeTab==='sessions'" class="list">
+                <div
+                    *ngFor="let s of sessions; let i = index"
+                    class="list-item"
+                    [class.active]="selected?.id === s.id"
+                    (click)="select(s)">
+                    <div class="lesson-left">
+                        <div class="lesson-number">
+                            {{ i + 1 }}
+                        </div>
+                        <div>
+                            <div class="item-title">
+                                {{ s.title }}
+                            </div>
+                            <div class="item-meta">
+                                ⏱ {{ s.durationMinutes }} mins
+                            </div>
+                        </div>
+                    </div>
+                    <div class="play-icon">
+                        ▶
                     </div>
                 </div>
             </div>
-            <div class="right">
-                <button class="next-btn" (click)="onVideoEnd()">
-                    ▶ Next Lesson
-                </button>
-            </div>
-        </div>
-        <!-- VIDEO (FIXED RATIO) -->
-        <div class="video-container">
-            <div #playerContainer class="video-frame"></div>
-        </div>
-    </div>
-    <!-- RIGHT -->
-    <div class="lms-sidebar">
-        <div class="tabs">
-            <button (click)="activeTab='sessions'" [class.active]="activeTab==='sessions'">
-                Sessions
-            </button>
-            <button (click)="activeTab='curriculum'" [class.active]="activeTab==='curriculum'">
-                Curriculum
-            </button>
-        </div>
-        <div *ngIf="activeTab==='sessions'" class="list">
-            <div *ngFor="let s of sessions" class="list-item" [class.active]="selected?.id === s.id"
-                (click)="select(s)">
-                <div class="item-title">{{ s.title }}</div>
-                <div class="item-meta">{{ s.durationMinutes }} mins</div>
-            </div>
-        </div>
-        <div *ngIf="activeTab==='curriculum'" class="list">
-            <div *ngFor="let m of curriculum?.curriculum" class="module">
-                <div class="module-title">{{ m.title }}</div>
-                <ul>
-                    <li *ngFor="let t of m.topics">{{ t }}</li>
-                </ul>
+            <!-- CURRICULUM -->
+            <div *ngIf="activeTab==='curriculum'" class="list curriculum-list">
+                <div *ngFor="let m of curriculum?.curriculum" class="module">
+                    <div class="module-title">
+                        {{ m.title }}
+                    </div>
+                    <ul>
+                        <li *ngFor="let t of m.topics">
+                            {{ t }}
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

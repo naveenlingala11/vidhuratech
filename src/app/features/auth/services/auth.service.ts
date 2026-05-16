@@ -39,22 +39,14 @@ export class AuthService {
     );
   }
   getProfile() {
-    const options = this.authHeaders();
-    if (!options) {
-      return throwError(() => ({ status: 401, message: 'No token found' }));
-    }
-    return this.http.get<any>(`${this.API}/me`, options).pipe(
+    return this.http.get<any>(`${this.API}/me`).pipe(
       tap(user => this.tokenService.setUser(user))
     );
   }
   updateProfile(data: any) {
-    const options = this.authHeaders();
-    if (!options) {
-      return throwError(() => ({ status: 401, message: 'No token found' }));
-    }
-    return this.http.put<any>(`${this.API}/me`, data, options).pipe(
-      tap(user => this.tokenService.setUser(user))
-    );
+    return this.http.put<any>(`${this.API}/me`, data).pipe(
+        tap(user => this.tokenService.setUser(user))
+      );
   }
   private saveAuthUser(res: any) {
     this.tokenService.setToken(res.token);

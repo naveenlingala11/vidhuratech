@@ -1,8 +1,29 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { AssessmentService } from '../../services/assessment.service';
+import {
+  Component,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
+import {
+  CommonModule
+} from '@angular/common';
+import {
+  FormsModule
+} from '@angular/forms';
+import {
+  ActivatedRoute
+} from '@angular/router';
+import {
+  AssessmentService
+} from '../../services/assessment.service';
+import {
+  AssessmentUtils
+} from '../../assessments/utils/assessment.utils';
+import {
+  IAssessment,
+  IAssessmentResult,
+  IStudentAnswer,
+  OptionKey
+} from '../../assessments/models/assessment.model';
 @Component({
   selector: 'app-assessment-attempt',
   standalone: true,
@@ -14,12 +35,27 @@ import { AssessmentService } from '../../services/assessment.service';
   styleUrls: ['./assessment-attempt.css']
 })
 export class AssessmentAttemptComponent
-implements OnInit {
+implements OnInit, OnDestroy {
+  readonly optionKeys: OptionKey[] = [
+    'A',
+    'B',
+    'C',
+    'D'
+  ];
   assessmentId!: number;
-  assessment: any;
-  answers: any[] = [];
+  assessment!: IAssessment;
+  answers: IStudentAnswer[] = [];
   submitted = false;
-  result: any;
+  loading = false;
+  result: IAssessmentResult | null = null;
+  currentQuestionIndex = 0;
+  bookmarkedQuestions: number[] = [];
+  answeredQuestions: number[] = [];
+  showDetailedResults = false;
+  questionResults: any[] = [];
+  timeRemaining = 0;
+  timerInterval: any;
+  timeAlertShown = false;
   constructor(
     private route: ActivatedRoute,
     private assessmentService: AssessmentService
@@ -30,24 +66,131 @@ implements OnInit {
     );
     this.loadAssessment();
   }
+  ngOnDestroy(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+  }
   loadAssessment() {
+    this.loading = true;
     this.assessmentService
       .getAssessmentById(this.assessmentId)
       .subscribe({
         next: (res) => {
           this.assessment = res.data;
-          this.answers =
-            this.assessment.questions.map((q: any) => ({
-              questionId: q.id,
-              selectedAnswer: ''
-            }));
+          this.initializeAnswers();
+          this.startTimer();
+          this.loading = false;
         },
         error: (err) => {
           console.error(err);
+          this.loading = false;
         }
       });
   }
+  initializeAnswers() {
+    this.answers =
+      this.assessment.questions.map(q => ({
+        questionId: q.id!,
+        selectedAnswer: ''
+      }));
+  }
+  startTimer() {
+    this.timeRemaining =
+      (this.assessment.durationMinutes || 60)
+      * 60;
+    this.timerInterval = setInterval(() => {
+      this.timeRemaining--;
+      if (
+        this.timeRemaining === 300 &&
+        !this.timeAlertShown
+      ) {
+        this.timeAlertShown = true;
+        alert(
+          'Only 5 minutes remaining'
+        );
+      }
+      if (this.timeRemaining <= 0) {
+        clearInterval(this.timerInterval);
+        this.autoSubmitAssessment();
+      }
+    }, 1000);
+  }
+  autoSubmitAssessment() {
+    alert('Time Up');
+    this.submitAssessment();
+  }
+  getFormattedTime(): string {
+    return AssessmentUtils.formatTimeRemaining(
+      this.timeRemaining
+    );
+  }
+  getTimeRemainingClass(): string {
+    if (this.timeRemaining <= 300) {
+      return 'danger';
+    }
+    if (this.timeRemaining <= 600) {
+      return 'warning';
+    }
+    return 'normal';
+  }
+  selectQuestion(index: number) {
+    this.currentQuestionIndex = index;
+  }
+  isQuestionAnswered(index: number): boolean {
+    return AssessmentUtils.isAnswered(
+      this.answers[index]
+    );
+  }
+  toggleBookmark(index: number) {
+    const existing =
+      this.bookmarkedQuestions.indexOf(index);
+    if (existing > -1) {
+      this.bookmarkedQuestions.splice(
+        existing,
+        1
+      );
+    } else {
+      this.bookmarkedQuestions.push(index);
+    }
+  }
+  isQuestionBookmarked(
+    index: number
+  ): boolean {
+    return this.bookmarkedQuestions.includes(
+      index
+    );
+  }
+  onAnswerChange() {
+    this.updateAnsweredQuestions();
+  }
+  updateAnsweredQuestions() {
+    this.answeredQuestions =
+      this.answers
+        .map((a, i) =>
+          AssessmentUtils.isAnswered(a)
+            ? i
+            : -1
+        )
+        .filter(i => i !== -1);
+  }
+  getProgressPercentage(): number {
+    if (
+      !this.assessment?.questions?.length
+    ) {
+      return 0;
+    }
+    return Math.round(
+      (
+        this.answeredQuestions.length /
+        this.assessment.questions.length
+      ) * 100
+    );
+  }
   submitAssessment() {
+    if (this.submitted) {
+      return;
+    }
     const payload = {
       answers: this.answers
     };
@@ -58,13 +201,79 @@ implements OnInit {
       )
       .subscribe({
         next: (res) => {
-          this.submitted = true;
           this.result = res.data;
+          this.submitted = true;
+          clearInterval(
+            this.timerInterval
+          );
+          this.processResults();
         },
         error: (err) => {
           console.error(err);
-          alert('Submission Failed');
+          alert('Submission failed');
         }
       });
+  }
+  processResults() {
+    if (!this.result) {
+      return;
+    }
+    this.questionResults =
+      this.assessment.questions.map(
+        (q, i) => {
+          const studentAnswer =
+            this.answers[i]
+              ?.selectedAnswer || '';
+          const isCorrect =
+            studentAnswer ===
+            q.correctAnswer;
+          return {
+            question: q,
+            studentAnswer,
+            isCorrect,
+            marksObtained:
+              isCorrect
+                ? q.marks
+                : 0,
+            correctAnswer:
+              q.correctAnswer,
+            explanation:
+              q.explanation ||
+              'No explanation'
+          };
+        }
+      );
+  }
+  getOptionValue(
+    options: any,
+    key: OptionKey
+  ): string {
+    return options?.[key] || '';
+  }
+  getTotalScore(): number {
+    return this.questionResults.reduce(
+      (sum, q) =>
+        sum + q.marksObtained,
+      0
+    );
+  }
+  getPercentageScore(): number {
+    return Math.round(
+      (
+        this.getTotalScore() /
+        this.assessment.totalMarks
+      ) * 100
+    );
+  }
+  getPassStatus(): 'pass' | 'fail' {
+    return this.getPercentageScore() >= 40
+      ? 'pass'
+      : 'fail';
+  }
+  viewDetailedResults() {
+    this.showDetailedResults = true;
+  }
+  hideDetailedResults() {
+    this.showDetailedResults = false;
   }
 }
