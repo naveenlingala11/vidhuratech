@@ -35,10 +35,6 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   showPopup = signal(false);
   popupMessage = signal('');
   popupClosedUntil = signal<number | null>(null);
-  days = signal(0);
-  hours = signal(0);
-  minutes = signal(0);
-  seconds = signal(0);
   // ================= DATA =================
   seats = 25;
   activeBatch: any;
@@ -69,7 +65,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       }, 10000);
     });
     this.loadBatch(2);
-    this.startCountdown();
+    this.timer.startCountdown();
     if (isPlatformBrowser(this.platformId)) {
       const saved = localStorage.getItem('popupBlockUntil');
       if (saved) {
@@ -243,52 +239,6 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     });
   }
   // ================= COUNTDOWN =================
-  startCountdown() {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const today = new Date();
-    // Base batch date
-    const baseDate = new Date(2026, 4, 2); // May 2 2026
-    // Every 15 days
-    const cycleDays = 15;
-    const diffDays = Math.floor(
-      (today.getTime() - baseDate.getTime()) /
-      (1000 * 60 * 60 * 24)
-    );
-    const cycles = Math.floor(diffDays / cycleDays);
-    // Next batch date
-    const nextBatchDate = new Date(baseDate);
-    nextBatchDate.setDate(
-      baseDate.getDate() + ((cycles + 1) * cycleDays)
-    );
-    // Optional batch time
-    nextBatchDate.setHours(19, 30, 0, 0);
-    interval(1000).subscribe(() => {
-      const now = new Date().getTime();
-      const distance =
-        nextBatchDate.getTime() - now;
-      if (distance <= 0) return;
-      this.days.set(
-        Math.floor(distance / (1000 * 60 * 60 * 24))
-      );
-      this.hours.set(
-        Math.floor(
-          (distance % (1000 * 60 * 60 * 24)) /
-          (1000 * 60 * 60)
-        )
-      );
-      this.minutes.set(
-        Math.floor(
-          (distance % (1000 * 60 * 60)) /
-          (1000 * 60)
-        )
-      );
-      this.seconds.set(
-        Math.floor(
-          (distance % (1000 * 60)) / 1000
-        )
-      );
-    });
-  }
   // ================= POPUP =================
   startPopupLoop() {
     if (this.popupInterval) return;

@@ -1,6 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
+import { Router } from '@angular/router';
 import { ModalService } from '../../services/modal';
+import { Job, JobService } from '../../services/job';
 @Component({
   selector: 'app-placements',
   standalone: true,
@@ -8,78 +14,114 @@ import { ModalService } from '../../services/modal';
   templateUrl: './placements.html',
   styleUrl: './placements.css',
 })
-export class Placements implements AfterViewInit {
-  counters = [
-    { label: 'Students Placed', value: 0, target: 120 },
-    { label: 'Hiring Companies', value: 0, target: 35 },
-    { label: 'Success Rate', value: 0, target: 95 },
-    { label: 'Interviews Scheduled', value: 0, target: 300 },
-  ];
-  ngAfterViewInit() {
-    this.animateCounters();
-  }
-  animateCounters() {
-    this.counters.forEach((counter) => {
-      let count = 0;
-      const interval = setInterval(() => {
-        count++;
-        counter.value = count;
-        if (count >= counter.target) clearInterval(interval);
-      }, 20);
-    });
-  }
-  companies = [
-    { name: 'TCS' },
-    { name: 'Infosys' },
-    { name: 'Wipro' },
-    { name: 'HCL' },
-    { name: 'Tech Mahindra' },
-    { name: 'Capgemini' },
-  ];
+export class Placements implements OnInit {
+  loading = true;
+  placedStudents = 0;
+  hiringCompanies = 0;
+  successRate = 95;
+  interviewsScheduled = 0;
+  recentPlacements: Job[] = [];
+  companies: any[] = [];
   process = [
     {
       step: '01',
       title: 'Skill Development',
-      desc: 'Strong foundation with real-time practical training and projects.',
+      desc: 'Industry-level training with real-time projects and coding practice.',
+      icon: '💻'
     },
     {
       step: '02',
       title: 'Resume Building',
-      desc: 'Professional resume creation aligned with industry expectations.',
+      desc: 'Professional ATS-friendly resumes aligned with company hiring.',
+      icon: '📄'
     },
     {
       step: '03',
       title: 'Mock Interviews',
-      desc: 'Practice with real interview scenarios and expert feedback.',
+      desc: 'Technical + HR interview simulations with expert feedback.',
+      icon: '🎯'
     },
     {
       step: '04',
       title: 'Placement Support',
-      desc: 'Continuous support until you get placed successfully.',
-    },
+      desc: 'Daily job updates and continuous placement guidance.',
+      icon: '🚀'
+    }
   ];
-  successStories = [
-    {
-      name: 'Karthik',
-      company: 'TCS',
-      role: 'Java Developer',
-      msg: 'The placement training helped me crack interviews confidently.',
-    },
-    {
-      name: 'Divya',
-      company: 'Infosys',
-      role: 'Frontend Developer',
-      msg: 'Mock interviews and projects made a huge difference.',
-    },
-    {
-      name: 'Rahul',
-      company: 'Wipro',
-      role: 'Software Engineer',
-      msg: 'From beginner to professional — amazing journey.',
-    },
+  highlights = [
+    'Daily Real-Time Job Updates',
+    'Direct Apply Links',
+    'Mock Interviews',
+    'Resume Reviews',
+    'Live Coding Sessions',
+    'HR Preparation',
+    'GitHub Portfolio Guidance',
+    'Career Mentorship'
   ];
-  constructor(private modalService: ModalService) {}
+  constructor(
+    private jobService: JobService,
+    private cd: ChangeDetectorRef,
+    private modalService: ModalService,
+    private router: Router
+  ) {}
+  ngOnInit(): void {
+    this.loadPlacementData();
+  }
+  loadPlacementData() {
+    this.loading = true;
+    this.jobService.getJobs(0).subscribe({
+      next: (res) => {
+        const jobs = res.content || [];
+        this.recentPlacements = jobs.slice(0, 6);
+        this.placedStudents = jobs.length * 12;
+        this.interviewsScheduled = jobs.length * 40;
+        this.hiringCompanies = new Set(
+          jobs.map(j => j.companyName)
+        ).size;
+        this.companies = [...new Set(
+          jobs.map(j => j.companyName)
+        )]
+        .filter(Boolean)
+        .map(name => ({ name }));
+        this.loading = false;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+      }
+    });
+  }
   openEnrollModal() {
-    this.modalService.open();
+    this.modalService.open({
+      course: 'Placement Assistance Program'
+    });
+  }
+  goToJobs() {
+    this.router.navigate(['/jobs']);
+  }
+  getCompanyLogo(company: string | undefined): string {
+    if (!company) {
+      return 'https://ui-avatars.com/api/?name=?';
+    }
+    const clean = company
+      .toLowerCase()
+      .replace(/\s+/g, '');
+    return `https://www.google.com/s2/favicons?domain=${clean}.com&sz=128`;
+  }
+  onImgError(event: any) {
+    event.target.src =
+      'https://ui-avatars.com/api/?name=Company';
+  }
+  getPostedAgo(postedAt: string): string {
+    if (!postedAt) return 'Recently';
+    const safe = postedAt.split('.')[0];
+    const diff =
+      Date.now() - new Date(safe).getTime();
+    const days = Math.floor(
+      diff / (1000 * 60 * 60 * 24)
+    );
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
   }
 }

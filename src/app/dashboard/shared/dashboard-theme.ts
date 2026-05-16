@@ -10,16 +10,26 @@ export class DashboardThemeService {
   toggleTheme() {
     const current = this.getTheme();
     const next = current === 'dark' ? 'light' : 'dark';
-    localStorage.setItem(this.key, next);
+    localStorage.setItem( this.key, next );
     this.applyTheme(next);
   }
   getTheme(): string {
-    return localStorage.getItem(this.key) || 'light';
+    return localStorage.getItem(
+      this.key
+    ) || 'light';
+  }
+  isDark(): boolean {
+    return this.getTheme() === 'dark';
   }
   loadTheme() {
-    this.applyTheme(this.getTheme());
+    this.applyTheme(
+      this.getTheme()
+    );
   }
   private applyTheme(theme: string) {
-    document.body.setAttribute('data-theme', theme);
+    document.body.setAttribute(
+      'data-theme',
+      theme
+    );
   }
 }

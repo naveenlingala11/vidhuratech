@@ -1,24 +1,91 @@
 <div class="student-batches">
+  <!-- BACKGROUND EFFECTS -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <!-- HEADER -->
   <div class="page-header">
-    <h2>My Learning Batches</h2>
-    <p>Access your enrolled courses and recorded sessions</p>
-  </div>
-  <div *ngIf="batches.length > 0" class="batch-grid">
-    <div class="batch-card" *ngFor="let batch of batches">
-      <div class="batch-title">
-        {{ batch.name }}
+    <div class="header-left">
+      <div class="mini-badge">
+        🚀 Learning Dashboard
       </div>
-      <div class="batch-meta">
-        Batch ID: #{{ batch.id }}
+      <h2>
+        My Learning Batches
+      </h2>
+      <p>
+        Access your enrolled programs, live classes, projects,
+        recordings, and learning resources in one place.
+      </p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-card">
+        <span>{{ batches.length }}</span>
+        <small>Total Batches</small>
       </div>
-      <button
-        class="open-btn"
-        [routerLink]="['/dashboard/student/lms', batch.id]">
-        Open Batch
-      </button>
+      <div class="stat-card">
+        <span>24/7</span>
+        <small>Learning Access</small>
+      </div>
     </div>
   </div>
+  <!-- BATCHES -->
+  <div *ngIf="batches.length > 0" class="batch-grid">
+    <div class="batch-card" *ngFor="let batch of batches; let i = index">
+      <div class="card-glow"></div>
+      <!-- TOP -->
+      <div class="card-top">
+        <div class="batch-icon">
+          📚
+        </div>
+        <div class="batch-status">
+          Active
+        </div>
+      </div>
+      <!-- CONTENT -->
+      <div class="batch-content">
+        <h3>
+          {{ batch.name }}
+        </h3>
+        <p>
+          Learn through structured sessions, coding practice,
+          projects, and premium recorded content.
+        </p>
+      </div>
+      <!-- META -->
+      <div class="batch-meta-wrap">
+        <div class="meta-box">
+          <span>Batch ID</span>
+          <strong>#{{ batch.id }}</strong>
+        </div>
+        <div class="meta-box">
+          <span>Mode</span>
+          <strong>Live + LMS</strong>
+        </div>
+      </div>
+      <!-- FOOTER -->
+      <div class="card-footer">
+        <button
+          class="open-btn"
+          [routerLink]="['/dashboard/student/lms', batch.id]">
+          <span>
+            Open Learning Space
+          </span>
+          <i>
+            →
+          </i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- EMPTY -->
   <div *ngIf="batches.length === 0" class="empty-state">
-    No enrolled batches found.
+    <div class="empty-icon">
+      📘
+    </div>
+    <h3>
+      No Enrolled Batches
+    </h3>
+    <p>
+      Your learning batches will appear here once enrolled.
+    </p>
   </div>
 </div>

@@ -1,14 +1,17 @@
 <nav class="breadcrumb" *ngIf="breadcrumbs.length">
-  <span class="home-dot">
+  <!-- HOME -->
+  <a class="home-dot" [routerLink]="breadcrumbs[0].url">
     <i class="bi bi-house"></i>
-  </span>
-  <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
-    <span class="separator" *ngIf="!last || breadcrumbs.length">/</span>
-    <a *ngIf="!last" [routerLink]="crumb.url">
-      {{ crumb.label }}
-    </a>
-    <span *ngIf="last" class="active">
-      {{ crumb.label }}
-    </span>
+  </a>
+  <!-- ITEMS -->
+  <ng-container *ngFor=" let crumb of breadcrumbs; let last = last; let first = first ">
+    <!-- SKIP FIRST -->
+    <ng-container *ngIf="!first">
+      <span class="separator"> / </span>
+      <!-- LINK -->
+      <a *ngIf="!last" [routerLink]="crumb.url"> {{ crumb.label }} </a>
+      <!-- ACTIVE -->
+      <span *ngIf="last" class="active"> {{ crumb.label }} </span>
+    </ng-container>
   </ng-container>
 </nav>

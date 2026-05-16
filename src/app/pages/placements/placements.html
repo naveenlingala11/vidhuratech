@@ -1,108 +1,382 @@
-<!-- HERO -->
-<section class="placement-hero text-center text-white">
-  <div class="container">
-    <h1 class="display-4 fw-bold">Placements & Career Support</h1>
-    <p class="lead">
-      We don’t just train you — we guide you until you achieve your dream job in IT.
-    </p>
-  </div>
-</section>
-<!-- INTRO -->
-<section class="py-5">
-  <div class="container">
-    <h2 class="section-title text-center">Our Placement Commitment</h2>
-    <p>
-      At vidhura Tech, our mission is not only to provide training but to ensure every
-      student is job-ready and confident enough to succeed in real interviews. We provide complete
-      placement assistance, starting from skill development to final job placement.
-    </p>
-    <p>
-      Our placement support includes resume building, mock interviews, technical guidance, and
-      continuous mentorship. We work closely with students to identify their strengths and improve
-      their weaknesses.
-    </p>
-    <p>
-      We believe that every student deserves an opportunity to succeed, and we are committed to
-      supporting you until you achieve your career goals.
-    </p>
-  </div>
-</section>
-<!-- PROCESS -->
-<section class="process py-5 bg-light">
-  <div class="container">
-    <h2 class="section-title text-center">Placement Process</h2>
-    <div class="row mt-5">
-      <div class="col-md-3" *ngFor="let p of process">
-        <div class="process-box text-center">
-          <h1>{{ p.step }}</h1>
-          <h5>{{ p.title }}</h5>
+<!-- placements.html -->
+<div class="placements-page">
+  <!-- =========================================================
+       PREMIUM BACKGROUND
+  ========================================================= -->
+  <div class="bg-overlay"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-blur blur-1"></div>
+  <div class="bg-blur blur-2"></div>
+  <div class="bg-blur blur-3"></div>
+  <!-- =========================================================
+       HERO SECTION
+  ========================================================= -->
+  <section class="hero-section">
+    <div class="container hero-container">
+      <!-- LEFT -->
+      <div class="hero-left">
+        <div class="hero-badge">
+          <span></span>
+          India's Modern Placement Ecosystem
+        </div>
+        <h1>
+          Build Your
+          <span>Software Career</span>
+          With Real Industry Experience
+        </h1>
+        <p>
+          Learn from real developers, build enterprise applications,
+          crack interviews, create strong portfolios,
+          and get continuous placement support with a premium
+          career ecosystem designed for modern tech companies.
+        </p>
+        <div class="hero-actions">
+          <button
+            class="primary-btn"
+            (click)="openEnrollModal()">
+            Start Learning
+          </button>
+          <button
+            class="secondary-btn"
+            (click)="goToJobs()">
+            Explore Jobs
+          </button>
+        </div>
+        <div class="hero-features">
+          <div class="feature-pill">
+            🚀 Daily Hiring Updates
+          </div>
+          <div class="feature-pill">
+            💻 Real-Time Projects
+          </div>
+          <div class="feature-pill">
+            🎯 Mock Interviews
+          </div>
+          <div class="feature-pill">
+            📄 ATS Resume Building
+          </div>
+        </div>
+        <div class="hero-users">
+          <div class="avatars">
+            <span>N</span>
+            <span>R</span>
+            <span>K</span>
+            <span>D</span>
+          </div>
+          <div>
+            <h4>500+ Active Learners</h4>
+            <p>Students growing daily with VidhuraTech</p>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT -->
+      <div class="hero-right">
+        <div class="dashboard-card">
+          <div class="dashboard-top">
+            <div>
+              <h3>Placement Analytics</h3>
+              <p>Real-time growth tracking</p>
+            </div>
+            <div class="live-pill">
+              <span></span>
+              LIVE
+            </div>
+          </div>
+          <div class="analytics-chart">
+            <div class="chart-line"></div>
+            <div class="chart-bars">
+              <div class="bar b1"></div>
+              <div class="bar b2"></div>
+              <div class="bar b3"></div>
+              <div class="bar b4"></div>
+              <div class="bar b5"></div>
+              <div class="bar b6"></div>
+            </div>
+          </div>
+          <div class="dashboard-stats">
+            <div class="dash-stat">
+              <h2>{{ placedStudents }}+</h2>
+              <p>Students Placed</p>
+            </div>
+            <div class="dash-stat">
+              <h2>{{ hiringCompanies }}+</h2>
+              <p>Companies</p>
+            </div>
+          </div>
+          <div class="dashboard-bottom">
+            <div class="mini-card">
+              <span>📈</span>
+              <div>
+                <h5>{{ successRate }}%</h5>
+                <p>Success Rate</p>
+              </div>
+            </div>
+            <div class="mini-card">
+              <span>🚀</span>
+              <div>
+                <h5>{{ interviewsScheduled }}+</h5>
+                <p>Interviews</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- =========================================================
+       TRUST SECTION
+  ========================================================= -->
+  <section class="trust-section">
+    <div class="container">
+      <div class="section-title center">
+        <span>TOP HIRING COMPANIES</span>
+        <h2>Trusted By Growing Tech Companies</h2>
+      </div>
+      <div class="companies-marquee">
+        <div class="marquee-track">
+          <div
+            class="company-pill"
+            *ngFor="let c of companies">
+            {{ c.name }}
+          </div>
+          <div
+            class="company-pill"
+            *ngFor="let c of companies">
+            {{ c.name }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- =========================================================
+       STATS
+  ========================================================= -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            🎓
+          </div>
+          <h2>{{ placedStudents }}+</h2>
+          <p>Students Trained</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            🏢
+          </div>
+          <h2>{{ hiringCompanies }}+</h2>
+          <p>Hiring Companies</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon cyan">
+            📈
+          </div>
+          <h2>{{ successRate }}%</h2>
+          <p>Placement Success</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            🚀
+          </div>
+          <h2>{{ interviewsScheduled }}+</h2>
+          <p>Interviews Scheduled</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- =========================================================
+       ECOSYSTEM
+  ========================================================= -->
+  <section class="ecosystem-section">
+    <div class="container">
+      <div class="section-title">
+        <span>CAREER ECOSYSTEM</span>
+        <h2>Everything Needed To Become Job Ready</h2>
+        <p>
+          From training to placements,
+          we provide a complete ecosystem
+          for software career transformation.
+        </p>
+      </div>
+      <div class="ecosystem-grid">
+        <div class="eco-card large-card">
+          <div class="eco-glow"></div>
+          <div class="eco-icon">
+            💻
+          </div>
+          <h3>Enterprise Project Training</h3>
+          <p>
+            Build real-world applications using Angular,
+            Java, Spring Boot, APIs, MySQL,
+            deployment workflows and enterprise architecture.
+          </p>
+          <div class="tags">
+            <span>Angular</span>
+            <span>Java</span>
+            <span>Spring Boot</span>
+            <span>REST APIs</span>
+            <span>MySQL</span>
+          </div>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon purple-bg">
+            🎯
+          </div>
+          <h3>Mock Interviews</h3>
+          <p>
+            Technical + HR mock interviews
+            with structured feedback sessions.
+          </p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon cyan-bg">
+            📄
+          </div>
+          <h3>ATS Resume Building</h3>
+          <p>
+            Premium resumes aligned
+            with modern hiring systems.
+          </p>
+        </div>
+        <div class="eco-card">
+          <div class="eco-icon green-bg">
+            🌐
+          </div>
+          <h3>GitHub Portfolio</h3>
+          <p>
+            Build strong developer portfolios
+            with deployment workflows.
+          </p>
+        </div>
+        <div class="eco-card gradient-card large-card">
+          <div class="eco-icon white-bg">
+            🚀
+          </div>
+          <h3>Daily Hiring Opportunities</h3>
+          <p>
+            Real-time fresher and experienced
+            opportunities integrated directly
+            into our ecosystem.
+          </p>
+          <button
+            class="primary-btn"
+            (click)="goToJobs()">
+            Explore Careers
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- =========================================================
+       PROCESS
+  ========================================================= -->
+  <section class="process-section">
+    <div class="container">
+      <div class="section-title center">
+        <span>PLACEMENT PROCESS</span>
+        <h2>Your Structured Career Journey</h2>
+      </div>
+      <div class="process-grid">
+        <div
+          class="process-card"
+          *ngFor="let p of process">
+          <div class="process-number">
+            {{ p.step }}
+          </div>
+          <div class="process-icon">
+            {{ p.icon }}
+          </div>
+          <h3>{{ p.title }}</h3>
           <p>{{ p.desc }}</p>
         </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- COMPANIES -->
-<section class="py-5">
-  <div class="container">
-    <h2 class="section-title text-center">Our Students Placed In</h2>
-    <p class="text-center">Our students have successfully secured positions in top IT companies.</p>
-    <div class="row mt-4">
-      <div class="col-md-2 col-6 text-center" *ngFor="let c of companies">
-        <div class="company-box">
-          {{ c.name }}
+  </section>
+  <!-- =========================================================
+       JOBS
+  ========================================================= -->
+  <section class="placements-section">
+    <div class="container">
+      <div class="section-title">
+        <span>LIVE OPPORTUNITIES</span>
+        <h2>Latest Hiring Opportunities</h2>
+        <p>
+          Discover real hiring opportunities
+          from companies actively recruiting.
+        </p>
+      </div>
+      <div class="placements-grid">
+        <div
+          class="placement-card"
+          *ngFor="let job of recentPlacements">
+          <div class="card-shine"></div>
+          <div class="placement-top">
+            <img
+              [src]="getCompanyLogo(job.companyName)"
+              (error)="onImgError($event)" />
+            <div>
+              <h3>{{ job.title }}</h3>
+              <p>{{ job.companyName }}</p>
+            </div>
+          </div>
+          <div class="placement-meta">
+            <span>
+              📍 {{ job.location }}
+            </span>
+            <span>
+              💼 {{ job.experience }}
+            </span>
+          </div>
+          <div class="skills">
+            <span
+              *ngFor="let s of job.skills | slice:0:4">
+              {{ s }}
+            </span>
+          </div>
+          <div class="placement-footer">
+            <div class="posted">
+              {{ getPostedAgo(job.postedAt) }}
+            </div>
+            <button
+              class="view-btn"
+              (click)="goToJobs()">
+              Apply Now
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- SUCCESS STORIES -->
-<section class="success py-5">
-  <div class="container">
-    <h2 class="section-title text-center">Student Success Stories</h2>
-    <div class="row mt-5">
-      <div class="col-md-4" *ngFor="let s of successStories">
-        <div class="success-card">
-          <h5>{{ s.name }}</h5>
-          <p class="role">{{ s.role }} - {{ s.company }}</p>
-          <p>"{{ s.msg }}"</p>
-          <p>
-            The structured training and continuous guidance helped me improve my technical and
-            communication skills, making me job-ready.
-          </p>
+  </section>
+  <!-- =========================================================
+       CTA
+  ========================================================= -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card">
+        <div class="cta-glow"></div>
+        <h2>
+          Ready To Start
+          Your Software Career?
+        </h2>
+        <p>
+          Join our modern placement ecosystem
+          and transform your career with
+          real industry-level training.
+        </p>
+        <div class="cta-actions">
+          <button
+            class="primary-btn"
+            (click)="openEnrollModal()">
+            Enroll Now
+          </button>
+          <button
+            class="secondary-btn"
+            (click)="goToJobs()">
+            Browse Jobs
+          </button>
         </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- STATS -->
-<section class="stats text-center text-white py-5">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-3">
-        <h2>50+</h2>
-        <p>Students Placed</p>
-      </div>
-      <div class="col-md-3">
-        <h2>20+</h2>
-        <p>Hiring Partners</p>
-      </div>
-      <div class="col-md-3">
-        <h2>95%</h2>
-        <p>Success Rate</p>
-      </div>
-      <div class="col-md-3">
-        <h2>100%</h2>
-        <p>Support</p>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- CTA -->
-<section class="cta text-center text-white py-5">
-  <div class="container">
-    <h2>Ready to Get Placed?</h2>
-    <p>Join our training program and start your journey towards a successful IT career.</p>
-    <button class="btn btn-warning btn-lg" (click)="openEnrollModal()">Enroll Now</button>
-  </div>
-</section>
+  </section>
+</div>

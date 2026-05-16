@@ -1,39 +1,134 @@
 <div class="topbar">
+  <!-- LEFT -->
   <div class="left">
+    <!-- MOBILE MENU -->
+    <button class="menu-toggle" type="button" (click)="menuToggle.emit()">
+      <i class="bi bi-list"></i>
+    </button>
+    <!-- SEARCH -->
     <div class="search-box">
       <i class="bi bi-search"></i>
-      <input placeholder="Search modules, users, reports..." />
+      <input type="text" placeholder="Search courses, modules, sessions..." />
     </div>
   </div>
+  <!-- RIGHT -->
   <div class="right">
+    <!-- THEME -->
     <button class="icon-btn" type="button" (click)="toggleTheme()" title="Toggle theme">
-      <i class="bi bi-moon-stars"></i>
+      <i class="bi" [ngClass]="themeService.isDark() ? 'bi-sun-fill' : 'bi-moon-stars'">
+      </i>
     </button>
-    <button class="icon-btn notification-btn" type="button" title="Notifications">
-      <i class="bi bi-bell"></i>
-      <span></span>
-    </button>
+    <!-- NOTIFICATIONS -->
+    <div class="notification-wrapper">
+      <button class="icon-btn notification-btn" type="button" title="Notifications"
+        (click)="toggleNotifications($event)">
+        <i class="bi bi-bell"></i>
+        <!-- REAL COUNT -->
+        <span *ngIf="notifications.length > 0">
+          {{ notifications.length }}
+        </span>
+      </button>
+      <!-- DROPDOWN -->
+      <div class="notification-dropdown" *ngIf="notificationOpen">
+        <!-- HEADER -->
+        <div class="notification-header">
+          <div>
+            <h3>
+              Activity Updates
+            </h3>
+            <p>
+              Recent LMS notifications
+            </p>
+          </div>
+          <small>
+            {{ notifications.length }} New
+          </small>
+        </div>
+        <!-- EMPTY -->
+        <div class="empty-notification" *ngIf="notifications.length === 0">
+          <i class="bi bi-bell-slash"></i>
+          <span>
+            No notifications available
+          </span>
+        </div>
+        <!-- LIST -->
+        <div class="notification-list" *ngIf="notifications.length > 0">
+          <div class="notification-item" *ngFor="
+          let n of notifications.slice(0,5)
+        ">
+            <!-- ICON -->
+            <div class="notification-icon">
+              <i class="bi bi-lightning-charge"></i>
+            </div>
+            <!-- CONTENT -->
+            <div class="notification-content">
+              <strong>
+                {{ n.title }}
+              </strong>
+              <p>
+                {{ n.message }}
+              </p>
+              <span>
+                {{ n.timeAgo || 'Recently' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- FOOTER -->
+        <div class="notification-footer" *ngIf="notifications.length > 5">
+          +{{ notifications.length - 5 }}
+          more notifications
+        </div>
+      </div>
+    </div>
+    <!-- PROFILE -->
     <div class="profile" (click)="$event.stopPropagation()">
       <button class="profile-btn" type="button" (click)="toggleProfile($event)">
-        <div class="avatar">{{ getInitials() }}</div>
+        <div class="avatar">
+          {{ getInitials() }}
+        </div>
         <div class="profile-meta">
-          <strong>{{ authService.getUser()?.name || 'User' }}</strong>
-          <span>{{ authService.getUser()?.role || 'Member' }}</span>
+          <strong>
+            {{ authService.getUser()?.name || 'User' }}
+          </strong>
+          <span>
+            {{ authService.getUser()?.role || 'Member' }}
+          </span>
         </div>
         <i class="bi bi-chevron-down caret"></i>
       </button>
+      <!-- DROPDOWN -->
       <div class="dropdown" *ngIf="profileOpen">
+        <!-- USER -->
         <div class="dropdown-user">
-          <div class="avatar large">{{ getInitials() }}</div>
+          <div class="avatar large">
+            {{ getInitials() }}
+          </div>
           <div>
-            <strong>{{ authService.getUser()?.name || 'User' }}</strong>
-            <span>{{ authService.getUser()?.role || 'Member' }}</span>
+            <strong>
+              {{ authService.getUser()?.name || 'User' }}
+            </strong>
+            <span>
+              {{ authService.getUser()?.role || 'Member' }}
+            </span>
           </div>
         </div>
-        <button type="button" (click)="goToProfile()">
-          <i class="bi bi-person-circle"></i>
-          View Profile
+        <!-- CONDITIONAL BUTTON -->
+        <button type="button" (click)="goToMainPage()">
+          <i class="bi" [ngClass]="isProfilePage()
+              ? 'bi-speedometer2'
+              : 'bi-person-circle'">
+          </i>
+          {{ isProfilePage()
+          ? 'Go To Dashboard'
+          : 'View Profile' }}
         </button>
+        <!-- SETTINGS -->
+        <button type="button">
+          <i class="bi bi-gear"></i>
+          Settings
+        </button>
+        <!-- LOGOUT -->
         <button type="button" class="logout" (click)="logout()">
           <i class="bi bi-box-arrow-right"></i>
           Logout

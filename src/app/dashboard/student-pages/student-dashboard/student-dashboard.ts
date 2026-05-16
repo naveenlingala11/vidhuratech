@@ -6,7 +6,6 @@ import { StudentDashboardService } from '../../service/student-dashboard';
 import { StudentWorkflowService } from '../service/student-workflow';
 interface StudentStats {
   enrolledCourses: number;
-  attendance: number;
   assignmentsPending: number;
   assessmentsUpcoming: number;
   certificates: number;
@@ -55,7 +54,6 @@ export class StudentDashboard implements OnInit {
   showMockPopup = false;
   stats: StudentStats = {
     enrolledCourses: 0,
-    attendance: 0,
     assignmentsPending: 0,
     assessmentsUpcoming: 0,
     certificates: 0,
@@ -89,8 +87,8 @@ export class StudentDashboard implements OnInit {
       tone: 'action-emerald'
     },
     {
-      label: 'Practice Questions',
-      helper: 'Interview preparation bank',
+      label: 'Coding Practice',
+      helper: 'Practice coding & MCQs',
       icon: 'bi-lightbulb',
       route: '/preparation',
       tone: 'action-amber'
@@ -175,9 +173,18 @@ export class StudentDashboard implements OnInit {
     return this.workItems.filter(item => !item.submitted).slice(0, 5);
   }
   get placementTone(): string {
-    const status = String(this.stats.placementStatus || '').toLowerCase();
-    if (status.includes('eligible') && !status.includes('not')) return 'ready';
-    if (this.averageProgress >= 70 && this.stats.attendance >= 75) return 'almost';
+    const status = String(
+      this.stats.placementStatus || ''
+    ).toLowerCase();
+    if (
+      status.includes('eligible') &&
+      !status.includes('not')
+    ) {
+      return 'ready';
+    }
+    if (this.averageProgress >= 70) {
+      return 'almost';
+    }
     return 'focus';
   }
   get placementMessage(): string {
@@ -186,47 +193,48 @@ export class StudentDashboard implements OnInit {
     return 'Improve attendance, course progress, and assignments to become placement ready.';
   }
   get statCards(): StatCard[] {
-    return [
-      {
-        label: 'Enrolled Courses',
-        value: this.stats.enrolledCourses,
-        caption: `${this.averageProgress}% average progress`,
-        icon: 'bi-journal-bookmark',
-        tone: 'blue',
-        route: '/dashboard/student/courses'
-      },
-      {
-        label: 'Attendance',
-        value: `${this.stats.attendance}%`,
-        caption: this.stats.attendance >= 75 ? 'Healthy attendance' : 'Needs attention',
-        icon: 'bi-calendar-check',
-        tone: 'green'
-      },
-      {
-        label: 'Pending Work',
-        value: this.pendingWorkItems.length || this.totalPending,
-        caption: `${this.stats.assignmentsPending} assignments, ${this.stats.assessmentsUpcoming} assessments`,
-        icon: 'bi-list-check',
-        tone: 'orange',
-        route: '/dashboard/student/assignments'
-      },
-      {
-        label: 'Mock Requests',
-        value: this.mockRequests.length,
-        caption: 'Interview practice requests',
-        icon: 'bi-mic',
-        tone: 'purple'
-      },
-      {
-        label: 'Certificates',
-        value: this.stats.certificates,
-        caption: 'Earn and share credentials',
-        icon: 'bi-patch-check',
-        tone: 'teal',
-        route: '/dashboard/student/certificates'
-      }
-    ];
-  }
+  return [
+    {
+      label: 'Enrolled Courses',
+      value: this.stats.enrolledCourses,
+      caption: `${this.averageProgress}% average progress`,
+      icon: 'bi-journal-bookmark',
+      tone: 'blue',
+      route: '/dashboard/student/courses'
+    },
+    {
+      label: 'Assignments',
+      value: this.stats.assignmentsPending,
+      caption: 'Pending submissions',
+      icon: 'bi-file-earmark-text',
+      tone: 'orange',
+      route: '/dashboard/student/assignments'
+    },
+    {
+      label: 'Assessments',
+      value: this.stats.assessmentsUpcoming,
+      caption: 'Upcoming evaluations',
+      icon: 'bi-clipboard-data',
+      tone: 'purple',
+      route: '/dashboard/student/assessments'
+    },
+    {
+      label: 'Mock Interviews',
+      value: this.mockRequests.length,
+      caption: 'Interview practice sessions',
+      icon: 'bi-camera-video',
+      tone: 'rose'
+    },
+    {
+      label: 'Certificates',
+      value: this.stats.certificates,
+      caption: 'Earned credentials',
+      icon: 'bi-patch-check',
+      tone: 'teal',
+      route: '/dashboard/student/certificates'
+    }
+  ];
+}
   get learningPlan() {
     return [
       {
@@ -238,11 +246,6 @@ export class StudentDashboard implements OnInit {
         title: 'Clear pending assignments',
         meta: `${this.pendingWorkItems.length || this.stats.assignmentsPending} pending`,
         done: (this.pendingWorkItems.length || this.stats.assignmentsPending) === 0
-      },
-      {
-        title: 'Maintain attendance',
-        meta: `${this.stats.attendance}% attendance`,
-        done: this.stats.attendance >= 75
       },
       {
         title: 'Prepare placement profile',

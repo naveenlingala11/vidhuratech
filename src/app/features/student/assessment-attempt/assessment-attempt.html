@@ -1,73 +1,134 @@
 <div
   class="attempt-container"
-  *ngIf="assessment">
-  <h2>
-    {{ assessment.title }}
-  </h2>
-  <p>
-    {{ assessment.description }}
-  </p>
-  <div
-    class="question-card"
-    *ngFor="
-      let q of assessment.questions;
-      let i=index
-    ">
-    <h3>
-      {{ i + 1 }}.
-      {{ q.question }}
-    </h3>
-    <label>
-      <input
-        type="radio"
-        [name]="'q'+i"
-        value="A"
-        [(ngModel)]="answers[i].selectedAnswer">
-      A. {{ q.optionA }}
-    </label>
-    <label>
-      <input
-        type="radio"
-        [name]="'q'+i"
-        value="B"
-        [(ngModel)]="answers[i].selectedAnswer">
-      B. {{ q.optionB }}
-    </label>
-    <label>
-      <input
-        type="radio"
-        [name]="'q'+i"
-        value="C"
-        [(ngModel)]="answers[i].selectedAnswer">
-      C. {{ q.optionC }}
-    </label>
-    <label>
-      <input
-        type="radio"
-        [name]="'q'+i"
-        value="D"
-        [(ngModel)]="answers[i].selectedAnswer">
-      D. {{ q.optionD }}
-    </label>
+  *ngIf="assessment && !submitted">
+  <!-- HEADER -->
+  <div class="attempt-header">
+    <div class="assessment-info">
+      <h2>
+        {{ assessment.title }}
+      </h2>
+      <p>
+        {{ assessment.description }}
+      </p>
+    </div>
+    <div
+      class="timer-box"
+      [ngClass]="getTimeRemainingClass()">
+      <div class="timer-label">
+        Time Remaining
+      </div>
+      <div class="timer-display">
+        {{ getFormattedTime() }}
+      </div>
+    </div>
   </div>
-  <button
-    class="submit-btn"
-    (click)="submitAssessment()">
-    Submit Assessment
-  </button>
-  <div
-    class="result-box"
-    *ngIf="submitted">
-    <h3>
-      Assessment Submitted
-    </h3>
-    <p>
-      Score:
-      {{ result.score }}
-    </p>
-    <p>
-      Correct Answers:
-      {{ result.correctAnswers }}
-    </p>
+  <!-- PROGRESS -->
+  <div class="progress-section">
+    <div class="progress-info">
+      <span>
+        {{ answeredQuestions.length }}/{{ assessment.questions.length }}
+        Answered
+      </span>
+      <span>
+        {{ getProgressPercentage() }}%
+      </span>
+    </div>
+    <div class="progress-bar">
+      <div
+        class="progress-fill"
+        [style.width.%]="getProgressPercentage()">
+      </div>
+    </div>
+  </div>
+  <!-- CONTENT -->
+  <div class="attempt-content">
+    <!-- LEFT NAV -->
+    <div class="question-navigator">
+      <h3>
+        Questions
+      </h3>
+      <div class="question-list">
+        <button
+          *ngFor="let q of assessment.questions; let i=index"
+          class="question-nav-item"
+          [class.current]="currentQuestionIndex === i"
+          [class.answered]="isQuestionAnswered(i)"
+          [class.bookmarked]="isQuestionBookmarked(i)"
+          (click)="selectQuestion(i)">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+    <!-- QUESTION AREA -->
+    <div class="questions-area">
+      <div
+        class="question-card"
+        *ngIf="assessment.questions[currentQuestionIndex] as q">
+        <div class="question-header">
+          <h3>
+            Question
+            {{ currentQuestionIndex + 1 }}
+          </h3>
+          <button
+            class="bookmark-btn"
+            (click)="toggleBookmark(currentQuestionIndex)">
+            {{
+              isQuestionBookmarked(currentQuestionIndex)
+              ? '🔖'
+              : '🔗'
+            }}
+          </button>
+        </div>
+        <div class="question-text">
+          <p>
+            {{ q.question }}
+          </p>
+          <span class="marks-badge">
+            {{ q.marks }} Marks
+          </span>
+        </div>
+        <div class="options-container">
+          <label
+            class="option"
+            *ngFor="let opt of optionKeys">
+            <input
+              type="radio"
+              [name]="'q' + currentQuestionIndex"
+              [value]="opt"
+              [(ngModel)]="answers[currentQuestionIndex].selectedAnswer"
+              (change)="onAnswerChange()">
+            <span class="option-label">
+              {{ opt }}.
+            </span>
+            <span class="option-text">
+              {{ getOptionValue(q.options, opt) }}
+            </span>
+          </label>
+        </div>
+      </div>
+      <!-- NAVIGATION -->
+      <div class="navigation-buttons">
+        <button
+          class="nav-btn"
+          [disabled]="currentQuestionIndex === 0"
+          (click)="selectQuestion(currentQuestionIndex - 1)">
+          Previous
+        </button>
+        <button
+          class="nav-btn"
+          [disabled]="currentQuestionIndex === assessment.questions.length - 1"
+          (click)="selectQuestion(currentQuestionIndex + 1)">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- SUBMIT -->
+  <div class="submit-section">
+    <button
+      class="submit-btn"
+      (click)="submitAssessment()">
+      Submit Assessment
+    </button>
   </div>
 </div>
