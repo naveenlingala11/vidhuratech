@@ -7,9 +7,9 @@
         requests.</p>
     </div>
     <div class="hero-actions">
-      <button type="button" (click)="openWorkPopup('ASSIGNMENT')">Create Assignment</button>
-      <button type="button" (click)="openWorkPopup('ASSESSMENT')">Create Assessment</button>
+      <button routerLink="/dashboard/trainer/create-assessment">Create Assessment</button>
       <button type="button" (click)="openCurriculumPopup()">Upload Curriculum</button>
+      <button routerLink="/dashboard/trainer/assessments">View Assessments</button>
     </div>
   </div>
   <div class="toast" *ngIf="toast">{{ toast }}</div>
@@ -84,8 +84,8 @@
     <div class="panel">
       <h4>Quick Actions</h4>
       <button (click)="openCurriculumPopup()">Upload Curriculum</button>
-      <button (click)="openWorkPopup('ASSIGNMENT')">Create Assignment</button>
-      <button (click)="openWorkPopup('ASSESSMENT')">Create Assessment</button>
+      <button routerLink="/dashboard/trainer/create-assessment">Create Assessment</button>
+      <button routerLink="/dashboard/trainer/assessments">View Assessments & Results</button>
       <button routerLink="/dashboard/trainer/students">Students & Results</button>
       <button routerLink="/dashboard/trainer/content">View Content</button>
     </div>
@@ -107,25 +107,6 @@
       <div class="actions">
         <button class="primary-btn" type="button" (click)="submitCurriculum()">Submit</button>
         <button class="cancel-btn" type="button" (click)="closeCurriculumPopup()">Cancel</button>
-      </div>
-    </div>
-  </div>
-  <div class="modal-overlay" *ngIf="showWorkPopup">
-    <div class="modal-box">
-      <button class="close" type="button" (click)="closeWorkPopup()">x</button>
-      <h3>Create {{ workForm.type === 'ASSIGNMENT' ? 'Assignment' : 'Assessment' }}</h3>
-      <select [(ngModel)]="workForm.batchId">
-        <option value="">Select Batch</option>
-        <option *ngFor="let b of batches" [value]="b.id">{{ b.name }}</option>
-      </select>
-      <input [(ngModel)]="workForm.title" placeholder="Title" />
-      <textarea [(ngModel)]="workForm.description" rows="5" placeholder="Instructions"></textarea>
-      <input type="date" [(ngModel)]="workForm.dueDate" />
-      <input type="time" [(ngModel)]="workForm.dueTime" />
-      <input type="number" [(ngModel)]="workForm.totalMarks" placeholder="Total marks" />
-      <div class="actions">
-        <button class="primary-btn" type="button" [disabled]="saving" (click)="createWorkItem()">Create</button>
-        <button class="cancel-btn" type="button" (click)="closeWorkPopup()">Cancel</button>
       </div>
     </div>
   </div>

@@ -39,4 +39,9 @@ export class BatchService {
       `${this.API}/${batchId}/sessions/${sessionId}`
     );
   }
+  updateSession(batchId: number, sessionId: number, payload: any) {
+    return this.http.put(
+      `${this.API}/${batchId}/sessions/${sessionId}`, payload
+    );
+  }
 }

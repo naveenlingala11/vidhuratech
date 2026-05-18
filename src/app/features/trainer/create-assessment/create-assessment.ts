@@ -117,8 +117,10 @@ export class CreateAssessmentComponent {
     this.bulkAssessment = {
       batchId: parsed.batchId,
       title: parsed.title,
-      description: parsed.description || '',
-      totalMarks: parsed.totalMarks || 100,
+      description:
+        parsed.description || '',
+      totalMarks:
+        parsed.totalMarks || 100,
       durationMinutes:
         parsed.durationMinutes || 60,
       questions:

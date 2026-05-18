@@ -5,14 +5,14 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { BatchService } from '../../services/batch';
 @Component({
   selector: 'app-trainer-batch-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './trainer-batch-management.html',
   styleUrls: ['./trainer-batch-management.css']
 })
@@ -22,12 +22,13 @@ export class TrainerBatchManagementComponent implements OnInit {
   sessions: any[] = [];
   loading = false;
   form!: FormGroup;
+  editingSessionId: number | null = null;
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private batchService: BatchService,
     private toastr: ToastrService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.batchId = Number(this.route.snapshot.paramMap.get('id'));
     this.initForm();
@@ -64,19 +65,70 @@ export class TrainerBatchManagementComponent implements OnInit {
         }
       });
   }
+  editSession(session: any) {
+    this.editingSessionId = session.id;
+    this.form.patchValue({
+      title: session.title,
+      description: session.description,
+      videoUrl: session.videoUrl,
+      durationMinutes: session.durationMinutes,
+      sessionDate: session.sessionDate,
+      published: session.published
+    });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
   submitSession() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    this.batchService.createSession(
-      this.batchId,
-      this.form.value
-    ).subscribe(() => {
-      this.toastr.success('Session uploaded successfully');
-      this.form.reset({ published: false });
-      this.loadSessions();
+    const request = this.editingSessionId
+      ? this.batchService.updateSession(
+        this.batchId,
+        this.editingSessionId,
+        this.form.value
+      )
+      : this.batchService.createSession(
+        this.batchId,
+        this.form.value
+      );
+    request.subscribe({
+      next: () => {
+        this.toastr.success(
+          this.editingSessionId
+            ? 'Session updated successfully'
+            : 'Session uploaded successfully'
+        );
+        this.form.reset({
+          published: false,
+          durationMinutes: 30
+        });
+        this.editingSessionId = null;
+        this.loadSessions();
+      },
+      error: () => {
+        this.toastr.error(
+          'Failed to save session'
+        );
+      }
     });
+  }
+  cancelEdit() {
+    this.editingSessionId = null;
+    this.form.reset({
+      title: '',
+      description: '',
+      videoUrl: '',
+      durationMinutes: 30,
+      sessionDate: '',
+      published: false
+    });
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+    this.toastr.info('Edit cancelled');
   }
   publish(sessionId: number) {
     this.batchService.publishSession(this.batchId, sessionId)

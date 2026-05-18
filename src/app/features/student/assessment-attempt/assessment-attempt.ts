@@ -10,7 +10,8 @@ import {
   FormsModule
 } from '@angular/forms';
 import {
-  ActivatedRoute
+  ActivatedRoute,
+  Router
 } from '@angular/router';
 import {
   AssessmentService
@@ -35,7 +36,7 @@ import {
   styleUrls: ['./assessment-attempt.css']
 })
 export class AssessmentAttemptComponent
-implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy {
   readonly optionKeys: OptionKey[] = [
     'A',
     'B',
@@ -47,7 +48,7 @@ implements OnInit, OnDestroy {
   answers: IStudentAnswer[] = [];
   submitted = false;
   loading = false;
-  result: IAssessmentResult | null = null;
+  result: any = null;
   currentQuestionIndex = 0;
   bookmarkedQuestions: number[] = [];
   answeredQuestions: number[] = [];
@@ -58,8 +59,9 @@ implements OnInit, OnDestroy {
   timeAlertShown = false;
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private assessmentService: AssessmentService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.assessmentId = Number(
       this.route.snapshot.paramMap.get('id')
@@ -188,29 +190,55 @@ implements OnInit, OnDestroy {
     );
   }
   submitAssessment() {
-    if (this.submitted) {
+    if (this.submitted || this.loading) {
       return;
     }
+    this.loading = true;
     const payload = {
       answers: this.answers
     };
+    console.log(
+      'Submitting Assessment Payload',
+      payload
+    );
     this.assessmentService
       .submitAssessment(
         this.assessmentId,
         payload
       )
       .subscribe({
-        next: (res) => {
+        next: (res: any) => {
+          console.log(
+            'Assessment Submit Response',
+            res
+          );
           this.result = res.data;
           this.submitted = true;
+          this.loading = false;
           clearInterval(
             this.timerInterval
           );
           this.processResults();
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+          setTimeout(() => {
+            this.router.navigate([
+              '/dashboard/student/assessments'
+            ]);
+          }, 3000);
         },
         error: (err) => {
-          console.error(err);
-          alert('Submission failed');
+          console.error(
+            'Assessment Submit Error',
+            err
+          );
+          this.loading = false;
+          alert(
+            err?.error?.message ||
+            'Submission failed'
+          );
         }
       });
   }
@@ -251,6 +279,9 @@ implements OnInit, OnDestroy {
     return options?.[key] || '';
   }
   getTotalScore(): number {
+    if (this.result?.score != null) {
+      return this.result.score;
+    }
     return this.questionResults.reduce(
       (sum, q) =>
         sum + q.marksObtained,
@@ -258,6 +289,9 @@ implements OnInit, OnDestroy {
     );
   }
   getPercentageScore(): number {
+    if (this.result?.percentage != null) {
+      return this.result.percentage;
+    }
     return Math.round(
       (
         this.getTotalScore() /

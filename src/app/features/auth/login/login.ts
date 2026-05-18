@@ -34,6 +34,7 @@ export class Login {
   otpVerifying = false;
   @ViewChild('otpInput') otpInputRef!: ElementRef;
   @ViewChildren('otpBox') otpBoxes!: QueryList<ElementRef>;
+  loginError = '';
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -107,6 +108,7 @@ export class Login {
       });
   }
   submit() {
+    this.loginError = '';
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -115,14 +117,33 @@ export class Login {
     this.authService.login(this.form.value).subscribe({
       next: () => {
         const user = this.authService.getUser();
-        const redirect = this.route.snapshot.queryParamMap.get('redirect');
+        const redirect =
+          this.route.snapshot.queryParamMap.get('redirect');
         this.toastr.success('Login successful');
         this.router.navigateByUrl(
           redirect || this.getDashboardRoute(user.role)
         );
       },
       error: (err) => {
-        this.toastr.error(err.error?.message || 'Invalid credentials');
+        console.log(err);
+        if (err.status === 401) {
+          this.loginError = 'Invalid email or password';
+        }
+        else if (err.status === 404) {
+          this.loginError = 'Account not found';
+        }
+        else if (err.status === 403) {
+          this.loginError = 'Account inactive';
+        }
+        else if (err.status === 500) {
+          this.loginError = 'Server error. Please try again';
+        }
+        else {
+          this.loginError =
+            err.error?.message ||
+            'Login failed';
+        }
+        this.toastr.error(this.loginError);
         this.loading = false;
         this.cdr.detectChanges();
       },

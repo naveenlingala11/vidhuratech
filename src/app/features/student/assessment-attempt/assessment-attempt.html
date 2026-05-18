@@ -1,6 +1,4 @@
-<div
-  class="attempt-container"
-  *ngIf="assessment && !submitted">
+<div class="attempt-container" *ngIf="assessment && !submitted">
   <!-- HEADER -->
   <div class="attempt-header">
     <div class="assessment-info">
@@ -11,9 +9,7 @@
         {{ assessment.description }}
       </p>
     </div>
-    <div
-      class="timer-box"
-      [ngClass]="getTimeRemainingClass()">
+    <div class="timer-box" [ngClass]="getTimeRemainingClass()">
       <div class="timer-label">
         Time Remaining
       </div>
@@ -34,9 +30,7 @@
       </span>
     </div>
     <div class="progress-bar">
-      <div
-        class="progress-fill"
-        [style.width.%]="getProgressPercentage()">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()">
       </div>
     </div>
   </div>
@@ -48,34 +42,26 @@
         Questions
       </h3>
       <div class="question-list">
-        <button
-          *ngFor="let q of assessment.questions; let i=index"
-          class="question-nav-item"
-          [class.current]="currentQuestionIndex === i"
-          [class.answered]="isQuestionAnswered(i)"
-          [class.bookmarked]="isQuestionBookmarked(i)"
-          (click)="selectQuestion(i)">
+        <button *ngFor="let q of assessment.questions; let i=index" class="question-nav-item"
+          [class.current]="currentQuestionIndex === i" [class.answered]="isQuestionAnswered(i)"
+          [class.bookmarked]="isQuestionBookmarked(i)" (click)="selectQuestion(i)">
           {{ i + 1 }}
         </button>
       </div>
     </div>
     <!-- QUESTION AREA -->
     <div class="questions-area">
-      <div
-        class="question-card"
-        *ngIf="assessment.questions[currentQuestionIndex] as q">
+      <div class="question-card" *ngIf="assessment.questions[currentQuestionIndex] as q">
         <div class="question-header">
           <h3>
             Question
             {{ currentQuestionIndex + 1 }}
           </h3>
-          <button
-            class="bookmark-btn"
-            (click)="toggleBookmark(currentQuestionIndex)">
+          <button class="bookmark-btn" (click)="toggleBookmark(currentQuestionIndex)">
             {{
-              isQuestionBookmarked(currentQuestionIndex)
-              ? '🔖'
-              : '🔗'
+            isQuestionBookmarked(currentQuestionIndex)
+            ? '🔖'
+            : '🔗'
             }}
           </button>
         </div>
@@ -88,15 +74,9 @@
           </span>
         </div>
         <div class="options-container">
-          <label
-            class="option"
-            *ngFor="let opt of optionKeys">
-            <input
-              type="radio"
-              [name]="'q' + currentQuestionIndex"
-              [value]="opt"
-              [(ngModel)]="answers[currentQuestionIndex].selectedAnswer"
-              (change)="onAnswerChange()">
+          <label class="option" *ngFor="let opt of optionKeys">
+            <input type="radio" [name]="'q' + currentQuestionIndex" [value]="opt"
+              [(ngModel)]="answers[currentQuestionIndex].selectedAnswer" (change)="onAnswerChange()">
             <span class="option-label">
               {{ opt }}.
             </span>
@@ -108,15 +88,11 @@
       </div>
       <!-- NAVIGATION -->
       <div class="navigation-buttons">
-        <button
-          class="nav-btn"
-          [disabled]="currentQuestionIndex === 0"
+        <button class="nav-btn" [disabled]="currentQuestionIndex === 0"
           (click)="selectQuestion(currentQuestionIndex - 1)">
           Previous
         </button>
-        <button
-          class="nav-btn"
-          [disabled]="currentQuestionIndex === assessment.questions.length - 1"
+        <button class="nav-btn" [disabled]="currentQuestionIndex === assessment.questions.length - 1"
           (click)="selectQuestion(currentQuestionIndex + 1)">
           Next
         </button>
@@ -125,10 +101,104 @@
   </div>
   <!-- SUBMIT -->
   <div class="submit-section">
-    <button
-      class="submit-btn"
-      (click)="submitAssessment()">
+    <button class="submit-btn" (click)="submitAssessment()">
       Submit Assessment
     </button>
+  </div>
+</div>
+<!-- RESULTS VIEW -->
+<div class="results-container" *ngIf="submitted">
+  <div class="results-header">
+    <h2>
+      Assessment Submitted Successfully
+    </h2>
+    <button class="close-btn" (click)="hideDetailedResults()">
+      Close
+    </button>
+  </div>
+  <div class="score-summary" [ngClass]="getPassStatus()">
+    <div class="score-display">
+      <div class="score-value">
+        {{ getTotalScore() }}/{{ assessment.totalMarks }}
+      </div>
+      <div class="score-percentage">
+        {{ getPercentageScore() }}%
+      </div>
+    </div>
+    <div class="score-status">
+      <h3 class="status-text">
+        {{
+        getPassStatus() === 'pass'
+        ? 'PASSED'
+        : 'FAILED'
+        }}
+      </h3>
+      <p class="correct-answers">
+        Correct Answers:
+        {{ result.correctAnswers }}/{{ result.totalQuestions }}
+      </p>
+    </div>
+  </div>
+  <div class="results-toggle">
+    <button class="toggle-btn" *ngIf="!showDetailedResults" (click)="viewDetailedResults()">
+      View Detailed Results
+    </button>
+    <button class="toggle-btn" *ngIf="showDetailedResults" (click)="hideDetailedResults()">
+      Hide Detailed Results
+    </button>
+  </div>
+  <div class="detailed-results" *ngIf="showDetailedResults">
+    <h3>
+      Question Review
+    </h3>
+    <div class="question-result" *ngFor="let q of questionResults; let i=index">
+      <div class="result-header" [ngClass]="q.isCorrect ? 'correct' : 'incorrect'">
+        <h4>
+          Question {{ i + 1 }}
+        </h4>
+        <span class="result-marks">
+          {{
+          q.marksObtained
+          }}/{{ q.question.marks }} Marks
+        </span>
+      </div>
+      <div class="result-question">
+        <p class="question-text">
+          {{ q.question.question }}
+        </p>
+      </div>
+      <div class="result-options">
+        <div class="option-result" *ngFor="let opt of optionKeys">
+          <span class="opt-label">
+            {{ opt }}
+          </span>
+          <span class="opt-text">
+            {{
+            getOptionValue(
+            q.question.options,
+            opt
+            )
+            }}
+          </span>
+          <span class="opt-badge correct" *ngIf="q.correctAnswer === opt">
+            Correct
+          </span>
+          <span class="opt-badge incorrect" *ngIf="
+              q.studentAnswer === opt &&
+              q.correctAnswer !== opt
+            ">
+            Your Answer
+          </span>
+        </div>
+      </div>
+      <div class="result-explanation">
+        <h5>
+          Explanation
+        </h5>
+        <p>
+          {{ q.explanation }}
+        </p>
+      </div>
+    </div>
   </div>
 </div>

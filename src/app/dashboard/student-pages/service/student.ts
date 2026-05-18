@@ -1,10 +1,13 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { environment } from "../../../../environments/environment";
-@Injectable({ providedIn: 'root' })
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { environment } from '../../../../environments/environment';
+@Injectable({
+  providedIn: 'root'
+})
 export class StudentService {
-  private api = environment.apiUrl + '/api/student';
-  constructor(private http: HttpClient) { }
+  private api = `${environment.apiUrl}/api/student`;
+  private certificateApi = `${environment.apiUrl}/certificates`;
+  constructor(private http: HttpClient) {}
   getDashboard() {
     return this.http.get(`${this.api}/dashboard`);
   }
@@ -14,8 +17,18 @@ export class StudentService {
   getAssignments() {
     return this.http.get(`${this.api}/assignments`);
   }
-  getCertificates() {
-    return this.http.get(`${this.api}/certificates`);
+  getCertificates(email?: string) {
+    let params = new HttpParams();
+    if (email) {
+      params = params.set('email', email);
+    }
+    return this.http.get(`${this.certificateApi}/student`, { params });
+  }
+  generateCertificateForCourse(payload: any) {
+    return this.http.post(`${this.certificateApi}/student/generate`, payload);
+  }
+  sendCertificateToEmail(id: string) {
+    return this.http.post(`${this.certificateApi}/${id}/send-email`, {});
   }
   getCurriculum(batchId: number) {
     return this.http.get(`${this.api}/batches/${batchId}/curriculum`);

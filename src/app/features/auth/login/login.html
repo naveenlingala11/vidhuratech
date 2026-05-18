@@ -41,7 +41,12 @@
               <i class="fa-solid fa-envelope"></i>
               <input type="email" formControlName="email" placeholder="you@example.com" />
             </div>
-            <small *ngIf="f['email'].touched && f['email'].invalid">Valid email is required</small>
+            <small *ngIf="f['email'].touched && f['email'].errors?.['required']">
+              Email is required
+            </small>
+            <small *ngIf="f['email'].touched && f['email'].errors?.['email']">
+              Enter valid email address
+            </small>
           </div>
           <div class="auth-field">
             <label>Password</label>
@@ -53,7 +58,13 @@
                 <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
               </button>
             </div>
-            <small *ngIf="f['password'].touched && f['password'].invalid">Password is required</small>
+            <small *ngIf="f['password'].touched && f['password'].errors?.['required']">
+              Password is required
+            </small>
+            <div *ngIf="loginError" class="server-error">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              {{ loginError }}
+            </div>
           </div>
           <div class="forgot-link">
             <a (click)="goToForgot()">Forgot Password?</a>
