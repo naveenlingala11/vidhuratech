@@ -20,7 +20,7 @@ export class AssessmentService {
     `${environment.apiUrl}/api`;
   constructor(
     private http: HttpClient
-  ) {}
+  ) { }
   createAssessment(
     payload: IAssessment
   ): Observable<any> {
@@ -35,12 +35,6 @@ export class AssessmentService {
     return this.http.post(
       `${this.baseUrl}/trainer/assessments/bulk`,
       payload
-    );
-  }
-  getTrainerAssessments():
-    Observable<any> {
-    return this.http.get(
-      `${this.baseUrl}/trainer/assessments`
     );
   }
   getAssessmentResults(
@@ -87,5 +81,13 @@ export class AssessmentService {
     return this.http.get<IAssessmentResult>(
       `${this.baseUrl}/student/assessments/${assessmentId}/attempts/${attemptId}`
     );
+  }
+
+  getTrainerAssessments() {
+    return this.http.get(`${environment.apiUrl}/assessments/trainer`);
+  }
+
+  deleteAssessment(id: number) {
+    return this.http.delete(`${environment.apiUrl}/assessments/${id}`);
   }
 }

@@ -1,1 +1,68 @@
-<p>trainer-assessments works!</p>
+<section class="trainer-assessments">
+    <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+    <div class="page-hero">
+        <div>
+            <span>Assessment Center</span>
+            <h1>Assessments & Results</h1>
+            <p>Create assessments, review published tests, and view student attempt results.</p>
+        </div>
+
+        <button routerLink="/dashboard/trainer/create-assessment">
+            Create Assessment
+        </button>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+        Loading assessments...
+    </div>
+
+    <div class="empty" *ngIf="!loading && !assessments.length">
+        <h2>No assessments created yet</h2>
+        <p>Create your first assessment for an assigned batch.</p>
+        <button routerLink="/dashboard/trainer/create-assessment">
+            Create Assessment
+        </button>
+    </div>
+
+    <div class="assessment-grid" *ngIf="!loading && assessments.length">
+        <article class="assessment-card" *ngFor="let a of assessments">
+            <div class="card-top">
+                <span>Batch #{{ a.batchId }}</span>
+                <strong>{{ a.totalMarks || 0 }} Marks</strong>
+            </div>
+
+            <h2>{{ a.title }}</h2>
+            <p>{{ a.description || 'No description added' }}</p>
+
+            <div class="meta-grid">
+                <div>
+                    <span>Questions</span>
+                    <strong>{{ a.questionCount || a.questions?.length || 0 }}</strong>
+                </div>
+                <div>
+                    <span>Duration</span>
+                    <strong>{{ a.durationMinutes }}m</strong>
+                </div>
+                <div>
+                    <span>Attempts</span>
+                    <strong>{{ a.attemptCount || 0 }}</strong>
+                </div>
+                <div>
+                    <span>Created</span>
+                    <strong>{{ formatDate(a.createdAt) }}</strong>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" (click)="viewResults(a.id)">
+                    View Results
+                </button>
+
+                <button type="button" class="danger" (click)="deleteAssessment(a.id)">
+                    Delete
+                </button>
+            </div>
+        </article>
+    </div>
+</section>

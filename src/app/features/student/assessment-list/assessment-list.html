@@ -1,27 +1,139 @@
-<div class="list-container">
-  <h2>Assessments</h2>
-  <div
-    class="assessment-card"
-    *ngFor="let assessment of assessments">
-    <h3>
-      {{ assessment.title }}
-    </h3>
-    <p>
-      {{ assessment.description }}
-    </p>
-    <div class="meta">
-      <span>
-        Total Marks:
-        {{ assessment.totalMarks }}
-      </span>
-      <span>
-        Duration:
-        {{ assessment.durationMinutes }} mins
-      </span>
+<div class="assessment-page">
+  <section class="overview-panel">
+    <div class="overview-copy">
+      <span class="eyebrow">Student Portal</span>
+      <h1>My Assessments</h1>
+      <p>
+        Monitor your assigned tests, review recent performance, and continue every assessment journey with confidence.
+      </p>
+      <div class="quick-highlights">
+        <div>
+          <span>Focus Area</span>
+          <strong>Skill Growth</strong>
+        </div>
+        <div>
+          <span>Progress Mode</span>
+          <strong>Continuous</strong>
+        </div>
+      </div>
     </div>
-    <button
-      (click)="startAssessment(assessment.id)">
-      Start Assessment
-    </button>
-  </div>
+    <div class="overview-stats">
+      <div class="stat-card primary">
+        <span>Total Assessments</span>
+        <strong>{{ assessments.length }}</strong>
+        <small>Assigned to you</small>
+      </div>
+      <div class="stat-card success">
+        <span>Passed</span>
+        <strong>{{ passedCount }}</strong>
+        <small>Completed successfully</small>
+      </div>
+      <div class="stat-card warning">
+        <span>Pending</span>
+        <strong>{{ assessments.length - passedCount }}</strong>
+        <small>Needs attention</small>
+      </div>
+    </div>
+  </section>
+  <section class="section-bar" *ngIf="assessments.length">
+    <div>
+      <h2>Assessment Dashboard</h2>
+      <p>Choose an assessment to start, reattempt, or review your latest score.</p>
+    </div>
+    <div class="view-chip">
+      {{ assessments.length }} Available
+    </div>
+  </section>
+  <section class="loading-state" *ngIf="loading">
+    <div class="loader"></div>
+    <h2>Loading assessments</h2>
+    <p>Please wait while your latest assigned assessments are being prepared.</p>
+  </section>
+  <section class="empty-state" *ngIf="!loading && !assessments.length">
+    <div class="empty-icon">📘</div>
+    <h2>No assessments available</h2>
+    <p>Assigned assessments from your trainers will appear here once they are published.</p>
+  </section>
+  <section class="assessment-grid" *ngIf="!loading && assessments.length">
+    <article class="assessment-card" *ngFor="let assessment of assessments">
+      <div class="card-topline">
+        <span class="subject-chip">Assessment</span>
+        <span class="status-pill" [ngClass]="getStatusClass(assessment.status)">
+          {{ assessment.status }}
+        </span>
+      </div>
+      <div class="card-main">
+        <div class="title-block">
+          <h3>{{ assessment.title }}</h3>
+          <p>{{ assessment.description }}</p>
+        </div>
+        <div class="score-box">
+          <div class="score-ring">
+            <strong>{{ assessment.percentage || 0 }}%</strong>
+            <span>Score</span>
+          </div>
+        </div>
+      </div>
+      <div class="insight-row">
+        <div>
+          <span>Latest Result</span>
+          <strong>
+            {{ assessment.status === 'PASS' ? 'Qualified' : 'Needs Practice' }}
+          </strong>
+        </div>
+        <div>
+          <span>Attempt Type</span>
+          <strong>
+            {{ assessment.attemptCount > 0 ? 'Reattempt Ready' : 'First Attempt' }}
+          </strong>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span>Marks</span>
+          <strong>{{ assessment.lastScore || 0 }}/{{ assessment.totalMarks }}</strong>
+        </div>
+        <div class="metric-card">
+          <span>Duration</span>
+          <strong>{{ assessment.durationMinutes }} min</strong>
+        </div>
+        <div class="metric-card">
+          <span>Attempts</span>
+          <strong>{{ assessment.attemptCount }}</strong>
+        </div>
+        <div class="metric-card">
+          <span>Questions</span>
+          <strong>{{ assessment.questionCount }}</strong>
+        </div>
+      </div>
+      <div class="progress-section">
+        <div class="progress-head">
+          <span>Performance Progress</span>
+          <strong>{{ assessment.percentage || 0 }}%</strong>
+        </div>
+        <div class="progress-track">
+          <div
+            class="progress-fill"
+            [style.width.%]="assessment.percentage || 0">
+          </div>
+        </div>
+        <div class="progress-note">
+          <span>0%</span>
+          <span>Target 100%</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="date-block">
+          <span>Last Attempt</span>
+          <strong>{{ formatDate(assessment.lastSubmittedAt) }}</strong>
+        </div>
+        <button
+          type="button"
+          class="attempt-button"
+          (click)="startAssessment(assessment.id)">
+          {{ assessment.attemptCount > 0 ? 'Reattempt Test' : 'Start Test' }}
+        </button>
+      </div>
+    </article>
+  </section>
 </div>

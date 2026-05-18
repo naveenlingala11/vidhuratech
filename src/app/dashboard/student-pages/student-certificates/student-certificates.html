@@ -1,12 +1,219 @@
-<div class="container mt-3">
-  <h3>Certificates</h3>
-  <div *ngIf="certificates.length === 0" class="alert alert-info">
-    No certificates yet
+<section class="cert-page">
+  <div class="toast" *ngIf="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    {{ toast }}
   </div>
-  <div class="card p-3 mt-3" *ngFor="let c of certificates">
-    <h5>{{ c.name }}</h5>
-    <button class="btn btn-success btn-sm mt-2">
-      Download
-    </button>
+  <div class="hero">
+    <div>
+      <span class="eyebrow">
+        <i class="fa-solid fa-award"></i>
+        Student Credentials
+      </span>
+      <h1>Certificates</h1>
+      <p>
+        Complete your enrolled courses, generate verified certificates, preview them instantly,
+        download as PDF, or send them directly to your email.
+      </p>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <span>Enrolled Courses</span>
+        <strong>{{ courses.length }}</strong>
+      </div>
+      <div>
+        <span>Certificates Earned</span>
+        <strong>{{ certificates.length }}</strong>
+      </div>
+    </div>
   </div>
-</div>
+  <div class="loading-state" *ngIf="loading">
+    <div class="loader"></div>
+    <h2>Loading your courses</h2>
+    <p>Please wait while we prepare your certificate workspace.</p>
+  </div>
+  <ng-container *ngIf="!loading">
+    <div class="section-heading">
+      <div>
+        <span>Step 1</span>
+        <h2>Enrolled Courses</h2>
+      </div>
+      <p>Mark a course as completed to unlock certificate generation.</p>
+    </div>
+    <div class="course-grid" *ngIf="courses.length; else noCourses">
+      <article class="course-card" *ngFor="let course of courses">
+        <div class="course-top">
+          <div class="course-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <span class="progress-pill">{{ course.progress || 0 }}% Progress</span>
+        </div>
+        <h3>{{ getCourseName(course) }}</h3>
+        <p>{{ course.batchName || 'Professional training batch' }}</p>
+        <div class="progress-track">
+          <span [style.width.%]="course.progress || 0"></span>
+        </div>
+        <div class="course-status" *ngIf="getCertificateForCourse(course) as cert">
+          <i class="fa-solid fa-shield-check"></i>
+          Certificate generated
+        </div>
+        <div class="course-actions" *ngIf="!getCertificateForCourse(course)">
+          <button type="button" class="complete-btn" *ngIf="!completedCourseKeys.has(getCourseKey(course))"
+            (click)="markCompleted(course)">
+            <i class="fa-solid fa-check"></i>
+            Mark Completed
+          </button>
+          <button type="button" class="undo-btn" *ngIf="completedCourseKeys.has(getCourseKey(course))"
+            (click)="undoCompleted(course)">
+            <i class="fa-solid fa-rotate-left"></i>
+            Undo
+          </button>
+          <button type="button" class="generate-btn" *ngIf="canGenerate(course)" (click)="generateCertificate(course)">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            {{ generatingCourseKey === getCourseKey(course) ? 'Generating...' : 'Generate Certificate' }}
+          </button>
+        </div>
+        <div class="course-actions" *ngIf="getCertificateForCourse(course) as cert">
+          <button type="button" class="preview-btn" (click)="openPreview(cert)">
+            <i class="fa-solid fa-eye"></i>
+            Preview
+          </button>
+          <button type="button" class="download-btn" (click)="downloadCertificate(cert)">
+            <i class="fa-solid fa-download"></i>
+            Download
+          </button>
+        </div>
+      </article>
+    </div>
+    <ng-template #noCourses>
+      <div class="empty-state">
+        <i class="fa-solid fa-book-open-reader"></i>
+        <h2>No enrolled courses</h2>
+        <p>Your enrolled courses will appear here.</p>
+      </div>
+    </ng-template>
+    <div class="section-heading earned-heading" *ngIf="certificates.length">
+      <div>
+        <span>Step 2</span>
+        <h2>Earned Certificates</h2>
+      </div>
+      <p>Preview, download, or email your verified certificates.</p>
+    </div>
+    <div class="certificate-grid" *ngIf="certificates.length">
+      <article class="certificate-card" *ngFor="let c of certificates">
+        <div class="certificate-top">
+          <i class="fa-solid fa-certificate"></i>
+          <span>Verified</span>
+        </div>
+        <h3>{{ c.course }}</h3>
+        <p>Issued to <strong>{{ c.name }}</strong></p>
+        <div class="certificate-meta">
+          <div>
+            <span>ID</span>
+            <strong>{{ c.id }}</strong>
+          </div>
+          <div>
+            <span>Date</span>
+            <strong>{{ c.issuedAt | date:'dd MMM yyyy' }}</strong>
+          </div>
+        </div>
+        <div class="certificate-actions">
+          <button type="button" (click)="openPreview(c)">
+            <i class="fa-solid fa-eye"></i>
+            Preview
+          </button>
+          <button type="button" (click)="downloadCertificate(c)">
+            <i class="fa-solid fa-download"></i>
+            Download
+          </button>
+          <button type="button" (click)="sendToEmail(c.id)">
+            <i class="fa-solid fa-envelope"></i>
+            Email
+          </button>
+        </div>
+      </article>
+    </div>
+  </ng-container>
+  <div class="preview-overlay" *ngIf="previewCertificate as cert">
+    <div class="preview-modal">
+      <button type="button" class="close-btn" (click)="closePreview()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div id="student-certificate-print" class="certificate">
+        <div class="border"></div>
+        <div class="left-design"></div>
+        <div class="bottom-right-design"></div>
+        <div class="top-wave">
+          <svg viewBox="0 0 1440 320">
+            <path fill="url(#studentGrad)"
+              d="M0,160L80,144C160,128,320,96,480,96C640,96,800,128,960,133.3C1120,139,1280,117,1360,106.7L1440,96V0H0Z">
+            </path>
+            <defs>
+              <linearGradient id="studentGrad">
+                <stop offset="0%" style="stop-color:#0f172a" />
+                <stop offset="50%" style="stop-color:#2563eb" />
+                <stop offset="100%" style="stop-color:#facc15" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <img src="VidhuraTechLogo.png" class="logo-left" />
+        <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr" />
+        <p class="qr-label">Scan to Verify Certificate</p>
+        <div class="cert-content">
+          <img src="course_completion_badge.png" class="badge-left" />
+          <div class="cert-header">
+            <div class="line"></div>
+            <h1>CERTIFICATE</h1>
+            <div class="line"></div>
+          </div>
+          <p class="cert-subtitle">OF ACHIEVEMENT</p>
+          <p class="subtitle">This certificate is proudly presented to</p>
+          <h2 class="name">{{ cert.name }}</h2>
+          <p class="email">
+            <i>{{ cert.email }}</i>
+          </p>
+          <div class="line"></div>
+          <p class="desc">
+            Awarded in recognition of the successful completion of the professional training program
+          </p>
+
+          <h3 class="course">{{ cert.course || 'Course Name' }}</h3>
+          <p class="desc2">
+            This program covered practical concepts, real-time projects, and industry-relevant skills.
+            The candidate has demonstrated strong dedication, problem-solving ability, and commitment
+            towards continuous learning and professional excellence.
+          </p>
+          <p class="desc3">
+            We proudly acknowledge this achievement and wish continued success in future endeavors.
+          </p>
+        </div>
+        <div class="bottom">
+          <div class="footer-box">
+            <p><b><i>{{ cert.issuedAt | date:'dd/MM/yyyy' }}</i></b></p>
+            <div class="underline"></div>
+          </div>
+          <div class="footer-center">
+            <img src="seal.png" class="seal-img" />
+            <img src="signature.png" class="sign-img" />
+            <p class="sign-name">Authorized Signature</p>
+          </div>
+          <div class="footer-box">
+            <p><b>ID: {{ cert.id }}</b></p>
+            <div class="underline"></div>
+          </div>
+        </div>
+        <img src="watermark.png" class="certificate-watermark" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" (click)="downloadCertificate()">
+          <i class="fa-solid fa-download"></i>
+          {{ downloading ? 'Downloading...' : 'Download PDF' }}
+        </button>
+        <button type="button" (click)="sendToEmail(cert.id)">
+          <i class="fa-solid fa-envelope"></i>
+          Send to Email
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

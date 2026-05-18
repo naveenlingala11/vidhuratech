@@ -85,6 +85,7 @@ import { AssessmentListComponent } from './features/student/assessment-list/asse
 import { AssessmentAttemptComponent } from './features/student/assessment-attempt/assessment-attempt';
 import { AdminAdmissionsComponent } from './dashboard/admin/admin-admissions/admin-admissions';
 import { AdminDashboard } from './dashboard/admin/admin-dashboard/admin-dashboard';
+import { TrainerAssessmentsComponent } from './features/trainer/trainer-assessments/trainer-assessments';
 /* =========================
    ROUTES CONFIG
 ========================= */
@@ -166,35 +167,43 @@ export const routes: Routes = [
          { path: 'trainer/batches', component: TrainerBatchesComponent, canActivate: [roleGuard(['TRAINER'])] },
          { path: 'trainer/students', component: TrainerStudentsComponent, canActivate: [roleGuard(['TRAINER'])] },
          { path: 'trainer/content', component: TrainerContentComponent, canActivate: [roleGuard(['TRAINER'])] },
+         /* --- ASSESSMENTS --- */
+         {
+            path: 'student/assessments',
+            component: AssessmentListComponent,
+            canActivate: [roleGuard(['STUDENT'])]
+         },
+         {
+            path: 'student/assessment-attempt/:id',
+            component: AssessmentAttemptComponent,
+            canActivate: [roleGuard(['STUDENT'])]
+         },
+         {
+            path: 'trainer/assessments',
+            component: TrainerAssessmentsComponent,
+            canActivate: [roleGuard(['TRAINER'])]
+         },
+         {
+            path: 'trainer/assessments/:id/results',
+            loadComponent: () =>
+               import('./features/trainer/assessment-results/assessment-results')
+                  .then(m => m.AssessmentResults),
+            canActivate: [roleGuard(['TRAINER'])]
+         },
+         {
+            path: 'trainer/create-assessment',
+            component: CreateAssessmentComponent,
+            canActivate: [roleGuard(['TRAINER'])]
+         }
       ]
    },
    {
-      path: 'trainer/create-assessment',
-      loadComponent: () =>
-         import('./features/trainer/create-assessment/create-assessment')
-            .then(m => m.CreateAssessmentComponent),
-      canActivate: [authGuard, roleGuard(['TRAINER'])]
-   },
-   {
-      path: 'trainer/assessments/:id/results',
-      loadComponent: () =>
-         import('./features/trainer/assessment-results/assessment-results')
-            .then(m => m.AssessmentResults),
-      canActivate: [authGuard, roleGuard(['TRAINER'])]
-   },
-   {
-      path: 'student/assessments',
-      loadComponent: () =>
-         import('./features/student/assessment-list/assessment-list')
-            .then(m => m.AssessmentListComponent),
-      canActivate: [authGuard, roleGuard(['STUDENT'])]
-   },
-   {
-      path: 'student/assessment-attempt/:id',
-      loadComponent: () =>
-         import('./features/student/assessment-attempt/assessment-attempt')
-            .then(m => m.AssessmentAttemptComponent),
-      canActivate: [authGuard, roleGuard(['STUDENT'])]
+      path: 'dashboard/trainer/create-assessment',
+      component: CreateAssessmentComponent,
+      canActivate: [
+         authGuard,
+         roleGuard(['TRAINER'])
+      ]
    },
    /* ===== LMS EXTRA ROUTES ===== */
    { path: 'dashboard/lms/courses/create', component: CourseFormComponent },
