@@ -1,202 +1,314 @@
-<!-- ===================================== -->
-<!-- TOP BAR -->
-<!-- ===================================== -->
-<div class="top-navigation">
-    <button class="back-btn" routerLink="/dashboard/trainer/batches">
-        <span>←</span>
-        Back to Batches
-    </button>
-</div>
-<div class="trainer-batch-page">
-    <!-- ===================================== -->
-    <!-- HERO -->
-    <!-- ===================================== -->
-    <div class="batch-hero" *ngIf="batch">
-        <div class="hero-left">
-            <div class="hero-badge">
-                🚀 Trainer Workspace
-            </div>
-            <h1>
-                {{ batch.name }}
-            </h1>
-            <p>
-                {{ batch.courseName }}
-            </p>
-            <div class="hero-meta">
-                <div class="meta-card">
-                    <span>📅</span>
-                    <div>
-                        <small>Start Date</small>
-                        <strong>{{ batch.startDate }}</strong>
-                    </div>
-                </div>
-                <div class="meta-card">
-                    <span>🏁</span>
-                    <div>
-                        <small>End Date</small>
-                        <strong>{{ batch.endDate }}</strong>
-                    </div>
-                </div>
-            </div>
+<section class="trainer-batch-page">
+  <header class="batch-hero" *ngIf="batch">
+    <div class="hero-copy">
+      <span class="eyebrow">Trainer Workspace</span>
+      <h1>{{ batch.name }}</h1>
+      <p>{{ batch.courseName || batch.course?.title || 'Course sessions and learning content' }}</p>
+
+      <div class="hero-meta">
+        <div class="meta-card">
+          <i class="bi bi-calendar-event"></i>
+          <div>
+            <small>Start Date</small>
+            <strong>{{ batch.startDate || 'Not set' }}</strong>
+          </div>
         </div>
-        <div class="hero-right">
-            <div class="hero-circle">
-                🎓
-            </div>
+
+        <div class="meta-card">
+          <i class="bi bi-flag"></i>
+          <div>
+            <small>End Date</small>
+            <strong>{{ batch.endDate || 'Not set' }}</strong>
+          </div>
         </div>
+
+        <div class="meta-card">
+          <i class="bi bi-collection-play"></i>
+          <div>
+            <small>Sessions</small>
+            <strong>{{ sessions.length }}</strong>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- ===================================== -->
-    <!-- CREATE SESSION -->
-    <!-- ===================================== -->
-    <div class="upload-card">
-        <div class="section-header">
-            <div>
-                <h2>
-                    {{
-                    editingSessionId
-                    ? 'Edit Session'
-                    : 'Upload New Session'
-                    }}
-                </h2>
-                <p>
-                    {{
-                    editingSessionId
-                    ? 'Update session content and save changes'
-                    : 'Create and publish learning content'
-                    }}
-                </p>
-            </div>
-            <div class="header-icon">
-                🎥
-            </div>
-        </div>
-        <form [formGroup]="form" (ngSubmit)="submitSession()">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label class="field-label">
-                        Session Title
-                    </label>
-                    <input class="modern-input" placeholder="Enter session title" formControlName="title" />
-                </div>
-                <div class="col-md-6">
-                    <label class="field-label">
-                        Video URL
-                    </label>
-                    <input class="modern-input" placeholder="Paste Zoom / YouTube URL" formControlName="videoUrl" />
-                </div>
-                <div class="col-12">
-                    <label class="field-label">
-                        Description
-                    </label>
-                    <textarea rows="5" class="modern-input" placeholder="Explain what students will learn..."
-                        formControlName="description"></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label class="field-label">
-                        Duration (Minutes)
-                    </label>
-                    <input type="number" class="modern-input" formControlName="durationMinutes" />
-                </div>
-                <div class="col-md-6">
-                    <label class="field-label">
-                        Session Date
-                    </label>
-                    <input type="date" class="modern-input" formControlName="sessionDate" />
-                </div>
-            </div>
-            <div class="publish-box">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" formControlName="published" />
-                    <label class="form-check-label">
-                        Publish immediately for students
-                    </label>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="upload-btn" type="submit">
-                    {{
-                    editingSessionId
-                    ? '💾 Update Session'
-                    : '🚀 Upload Session'
-                    }}
-                </button>
-                <button *ngIf="editingSessionId" type="button" class="cancel-btn" (click)="cancelEdit()">
-                    Cancel Edit
-                </button>
-            </div>
-        </form>
+
+    <div class="hero-score">
+      <span>Published</span>
+      <strong>{{ publishedCount }}</strong>
+      <small>{{ draftCount }} drafts pending</small>
     </div>
-    <!-- ===================================== -->
-    <!-- SESSION LIST -->
-    <!-- ===================================== -->
-    <div class="sessions-card">
-        <div class="section-header">
-            <div>
-                <h2>All Sessions</h2>
-                <p>
-                    Manage uploaded learning sessions
-                </p>
-            </div>
-            <div class="session-count">
-                {{ sessions.length }}
-            </div>
+  </header>
+
+  <div class="stats-grid">
+    <article class="stat-card blue">
+      <i class="bi bi-collection-play"></i>
+      <span>Total Sessions</span>
+      <strong>{{ sessions.length }}</strong>
+      <small>Uploaded lessons</small>
+    </article>
+
+    <article class="stat-card green">
+      <i class="bi bi-check2-circle"></i>
+      <span>Published</span>
+      <strong>{{ publishedCount }}</strong>
+      <small>Visible to students</small>
+    </article>
+
+    <article class="stat-card orange">
+      <i class="bi bi-pencil-square"></i>
+      <span>Drafts</span>
+      <strong>{{ draftCount }}</strong>
+      <small>Not yet published</small>
+    </article>
+
+    <article class="stat-card purple">
+      <i class="bi bi-clock-history"></i>
+      <span>Total Time</span>
+      <strong>{{ totalMinutes }}</strong>
+      <small>Learning minutes</small>
+    </article>
+  </div>
+
+  <div class="workspace-grid">
+    <article class="panel upload-panel">
+      <div class="section-header">
+        <div>
+          <span>{{ editingSessionId ? 'Edit Mode' : 'Create Session' }}</span>
+          <h2>{{ editingSessionId ? 'Edit Session' : 'Upload New Session' }}</h2>
+          <p>
+            {{
+              editingSessionId
+                ? 'Update session content, date, duration, and publish status.'
+                : 'Create a structured learning session for this batch.'
+            }}
+          </p>
         </div>
-        <div *ngIf="loading" class="loader-box">
-            <div class="spinner-border text-primary"></div>
+
+        <div class="header-icon">
+          <i class="bi" [ngClass]="editingSessionId ? 'bi-pencil-square' : 'bi-cloud-arrow-up'"></i>
         </div>
-        <div *ngIf="!loading && sessions.length === 0" class="empty-state">
-            <div class="empty-icon">
-                📚
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submitSession()" class="session-form">
+        <label>
+          <span>Session Title</span>
+          <input class="modern-input" placeholder="Enter session title" formControlName="title" />
+          <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+            Session title is required
+          </small>
+        </label>
+
+        <label>
+          <span>Video URL</span>
+          <input
+            class="modern-input"
+            placeholder="Paste YouTube / recording URL"
+            formControlName="videoUrl"
+          />
+          <small *ngIf="form.get('videoUrl')?.touched && form.get('videoUrl')?.invalid">
+            Video URL is required
+          </small>
+        </label>
+
+        <label class="full">
+          <span>Description</span>
+          <textarea
+            rows="5"
+            class="modern-input"
+            placeholder="Explain what students will learn in this session"
+            formControlName="description"
+          ></textarea>
+        </label>
+
+        <label>
+          <span>Duration</span>
+          <div class="duration-field">
+            <input
+              type="number"
+              class="modern-input"
+              formControlName="durationMinutes"
+              readonly
+              placeholder="Auto detected from video"
+            />
+            <b *ngIf="durationLoading">Detecting...</b>
+          </div>
+          <small class="helper-text" *ngIf="!durationLoading && !durationError">
+            Duration is auto-filled from the video URL.
+          </small>
+          <small class="error-text" *ngIf="durationError">
+            {{ durationError }}
+          </small>
+        </label>
+
+        <label>
+          <span>Session Date</span>
+          <input type="date" class="modern-input" formControlName="sessionDate" />
+        </label>
+
+        <div class="publish-box full">
+          <label class="switch-row">
+            <input type="checkbox" formControlName="published" />
+            <span class="switch-ui"></span>
+            <b>Publish immediately for students</b>
+          </label>
+        </div>
+
+        <div class="form-actions full">
+          <button class="upload-btn" type="submit">
+            <i class="bi" [ngClass]="editingSessionId ? 'bi-save' : 'bi-cloud-arrow-up'"></i>
+            {{ editingSessionId ? 'Update Session' : 'Upload Session' }}
+          </button>
+
+          <button *ngIf="editingSessionId" type="button" class="cancel-btn" (click)="cancelEdit()">
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel sessions-card">
+      <div class="section-header">
+        <div>
+          <span>Session Library</span>
+          <h2>All Sessions</h2>
+          <p>Manage uploaded learning sessions and publish visibility.</p>
+        </div>
+
+        <div class="session-count">{{ sessions.length }}</div>
+      </div>
+
+      <div *ngIf="loading" class="loader-box">
+        <div class="loader"></div>
+        <p>Loading sessions...</p>
+      </div>
+
+      <div *ngIf="!loading && sessions.length === 0" class="empty-state">
+        <i class="bi bi-journal-plus"></i>
+        <h4>No Sessions Yet</h4>
+        <p>Upload your first session for this batch.</p>
+      </div>
+
+      <div *ngIf="!loading && sessions.length > 0" class="sessions-grid">
+        <article
+          class="session-item"
+          *ngFor="let session of sessions; trackBy: trackBySessionId"
+          [class.published-card]="session.published"
+        >
+          <div class="session-top">
+            <div class="session-title">
+              <i class="bi bi-play-circle"></i>
+              <div>
+                <h3>{{ session.title }}</h3>
+                <p>{{ session.sessionDate || 'Date not set' }}</p>
+              </div>
             </div>
-            <h4>No Sessions Yet</h4>
-            <p>
-                Start uploading sessions for students
-            </p>
+
+            <span class="status-badge" [ngClass]="session.published ? 'published' : 'draft'">
+              {{ session.published ? 'Published' : 'Draft' }}
+            </span>
+          </div>
+
+          <p class="session-description" [class.expanded]="isDescriptionExpanded(session.id)">
+            {{ session.description || 'No description added for this session.' }}
+          </p>
+
+          <button
+            *ngIf="shouldShowDescriptionToggle(session.description)"
+            type="button"
+            class="view-toggle"
+            (click)="toggleDescription(session.id)"
+          >
+            {{ isDescriptionExpanded(session.id) ? 'View less' : 'View more' }}
+          </button>
+
+          <div class="session-meta">
+            <span>
+              <i class="bi bi-clock"></i>
+              {{ session.durationMinutes || 0 }} mins
+            </span>
+            <span>
+              <i class="bi bi-stopwatch"></i>
+              {{ ((session.durationMinutes || 0) / 60).toFixed(1) }} hrs
+            </span>
+          </div>
+
+          <div class="session-actions">
+            <button class="preview-btn" type="button" (click)="openPreview(session)">
+              <i class="bi bi-play-btn"></i>
+              Preview
+            </button>
+
+            <button class="edit-btn" type="button" (click)="editSession(session)">
+              <i class="bi bi-pencil"></i>
+              Edit
+            </button>
+
+            <button
+              *ngIf="!session.published"
+              class="publish-btn"
+              type="button"
+              (click)="publish(session.id)"
+            >
+              <i class="bi bi-eye"></i>
+              Publish
+            </button>
+
+            <button
+              *ngIf="session.published"
+              class="unpublish-btn"
+              type="button"
+              (click)="unpublish(session.id)"
+            >
+              <i class="bi bi-eye-slash"></i>
+              Unpublish
+            </button>
+
+            <button class="delete-btn" type="button" (click)="delete(session.id)">
+              <i class="bi bi-trash"></i>
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+    </article>
+  </div>
+  <div class="preview-overlay" *ngIf="previewSession">
+    <div class="preview-modal">
+      <button class="preview-close" type="button" (click)="closePreview()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <div class="preview-head">
+        <div>
+          <span>Session Preview</span>
+          <h3>{{ previewSession.title }}</h3>
+          <p>{{ previewSession.durationMinutes || 0 }} mins · {{ previewSession.sessionDate }}</p>
         </div>
-        <div *ngIf="!loading && sessions.length > 0" class="sessions-grid">
-            <div class="session-item" *ngFor="let session of sessions">
-                <div class="session-top">
-                    <div>
-                        <h3>
-                            {{ session.title }}
-                        </h3>
-                        <p>
-                            {{ session.sessionDate }}
-                        </p>
-                    </div>
-                    <span class="status-badge" [ngClass]="{
-              'published': session.published,
-              'draft': !session.published
-            }">
-                        {{ session.published ? 'Published' : 'Draft' }}
-                    </span>
-                </div>
-                <div class="session-middle">
-                    <p class="session-description">
-                        {{ session.description }}
-                    </p>
-                    <div class="info-chip">
-                        ⏱
-                        {{ session.durationMinutes }} mins
-                        •
-                        {{ (session.durationMinutes / 60).toFixed(1) }} hrs
-                    </div>
-                </div>
-                <div class="session-actions">
-                    <button class="edit-btn" (click)="editSession(session)">
-                        Edit
-                    </button>
-                    <button *ngIf="!session.published" class="publish-btn" (click)="publish(session.id)">
-                        Publish
-                    </button>
-                    <button *ngIf="session.published" class="unpublish-btn" (click)="unpublish(session.id)">
-                        Unpublish
-                    </button>
-                    <button class="delete-btn" (click)="delete(session.id)">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
+      </div>
+
+      <div class="preview-video">
+        <iframe
+          *ngIf="previewIsYouTube && previewEmbedUrl"
+          [src]="previewEmbedUrl"
+          title="Session preview"
+          allow="
+            accelerometer;
+            autoplay;
+            clipboard-write;
+            encrypted-media;
+            gyroscope;
+            picture-in-picture;
+          "
+          allowfullscreen
+        ></iframe>
+
+        <video
+          *ngIf="!previewIsYouTube && previewVideoUrl"
+          [src]="previewVideoUrl"
+          controls
+          autoplay
+        ></video>
+      </div>
     </div>
-</div>
+  </div>
+</section>

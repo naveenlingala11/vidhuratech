@@ -1,163 +1,171 @@
-<div class="assessment-results-container">
-  <!-- SUMMARY -->
-  <div
-    *ngIf="!showDetailedView"
-    class="results-summary">
-    <div class="summary-header">
-      <h2>
-        Assessment Results
-      </h2>
-      <p class="subtitle">
-        Student Performance Analytics
-      </p>
+<section class="assessment-results-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <div class="results-hero">
+    <div>
+      <button class="back-link" type="button" routerLink="/dashboard/trainer/assessments">
+        ← Assessments
+      </button>
+      <span>Results Center</span>
+      <h1>Assessment Results</h1>
+      <p>Review student attempts, scores, pass rate, and detailed answer breakdowns.</p>
     </div>
-    <!-- STATS -->
+
+    <button type="button" class="refresh-btn" (click)="loadResults()">Refresh</button>
+  </div>
+
+  <div class="loading" *ngIf="loading">Loading results...</div>
+
+  <ng-container *ngIf="!loading && !showDetailedView">
     <div class="statistics-cards">
-      <div class="stat-card">
-        <span class="stat-label">
-          Attempts
-        </span>
-        <span class="stat-value">
-          {{ attempts.length }}
-        </span>
+      <div class="stat-card blue">
+        <span>Attempts</span>
+        <strong>{{ attempts.length }}</strong>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">
-          Average
-        </span>
-        <span class="stat-value">
-          {{ getAverageScore() }}%
-        </span>
+
+      <div class="stat-card purple">
+        <span>Average</span>
+        <strong>{{ getAverageScore() }}%</strong>
       </div>
-      <div class="stat-card pass">
-        <span class="stat-label">
-          Pass Rate
-        </span>
-        <span class="stat-value">
-          {{ getPassRate() }}%
-        </span>
+
+      <div class="stat-card green">
+        <span>Pass Rate</span>
+        <strong>{{ getPassRate() }}%</strong>
+      </div>
+
+      <div class="stat-card gold">
+        <span>Highest</span>
+        <strong>{{ getHighestScore() }}%</strong>
       </div>
     </div>
-    <!-- TABLE -->
-    <div
-      *ngIf="!loading && attempts.length"
-      class="results-table-wrapper">
+
+    <div class="empty" *ngIf="!attempts.length">
+      <h2>No attempts yet</h2>
+      <p>Student attempts will appear here after they submit this assessment.</p>
+    </div>
+
+    <div class="results-table-wrapper" *ngIf="attempts.length">
       <table class="results-table">
         <thead>
           <tr>
-            <th>
-              Student
-            </th>
-            <th>
-              Score
-            </th>
-            <th>
-              Percentage
-            </th>
-            <th>
-              Status
-            </th>
-            <th>
-              Submitted
-            </th>
-            <th>
-              Action
-            </th>
+            <th>Student</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Action</th>
           </tr>
         </thead>
+
         <tbody>
-          <tr
-            *ngFor="let attempt of attempts"
-            [ngClass]="getStatusClass(attempt)">
+          <tr *ngFor="let attempt of attempts" [ngClass]="getStatusClass(attempt)">
             <td>
-              {{
-                attempt.studentName
-              }}
+              <strong>{{ attempt.studentName || attempt.student || 'Student' }}</strong>
+              <small>{{ attempt.email || '' }}</small>
             </td>
+
             <td>
-              {{
-                attempt.totalScore
-              }}/{{ attempt.totalMarks }}
+              <strong>{{ attempt.totalScore || 0 }}/{{ attempt.totalMarks || 0 }}</strong>
             </td>
+
             <td>
-              {{
-                attempt.percentageScore
-              }}%
+              <strong>{{ attempt.percentageScore || 0 }}%</strong>
             </td>
+
             <td>
-              <span
-                class="status-badge"
-                [ngClass]="getStatusClass(attempt)">
-                {{
-                  getStatusClass(attempt)
-                  === 'pass'
-                    ? 'PASS'
-                    : 'FAIL'
-                }}
+              <span class="status-badge" [ngClass]="getStatusClass(attempt)">
+                {{ getStatusClass(attempt) === 'pass' ? 'PASS' : 'FAIL' }}
               </span>
             </td>
+
+            <td>{{ formatDate(attempt.submittedAt) }}</td>
+
             <td>
-              {{
-                formatDate(
-                  attempt.submittedAt
-                )
-              }}
-            </td>
-            <td>
-              <button
-                class="details-btn"
-                (click)="viewAttemptDetails(attempt)">
-                View
+              <button class="details-btn" type="button" (click)="viewAttemptDetails(attempt)">
+                View Details
               </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
-</div>
-  <!-- DETAILED VIEW -->
-  <div
-    *ngIf="showDetailedView && selectedAttempt"
-    class="attempt-details">
-    <button
-      class="back-btn"
-      (click)="closeDetailedView()">
-      ← Back to Results
-    </button>
-    <h2>
-      {{ selectedAttempt.studentName }}'s Attempt
-    </h2>
-    <div class="attempt-summary">
-      <span>
-        Score:
-        {{ selectedAttempt.totalScore }}/{{ selectedAttempt.totalMarks }}
-      </span>
-      <span>
-        Percentage:
-        {{ selectedAttempt.percentageScore }}%
-      </span>
-      <span>
-        Status:
-        <span
-          class="status-badge"
-          [ngClass]="getStatusClass(selectedAttempt)">
-          {{
-            getStatusClass(selectedAttempt)
-            === 'pass'
-              ? 'PASS'
-              : 'FAIL'
-          }}
-        </span>
-      </span>
-      <span>
-        Submitted:
-        {{
-          formatDate(
-            selectedAttempt.submittedAt
-          )
-        }}
+  </ng-container>
+
+  <div *ngIf="!loading && showDetailedView && selectedAttempt" class="attempt-details">
+    <button class="back-btn" type="button" (click)="closeDetailedView()">← Back to Results</button>
+
+    <div class="detail-head">
+      <div>
+        <span>Student Attempt</span>
+        <h2>{{ selectedAttempt.studentName || selectedAttempt.student }}'s Attempt</h2>
+        <p>Submitted {{ formatDate(selectedAttempt.submittedAt) }}</p>
+      </div>
+
+      <span class="status-badge" [ngClass]="getStatusClass(selectedAttempt)">
+        {{ getStatusClass(selectedAttempt) === 'pass' ? 'PASS' : 'FAIL' }}
       </span>
     </div>
-    <div class="questions-breakdown"></div>
+
+    <div class="attempt-summary">
+      <div>
+        <span>Score</span>
+        <strong>{{ selectedAttempt.totalScore || 0 }}/{{ selectedAttempt.totalMarks || 0 }}</strong>
+      </div>
+      <div>
+        <span>Percentage</span>
+        <strong>{{ selectedAttempt.percentageScore || 0 }}%</strong>
+      </div>
+      <div>
+        <span>Status</span>
+        <strong>{{ getStatusClass(selectedAttempt) === 'pass' ? 'Passed' : 'Failed' }}</strong>
+      </div>
+    </div>
+
+    <div class="questions-review" *ngIf="selectedAttemptDetails?.answers?.length">
+      <h3>Question Breakdown</h3>
+
+      <div
+        class="question-item"
+        *ngFor="let answer of selectedAttemptDetails.answers; let i = index"
+      >
+        <div
+          class="question-header"
+          [class.correct]="answer.correct"
+          [class.incorrect]="!answer.correct"
+        >
+          <h4>Question {{ i + 1 }}</h4>
+          <span
+            >{{ answer.marksAwarded || 0 }}/{{ answer.marks || answer.totalMarks || 0 }} Marks</span
+          >
+        </div>
+
+        <div class="question-content">
+          <p>{{ answer.questionText || answer.question || 'Question text unavailable' }}</p>
+        </div>
+
+        <div class="options-review" *ngIf="answer.options">
+          <div class="option-item" *ngFor="let key of optionKeys">
+            <span class="option-label">{{ key }}</span>
+            <span class="option-text">{{ getOptionValue(answer.options, key) }}</span>
+            <span class="badge correct-badge" *ngIf="answer.correctOption === key">Correct</span>
+            <span
+              class="badge incorrect-badge"
+              *ngIf="answer.selectedOption === key && answer.correctOption !== key"
+            >
+              Selected
+            </span>
+          </div>
+        </div>
+
+        <div class="explanation-box" *ngIf="answer.explanation">
+          <h5>Explanation</h5>
+          <p>{{ answer.explanation }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!selectedAttemptDetails?.answers?.length">
+      No detailed answer breakdown available for this attempt.
+    </div>
   </div>
+</section>

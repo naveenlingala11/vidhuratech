@@ -1,121 +1,230 @@
-<div class="lms-page">
-    <!-- BACKGROUND -->
-    <div class="bg-glow glow-1"></div>
-    <div class="bg-glow glow-2"></div>
-    <div class="lms-container">
-        <!-- =========================
-             LEFT SIDE
-        ========================== -->
-        <div class="lms-main">
-            <!-- HEADER -->
-            <div class="video-header">
-                <div class="header-content">
-                    <div class="badge">
-                        🚀 Premium Learning Experience
-                    </div>
-                    <h2>
-                        {{ selected?.title }}
-                    </h2>
-                    <p>
-                        Continue your learning journey with structured sessions,
-                        projects, recordings, and practical training.
-                    </p>
-                </div>
-                <div class="header-actions">
-                    <div class="progress-card">
-                        <div class="progress-top">
-                            <span>Course Progress</span>
-                            <strong>{{ progress }}%</strong>
-                        </div>
-                        <div class="progress-bar">
-                            <div
-                                class="progress-fill"
-                                [style.width.%]="progress">
-                            </div>
-                        </div>
-                    </div>
-                    <button class="next-btn" (click)="onVideoEnd()">
-                        <span>
-                            Next Lesson
-                        </span>
-                        <i>
-                            →
-                        </i>
-                    </button>
-                </div>
-            </div>
-            <!-- VIDEO -->
-            <div class="video-wrapper">
-                <div class="video-overlay"></div>
-                <div class="video-container">
-                    <div #playerContainer class="video-frame"></div>
-                </div>
-            </div>
+<section class="lms-page">
+  <div class="page-shell">
+    <header class="player-hero">
+      <div>
+        <span class="eyebrow">Learning Studio</span>
+        <h1>{{ selected?.title || 'Course Player' }}</h1>
+        <p>
+          Continue your lessons with saved progress, structured curriculum, and a focused learning
+          workspace.
+        </p>
+      </div>
+
+      <div class="hero-metrics">
+        <div>
+          <strong>{{ progressValue }}%</strong>
+          <span>Progress</span>
         </div>
-        <!-- =========================
-             RIGHT SIDEBAR
-        ========================== -->
-        <div class="lms-sidebar">
-            <!-- TOP -->
-            <div class="sidebar-top">
-                <h3>
-                    Learning Panel
-                </h3>
-                <div class="lesson-count">
-                    {{ sessions.length }} Lessons
-                </div>
-            </div>
-            <!-- TABS -->
-            <div class="tabs">
-                <button
-                    (click)="activeTab='sessions'"
-                    [class.active]="activeTab==='sessions'">
-                    📺 Sessions
-                </button>
-                <button
-                    (click)="activeTab='curriculum'"
-                    [class.active]="activeTab==='curriculum'">
-                    📚 Curriculum
-                </button>
-            </div>
-            <!-- SESSIONS -->
-            <div *ngIf="activeTab==='sessions'" class="list">
-                <div
-                    *ngFor="let s of sessions; let i = index"
-                    class="list-item"
-                    [class.active]="selected?.id === s.id"
-                    (click)="select(s)">
-                    <div class="lesson-left">
-                        <div class="lesson-number">
-                            {{ i + 1 }}
-                        </div>
-                        <div>
-                            <div class="item-title">
-                                {{ s.title }}
-                            </div>
-                            <div class="item-meta">
-                                ⏱ {{ s.durationMinutes }} mins
-                            </div>
-                        </div>
-                    </div>
-                    <div class="play-icon">
-                        ▶
-                    </div>
-                </div>
-            </div>
-            <!-- CURRICULUM -->
-            <div *ngIf="activeTab==='curriculum'" class="list curriculum-list">
-                <div *ngFor="let m of curriculum?.curriculum" class="module">
-                    <div class="module-title">
-                        {{ m.title }}
-                    </div>
-                    <ul>
-                        <li *ngFor="let t of m.topics">
-                            {{ t }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        <div>
+          <strong>{{ sessions.length }}</strong>
+          <span>Lessons</span>
         </div>
+        <div>
+          <strong>{{ totalDuration }}</strong>
+          <span>Minutes</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="player-layout">
+      <main class="watch-panel">
+        <div class="watch-top">
+          <div>
+            <span class="lesson-kicker"
+              >Lesson {{ currentIndex + 1 || 1 }} of {{ sessions.length }}</span
+            >
+            <h2>{{ selected?.title || 'Select a lesson' }}</h2>
+            <p>
+              {{ selected?.description || 'Pick a session from the learning panel to begin.' }}
+            </p>
+          </div>
+
+          <button
+            class="next-btn"
+            type="button"
+            [disabled]="!nextSession"
+            (click)="goToNextLesson()"
+          >
+            <span>{{ nextSession ? 'Next Lesson' : 'Course End' }}</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="video-card">
+          <div class="video-shell" *ngIf="selected?.videoId; else noVideo">
+            <div #playerContainer class="video-frame"></div>
+          </div>
+
+          <ng-template #noVideo>
+            <div class="empty-video">
+              <i class="bi bi-play-btn"></i>
+              <h3>No video selected</h3>
+              <p>Select a lesson from the right panel.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="lesson-insights">
+          <article>
+            <i class="bi bi-bookmark-check"></i>
+            <div>
+              <span>Resume</span>
+              <strong>{{
+                startTime ? 'Saved at ' + startTime + 's' : 'Start from beginning'
+              }}</strong>
+            </div>
+          </article>
+
+          <article>
+            <i class="bi bi-clock-history"></i>
+            <div>
+              <span>Duration</span>
+              <strong>{{ selected?.durationMinutes || 0 }} minutes</strong>
+            </div>
+          </article>
+
+          <article>
+            <i class="bi bi-play-circle"></i>
+            <div>
+              <span>Up Next</span>
+              <strong>{{ nextSession?.title || 'No more lessons' }}</strong>
+            </div>
+          </article>
+        </div>
+      </main>
+
+      <aside class="learning-panel">
+        <div class="panel-head">
+          <div>
+            <span>Course Panel</span>
+            <h3>Learning Path</h3>
+          </div>
+          <b>{{ sessions.length }}</b>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-copy">
+            <span>Course Progress</span>
+            <strong>{{ progressValue }}%</strong>
+          </div>
+          <div class="progress-bar">
+            <i [style.width.%]="progressValue"></i>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button
+            type="button"
+            [class.active]="activeTab === 'sessions'"
+            (click)="activeTab = 'sessions'"
+          >
+            <i class="bi bi-play-btn"></i>
+            Sessions
+          </button>
+          <button
+            type="button"
+            [class.active]="activeTab === 'curriculum'"
+            (click)="activeTab = 'curriculum'"
+          >
+            <i class="bi bi-journal-text"></i>
+            Curriculum
+          </button>
+          <button
+            type="button"
+            [class.active]="activeTab === 'overview'"
+            (click)="activeTab = 'overview'"
+          >
+            <i class="bi bi-grid"></i>
+            Overview
+          </button>
+        </div>
+
+        <ng-container *ngIf="activeTab === 'sessions'">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" [(ngModel)]="searchText" placeholder="Search lessons..." />
+          </div>
+
+          <div class="lesson-list" *ngIf="!loading && filteredSessions.length">
+            <button
+              type="button"
+              class="lesson-item"
+              *ngFor="let session of filteredSessions; let i = index"
+              [class.active]="selected?.id === session.id"
+              (click)="select(session)"
+            >
+              <span class="lesson-number">{{ i + 1 }}</span>
+
+              <span class="lesson-text">
+                <strong>{{ session.title }}</strong>
+                <small>{{ session.durationMinutes || 0 }} mins</small>
+              </span>
+
+              <i
+                class="bi"
+                [ngClass]="selected?.id === session.id ? 'bi-pause-fill' : 'bi-play-fill'"
+              ></i>
+            </button>
+          </div>
+
+          <div class="empty-state" *ngIf="!loading && !filteredSessions.length">
+            <i class="bi bi-search"></i>
+            <h4>No lessons found</h4>
+            <p>Try another search keyword.</p>
+          </div>
+
+          <div class="skeleton-list" *ngIf="loading">
+            <span *ngFor="let item of [1, 2, 3, 4, 5]"></span>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="activeTab === 'curriculum'">
+          <div class="module-list" *ngIf="!curriculumLoading && curriculumModules.length">
+            <article class="module-card" *ngFor="let module of curriculumModules; let i = index">
+              <span>Module {{ i + 1 }}</span>
+              <h4>{{ module.title || module.name || 'Untitled Module' }}</h4>
+
+              <ul *ngIf="module.topics?.length">
+                <li *ngFor="let topic of module.topics">{{ topic }}</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="empty-state" *ngIf="!curriculumLoading && !curriculumModules.length">
+            <i class="bi bi-journal-bookmark"></i>
+            <h4>No curriculum found</h4>
+            <p>Curriculum will appear here after trainer upload.</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="activeTab === 'overview'">
+          <div class="overview-grid">
+            <article>
+              <i class="bi bi-collection-play"></i>
+              <strong>{{ sessions.length }}</strong>
+              <span>Total lessons</span>
+            </article>
+
+            <article>
+              <i class="bi bi-clock"></i>
+              <strong>{{ totalDuration }}</strong>
+              <span>Total minutes</span>
+            </article>
+
+            <article>
+              <i class="bi bi-bar-chart"></i>
+              <strong>{{ progressValue }}%</strong>
+              <span>Completed</span>
+            </article>
+
+            <article>
+              <i class="bi bi-journal-text"></i>
+              <strong>{{ curriculumModules.length }}</strong>
+              <span>Modules</span>
+            </article>
+          </div>
+        </ng-container>
+      </aside>
     </div>
-</div>
+  </div>
+</section>

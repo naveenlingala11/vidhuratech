@@ -1,4 +1,4 @@
-.trainer-batches-page {
+.mock-page {
   min-height: 100vh;
   padding: 28px;
   color: #101827;
@@ -13,7 +13,8 @@
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -21,7 +22,20 @@ button {
   cursor: pointer;
 }
 
-.batches-hero {
+.toast {
+  position: fixed;
+  top: 22px;
+  right: 24px;
+  z-index: 30;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 13px 16px;
+  border-radius: 14px;
+  color: #fff;
+  background: #0f172a;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+}
+
+.mock-hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,14 +59,14 @@ button {
   text-transform: uppercase;
 }
 
-.batches-hero h1 {
+.mock-hero h1 {
   margin: 0;
   font-size: 38px;
   line-height: 1.08;
   font-weight: 900;
 }
 
-.batches-hero p {
+.mock-hero p {
   max-width: 760px;
   margin: 12px 0 0;
   color: #dbeafe;
@@ -84,7 +98,7 @@ button {
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 22px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
 }
 
@@ -109,16 +123,16 @@ button {
   font-weight: 700;
 }
 
-.stat-card.active {
-  border-color: rgba(34, 197, 94, 0.28);
+.stat-card.requested {
+  border-color: rgba(249, 115, 22, 0.28);
 }
 
-.stat-card.upcoming {
+.stat-card.scheduled {
   border-color: rgba(14, 165, 233, 0.28);
 }
 
-.stat-card.students {
-  border-color: rgba(124, 58, 237, 0.28);
+.stat-card.completed {
+  border-color: rgba(34, 197, 94, 0.28);
 }
 
 .toolbar-panel {
@@ -130,7 +144,7 @@ button {
   padding: 14px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.07);
 }
 
@@ -181,27 +195,26 @@ button {
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
 }
 
-.batches-grid,
+.mock-grid,
 .loading-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
-.batch-card {
+.mock-card {
   position: relative;
   display: grid;
-  gap: 16px;
+  gap: 15px;
   overflow: hidden;
-  min-height: 300px;
   padding: 20px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
 }
 
-.batch-card::before {
+.mock-card::before {
   content: '';
   position: absolute;
   inset: 0 0 auto;
@@ -209,26 +222,30 @@ button {
   background: linear-gradient(90deg, #2563eb, #0f766e);
 }
 
-.batch-card.active::before {
-  background: linear-gradient(90deg, #16a34a, #22c55e);
+.mock-card.requested::before {
+  background: linear-gradient(90deg, #f97316, #f59e0b);
 }
 
-.batch-card.upcoming::before {
+.mock-card.scheduled::before {
   background: linear-gradient(90deg, #0284c7, #38bdf8);
 }
 
-.batch-card.completed::before {
-  background: linear-gradient(90deg, #475569, #94a3b8);
+.mock-card.completed::before {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
 }
 
-.batch-top {
+.mock-card.rejected::before {
+  background: linear-gradient(90deg, #be123c, #f43f5e);
+}
+
+.card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
 
-.batch-icon {
+.student-avatar {
   display: grid;
   place-items: center;
   width: 52px;
@@ -242,93 +259,120 @@ button {
 .status-pill {
   padding: 7px 10px;
   border-radius: 999px;
-  color: #475569;
   background: #f1f5f9;
+  color: #475569;
   font-size: 12px;
   font-weight: 900;
 }
 
-.status-pill.active {
-  color: #15803d;
-  background: #dcfce7;
+.status-pill.REQUESTED {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
-.status-pill.upcoming {
-  color: #0369a1;
+.status-pill.SCHEDULED {
   background: #e0f2fe;
+  color: #0369a1;
 }
 
-.status-pill.completed {
-  color: #475569;
-  background: #e2e8f0;
+.status-pill.COMPLETED {
+  background: #dcfce7;
+  color: #15803d;
 }
 
-.batch-body h2 {
+.status-pill.REJECTED {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.mock-title h2 {
   margin: 0;
-  color: #0f172a;
   font-size: 22px;
-  line-height: 1.2;
+  color: #0f172a;
 }
 
-.batch-body p {
-  margin: 8px 0 0;
+.mock-title p {
+  margin: 7px 0 0;
   color: #64748b;
   font-weight: 750;
 }
 
-.batch-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.mock-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.batch-metrics div {
-  display: grid;
-  gap: 4px;
-  padding: 13px;
-  border-radius: 16px;
+.mock-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  color: #475569;
   background: #f8fafc;
+  font-size: 13px;
+  font-weight: 800;
 }
 
-.batch-metrics i {
+.mock-meta i {
   color: #2563eb;
 }
 
-.batch-metrics span {
-  color: #0f172a;
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.batch-metrics small {
-  color: #64748b;
-  font-weight: 800;
-}
-
-.schedule-strip {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 44px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  color: #475569;
-  background: #f8fafc;
-  font-weight: 800;
-}
-
-.schedule-strip i {
-  color: #0f766e;
-}
-
-.batch-actions {
+label {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: auto;
+  gap: 7px;
 }
 
-.batch-actions button,
+label span {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  padding: 12px 13px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: 0;
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.meeting-link {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  color: #1d4ed8;
+  background: #eef6ff;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.card-actions button,
 .empty-state button {
   display: inline-flex;
   justify-content: center;
@@ -343,9 +387,17 @@ button {
   font-weight: 900;
 }
 
-.batch-actions .ghost {
-  color: #1d4ed8;
-  background: #eef6ff;
+.card-actions .success {
+  background: #0f766e;
+}
+
+.card-actions .danger {
+  background: #e11d48;
+}
+
+.card-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .empty-state {
@@ -374,43 +426,12 @@ button {
 }
 
 .skeleton-card {
-  min-height: 300px;
-  padding: 20px;
+  min-height: 360px;
   border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
-}
-
-.skeleton-card span,
-.skeleton-card strong,
-.skeleton-card p {
-  display: block;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #eef2f7, #f8fafc, #eef2f7);
+  background: linear-gradient(90deg, #eef2f7, #ffffff, #eef2f7);
   background-size: 220% 100%;
   animation: shimmer 1.1s infinite;
-}
-
-.skeleton-card span {
-  width: 54px;
-  height: 54px;
-  border-radius: 18px;
-}
-
-.skeleton-card strong {
-  width: 70%;
-  height: 24px;
-  margin-top: 28px;
-}
-
-.skeleton-card p {
-  width: 100%;
-  height: 14px;
-  margin-top: 16px;
-}
-
-.skeleton-card p:last-child {
-  width: 62%;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
 }
 
 @keyframes shimmer {
@@ -419,10 +440,10 @@ button {
   }
 }
 
-@media (max-width: 1200px) {
-  .batches-grid,
-  .loading-grid,
-  .stats-grid {
+@media (max-width: 1100px) {
+  .stats-grid,
+  .mock-grid,
+  .loading-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -436,31 +457,35 @@ button {
 }
 
 @media (max-width: 720px) {
-  .trainer-batches-page {
+  .mock-page {
     padding: 16px;
   }
 
-  .batches-hero {
+  .mock-hero {
     align-items: flex-start;
     flex-direction: column;
     padding: 24px;
     border-radius: 22px;
   }
 
-  .batches-hero h1 {
+  .mock-hero h1 {
     font-size: 30px;
   }
 
-  .batches-grid,
-  .loading-grid,
   .stats-grid,
-  .batch-actions,
-  .batch-metrics {
+  .mock-grid,
+  .loading-grid,
+  .card-actions {
     grid-template-columns: 1fr;
   }
 
   .filter-tabs {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .toast {
+    top: 14px;
+    right: 14px;
   }
 }

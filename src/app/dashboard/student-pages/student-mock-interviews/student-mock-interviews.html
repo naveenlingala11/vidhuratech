@@ -1,0 +1,230 @@
+<section class="mock-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="mock-hero">
+    <div>
+      <span class="eyebrow">Interview Studio</span>
+      <h1>Mock Interview Requests</h1>
+      <p>
+        Request interview practice, track trainer scheduling, join meetings, and review trainer
+        comments in one dedicated workspace.
+      </p>
+    </div>
+
+    <button type="button" class="refresh-btn" (click)="loadMockInterviews()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </header>
+
+  <div class="stats-grid">
+    <button type="button" class="stat-card total" (click)="selectedFilter = 'ALL'">
+      <i class="bi bi-camera-video"></i>
+      <span>Total</span>
+      <strong>{{ mockRequests.length }}</strong>
+      <small>All interview requests</small>
+    </button>
+
+    <button type="button" class="stat-card requested" (click)="selectedFilter = 'REQUESTED'">
+      <i class="bi bi-hourglass-split"></i>
+      <span>Requested</span>
+      <strong>{{ requestedCount }}</strong>
+      <small>Waiting for trainer</small>
+    </button>
+
+    <button type="button" class="stat-card scheduled" (click)="selectedFilter = 'SCHEDULED'">
+      <i class="bi bi-calendar-check"></i>
+      <span>Scheduled</span>
+      <strong>{{ scheduledCount }}</strong>
+      <small>Ready to attend</small>
+    </button>
+
+    <button type="button" class="stat-card completed" (click)="selectedFilter = 'COMPLETED'">
+      <i class="bi bi-check2-circle"></i>
+      <span>Completed</span>
+      <strong>{{ completedCount }}</strong>
+      <small>Feedback available</small>
+    </button>
+  </div>
+
+  <div class="workspace-grid">
+    <article class="panel request-panel">
+      <div class="panel-head">
+        <div>
+          <span>Create Request</span>
+          <h2>Book a Mock Interview</h2>
+        </div>
+      </div>
+
+      <div class="request-form">
+        <label>
+          <span>Batch</span>
+          <select [(ngModel)]="mockForm.batchId">
+            <option value="">Select Batch</option>
+            <option *ngFor="let course of myCourses" [value]="course.batchId">
+              {{ getCourseName(course) }} - Batch #{{ course.batchId }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Topic or Role</span>
+          <input
+            [(ngModel)]="mockForm.topic"
+            placeholder="Java OOP / HR round / Full stack interview"
+          />
+        </label>
+
+        <div class="date-grid">
+          <label>
+            <span>Preferred Date</span>
+            <input type="date" [(ngModel)]="mockForm.preferredDate" />
+          </label>
+
+          <label>
+            <span>Preferred Time</span>
+            <input type="time" [(ngModel)]="mockForm.preferredTime" />
+          </label>
+        </div>
+
+        <label>
+          <span>Practice Notes</span>
+          <textarea
+            [(ngModel)]="mockForm.notes"
+            rows="5"
+            placeholder="Tell the trainer what you want to practice"
+          ></textarea>
+        </label>
+
+        <button
+          class="submit-btn"
+          type="button"
+          [disabled]="submitting"
+          (click)="submitMockInterviewRequest()"
+        >
+          <i class="bi" [ngClass]="submitting ? 'bi-hourglass-split' : 'bi-send'"></i>
+          {{ submitting ? 'Sending...' : 'Send Request' }}
+        </button>
+      </div>
+    </article>
+
+    <article class="panel list-panel">
+      <div class="panel-head">
+        <div>
+          <span>Requests</span>
+          <h2>Interview Timeline</h2>
+        </div>
+        <strong>{{ filteredRequests.length }}</strong>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchText"
+            placeholder="Search topic, status, date, comments..."
+          />
+        </div>
+
+        <div class="filter-tabs">
+          <button
+            type="button"
+            [class.active]="selectedFilter === 'ALL'"
+            (click)="selectedFilter = 'ALL'"
+          >
+            All
+          </button>
+          <button
+            type="button"
+            [class.active]="selectedFilter === 'REQUESTED'"
+            (click)="selectedFilter = 'REQUESTED'"
+          >
+            Requested
+          </button>
+          <button
+            type="button"
+            [class.active]="selectedFilter === 'SCHEDULED'"
+            (click)="selectedFilter = 'SCHEDULED'"
+          >
+            Scheduled
+          </button>
+          <button
+            type="button"
+            [class.active]="selectedFilter === 'COMPLETED'"
+            (click)="selectedFilter = 'COMPLETED'"
+          >
+            Completed
+          </button>
+          <button
+            type="button"
+            [class.active]="selectedFilter === 'REJECTED'"
+            (click)="selectedFilter = 'REJECTED'"
+          >
+            Rejected
+          </button>
+        </div>
+      </div>
+
+      <div class="loading-grid" *ngIf="loading">
+        <div class="skeleton-card" *ngFor="let item of [1, 2, 3]"></div>
+      </div>
+
+      <div class="request-list" *ngIf="!loading && filteredRequests.length">
+        <article
+          class="request-card"
+          *ngFor="let item of filteredRequests; trackBy: trackById"
+          [class.requested]="item.status === 'REQUESTED'"
+          [class.scheduled]="item.status === 'SCHEDULED'"
+          [class.completed]="item.status === 'COMPLETED'"
+          [class.rejected]="item.status === 'REJECTED'"
+        >
+          <div class="request-top">
+            <div>
+              <span class="status-pill" [class]="item.status">
+                {{ statusLabel(item.status) }}
+              </span>
+              <h3>{{ item.topic || 'Mock Interview' }}</h3>
+            </div>
+
+            <i class="bi bi-person-video3"></i>
+          </div>
+
+          <div class="request-meta">
+            <span><i class="bi bi-collection"></i> {{ item.batch || 'Batch' }}</span>
+            <span><i class="bi bi-calendar3"></i> {{ item.preferredDate || 'Date pending' }}</span>
+            <span><i class="bi bi-clock"></i> {{ item.preferredTime || 'Time pending' }}</span>
+          </div>
+
+          <div class="detail-grid">
+            <div>
+              <span>Your Notes</span>
+              <p>{{ item.notes || 'No notes added.' }}</p>
+            </div>
+
+            <div>
+              <span>Trainer Comments</span>
+              <p>{{ item.trainerRemarks || 'Trainer comments will appear here.' }}</p>
+            </div>
+          </div>
+
+          <a
+            *ngIf="item.meetingLink"
+            class="meeting-link"
+            [href]="item.meetingLink"
+            target="_blank"
+          >
+            <i class="bi bi-box-arrow-up-right"></i>
+            Join Meeting
+          </a>
+        </article>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && !filteredRequests.length">
+        <i class="bi bi-camera-video"></i>
+        <h3>No mock interviews found</h3>
+        <p>Send a request or change your filters.</p>
+      </div>
+    </article>
+  </div>
+</section>

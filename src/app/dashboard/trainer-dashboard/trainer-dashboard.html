@@ -3,107 +3,363 @@
     <div>
       <span>Trainer Workspace</span>
       <h1>Manage batches, students, reviews, and interviews</h1>
-      <p>Track registered students, post assignments or assessments, review submissions, and handle mock interview
-        requests.</p>
+      <p>
+        Track registered students, post assignments or assessments, review submissions, upload
+        learning content, and handle mock interview requests.
+      </p>
     </div>
+
     <div class="hero-actions">
-      <button routerLink="/dashboard/trainer/create-assessment">Create Assessment</button>
-      <button type="button" (click)="openCurriculumPopup()">Upload Curriculum</button>
-      <button routerLink="/dashboard/trainer/assessments">View Assessments</button>
+      <button routerLink="/dashboard/trainer/create-assessment">
+        <i class="bi bi-plus-circle"></i>
+        Create Assessment
+      </button>
+      <button type="button" (click)="openCurriculumPopup()">
+        <i class="bi bi-cloud-upload"></i>
+        Upload Curriculum
+      </button>
+      <button routerLink="/dashboard/trainer/assessments">
+        <i class="bi bi-clipboard-data"></i>
+        View Assessments
+      </button>
     </div>
   </div>
+
   <div class="toast" *ngIf="toast">{{ toast }}</div>
+
   <div class="stats-grid">
-    <div class="stat-card blue">
+    <button type="button" class="stat-card blue" routerLink="/dashboard/trainer/batches">
+      <i class="bi bi-collection"></i>
       <h3>{{ stats.assignedBatches }}</h3>
       <p>Assigned Batches</p>
-    </div>
-    <div class="stat-card green">
+    </button>
+
+    <button type="button" class="stat-card green" routerLink="/dashboard/trainer/students">
+      <i class="bi bi-people"></i>
       <h3>{{ stats.totalStudents }}</h3>
       <p>Registered Students</p>
-    </div>
-    <div class="stat-card orange">
+    </button>
+
+    <button type="button" class="stat-card teal" routerLink="/dashboard/trainer/assessments">
+      <i class="bi bi-clipboard-data"></i>
+      <h3><i class="bi bi-arrow-right-circle"></i></h3>
+      <p>View Assessments</p>
+    </button>
+
+    <button type="button" class="stat-card orange" routerLink="/dashboard/trainer/assessments">
+      <i class="bi bi-hourglass-split"></i>
       <h3>{{ stats.pendingReviews }}</h3>
       <p>Pending Reviews</p>
-    </div>
-    <div class="stat-card purple">
-      <h3>{{ pendingMockRequests.length }}</h3>
+    </button>
+
+    <button type="button" class="stat-card purple" routerLink="/dashboard/trainer/mock-interviews">
+      <i class="bi bi-camera-video"></i>
+      <h3>{{ stats.requestedMocks || pendingMockRequests.length }}</h3>
       <p>Mock Requests</p>
-    </div>
-    <div class="stat-card teal">
-      <h3>{{ stats.avgAttendance }}%</h3>
-      <p>Avg Attendance</p>
-    </div>
-    <div class="stat-card gold">
+    </button>
+
+    <button type="button" class="stat-card gold" routerLink="/dashboard/trainer/assessments">
+      <i class="bi bi-list-check"></i>
       <h3>{{ stats.assignmentsSubmitted }}</h3>
       <p>Submissions</p>
-    </div>
+    </button>
+
+    <button type="button" class="stat-card cyan" routerLink="/dashboard/trainer/content">
+      <i class="bi bi-folder2-open"></i>
+      <h3>{{ stats.contentUploaded || contentItems.length }}</h3>
+      <p>Learning Content</p>
+    </button>
+
+    <button type="button" class="stat-card indigo" routerLink="/dashboard/trainer/mock-interviews">
+      <i class="bi bi-check2-circle"></i>
+      <h3>{{ stats.completedMocks || completedMockRequests.length }}</h3>
+      <p>Completed Mocks</p>
+    </button>
   </div>
+
   <div class="dashboard-grid">
-    <div class="panel">
-      <h4>Assigned Batches</h4>
-      <div class="batch-item" *ngFor="let batch of batches">
-        <strong>{{ batch.name }}</strong>
-        <p>{{ batch.course || 'Course' }} - {{ batch.students }} Students</p>
-        <button class="manage-btn" [routerLink]="['/dashboard/trainer/batches', batch.id]">
-          Manage Batch
+    <div class="panel batches-panel">
+      <div class="panel-head">
+        <div>
+          <span>Batches</span>
+          <h4>Assigned Batches</h4>
+        </div>
+        <button routerLink="/dashboard/trainer/batches">
+          <i class="bi bi-arrow-right"></i>
         </button>
       </div>
+
+      <div class="batch-item" *ngFor="let batch of batches">
+        <div class="batch-icon">
+          <i class="bi bi-mortarboard"></i>
+        </div>
+
+        <div>
+          <strong>{{ batch.name }}</strong>
+          <p>{{ batch.course || 'Course' }} · {{ batch.students }} Students</p>
+        </div>
+
+        <button class="manage-btn" [routerLink]="['/dashboard/trainer/batches', batch.id]">
+          Manage
+        </button>
+      </div>
+
       <div class="empty" *ngIf="!batches.length && !loading">No assigned batches yet.</div>
     </div>
-    <div class="panel">
-      <h4>Mock Interview Requests</h4>
-      <div class="session-item" *ngFor="let item of mockRequests">
-        <strong>{{ item.student }}</strong>
-        <p>{{ item.topic }} - {{ item.preferredDate }} {{ item.preferredTime }}</p>
-        <input [(ngModel)]="item.meetingLink" placeholder="Meeting link" />
-        <textarea [(ngModel)]="item.trainerRemarks" placeholder="Trainer remarks"></textarea>
-        <div class="actions">
-          <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
-          <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
-          <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
+
+    <div class="panel mock-panel">
+      <div class="panel-head">
+        <div>
+          <span>Interviews</span>
+          <h4>Mock Interview Requests</h4>
+        </div>
+        <strong>{{ mockRequests.length }}</strong>
+      </div>
+
+      <div class="session-list">
+        <div class="session-item" *ngFor="let item of mockRequests">
+          <div class="mock-head">
+            <div>
+              <strong>{{ item.student }}</strong>
+              <p>{{ item.topic }}</p>
+            </div>
+            <span class="status-pill" [class]="item.status">{{ item.status }}</span>
+          </div>
+
+          <div class="mock-meta">
+            <small><i class="bi bi-calendar3"></i> {{ item.preferredDate }}</small>
+            <small><i class="bi bi-clock"></i> {{ item.preferredTime }}</small>
+            <small><i class="bi bi-collection"></i> {{ item.batch }}</small>
+          </div>
+
+          <input [(ngModel)]="item.meetingLink" placeholder="Meeting link required for schedule" />
+          <textarea [(ngModel)]="item.trainerRemarks" placeholder="Trainer remarks"></textarea>
+
+          <a
+            *ngIf="item.meetingLink"
+            [href]="item.meetingLink"
+            target="_blank"
+            class="meeting-link"
+          >
+            <i class="bi bi-box-arrow-up-right"></i>
+            Open Meeting
+          </a>
+
+          <div class="actions">
+            <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
+            <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
+            <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
+          </div>
         </div>
       </div>
+
       <div class="empty" *ngIf="!mockRequests.length">No mock interview requests.</div>
     </div>
   </div>
+
   <div class="dashboard-grid second">
     <div class="panel">
-      <h4>Submissions & Results</h4>
+      <div class="panel-head">
+        <div>
+          <span>Reviews</span>
+          <h4>Submissions & Results</h4>
+        </div>
+        <strong>{{ submissions.length }}</strong>
+      </div>
+
       <div class="activity-item" *ngFor="let sub of submissions">
-        <strong>{{ sub.student }}</strong>
-        <p>{{ sub.title }} - {{ sub.type }} - {{ sub.status }}</p>
+        <div class="submission-main">
+          <strong>{{ sub.student }}</strong>
+          <p>{{ sub.title }} · {{ sub.type }} · {{ sub.status }}</p>
+        </div>
+
         <div class="review-grid">
           <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="Marks" />
           <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Feedback" />
-          <button (click)="review(sub)">Save Result</button>
+          <button (click)="review(sub)">Save</button>
         </div>
       </div>
+
       <div class="empty" *ngIf="!submissions.length">No submissions yet.</div>
     </div>
-    <div class="panel">
-      <h4>Quick Actions</h4>
-      <button (click)="openCurriculumPopup()">Upload Curriculum</button>
-      <button routerLink="/dashboard/trainer/create-assessment">Create Assessment</button>
-      <button routerLink="/dashboard/trainer/assessments">View Assessments & Results</button>
-      <button routerLink="/dashboard/trainer/students">Students & Results</button>
-      <button routerLink="/dashboard/trainer/content">View Content</button>
+
+    <div class="panel content-panel">
+      <div class="panel-head">
+        <div>
+          <span>Resources</span>
+          <h4>Practice, Materials & Notes</h4>
+        </div>
+        <strong>{{ contentItems.length }}</strong>
+      </div>
+
+      <select [(ngModel)]="contentForm.batchId">
+        <option value="">Select Batch</option>
+        <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} - Batch #{{ b.id }}</option>
+      </select>
+
+      <div class="content-type-grid">
+        <button
+          type="button"
+          [class.active]="contentForm.type === 'PRACTICE'"
+          (click)="contentForm.type = 'PRACTICE'"
+        >
+          <i class="bi bi-lightning-charge"></i>
+          Practice
+        </button>
+
+        <button
+          type="button"
+          [class.active]="contentForm.type === 'MATERIAL'"
+          (click)="contentForm.type = 'MATERIAL'"
+        >
+          <i class="bi bi-folder2-open"></i>
+          Materials
+        </button>
+
+        <button
+          type="button"
+          [class.active]="contentForm.type === 'NOTE'"
+          (click)="contentForm.type = 'NOTE'"
+        >
+          <i class="bi bi-journal-text"></i>
+          Notes
+        </button>
+      </div>
+
+      <input [(ngModel)]="contentForm.title" placeholder="Title" />
+      <textarea [(ngModel)]="contentForm.description" placeholder="Description or notes"></textarea>
+
+      <div class="content-source-tabs">
+        <button
+          type="button"
+          [class.active]="contentMode === 'file'"
+          (click)="setContentMode('file')"
+        >
+          <i class="bi bi-paperclip"></i>
+          Upload File
+        </button>
+
+        <button
+          type="button"
+          [class.active]="contentMode === 'json'"
+          (click)="setContentMode('json')"
+        >
+          <i class="bi bi-braces"></i>
+          Paste JSON
+        </button>
+      </div>
+
+      <div class="content-source-box" *ngIf="contentMode === 'file'">
+        <input type="file" (change)="onContentFileSelected($event)" />
+      </div>
+
+      <div class="json-editor-wrap" *ngIf="contentMode === 'json'">
+        <div class="json-editor-head">
+          <span>JSON Content</span>
+          <small>Valid JSON only</small>
+        </div>
+
+        <textarea
+          class="json-editor"
+          [(ngModel)]="contentJsonText"
+          rows="10"
+          placeholder='{"topic":"Java Basics","tasks":[{"title":"OOP Practice"}]}'
+        ></textarea>
+      </div>
+
+      <button class="upload-btn" type="button" (click)="uploadContent()">
+        <i class="bi bi-cloud-arrow-up"></i>
+        Upload Content
+      </button>
+
+      <div class="content-list">
+        <div class="activity-item content-item" *ngFor="let item of contentItems.slice(0, 4)">
+          <span class="content-badge">{{ item.type }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>Batch #{{ item.batchId }}</p>
+          <small>{{ item.description }}</small>
+
+          <a
+            *ngIf="item.fileName"
+            [href]="'/api/trainer/content/' + item.id + '/file'"
+            target="_blank"
+          >
+            Download {{ item.fileName }}
+          </a>
+
+          <span class="json-chip" *ngIf="item.jsonData || item.hasJson">
+            <i class="bi bi-braces"></i>
+            JSON Added
+          </span>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="!contentItems.length">
+        No practice, materials, or notes uploaded yet.
+      </div>
     </div>
   </div>
+  <div class="quick-section">
+    <div class="panel quick-panel">
+      <div class="panel-head">
+        <div>
+          <span>Shortcuts</span>
+          <h4>Quick Actions</h4>
+        </div>
+      </div>
+
+      <div class="quick-grid">
+        <button (click)="openCurriculumPopup()">
+          <i class="bi bi-cloud-upload"></i>
+          Upload Curriculum
+        </button>
+        <button routerLink="/dashboard/trainer/create-assessment">
+          <i class="bi bi-plus-circle"></i>
+          Create Assessment
+        </button>
+        <button routerLink="/dashboard/trainer/assessments">
+          <i class="bi bi-bar-chart"></i>
+          View Results
+        </button>
+        <button routerLink="/dashboard/trainer/students">
+          <i class="bi bi-people"></i>
+          Students
+        </button>
+        <button routerLink="/dashboard/trainer/content">
+          <i class="bi bi-folder2-open"></i>
+          Content
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" *ngIf="showCurriculumPopup">
     <div class="modal-box">
       <button class="close" type="button" (click)="closeCurriculumPopup()">x</button>
       <h3>Upload Curriculum</h3>
+
       <select [(ngModel)]="selectedBatchId">
         <option value="">Select Batch</option>
         <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} - Batch #{{ b.id }}</option>
       </select>
+
       <div class="tabs">
-        <button type="button" (click)="mode='file'" [class.active]="mode==='file'">Upload File</button>
-        <button type="button" (click)="mode='paste'" [class.active]="mode==='paste'">Paste JSON</button>
+        <button type="button" (click)="mode = 'file'" [class.active]="mode === 'file'">
+          Upload File
+        </button>
+        <button type="button" (click)="mode = 'paste'" [class.active]="mode === 'paste'">
+          Paste JSON
+        </button>
       </div>
-      <input *ngIf="mode==='file'" type="file" (change)="onFileSelected($event)" />
-      <textarea *ngIf="mode==='paste'" [(ngModel)]="jsonText" rows="10" placeholder="Paste JSON here..."></textarea>
+
+      <input *ngIf="mode === 'file'" type="file" (change)="onFileSelected($event)" />
+      <textarea
+        *ngIf="mode === 'paste'"
+        [(ngModel)]="jsonText"
+        rows="10"
+        placeholder="Paste JSON here..."
+      ></textarea>
+
       <div class="actions">
         <button class="primary-btn" type="button" (click)="submitCurriculum()">Submit</button>
         <button class="cancel-btn" type="button" (click)="closeCurriculumPopup()">Cancel</button>
