@@ -1,0 +1,199 @@
+<section class="mock-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <div class="mock-hero">
+    <div>
+      <span class="eyebrow">Trainer Interviews</span>
+      <h1>Mock Interview Requests</h1>
+      <p>
+        Review student requests, schedule meetings, add trainer comments, and close completed mock
+        interviews from one focused workspace.
+      </p>
+    </div>
+
+    <button type="button" class="refresh-btn" (click)="loadMockInterviews()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <button type="button" class="stat-card total" (click)="selectedFilter = 'ALL'">
+      <span>Total</span>
+      <strong>{{ mockRequests.length }}</strong>
+      <small>All requests</small>
+    </button>
+
+    <button type="button" class="stat-card requested" (click)="selectedFilter = 'REQUESTED'">
+      <span>Requested</span>
+      <strong>{{ requestedCount }}</strong>
+      <small>Waiting for schedule</small>
+    </button>
+
+    <button type="button" class="stat-card scheduled" (click)="selectedFilter = 'SCHEDULED'">
+      <span>Scheduled</span>
+      <strong>{{ scheduledCount }}</strong>
+      <small>Meetings planned</small>
+    </button>
+
+    <button type="button" class="stat-card completed" (click)="selectedFilter = 'COMPLETED'">
+      <span>Completed</span>
+      <strong>{{ completedCount }}</strong>
+      <small>Closed interviews</small>
+    </button>
+  </div>
+
+  <div class="toolbar-panel">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        placeholder="Search student, topic, batch, date, comments..."
+      />
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'ALL'"
+        (click)="selectedFilter = 'ALL'"
+      >
+        All
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'REQUESTED'"
+        (click)="selectedFilter = 'REQUESTED'"
+      >
+        Requested
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'SCHEDULED'"
+        (click)="selectedFilter = 'SCHEDULED'"
+      >
+        Scheduled
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'COMPLETED'"
+        (click)="selectedFilter = 'COMPLETED'"
+      >
+        Completed
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'REJECTED'"
+        (click)="selectedFilter = 'REJECTED'"
+      >
+        Rejected
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-grid" *ngIf="loading">
+    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></div>
+  </div>
+
+  <div class="mock-grid" *ngIf="!loading && filteredRequests.length">
+    <article
+      class="mock-card"
+      *ngFor="let item of filteredRequests; trackBy: trackById"
+      [class.requested]="item.status === 'REQUESTED'"
+      [class.scheduled]="item.status === 'SCHEDULED'"
+      [class.completed]="item.status === 'COMPLETED'"
+      [class.rejected]="item.status === 'REJECTED'"
+    >
+      <div class="card-top">
+        <div class="student-avatar">
+          <i class="bi bi-person-video3"></i>
+        </div>
+
+        <span class="status-pill" [class]="item.status">
+          {{ statusLabel(item.status) }}
+        </span>
+      </div>
+
+      <div class="mock-title">
+        <h2>{{ item.student || 'Student' }}</h2>
+        <p>{{ item.topic || 'Mock interview topic not added' }}</p>
+      </div>
+
+      <div class="mock-meta">
+        <span>
+          <i class="bi bi-collection"></i>
+          {{ item.batch || 'Batch not set' }}
+        </span>
+        <span>
+          <i class="bi bi-calendar3"></i>
+          {{ item.preferredDate || 'Date not set' }}
+        </span>
+        <span>
+          <i class="bi bi-clock"></i>
+          {{ item.preferredTime || 'Time not set' }}
+        </span>
+      </div>
+
+      <label>
+        <span>Meeting Link</span>
+        <input
+          type="text"
+          [(ngModel)]="item.meetingLink"
+          placeholder="Paste Google Meet / Zoom link"
+        />
+      </label>
+
+      <label>
+        <span>Trainer Comments</span>
+        <textarea
+          [(ngModel)]="item.trainerRemarks"
+          placeholder="Add feedback, decision notes, next steps, or rejection reason"
+        ></textarea>
+      </label>
+
+      <a *ngIf="item.meetingLink" class="meeting-link" [href]="item.meetingLink" target="_blank">
+        <i class="bi bi-box-arrow-up-right"></i>
+        Open Meeting
+      </a>
+
+      <div class="card-actions">
+        <button
+          type="button"
+          [disabled]="savingId === item.id"
+          (click)="updateMock(item, 'SCHEDULED')"
+        >
+          <i class="bi bi-calendar-check"></i>
+          Schedule
+        </button>
+
+        <button
+          type="button"
+          class="success"
+          [disabled]="savingId === item.id"
+          (click)="updateMock(item, 'COMPLETED')"
+        >
+          <i class="bi bi-check2-circle"></i>
+          Complete
+        </button>
+
+        <button
+          type="button"
+          class="danger"
+          [disabled]="savingId === item.id"
+          (click)="updateMock(item, 'REJECTED')"
+        >
+          <i class="bi bi-x-circle"></i>
+          Reject
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !filteredRequests.length">
+    <i class="bi bi-camera-video"></i>
+    <h3>No mock interviews found</h3>
+    <p>Try another status filter or search term.</p>
+    <button type="button" (click)="selectedFilter = 'ALL'; searchText = ''">Clear Filters</button>
+  </div>
+</section>

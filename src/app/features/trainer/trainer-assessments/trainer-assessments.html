@@ -1,68 +1,270 @@
 <section class="trainer-assessments">
-    <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
 
-    <div class="page-hero">
-        <div>
-            <span>Assessment Center</span>
-            <h1>Assessments & Results</h1>
-            <p>Create assessments, review published tests, and view student attempt results.</p>
+  <div class="page-hero">
+    <div>
+      <span>Assessment Center</span>
+      <h1>Assessments & Results</h1>
+      <p>
+        Create assessments, monitor attempts, and review student performance from one polished
+        workspace.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" routerLink="/dashboard/trainer/create-assessment">
+        <i class="bi bi-plus-circle"></i>
+        Create Assessment
+      </button>
+      <button type="button" (click)="loadAssessments()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <button
+      type="button"
+      class="summary-card blue"
+      (click)="setFilter('ALL')"
+      [class.active]="filterMode === 'ALL'"
+    >
+      <i class="bi bi-clipboard-data"></i>
+      <span>Total Assessments</span>
+      <strong>{{ totalAssessments }}</strong>
+    </button>
+
+    <button
+      type="button"
+      class="summary-card green"
+      (click)="setFilter('WITH_ATTEMPTS')"
+      [class.active]="filterMode === 'WITH_ATTEMPTS'"
+    >
+      <i class="bi bi-check2-circle"></i>
+      <span>Total Attempts</span>
+      <strong>{{ totalAttempts }}</strong>
+    </button>
+
+    <button type="button" class="summary-card purple">
+      <i class="bi bi-question-circle"></i>
+      <span>Total Questions</span>
+      <strong>{{ totalQuestions }}</strong>
+    </button>
+
+    <button
+      type="button"
+      class="summary-card orange"
+      (click)="setFilter('NO_ATTEMPTS')"
+      [class.active]="filterMode === 'NO_ATTEMPTS'"
+    >
+      <i class="bi bi-hourglass-split"></i>
+      <span>No Submissions</span>
+      <strong>{{ noAttemptCount }}</strong>
+    </button>
+  </div>
+
+  <div class="toolbar">
+    <label class="search-box">
+      <i class="bi bi-search"></i>
+      <input [(ngModel)]="search" placeholder="Search assessment, batch, description..." />
+    </label>
+
+    <div class="filter-tabs">
+      <button type="button" [class.active]="filterMode === 'ALL'" (click)="setFilter('ALL')">
+        All
+      </button>
+      <button
+        type="button"
+        [class.active]="filterMode === 'WITH_ATTEMPTS'"
+        (click)="setFilter('WITH_ATTEMPTS')"
+      >
+        With Submissions
+      </button>
+      <button
+        type="button"
+        [class.active]="filterMode === 'NO_ATTEMPTS'"
+        (click)="setFilter('NO_ATTEMPTS')"
+      >
+        No Submissions
+      </button>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <div class="loader"></div>
+    <h2>Loading assessments</h2>
+    <p>Please wait while we prepare your assessment workspace.</p>
+  </div>
+
+  <div class="empty" *ngIf="!loading && !assessments.length">
+    <i class="bi bi-clipboard-plus"></i>
+    <h2>No assessments created yet</h2>
+    <p>Create your first assessment for an assigned batch.</p>
+    <button type="button" routerLink="/dashboard/trainer/create-assessment">
+      Create Assessment
+    </button>
+  </div>
+
+  <div class="empty" *ngIf="!loading && assessments.length && !filteredAssessments.length">
+    <i class="bi bi-search"></i>
+    <h2>No matching assessments</h2>
+    <p>Try a different search or filter.</p>
+  </div>
+
+  <div class="assessment-grid" *ngIf="!loading && filteredAssessments.length">
+    <article class="assessment-card" *ngFor="let a of filteredAssessments">
+      <div class="card-top">
+        <span class="batch-pill">
+          <i class="bi bi-collection"></i>
+          Batch #{{ a.batchId }}
+        </span>
+
+        <span class="submission-pill" [class.empty-pill]="!(a.attemptCount || 0)">
+          {{ a.attemptCount || 0 }} Submissions
+        </span>
+      </div>
+
+      <div class="card-title">
+        <div class="assessment-icon">
+          <i class="bi bi-clipboard-check"></i>
         </div>
 
-        <button routerLink="/dashboard/trainer/create-assessment">
-            Create Assessment
+        <div>
+          <h2>{{ a.title }}</h2>
+          <p>{{ a.description || 'No description added.' }}</p>
+        </div>
+      </div>
+
+      <div class="meta-grid">
+        <div>
+          <span>Questions</span>
+          <strong>{{ a.questionCount || a.questions?.length || 0 }}</strong>
+        </div>
+        <div>
+          <span>Duration</span>
+          <strong>{{ a.durationMinutes || 0 }}m</strong>
+        </div>
+        <div>
+          <span>Marks</span>
+          <strong>{{ a.totalMarks || 0 }}</strong>
+        </div>
+        <div>
+          <span>Created</span>
+          <strong>{{ formatDate(a.createdAt) }}</strong>
+        </div>
+      </div>
+
+      <div class="submission-state" [class.has-submissions]="(a.attemptCount || 0) > 0">
+        <i class="bi" [ngClass]="(a.attemptCount || 0) > 0 ? 'bi-graph-up-arrow' : 'bi-inbox'"></i>
+
+        <div>
+          <strong>
+            {{ (a.attemptCount || 0) > 0 ? 'Results available' : 'No submissions yet' }}
+          </strong>
+          <p>
+            {{
+              (a.attemptCount || 0) > 0
+                ? 'Open results to review student attempts.'
+                : 'Students have not submitted this assessment yet.'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" (click)="previewAssessment(a.id)">
+          <i class="bi bi-eye"></i>
+          Preview
         </button>
-    </div>
 
-    <div class="loading" *ngIf="loading">
-        Loading assessments...
-    </div>
-
-    <div class="empty" *ngIf="!loading && !assessments.length">
-        <h2>No assessments created yet</h2>
-        <p>Create your first assessment for an assigned batch.</p>
-        <button routerLink="/dashboard/trainer/create-assessment">
-            Create Assessment
+        <button type="button" (click)="downloadAssessment(a)">
+          <i class="bi bi-download"></i>
+          Download
         </button>
-    </div>
 
-    <div class="assessment-grid" *ngIf="!loading && assessments.length">
-        <article class="assessment-card" *ngFor="let a of assessments">
-            <div class="card-top">
-                <span>Batch #{{ a.batchId }}</span>
-                <strong>{{ a.totalMarks || 0 }} Marks</strong>
-            </div>
+        <button type="button" [disabled]="!(a.attemptCount || 0)" (click)="viewResults(a.id)">
+          <i class="bi bi-bar-chart"></i>
+          Results
+        </button>
 
-            <h2>{{ a.title }}</h2>
-            <p>{{ a.description || 'No description added' }}</p>
-
-            <div class="meta-grid">
-                <div>
-                    <span>Questions</span>
-                    <strong>{{ a.questionCount || a.questions?.length || 0 }}</strong>
-                </div>
-                <div>
-                    <span>Duration</span>
-                    <strong>{{ a.durationMinutes }}m</strong>
-                </div>
-                <div>
-                    <span>Attempts</span>
-                    <strong>{{ a.attemptCount || 0 }}</strong>
-                </div>
-                <div>
-                    <span>Created</span>
-                    <strong>{{ formatDate(a.createdAt) }}</strong>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button type="button" (click)="viewResults(a.id)">
-                    View Results
-                </button>
-
-                <button type="button" class="danger" (click)="deleteAssessment(a.id)">
-                    Delete
-                </button>
-            </div>
-        </article>
-    </div>
+        <button type="button" class="danger" (click)="deleteAssessment(a.id)">
+          <i class="bi bi-trash"></i>
+          Delete
+        </button>
+      </div>
+    </article>
+  </div>
 </section>
+<div class="preview-overlay" *ngIf="selectedAssessment || previewLoading">
+  <div class="preview-modal">
+    <button type="button" class="preview-close" (click)="closePreview()">x</button>
+
+    <div class="loading compact" *ngIf="previewLoading">
+      <div class="loader"></div>
+      <h2>Loading preview</h2>
+    </div>
+
+    <ng-container *ngIf="!previewLoading && selectedAssessment">
+      <div class="preview-header">
+        <span>Assessment Preview</span>
+        <h2>{{ selectedAssessment.title }}</h2>
+        <p>{{ selectedAssessment.description || 'No description added.' }}</p>
+      </div>
+
+      <div class="preview-meta">
+        <div>
+          <span>Batch</span>
+          <strong>{{
+            selectedAssessment.batchName || 'Batch #' + selectedAssessment.batchId
+          }}</strong>
+        </div>
+        <div>
+          <span>Questions</span>
+          <strong>{{ selectedAssessment.questions?.length || 0 }}</strong>
+        </div>
+        <div>
+          <span>Marks</span>
+          <strong>{{ selectedAssessment.totalMarks || 0 }}</strong>
+        </div>
+        <div>
+          <span>Duration</span>
+          <strong>{{ selectedAssessment.durationMinutes || 0 }}m</strong>
+        </div>
+      </div>
+
+      <div class="preview-questions">
+        <article
+          class="preview-question"
+          *ngFor="let q of selectedAssessment.questions; let i = index"
+        >
+          <div class="preview-question-head">
+            <strong>Q{{ i + 1 }}. {{ q.question }}</strong>
+            <span>{{ q.marks || 0 }} marks</span>
+          </div>
+
+          <div class="preview-options">
+            <div
+              class="preview-option"
+              *ngFor="let key of ['A', 'B', 'C', 'D']"
+              [class.correct]="q.correctAnswer === key"
+            >
+              <span>{{ key }}</span>
+              <p>{{ getOptionValue(q.options, key) }}</p>
+              <strong *ngIf="q.correctAnswer === key">Correct</strong>
+            </div>
+          </div>
+
+          <div class="preview-explanation" *ngIf="q.explanation">
+            <strong>Explanation:</strong> {{ q.explanation }}
+          </div>
+        </article>
+      </div>
+
+      <button type="button" class="download-full" (click)="downloadAssessment(selectedAssessment)">
+        <i class="bi bi-download"></i>
+        Download Assessment JSON
+      </button>
+    </ng-container>
+  </div>
+</div>

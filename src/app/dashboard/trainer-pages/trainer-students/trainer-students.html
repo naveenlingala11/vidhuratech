@@ -1,23 +1,120 @@
-<div class="container mt-3">
-  <h3>Students</h3>
-  <table class="table table-bordered mt-3">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Batch</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let s of students">
-        <td>{{ s.name }}</td>
-        <td>{{ s.email }}</td>
-        <td>{{ s.batch }}</td>
-        <td>
-          <span class="badge bg-success">Active</span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<section class="trainer-students">
+  <div class="page-head">
+    <div>
+      <span>Trainer Control</span>
+      <h1>Students, Mock Requests & Results</h1>
+      <p>Registered students, interview requests, and assessment outcomes in one premium view.</p>
+    </div>
+    <input [(ngModel)]="search" placeholder="Search student, email, batch, course" />
+  </div>
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <div class="tabs">
+    <button [class.active]="activeTab === 'students'" (click)="activeTab = 'students'">
+      Students
+      <strong>{{ students.length }}</strong>
+    </button>
+    <button [class.active]="activeTab === 'mocks'" (click)="activeTab = 'mocks'">
+      Mock Requests
+      <strong>{{ mockRequests.length }}</strong>
+    </button>
+    <button [class.active]="activeTab === 'results'" (click)="activeTab = 'results'">
+      Results
+      <strong>{{ submissions.length }}</strong>
+    </button>
+  </div>
+  <article class="panel students-panel" *ngIf="activeTab === 'students'">
+    <div class="students-toolbar">
+      <div>
+        <span>Registered Learners</span>
+        <h2>Student Directory</h2>
+      </div>
+
+      <strong>{{ filteredStudents.length }} Students</strong>
+    </div>
+
+    <div class="student-list" *ngIf="filteredStudents.length">
+      <article class="student-card" *ngFor="let s of filteredStudents">
+        <div class="student-profile">
+          <div class="avatar">
+            {{ getInitials(s.name) }}
+          </div>
+
+          <div>
+            <h3>{{ s.name || 'Student' }}</h3>
+            <p>#{{ s.id }} · {{ s.email || 'No email' }}</p>
+          </div>
+        </div>
+
+        <div class="student-info-grid">
+          <div>
+            <i class="bi bi-phone"></i>
+            <span>Phone</span>
+            <strong>{{ s.phone || 'Not added' }}</strong>
+          </div>
+
+          <div>
+            <i class="bi bi-collection"></i>
+            <span>Batch</span>
+            <strong>{{ s.batch || 'Not assigned' }}</strong>
+          </div>
+
+          <div>
+            <i class="bi bi-mortarboard"></i>
+            <span>Course</span>
+            <strong>{{ s.course || 'Course not set' }}</strong>
+          </div>
+
+          <div>
+            <i class="bi bi-shield-check"></i>
+            <span>Status</span>
+            <strong>
+              <b class="status-badge">{{ s.status || 'ACTIVE' }}</b>
+            </strong>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty premium-empty" *ngIf="!filteredStudents.length">
+      <i class="bi bi-people"></i>
+      <h3>No students found</h3>
+      <p>Try another search term or refresh the page.</p>
+    </div>
+  </article>
+  <article class="cards-grid" *ngIf="activeTab === 'mocks'">
+    <div class="request-card" *ngFor="let item of mockRequests">
+      <div class="card-top">
+        <span class="badge">{{ item.status }}</span>
+        <small>{{ item.preferredDate }} {{ item.preferredTime }}</small>
+      </div>
+      <h3>{{ item.student }}</h3>
+      <p>{{ item.topic }}</p>
+      <small>{{ item.batch }} - {{ item.email }}</small>
+      <input [(ngModel)]="item.meetingLink" placeholder="Meeting link" />
+      <textarea [(ngModel)]="item.trainerRemarks" placeholder="Remarks"></textarea>
+      <div class="actions">
+        <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
+        <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
+        <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
+      </div>
+    </div>
+    <div class="empty" *ngIf="!mockRequests.length">No mock interview requests yet.</div>
+  </article>
+  <article class="panel" *ngIf="activeTab === 'results'">
+    <div class="result-list">
+      <div class="result-card" *ngFor="let sub of submissions">
+        <div>
+          <strong>{{ sub.student }}</strong>
+          <p>{{ sub.title }} - {{ sub.type }} - {{ sub.batch }}</p>
+          <small>{{ sub.submittedAt }}</small>
+        </div>
+        <div class="review-grid">
+          <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="Marks" />
+          <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Feedback" />
+          <button (click)="review(sub)">Save</button>
+        </div>
+      </div>
+      <div class="empty" *ngIf="!submissions.length">No submissions or results yet.</div>
+    </div>
+  </article>
+</section>

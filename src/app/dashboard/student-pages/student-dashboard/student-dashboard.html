@@ -9,9 +9,13 @@
           <i class="bi bi-play-fill"></i>
           Continue Learning
         </button>
-        <button class="secondary-action" type="button" (click)="openMockInterviewPopup()">
+        <button
+          class="secondary-action"
+          type="button"
+          routerLink="/dashboard/student/mock-interviews"
+        >
           <i class="bi bi-mic"></i>
-          Request Mock Interview
+          Mock Interviews
         </button>
       </div>
     </div>
@@ -34,8 +38,13 @@
     <button type="button" (click)="loadDashboard()">Retry</button>
   </div>
   <div class="stats-grid" *ngIf="!loading; else loadingStats">
-    <button *ngFor="let card of statCards; trackBy: trackByTitle" class="stat-card" [class]="card.tone" type="button"
-      (click)="card.route && goTo(card.route)">
+    <button
+      *ngFor="let card of statCards; trackBy: trackByTitle"
+      class="stat-card"
+      [class]="card.tone"
+      type="button"
+      (click)="card.route && goTo(card.route)"
+    >
       <span class="stat-icon">
         <i class="bi" [ngClass]="card.icon"></i>
       </span>
@@ -48,7 +57,7 @@
   </div>
   <ng-template #loadingStats>
     <div class="stats-grid">
-      <div class="skeleton-card" *ngFor="let item of [1,2,3,4]"></div>
+      <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></div>
     </div>
   </ng-template>
   <div class="main-grid">
@@ -85,7 +94,11 @@
             {{ activeCourse.nextClass || 'Next class details soon' }}
           </span>
         </div>
-        <button class="wide-action" type="button" [routerLink]="['/dashboard/student/lms', activeCourse.batchId]">
+        <button
+          class="wide-action"
+          type="button"
+          [routerLink]="['/dashboard/student/lms', activeCourse.batchId]"
+        >
           Open Course Player
         </button>
       </ng-container>
@@ -128,8 +141,11 @@
         <button type="button" routerLink="/dashboard/student/courses">View All</button>
       </div>
       <div class="course-list" *ngIf="myCourses.length; else emptyCourses">
-        <a class="course-row" *ngFor="let course of myCourses; trackBy: trackByTitle"
-          [routerLink]="['/dashboard/student/lms', course.batchId]">
+        <a
+          class="course-row"
+          *ngFor="let course of myCourses; trackBy: trackByTitle"
+          [routerLink]="['/dashboard/student/lms', course.batchId]"
+        >
           <span class="course-avatar">{{ getCourseName(course).slice(0, 1) }}</span>
           <span class="course-info">
             <strong>{{ getCourseName(course) }}</strong>
@@ -168,26 +184,65 @@
     <article class="panel">
       <div class="panel-title compact">
         <div>
-          <span>
-            Assessments
-          </span>
-          <h2>
-            Upcoming Assessments
-          </h2>
+          <span>Trainer Content</span>
+          <h2>Practice, Materials & Notes</h2>
         </div>
-        <button type="button" routerLink="/dashboard/student/assessments">
-          View All
-        </button>
+      </div>
+
+      <div class="activity-list" *ngIf="learningContent.length; else emptyContent">
+        <div class="activity-item" *ngFor="let item of learningContent">
+          <span>
+            <i
+              class="bi"
+              [ngClass]="
+                item.type === 'PRACTICE'
+                  ? 'bi-lightning-charge'
+                  : item.type === 'MATERIAL'
+                    ? 'bi-folder2-open'
+                    : 'bi-journal-text'
+              "
+            ></i>
+          </span>
+
+          <div>
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.type }} · Batch #{{ item.batchId }}</p>
+            <small>{{ item.description }}</small>
+
+            <a
+              *ngIf="item.fileName"
+              [href]="'/api/trainer/content/' + item.id + '/file'"
+              target="_blank"
+            >
+              Download {{ item.fileName }}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #emptyContent>
+        <div class="empty-line">No practice, materials, or notes shared yet.</div>
+      </ng-template>
+    </article>
+    <article class="panel">
+      <div class="panel-title compact">
+        <div>
+          <span> Assessments </span>
+          <h2>Upcoming Assessments</h2>
+        </div>
+        <button type="button" routerLink="/dashboard/student/assessments">View All</button>
       </div>
       <div class="activity-list" *ngIf="stats.assessmentsUpcoming > 0; else emptyAssessments">
-        <button class="activity-item assessment-item" type="button" routerLink="/dashboard/student/assessments">
+        <button
+          class="activity-item assessment-item"
+          type="button"
+          routerLink="/dashboard/student/assessments"
+        >
           <span>
             <i class="bi bi-clipboard-data"></i>
           </span>
           <div>
-            <strong>
-              Scheduled Assessments
-            </strong>
+            <strong> Scheduled Assessments </strong>
             <p>
               {{ stats.assessmentsUpcoming }}
               upcoming assessments available
@@ -197,9 +252,7 @@
         </button>
       </div>
       <ng-template #emptyAssessments>
-        <div class="empty-line">
-          No upcoming assessments.
-        </div>
+        <div class="empty-line">No upcoming assessments.</div>
       </ng-template>
     </article>
   </div>
@@ -232,21 +285,25 @@
         </div>
       </div>
       <div class="quick-grid">
-        <a *ngFor="let action of quickActions; trackBy: trackByTitle" class="quick-action" [class]="action.tone"
-          [routerLink]="action.route">
+        <a
+          *ngFor="let action of quickActions; trackBy: trackByTitle"
+          class="quick-action"
+          [class]="action.tone"
+          [routerLink]="action.route"
+        >
           <i class="bi" [ngClass]="action.icon"></i>
           <span>
             <strong>{{ action.label }}</strong>
             <small>{{ action.helper }}</small>
           </span>
         </a>
-        <button class="quick-action mock-button" type="button" (click)="openMockInterviewPopup()">
+        <a class="quick-action mock-button" routerLink="/dashboard/student/mock-interviews">
           <i class="bi bi-mic"></i>
           <span>
-            <strong>Request Mock Interview</strong>
-            <small>Pick date and preferred slot</small>
+            <strong>Mock Interviews</strong>
+            <small>Request and track trainer feedback</small>
           </span>
-        </button>
+        </a>
       </div>
     </article>
   </div>
@@ -307,10 +364,15 @@
       <input [(ngModel)]="mockForm.topic" placeholder="Topic or role, ex: Java OOP / HR round" />
       <input type="date" [(ngModel)]="mockForm.preferredDate" />
       <input type="time" [(ngModel)]="mockForm.preferredTime" />
-      <textarea [(ngModel)]="mockForm.notes" rows="4" placeholder="Tell trainer what you want to practice"></textarea>
+      <textarea
+        [(ngModel)]="mockForm.notes"
+        rows="4"
+        placeholder="Tell trainer what you want to practice"
+      ></textarea>
       <button class="primary" type="button" (click)="submitMockInterviewRequest()">
         Send Request
       </button>
+      <button type="button" routerLink="/dashboard/student/mock-interviews">View All</button>
     </div>
   </div>
 </section>

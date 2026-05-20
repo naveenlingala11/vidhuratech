@@ -1,18 +1,155 @@
-<div class="container mt-3">
-  <h3>My Batches</h3>
-  <div *ngIf="loading" class="text-center mt-4">
-    <div class="spinner-border"></div>
+<section class="trainer-batches-page">
+  <div class="batches-hero">
+    <div>
+      <span class="eyebrow">Trainer Batches</span>
+      <h1>Manage Your Learning Cohorts</h1>
+      <p>
+        Track assigned batches, student strength, course context, schedules, and jump into batch
+        management from one focused workspace.
+      </p>
+    </div>
+
+    <button type="button" class="refresh-btn" (click)="loadBatches()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
   </div>
-  <div class="row mt-3">
-    <div class="col-md-4" *ngFor="let b of batches">
-      <div class="card p-3 shadow-sm">
-        <h5>{{ b.name }}</h5>
-        <p>{{ b.students }} Students</p>
-        <button class="btn btn-primary btn-sm"
-                [routerLink]="['/dashboard/trainer/batches', b.id]">
-          Manage
-        </button>
-      </div>
+
+  <div class="stats-grid">
+    <button type="button" class="stat-card total" (click)="selectedFilter = 'ALL'">
+      <span>Total Batches</span>
+      <strong>{{ batches.length }}</strong>
+      <small>Assigned to you</small>
+    </button>
+
+    <button type="button" class="stat-card active" (click)="selectedFilter = 'ACTIVE'">
+      <span>Active</span>
+      <strong>{{ activeBatches }}</strong>
+      <small>Running batches</small>
+    </button>
+
+    <button type="button" class="stat-card upcoming" (click)="selectedFilter = 'UPCOMING'">
+      <span>Upcoming</span>
+      <strong>{{ upcomingBatches }}</strong>
+      <small>Ready to start</small>
+    </button>
+
+    <button type="button" class="stat-card students" (click)="selectedFilter = 'ALL'">
+      <span>Students</span>
+      <strong>{{ totalStudents }}</strong>
+      <small>Total learners</small>
+    </button>
+  </div>
+
+  <div class="toolbar-panel">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        placeholder="Search batch, course, status, schedule..."
+      />
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'ALL'"
+        (click)="selectedFilter = 'ALL'"
+      >
+        All
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'ACTIVE'"
+        (click)="selectedFilter = 'ACTIVE'"
+      >
+        Active
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'UPCOMING'"
+        (click)="selectedFilter = 'UPCOMING'"
+      >
+        Upcoming
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'COMPLETED'"
+        (click)="selectedFilter = 'COMPLETED'"
+      >
+        Completed
+      </button>
     </div>
   </div>
-</div>
+
+  <div class="loading-grid" *ngIf="loading">
+    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4, 5, 6]">
+      <span></span>
+      <strong></strong>
+      <p></p>
+      <p></p>
+    </div>
+  </div>
+
+  <div class="batches-grid" *ngIf="!loading && filteredBatches.length">
+    <article
+      class="batch-card"
+      *ngFor="let b of filteredBatches; trackBy: trackByBatchId"
+      [class]="getStatusClass(b.status)"
+    >
+      <div class="batch-top">
+        <div class="batch-icon">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+
+        <span class="status-pill" [class]="getStatusClass(b.status)">
+          {{ getStatusLabel(b.status) }}
+        </span>
+      </div>
+
+      <div class="batch-body">
+        <h2>{{ b.name }}</h2>
+        <p>{{ b.course || 'Course not assigned' }}</p>
+      </div>
+
+      <div class="batch-metrics">
+        <div>
+          <i class="bi bi-people"></i>
+          <span>{{ b.students || 0 }}</span>
+          <small>Students</small>
+        </div>
+
+        <div>
+          <i class="bi bi-hash"></i>
+          <span>{{ b.id }}</span>
+          <small>Batch ID</small>
+        </div>
+      </div>
+
+      <div class="schedule-strip">
+        <i class="bi bi-clock-history"></i>
+        <span>{{ b.zoomTime || 'Schedule not added' }}</span>
+      </div>
+
+      <div class="batch-actions">
+        <button type="button" [routerLink]="['/dashboard/trainer/batches', b.id]">
+          <i class="bi bi-kanban"></i>
+          Manage
+        </button>
+
+        <button type="button" class="ghost" [routerLink]="['/dashboard/trainer/content']">
+          <i class="bi bi-folder2-open"></i>
+          Content
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !filteredBatches.length">
+    <i class="bi bi-collection"></i>
+    <h3>No batches found</h3>
+    <p>Try another search term or switch the selected status filter.</p>
+    <button type="button" (click)="selectedFilter = 'ALL'; searchText = ''">Clear Filters</button>
+  </div>
+</section>

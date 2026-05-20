@@ -1,33 +1,258 @@
-<div class="container mt-3">
-  <h3>Curriculum Content</h3>
-  <div class="row mt-3">
-    <div class="col-md-4">
-      <input class="form-control"
-             placeholder="Batch ID"
-             [(ngModel)]="batchId" />
-    </div>
-    <div class="col-md-4">
-      <select class="form-control"
-              [(ngModel)]="courseId">
-        <option value="java">Java</option>
-        <option value="python">Python</option>
-      </select>
-    </div>
-    <div class="col-md-4">
-      <button class="btn btn-primary w-100"
-              (click)="load()">
-        Load Content
-      </button>
-    </div>
+<section class="trainer-content-page">
+  <div class="toast" *ngIf="toast">
+    {{ toast }}
   </div>
-  <div *ngIf="content" class="mt-4">
-    <div *ngFor="let m of content.curriculum" class="card p-3 mb-2">
-      <h5>{{ m.title }}</h5>
-      <ul>
-        <li *ngFor="let t of m.topics">
-          {{ t }}
-        </li>
-      </ul>
+
+  <div class="content-hero">
+    <div>
+      <span class="eyebrow">Trainer Library</span>
+      <h1>Practice, Materials & Notes</h1>
+      <p>
+        Create learning content with file uploads or pasted JSON, manage uploaded resources, and
+        preview curriculum content for any assigned batch.
+      </p>
     </div>
+
+    <button type="button" class="refresh-btn" (click)="loadContent()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
   </div>
-</div>
+
+  <div class="stats-grid">
+    <button type="button" class="stat-card all" (click)="selectedType = 'ALL'">
+      <span>Total</span>
+      <strong>{{ contentItems.length }}</strong>
+      <small>All shared content</small>
+    </button>
+
+    <button type="button" class="stat-card practice" (click)="selectedType = 'PRACTICE'">
+      <span>Practice</span>
+      <strong>{{ practiceCount }}</strong>
+      <small>Tasks and exercises</small>
+    </button>
+
+    <button type="button" class="stat-card material" (click)="selectedType = 'MATERIAL'">
+      <span>Materials</span>
+      <strong>{{ materialCount }}</strong>
+      <small>Files and resources</small>
+    </button>
+
+    <button type="button" class="stat-card note" (click)="selectedType = 'NOTE'">
+      <span>Notes</span>
+      <strong>{{ notesCount }}</strong>
+      <small>Trainer notes</small>
+    </button>
+  </div>
+
+  <div class="workspace-grid">
+    <article class="panel upload-panel">
+      <div class="panel-head">
+        <div>
+          <span>Create Content</span>
+          <h2>Upload Resource</h2>
+        </div>
+      </div>
+
+      <div class="upload-form">
+        <input [(ngModel)]="contentForm.batchId" type="number" placeholder="Batch ID" />
+
+        <div class="content-type-grid">
+          <button
+            type="button"
+            [class.active]="contentForm.type === 'PRACTICE'"
+            (click)="contentForm.type = 'PRACTICE'"
+          >
+            <i class="bi bi-lightning-charge"></i>
+            Practice
+          </button>
+
+          <button
+            type="button"
+            [class.active]="contentForm.type === 'MATERIAL'"
+            (click)="contentForm.type = 'MATERIAL'"
+          >
+            <i class="bi bi-folder2-open"></i>
+            Materials
+          </button>
+
+          <button
+            type="button"
+            [class.active]="contentForm.type === 'NOTE'"
+            (click)="contentForm.type = 'NOTE'"
+          >
+            <i class="bi bi-journal-text"></i>
+            Notes
+          </button>
+        </div>
+
+        <input [(ngModel)]="contentForm.title" placeholder="Title" />
+
+        <textarea
+          [(ngModel)]="contentForm.description"
+          placeholder="Description or notes"
+        ></textarea>
+
+        <div class="content-source-tabs">
+          <button
+            type="button"
+            [class.active]="contentMode === 'file'"
+            (click)="setContentMode('file')"
+          >
+            <i class="bi bi-paperclip"></i>
+            Upload File
+          </button>
+
+          <button
+            type="button"
+            [class.active]="contentMode === 'json'"
+            (click)="setContentMode('json')"
+          >
+            <i class="bi bi-braces"></i>
+            Paste JSON
+          </button>
+        </div>
+
+        <div class="content-source-box" *ngIf="contentMode === 'file'">
+          <input type="file" (change)="onContentFileSelected($event)" />
+        </div>
+
+        <div class="json-editor-wrap" *ngIf="contentMode === 'json'">
+          <div class="json-editor-head">
+            <span>JSON Content</span>
+            <small>Valid JSON only</small>
+          </div>
+
+          <textarea
+            class="json-editor"
+            [(ngModel)]="contentJsonText"
+            rows="10"
+            placeholder='{"topic":"Java Basics","tasks":[{"title":"OOP Practice"}]}'
+          ></textarea>
+        </div>
+
+        <button class="upload-btn" type="button" [disabled]="uploading" (click)="uploadContent()">
+          <i class="bi" [ngClass]="uploading ? 'bi-hourglass-split' : 'bi-cloud-arrow-up'"></i>
+          {{ uploading ? 'Uploading...' : 'Upload Content' }}
+        </button>
+      </div>
+    </article>
+
+    <article class="panel library-panel">
+      <div class="panel-head">
+        <div>
+          <span>Uploaded Content</span>
+          <h2>Resource Library</h2>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" [(ngModel)]="searchText" placeholder="Search title, batch, file..." />
+        </div>
+
+        <select [(ngModel)]="selectedType">
+          <option value="ALL">All Types</option>
+          <option value="PRACTICE">Practice</option>
+          <option value="MATERIAL">Materials</option>
+          <option value="NOTE">Notes</option>
+        </select>
+      </div>
+
+      <div class="loading-state" *ngIf="loading">
+        <div class="loader"></div>
+        <p>Loading content...</p>
+      </div>
+
+      <div class="content-list" *ngIf="!loading && filteredContent.length">
+        <article
+          class="content-card"
+          *ngFor="let item of filteredContent; trackBy: trackById"
+          [class.practice]="item.type === 'PRACTICE'"
+          [class.material]="item.type === 'MATERIAL'"
+          [class.note]="item.type === 'NOTE'"
+        >
+          <div class="content-icon">
+            <i class="bi" [ngClass]="getTypeIcon(item.type)"></i>
+          </div>
+
+          <div class="content-main">
+            <div class="content-title-row">
+              <h3>{{ item.title }}</h3>
+              <span>{{ getTypeLabel(item.type) }}</span>
+            </div>
+
+            <p>{{ item.description || 'No description added.' }}</p>
+
+            <div class="content-meta">
+              <small>Batch #{{ item.batchId }}</small>
+              <small *ngIf="item.fileName">{{ item.fileName }}</small>
+              <small class="json-chip" *ngIf="item.jsonData || item.hasJson">
+                <i class="bi bi-braces"></i>
+                JSON Added
+              </small>
+            </div>
+          </div>
+
+          <a *ngIf="item.fileName" class="download-link" [href]="fileUrl(item)" target="_blank">
+            <i class="bi bi-download"></i>
+            Download
+          </a>
+        </article>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && !filteredContent.length">
+        <i class="bi bi-folder2-open"></i>
+        <h3>No content found</h3>
+        <p>Uploaded practice, materials, and notes will appear here.</p>
+      </div>
+    </article>
+
+    <aside class="panel curriculum-panel">
+      <div class="panel-head">
+        <div>
+          <span>Curriculum</span>
+          <h2>Batch Preview</h2>
+        </div>
+      </div>
+
+      <div class="curriculum-form">
+        <input type="number" [(ngModel)]="batchId" placeholder="Enter Batch ID" />
+
+        <button type="button" (click)="loadCurriculum()">
+          <i class="bi bi-eye"></i>
+          Load
+        </button>
+      </div>
+
+      <div class="loading-state compact" *ngIf="curriculumLoading">
+        <div class="loader"></div>
+        <p>Loading curriculum...</p>
+      </div>
+
+      <div class="module-list" *ngIf="!curriculumLoading && curriculum.length">
+        <article class="module-card" *ngFor="let module of curriculum; let i = index">
+          <span>Module {{ i + 1 }}</span>
+          <h3>{{ module.title || module.name || 'Untitled Module' }}</h3>
+
+          <ul *ngIf="module.topics?.length">
+            <li *ngFor="let topic of module.topics">
+              {{ topic }}
+            </li>
+          </ul>
+        </article>
+      </div>
+
+      <pre class="raw-json" *ngIf="!curriculumLoading && rawCurriculum && !curriculum.length">{{
+        rawCurriculum | json
+      }}</pre>
+
+      <div class="empty-state small" *ngIf="!curriculumLoading && !rawCurriculum">
+        <i class="bi bi-journal-bookmark"></i>
+        <h3>No curriculum loaded</h3>
+        <p>Enter a batch ID to preview uploaded curriculum JSON.</p>
+      </div>
+    </aside>
+  </div>
+</section>

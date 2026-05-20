@@ -1,0 +1,220 @@
+<section class="learning-content-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Learning Library</span>
+      <h1>Practice, Materials & Notes</h1>
+      <p>
+        All trainer-shared resources for your enrolled batches, organized for quick revision and
+        practice.
+      </p>
+    </div>
+
+    <button class="refresh-btn" type="button" (click)="loadContent()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <button
+      class="stat-card all"
+      type="button"
+      (click)="selectType('ALL')"
+      [class.active]="selectedType === 'ALL'"
+    >
+      <span>All</span>
+      <strong>{{ contentItems.length }}</strong>
+      <small>Total resources</small>
+    </button>
+
+    <button
+      class="stat-card practice"
+      type="button"
+      (click)="selectType('PRACTICE')"
+      [class.active]="selectedType === 'PRACTICE'"
+    >
+      <span>Practice</span>
+      <strong>{{ practiceCount }}</strong>
+      <small>Exercises and tasks</small>
+    </button>
+
+    <button
+      class="stat-card material"
+      type="button"
+      (click)="selectType('MATERIAL')"
+      [class.active]="selectedType === 'MATERIAL'"
+    >
+      <span>Materials</span>
+      <strong>{{ materialCount }}</strong>
+      <small>Files and references</small>
+    </button>
+
+    <button
+      class="stat-card note"
+      type="button"
+      (click)="selectType('NOTE')"
+      [class.active]="selectedType === 'NOTE'"
+    >
+      <span>Notes</span>
+      <strong>{{ noteCount }}</strong>
+      <small>Trainer notes</small>
+    </button>
+  </div>
+
+  <article class="spotlight" *ngIf="!loading && featuredItem">
+    <div
+      class="spotlight-icon"
+      [class.practice]="featuredItem.type === 'PRACTICE'"
+      [class.material]="featuredItem.type === 'MATERIAL'"
+      [class.note]="featuredItem.type === 'NOTE'"
+    >
+      <i class="bi" [ngClass]="getTypeIcon(featuredItem.type)"></i>
+    </div>
+
+    <div>
+      <span>Latest Resource</span>
+      <h2>{{ featuredItem.title }}</h2>
+      <p>{{ featuredItem.description || 'No description added.' }}</p>
+      <small
+        >{{ getTypeLabel(featuredItem.type) }} · Batch #{{ featuredItem.batchId }} ·
+        {{ formatDate(featuredItem.createdAt) }}</small
+      >
+    </div>
+
+    <button type="button" (click)="openPreview(featuredItem)">Open</button>
+  </article>
+
+  <article class="panel">
+    <div class="toolbar">
+      <div>
+        <span>{{ getTypeLabel(selectedType) }}</span>
+        <h2>Shared Content</h2>
+      </div>
+
+      <div class="tools">
+        <label class="search-box">
+          <i class="bi bi-search"></i>
+          <input [(ngModel)]="searchText" placeholder="Search title, batch, file..." />
+        </label>
+
+        <select [(ngModel)]="sortMode">
+          <option value="NEWEST">Newest first</option>
+          <option value="OLDEST">Oldest first</option>
+          <option value="TITLE">Title A-Z</option>
+        </select>
+
+        <div class="view-toggle">
+          <button type="button" [class.active]="viewMode === 'GRID'" (click)="viewMode = 'GRID'">
+            <i class="bi bi-grid"></i>
+          </button>
+          <button type="button" [class.active]="viewMode === 'LIST'" (click)="viewMode = 'LIST'">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <div class="loader"></div>
+      <p>Loading your content...</p>
+    </div>
+
+    <div
+      class="content-list"
+      [class.list-view]="viewMode === 'LIST'"
+      *ngIf="!loading && filteredContent.length"
+    >
+      <article
+        class="content-card"
+        *ngFor="let item of filteredContent; trackBy: trackById"
+        [class.practice]="item.type === 'PRACTICE'"
+        [class.material]="item.type === 'MATERIAL'"
+        [class.note]="item.type === 'NOTE'"
+      >
+        <div class="content-icon">
+          <i class="bi" [ngClass]="getTypeIcon(item.type)"></i>
+        </div>
+
+        <div class="content-main">
+          <div class="title-row">
+            <h3>{{ item.title }}</h3>
+            <span>{{ getTypeLabel(item.type) }}</span>
+          </div>
+
+          <p>{{ item.description || 'No description added.' }}</p>
+
+          <div class="meta">
+            <small><i class="bi bi-collection"></i> Batch #{{ item.batchId }}</small>
+            <small><i class="bi bi-calendar3"></i> {{ formatDate(item.createdAt) }}</small>
+            <small *ngIf="item.fileName"><i class="bi bi-paperclip"></i> {{ item.fileName }}</small>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button type="button" (click)="openPreview(item)">
+            <i class="bi bi-eye"></i>
+            View
+          </button>
+
+          <a *ngIf="item.fileName" [href]="fileUrl(item)" target="_blank">
+            <i class="bi bi-download"></i>
+            Download
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && !filteredContent.length">
+      <i class="bi bi-folder2-open"></i>
+      <h3>No content found</h3>
+      <p>Your trainer has not shared matching resources yet.</p>
+    </div>
+  </article>
+
+  <div class="preview-overlay" *ngIf="previewItem">
+    <div class="preview-modal">
+      <button class="close-btn" type="button" (click)="closePreview()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <div class="preview-head">
+        <div
+          class="content-icon"
+          [class.practice]="previewItem.type === 'PRACTICE'"
+          [class.material]="previewItem.type === 'MATERIAL'"
+          [class.note]="previewItem.type === 'NOTE'"
+        >
+          <i class="bi" [ngClass]="getTypeIcon(previewItem.type)"></i>
+        </div>
+
+        <div>
+          <span>{{ getTypeLabel(previewItem.type) }}</span>
+          <h2>{{ previewItem.title }}</h2>
+          <p>Batch #{{ previewItem.batchId }} · {{ formatDate(previewItem.createdAt) }}</p>
+        </div>
+      </div>
+
+      <div class="preview-body">
+        <p>{{ previewItem.description || 'No description added by trainer.' }}</p>
+
+        <div class="file-box" *ngIf="previewItem.fileName">
+          <i class="bi bi-file-earmark-arrow-down"></i>
+          <div>
+            <strong>{{ previewItem.fileName }}</strong>
+            <small>{{ previewItem.fileType || 'Attached file' }}</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-actions">
+        <a *ngIf="previewItem.fileName" [href]="fileUrl(previewItem)" target="_blank">
+          <i class="bi bi-download"></i>
+          Download File
+        </a>
+        <button type="button" (click)="closePreview()">Close</button>
+      </div>
+    </div>
+  </div>
+</section>
