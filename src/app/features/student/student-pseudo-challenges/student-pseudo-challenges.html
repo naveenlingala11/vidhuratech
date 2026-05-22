@@ -141,8 +141,15 @@
             <div class="editor-topbar">
               <div>
                 <span class="eyebrow">Solution Editor</span>
+
                 <h2>{{ selectedLanguage.fileName }}</h2>
+
                 <p>{{ selectedLanguage.runtime }}</p>
+
+                <div class="unsaved-indicator" *ngIf="hasUnsavedChanges">
+                  <i class="bi bi-exclamation-circle"></i>
+                  Unsaved changes
+                </div>
               </div>
 
               <div class="language-picker">
@@ -197,16 +204,43 @@
                 </button>
               </div>
 
-              <button
-                class="run-button"
-                type="button"
-                [class.running]="running"
-                [disabled]="!canRun"
-                (click)="runCode()"
-              >
-                <i class="bi bi-play-fill"></i>
-                {{ running ? 'Running Tests' : 'Run All Tests' }}
-              </button>
+              <div class="editor-actions">
+                <button type="button" class="save-btn" [disabled]="saving" (click)="saveCode()">
+                  <i class="bi bi-floppy"></i>
+                  {{ saving ? 'Saving...' : 'Save Code' }}
+                </button>
+
+                <button
+                  class="run-button"
+                  type="button"
+                  [disabled]="!canRun || running"
+                  (click)="runCode()"
+                >
+                  <i class="bi bi-play-fill"></i>
+                  {{ running ? 'Running...' : 'Run Test Cases' }}
+                </button>
+
+                <button
+                  class="submit-btn"
+                  type="button"
+                  [disabled]="submitting"
+                  [class.unsaved-submit]="hasUnsavedChanges"
+                  (click)="openSubmitModal()"
+                >
+                  <i
+                    class="bi"
+                    [ngClass]="hasUnsavedChanges ? 'bi-exclamation-triangle' : 'bi-send-check'"
+                  ></i>
+
+                  {{
+                    hasUnsavedChanges
+                      ? 'Unsaved Changes'
+                      : submitting
+                        ? 'Submitting...'
+                        : 'Submit Challenge'
+                  }}
+                </button>
+              </div>
             </div>
 
             <div class="editor-shell premium-editor-shell">
@@ -435,4 +469,51 @@ Actual: {{ test.actualOutput }}</pre
       </div>
     </section>
   </ng-template>
+
+  <div class="submit-modal-backdrop" *ngIf="showSubmitModal">
+    <div class="submit-modal">
+      <div class="submit-modal-icon">
+        <i class="bi bi-shield-check"></i>
+      </div>
+
+      <h2>Submit Challenge?</h2>
+
+      <p>
+        Are you sure you want to submit this challenge? You can still save drafts later, but this
+        attempt will be recorded officially.
+      </p>
+
+      <div class="submit-modal-info">
+        <div>
+          <span>Language</span>
+          <strong>{{ selectedLanguage.label }}</strong>
+        </div>
+
+        <div>
+          <span>Lines</span>
+          <strong>{{ codeLineCount }}</strong>
+        </div>
+
+        <div>
+          <span>Challenge</span>
+          <strong>{{ selectedChallenge?.title }}</strong>
+        </div>
+      </div>
+
+      <div class="submit-modal-actions">
+        <button type="button" class="cancel-submit-btn" (click)="closeSubmitModal()">Cancel</button>
+
+        <button
+          type="button"
+          class="confirm-submit-btn"
+          [disabled]="submitting"
+          (click)="submitChallenge()"
+        >
+          <i class="bi bi-send-check"></i>
+
+          {{ submitting ? 'Submitting...' : 'Yes, Submit' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </section>

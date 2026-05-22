@@ -292,33 +292,61 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   }
 
   postChallengeJson(): void {
-    const challenge = this.parseChallengeJson();
-    if (!challenge) return;
+    const parsed = this.parseChallengeJson();
 
-    const normalized = this.normalizeChallengePayload(challenge);
-    const payload = this.buildCreatePayload(normalized);
+    if (!parsed) {
+      return;
+    }
 
-    if (!this.isValidChallengePayload(payload)) {
-      this.showToast('JSON must include batchId, title, problemStatement, and valid testCases');
+    const challenges = Array.isArray(parsed) ? parsed : [parsed];
+
+    if (!challenges.length) {
+      this.showToast('No challenges found in JSON');
+      return;
+    }
+
+    const normalizedChallenges = challenges.map((item) =>
+      this.buildCreatePayload(this.normalizeChallengePayload(item)),
+    );
+
+    const invalid = normalizedChallenges.find((payload) => !this.isValidChallengePayload(payload));
+
+    if (invalid) {
+      this.showToast('One or more challenges contain invalid fields');
       return;
     }
 
     this.saving = true;
+    const request =
+      normalizedChallenges.length === 1
+        ? this.service.createTrainerChallenge(normalizedChallenges[0])
+        : this.service.createBulkTrainerChallenges(normalizedChallenges);
 
-    this.service.createTrainerChallenge(payload).subscribe({
+    request.subscribe({
       next: (res: any) => {
-        const id = this.resolveSavedId(res);
         this.saving = false;
-        this.showToast('JSON challenge posted successfully');
+        const data = res?.data || res;
         this.form = this.getEmptyForm();
         this.jsonChallengeText = '';
         this.showJsonImporter = false;
         this.loadChallenges();
-        if (id) this.previewChallenge(Number(id));
+        if (normalizedChallenges.length === 1) {
+          this.showToast('Challenge posted successfully');
+        } else {
+          this.showToast(
+            `${data?.successCount || normalizedChallenges.length} challenges posted successfully`,
+          );
+        }
       },
-      error: () => {
+
+      error: (error) => {
+        console.error(error);
         this.saving = false;
-        this.showToast('Unable to post JSON challenge');
+        this.showToast(
+          normalizedChallenges.length > 1
+            ? 'Bulk challenge upload failed'
+            : 'Unable to post JSON challenge',
+        );
       },
     });
   }

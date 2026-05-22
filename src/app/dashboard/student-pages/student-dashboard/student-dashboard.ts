@@ -350,6 +350,14 @@ export class StudentDashboard implements OnInit {
         route: '/dashboard/student/assessments',
       },
       {
+        label: 'Pseudo Challenges',
+        value: this.stats.pseudoChallenges ?? 0,
+        caption: 'Solve coding logic tasks',
+        icon: 'bi-code-square',
+        tone: 'blue',
+        route: '/dashboard/student/pseudo-challenges',
+      },
+      {
         label: 'Mock Interviews',
         value: this.mockRequests.length,
         caption: 'Interview practice sessions',
@@ -364,14 +372,6 @@ export class StudentDashboard implements OnInit {
         icon: 'bi-patch-check',
         tone: 'teal',
         route: '/dashboard/student/certificates',
-      },
-      {
-        label: 'Pseudo Challenges',
-        value: this.stats.pseudoChallenges ?? 0,
-        caption: 'Solve coding logic tasks',
-        icon: 'bi-code-square',
-        tone: 'blue',
-        route: '/dashboard/student/pseudo-challenges',
       },
     ];
   }

@@ -117,6 +117,7 @@ import { roleGuard } from './features/auth/services/role-guard';
 ========================= */
 import { StudentPseudoChallengesComponent } from './features/student/student-pseudo-challenges/student-pseudo-challenges';
 import { TrainerPseudoChallengesComponent } from './features/trainer/trainer-pseudo-challenges/trainer-pseudo-challenges';
+import { AssessmentResults } from './features/trainer/assessment-results/assessment-results';
 
 export const routes: Routes = [
   /* =========================
@@ -387,13 +388,18 @@ export const routes: Routes = [
         canActivate: [roleGuard(['TRAINER'])],
       },
       {
-        path: 'trainer/assessments',
-        component: TrainerAssessmentsComponent,
+        path: 'trainer/pseudo-challenges',
+        component: TrainerPseudoChallengesComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
       {
-        path: 'trainer/pseudo-challenges',
-        component: TrainerPseudoChallengesComponent,
+        path: 'trainer/assessments/:id/results',
+        component: AssessmentResults,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'trainer/assessments',
+        component: TrainerAssessmentsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
     ],
@@ -461,6 +467,11 @@ export const routes: Routes = [
   {
     path: 'dashboard/trainer/pseudo-challenges',
     component: TrainerPseudoChallengesComponent,
+    canActivate: [authGuard, roleGuard(['TRAINER'])],
+  },
+  {
+    path: 'dashboard/trainer/assessments/:id/results',
+    component: AssessmentResults,
     canActivate: [authGuard, roleGuard(['TRAINER'])],
   },
 
