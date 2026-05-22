@@ -94,12 +94,12 @@ export class TrainerAssessmentsComponent implements OnInit {
   }
 
   viewResults(id: number): void {
-    if (!id) {
+    if (!id || isNaN(id)) {
       this.showToast('Invalid assessment');
       return;
     }
 
-    this.router.navigate(['/dashboard/trainer/assessments', id, 'results']);
+    this.router.navigate(['/dashboard/trainer/assessments', Number(id), 'results']);
   }
 
   deleteAssessment(id: number): void {

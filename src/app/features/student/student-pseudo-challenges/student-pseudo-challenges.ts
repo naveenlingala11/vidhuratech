@@ -36,6 +36,11 @@ export class StudentPseudoChallengesComponent implements OnInit {
   language: CodeLanguage = 'PYTHON';
   sourceCode = '';
   showMoreLanguages = false;
+  saving = false;
+  submitting = false;
+  showSubmitModal = false;
+  lastSavedCode = '';
+  lastSavedLanguage: CodeLanguage | null = null;
 
   primaryLanguages: LanguageOption[] = [
     { label: 'Python', value: 'PYTHON', fileName: 'main.py', runtime: 'Python 3.14' },
@@ -129,18 +134,38 @@ export class StudentPseudoChallengesComponent implements OnInit {
     this.result = null;
     this.sourceCode = '';
     this.showMoreLanguages = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
 
     this.service.getStudentChallenge(id).subscribe({
       next: (res: any) => {
         this.selectedChallenge = res?.data || res;
-        this.language = 'PYTHON';
-        this.setStarterCode();
+
+        this.language = this.selectedChallenge?.savedLanguage || 'PYTHON';
+
+        this.sourceCode = this.selectedChallenge?.savedCode || this.starterCode(this.language);
+
+        this.lastSavedCode = this.sourceCode;
+        this.lastSavedLanguage = this.language;
+
         this.opening = false;
       },
-      error: () => {
+
+      error: (error) => {
+        console.error('Open challenge error:', error);
+
         this.opening = false;
-        this.showToast('Unable to open challenge');
+
+        if (error.status === 403) {
+          this.showToast('Access denied');
+        } else if (error.status === 404) {
+          this.showToast('Challenge not found');
+        } else {
+          this.showToast('Unable to open challenge');
+        }
       },
     });
   }
@@ -247,34 +272,248 @@ export class StudentPseudoChallengesComponent implements OnInit {
   }
 
   runCode(): void {
-    if (!this.selectedChallenge) return;
+    if (this.running || this.submitting || this.saving) {
+      return;
+    }
 
-    if (!this.sourceCode.trim()) {
+    if (!this.selectedChallenge?.id) {
+      this.showToast('Challenge not found');
+      return;
+    }
+
+    const code = this.sourceCode?.trim();
+
+    if (!code) {
+      this.result = null;
       this.showToast('Write code before running test cases');
       return;
     }
 
+    if (code.length < 10) {
+      this.result = null;
+      this.showToast('Code is too short');
+      return;
+    }
+
+    if (!this.language) {
+      this.showToast('Please select a programming language');
+      return;
+    }
+
     this.running = true;
+    this.result = null;
 
     this.service
-      .submitStudentChallenge(this.selectedChallenge.id, {
+      .runStudentChallenge(this.selectedChallenge.id, {
         language: this.language,
-        sourceCode: this.sourceCode,
+        sourceCode: code,
       })
       .subscribe({
         next: (res: any) => {
           this.running = false;
-          this.result = res?.data || res;
-          this.showToast(
-            this.result.status === 'PASS' ? 'All required tests passed' : 'Some tests failed',
-          );
-          this.loadChallenges();
+
+          const data = res?.data || res;
+
+          if (!data) {
+            this.showToast('Invalid compiler response');
+            return;
+          }
+
+          this.result = data;
+
+          const passed = this.result?.status === 'PASS' || this.result?.allTestsPassed === true;
+
+          if (passed) {
+            this.showToast('All test cases passed successfully');
+          } else if (this.result?.compileError) {
+            this.showToast('Compilation failed');
+          } else {
+            this.showToast('Some test cases failed');
+          }
         },
-        error: () => {
+
+        error: (error) => {
           this.running = false;
-          this.showToast('Compiler failed to run your code');
+
+          console.error('Run code error:', error);
+
+          this.result = {
+            status: 'FAIL',
+            compileError:
+              error?.error?.message || error?.error?.error || 'Compiler execution failed',
+            percentage: 0,
+            testResults: [],
+          };
+
+          if (error.status === 0) {
+            this.showToast('Unable to connect to compiler server');
+          } else if (error.status >= 500) {
+            this.showToast('Compiler server error');
+          } else if (error.status === 403) {
+            this.showToast('You do not have access to this challenge');
+          } else {
+            this.showToast(error?.error?.message || 'Compiler failed to run your code');
+          }
         },
       });
+  }
+
+  saveCode(): void {
+    if (this.saving || this.running || this.submitting) {
+      return;
+    }
+
+    if (!this.selectedChallenge?.id) {
+      this.showToast('Challenge not found');
+      return;
+    }
+
+    const code = this.sourceCode?.trim();
+
+    if (!code) {
+      this.showToast('Nothing to save');
+      return;
+    }
+
+    if (!this.language) {
+      this.showToast('Please select a language');
+      return;
+    }
+
+    this.saving = true;
+
+    this.service
+      .saveStudentChallenge(this.selectedChallenge.id, {
+        language: this.language,
+        sourceCode: code,
+      })
+      .subscribe({
+        next: (res: any) => {
+          this.saving = false;
+
+          this.lastSavedCode = code;
+          this.lastSavedLanguage = this.language;
+
+          const savedAt = res?.data?.savedAt || new Date().toISOString();
+
+          this.showToast('Code saved successfully');
+
+          console.log('Draft saved at:', savedAt);
+        },
+
+        error: (error) => {
+          this.saving = false;
+
+          console.error('Save code error:', error);
+
+          if (error.status === 0) {
+            this.showToast('Unable to connect to server');
+          } else if (error.status === 403) {
+            this.showToast('Access denied');
+          } else if (error.status >= 500) {
+            this.showToast('Server error while saving');
+          } else {
+            this.showToast(error?.error?.message || 'Failed to save code');
+          }
+        },
+      });
+  }
+
+  submitChallenge(): void {
+    if (this.submitting) {
+      return;
+    }
+
+    if (!this.selectedChallenge?.id) {
+      this.showToast('Challenge not found');
+      return;
+    }
+
+    const code = this.sourceCode?.trim();
+
+    if (!code) {
+      this.showToast('Write code before submitting');
+      return;
+    }
+
+    this.submitting = true;
+
+    this.service
+      .submitStudentChallenge(this.selectedChallenge.id, {
+        language: this.language,
+        sourceCode: code,
+      })
+      .subscribe({
+        next: (res: any) => {
+          this.submitting = false;
+          this.showSubmitModal = false;
+
+          const data = res?.data || res;
+
+          this.result = data;
+
+          const passed = data?.status === 'PASS' || data?.allTestsPassed === true;
+
+          if (passed) {
+            this.showToast('Challenge submitted successfully');
+          } else {
+            this.showToast('Challenge submitted with failed test cases');
+          }
+
+          this.loadChallenges();
+        },
+
+        error: (error) => {
+          this.submitting = false;
+
+          console.error('Submit challenge error:', error);
+
+          if (error.status === 0) {
+            this.showToast('Unable to connect to server');
+          } else if (error.status === 403) {
+            this.showToast('Access denied');
+          } else if (error.status >= 500) {
+            this.showToast('Submission server error');
+          } else {
+            this.showToast(error?.error?.message || 'Failed to submit challenge');
+          }
+        },
+      });
+  }
+
+  openSubmitModal(): void {
+    if (this.submitting || this.running || this.saving) {
+      return;
+    }
+
+    if (!this.selectedChallenge?.id) {
+      this.showToast('Challenge not found');
+      return;
+    }
+
+    const code = this.sourceCode?.trim();
+
+    if (!code) {
+      this.showToast('Write code before submitting');
+      return;
+    }
+
+    if (code.length < 10) {
+      this.showToast('Code is incomplete');
+      return;
+    }
+
+    if (this.hasUnsavedChanges) {
+      this.showToast('Please save the unsaved changes before submitting');
+
+      return;
+    }
+
+    this.showSubmitModal = true;
+  }
+
+  closeSubmitModal(): void {
+    this.showSubmitModal = false;
   }
 
   trackById(_: number, item: any): number {
@@ -333,6 +572,13 @@ export class StudentPseudoChallengesComponent implements OnInit {
       editor.focus();
       editor.setSelectionRange(start + cursorOffset, start + cursorOffset);
     });
+  }
+
+  get hasUnsavedChanges(): boolean {
+    return (
+      this.sourceCode.trim() !== this.lastSavedCode.trim() ||
+      this.language !== this.lastSavedLanguage
+    );
   }
 
   private snippets(language: CodeLanguage): Record<'input' | 'loop' | 'print', string> {

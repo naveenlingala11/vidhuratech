@@ -64,4 +64,16 @@ export class PseudoChallengeService {
   updateTrainerChallenge(id: number, payload: any) {
     return this.http.put(`${this.baseUrl}/trainer/pseudo-challenges/${id}`, payload);
   }
+
+  runStudentChallenge(id: number, payload: CodeSubmitPayload) {
+    return this.http.post(`${this.baseUrl}/student/pseudo-challenges/${id}/run`, payload);
+  }
+
+  saveStudentChallenge(id: number, payload: CodeSubmitPayload) {
+    return this.http.post(`${this.baseUrl}/student/pseudo-challenges/${id}/save`, payload);
+  }
+
+  createBulkTrainerChallenges(payload: any[]) {
+    return this.http.post(`${this.baseUrl}/trainer/pseudo-challenges/bulk`, payload);
+  }
 }
