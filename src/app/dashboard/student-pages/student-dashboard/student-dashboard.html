@@ -164,21 +164,41 @@
     <article class="panel">
       <div class="panel-title compact">
         <div>
-          <span></span>
-          <h2>Assignment Submissions</h2>
+          <span>Coding Practice</span>
+          <h2>Pseudo Challenges</h2>
         </div>
+
+        <button type="button" routerLink="/dashboard/student/pseudo-challenges">View All</button>
       </div>
-      <div class="activity-list" *ngIf="pendingWorkItems.length; else emptyWork">
-        <div class="activity-item" *ngFor="let item of pendingWorkItems">
-          <span><i class="bi bi-list-check"></i></span>
+
+      <div
+        class="activity-list"
+        *ngIf="(stats.pseudoChallenges ?? 0) > 0; else emptyPseudoChallenges"
+      >
+        <button
+          class="activity-item assessment-item"
+          type="button"
+          routerLink="/dashboard/student/pseudo-challenges"
+        >
+          <span>
+            <i class="bi bi-code-square"></i>
+          </span>
+
           <div>
-            <strong>{{ item.title }}</strong>
-            <p>{{ item.type }} · {{ item.batch }} · Due {{ item.dueAt }}</p>
+            <strong>Available Pseudo Challenges</strong>
+
+            <p>
+              {{ stats.pseudoChallenges ?? 0 }}
+              coding logic challenges available
+            </p>
           </div>
-        </div>
+
+          <i class="bi bi-arrow-right"></i>
+        </button>
       </div>
-      <ng-template #emptyWork>
-        <div class="empty-line">No pending assignments or assessments.</div>
+
+      <ng-template #emptyPseudoChallenges>
+        <div class="empty-line">No pseudo challenges available yet.</div>
       </ng-template>
     </article>
     <article class="panel">
