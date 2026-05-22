@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { StudentDashboardService } from '../../service/student-dashboard';
 import { StudentWorkflowService } from '../service/student-workflow';
 import { StudentService } from '../service/student';
+import { PseudoChallengeService } from '../../../features/services/pseudo-challenge';
 
 interface StudentStats {
   enrolledCourses: number;
@@ -15,6 +16,7 @@ interface StudentStats {
   practiceItems: number;
   materials: number;
   notes: number;
+  pseudoChallenges?: number;
 }
 
 interface StudentCourse {
@@ -70,6 +72,7 @@ export class StudentDashboard implements OnInit {
     assessmentsUpcoming: 0,
     certificates: 0,
     placementStatus: 'Not Eligible',
+    pseudoChallenges: 0,
     practiceItems: 0,
     materials: 0,
     notes: 0,
@@ -125,12 +128,20 @@ export class StudentDashboard implements OnInit {
       route: '/placements',
       tone: 'action-rose',
     },
+    {
+      label: 'Pseudo Challenges',
+      helper: 'Solve logic and output challenges',
+      icon: 'bi-code-square',
+      route: '/dashboard/student/pseudo-challenges',
+      tone: 'action-blue',
+    },
   ];
 
   constructor(
     private studentService: StudentDashboardService,
     private workflow: StudentWorkflowService,
     private certificateService: StudentService,
+    private pseudoChallengeService: PseudoChallengeService,
     private cdr: ChangeDetectorRef,
     private router: Router,
   ) {}
@@ -160,6 +171,7 @@ export class StudentDashboard implements OnInit {
         this.notifications = sections.notifications || [];
         this.mentorSessions = sections.mentorSessions || [];
         this.learningContent = sections.learningContent || [];
+        this.loadPseudoChallengeCount();
         this.loading = false;
 
         this.loadCertificateCount();
@@ -183,6 +195,30 @@ export class StudentDashboard implements OnInit {
     this.workflow.getMockInterviews().subscribe({
       next: (res: any) => (this.mockRequests = res?.data || []),
       error: () => (this.mockRequests = []),
+    });
+  }
+
+  loadPseudoChallengeCount(): void {
+    this.pseudoChallengeService.getStudentChallenges().subscribe({
+      next: (res: any) => {
+        const challenges = res?.data || [];
+
+        this.stats = {
+          ...this.stats,
+          pseudoChallenges: Array.isArray(challenges) ? challenges.length : 0,
+        };
+
+        this.cdr.detectChanges();
+      },
+
+      error: () => {
+        this.stats = {
+          ...this.stats,
+          pseudoChallenges: 0,
+        };
+
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -282,14 +318,6 @@ export class StudentDashboard implements OnInit {
         route: '/dashboard/student/courses',
       },
       {
-        label: 'Assignments',
-        value: this.stats.assignmentsPending,
-        caption: 'Pending submissions',
-        icon: 'bi-file-earmark-text',
-        tone: 'orange',
-        route: '/dashboard/student/assignments',
-      },
-      {
         label: 'Practice',
         value: this.stats.practiceItems,
         caption: 'Practice tasks shared',
@@ -336,6 +364,14 @@ export class StudentDashboard implements OnInit {
         icon: 'bi-patch-check',
         tone: 'teal',
         route: '/dashboard/student/certificates',
+      },
+      {
+        label: 'Pseudo Challenges',
+        value: this.stats.pseudoChallenges ?? 0,
+        caption: 'Solve coding logic tasks',
+        icon: 'bi-code-square',
+        tone: 'blue',
+        route: '/dashboard/student/pseudo-challenges',
       },
     ];
   }

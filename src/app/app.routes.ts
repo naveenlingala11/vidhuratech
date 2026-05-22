@@ -112,6 +112,12 @@ import { AssessmentAttemptComponent } from './features/student/assessment-attemp
 import { authGuard } from './features/auth/services/auth-guard';
 import { roleGuard } from './features/auth/services/role-guard';
 
+/* =========================
+   PSEUDO CHALLENGES
+========================= */
+import { StudentPseudoChallengesComponent } from './features/student/student-pseudo-challenges/student-pseudo-challenges';
+import { TrainerPseudoChallengesComponent } from './features/trainer/trainer-pseudo-challenges/trainer-pseudo-challenges';
+
 export const routes: Routes = [
   /* =========================
      PUBLIC ROUTES
@@ -348,6 +354,11 @@ export const routes: Routes = [
         component: StudentMockInterviewsComponent,
         canActivate: [roleGuard(['STUDENT'])],
       },
+      {
+        path: 'student/pseudo-challenges',
+        component: StudentPseudoChallengesComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
 
       /* --- TRAINER PAGES --- */
       {
@@ -378,6 +389,11 @@ export const routes: Routes = [
       {
         path: 'trainer/assessments',
         component: TrainerAssessmentsComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'trainer/pseudo-challenges',
+        component: TrainerPseudoChallengesComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
     ],
@@ -436,6 +452,16 @@ export const routes: Routes = [
     path: 'dashboard/admin/admissions',
     component: AdminAdmissionsComponent,
     canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+  },
+  {
+    path: 'dashboard/student/pseudo-challenges',
+    component: StudentPseudoChallengesComponent,
+    canActivate: [authGuard, roleGuard(['STUDENT'])],
+  },
+  {
+    path: 'dashboard/trainer/pseudo-challenges',
+    component: TrainerPseudoChallengesComponent,
+    canActivate: [authGuard, roleGuard(['TRAINER'])],
   },
 
   /* =========================

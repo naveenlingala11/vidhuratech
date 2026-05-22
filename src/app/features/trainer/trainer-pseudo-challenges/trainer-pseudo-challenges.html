@@ -1,0 +1,535 @@
+<section class="pseudo-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="hero">
+    <div class="hero-copy">
+      <span>Code Challenge Lab</span>
+      <h1>Build compiler-ready challenges</h1>
+      <p>
+        Create Java and Python coding tasks with JSON upload, hidden test cases, edit flow,
+        validation, preview, and attempt tracking for every batch.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="ghost-btn" (click)="showJsonImporter = !showJsonImporter">
+        <i class="bi bi-braces"></i>
+        JSON
+      </button>
+      <button type="button" class="ghost-btn" (click)="fillSampleChallenge()">
+        <i class="bi bi-stars"></i>
+        Sample
+      </button>
+      <button type="button" class="light-btn" (click)="loadChallenges()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="stats-grid">
+    <article class="stat-card blue">
+      <i class="bi bi-code-square"></i>
+      <span>Challenges</span>
+      <strong>{{ challenges.length }}</strong>
+      <small>Total posted</small>
+    </article>
+
+    <article class="stat-card green">
+      <i class="bi bi-check2-circle"></i>
+      <span>Attempts</span>
+      <strong>{{ totalAttempts }}</strong>
+      <small>Student submissions</small>
+    </article>
+
+    <article class="stat-card orange">
+      <i class="bi bi-input-cursor-text"></i>
+      <span>Test Cases</span>
+      <strong>{{ totalTestCases }}</strong>
+      <small>Validation checks</small>
+    </article>
+
+    <article class="stat-card rose">
+      <i class="bi bi-bullseye"></i>
+      <span>Pass Mark</span>
+      <strong>{{ passMarks }}</strong>
+      <small>{{ form.passPercentage }}% of current form</small>
+    </article>
+  </div>
+
+  <div class="workspace-grid">
+    <article class="panel create-panel">
+      <div class="panel-head">
+        <div>
+          <span>{{ editingChallengeId ? 'Editing' : 'Builder' }}</span>
+          <h2>{{ editingChallengeId ? 'Update Challenge' : 'New Challenge' }}</h2>
+        </div>
+        <div class="panel-actions">
+          <button type="button" class="subtle-btn" (click)="showJsonImporter = !showJsonImporter">
+            JSON Import
+          </button>
+          <button type="button" class="subtle-btn" (click)="resetForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="edit-banner" *ngIf="editingChallengeId">
+        <div>
+          <strong>Editing posted challenge #{{ editingChallengeId }}</strong>
+          <span>Saving will update the existing challenge instead of creating a new one.</span>
+        </div>
+        <button type="button" class="subtle-btn" (click)="resetForm()">Exit Edit</button>
+      </div>
+
+      <div class="json-importer" *ngIf="showJsonImporter">
+        <div class="section-title">
+          <div>
+            <span>Bulk Upload</span>
+            <h3>Paste Challenge JSON</h3>
+          </div>
+          <button type="button" (click)="loadSampleJson()">
+            <i class="bi bi-filetype-json"></i>
+            Load Sample
+          </button>
+        </div>
+
+        <textarea
+          class="json-editor"
+          rows="18"
+          [(ngModel)]="jsonChallengeText"
+          spellcheck="false"
+          placeholder='{"batchId":101,"title":"Sum of Two Numbers","testCases":[...]}'
+        ></textarea>
+
+        <div class="json-actions">
+          <button type="button" class="subtle-btn" (click)="importChallengeJson()">
+            <i class="bi bi-box-arrow-in-down"></i>
+            Import to Builder
+          </button>
+          <button
+            type="button"
+            class="submit-btn inline-submit"
+            [disabled]="saving"
+            (click)="postChallengeJson()"
+          >
+            <i class="bi bi-cloud-arrow-up"></i>
+            {{ saving ? 'Posting...' : 'Post JSON Challenge' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="builder-summary">
+        <div>
+          <span>Configured Marks</span>
+          <strong>{{ builderMarks }}/{{ form.totalMarks }}</strong>
+        </div>
+        <div>
+          <span>Rules</span>
+          <strong>{{ form.rules.length }}</strong>
+        </div>
+        <div>
+          <span>Tests</span>
+          <strong>{{ form.testCases.length }}</strong>
+        </div>
+        <div>
+          <span>Visible Samples</span>
+          <strong>{{ visibleTestsCount }}</strong>
+        </div>
+      </div>
+
+      <div class="validation-panel" *ngIf="validationErrors.length || validationWarnings.length">
+        <div class="validation-block error-block" *ngIf="validationErrors.length">
+          <strong>Fix before posting</strong>
+          <p *ngFor="let error of validationErrors">{{ error }}</p>
+        </div>
+
+        <div class="validation-block warning-block" *ngIf="validationWarnings.length">
+          <strong>Review</strong>
+          <p *ngFor="let warning of validationWarnings">{{ warning }}</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Batch ID</span>
+          <input type="number" [(ngModel)]="form.batchId" placeholder="Example: 12" />
+        </label>
+
+        <label>
+          <span>Title</span>
+          <input [(ngModel)]="form.title" placeholder="Find largest number" />
+        </label>
+
+        <label class="full">
+          <span>Problem Statement</span>
+          <textarea
+            rows="5"
+            [(ngModel)]="form.problemStatement"
+            placeholder="Write pseudo code to solve the problem..."
+          ></textarea>
+        </label>
+
+        <label class="full">
+          <span>Constraints</span>
+          <textarea
+            rows="3"
+            [(ngModel)]="form.constraintsText"
+            placeholder="Use loops, avoid sorting, handle edge cases..."
+          ></textarea>
+        </label>
+
+        <label>
+          <span>Input Format</span>
+          <textarea rows="3" [(ngModel)]="form.inputFormat" placeholder="Describe input"></textarea>
+        </label>
+
+        <label>
+          <span>Output Format</span>
+          <textarea
+            rows="3"
+            [(ngModel)]="form.outputFormat"
+            placeholder="Describe output"
+          ></textarea>
+        </label>
+
+        <label>
+          <span>Duration</span>
+          <input type="number" min="1" [(ngModel)]="form.durationMinutes" />
+        </label>
+
+        <label>
+          <span>Total Marks</span>
+          <input type="number" min="1" [(ngModel)]="form.totalMarks" />
+        </label>
+
+        <label>
+          <span>Pass Percentage</span>
+          <input type="number" min="1" max="100" [(ngModel)]="form.passPercentage" />
+        </label>
+      </div>
+
+      <div class="builder-section">
+        <div class="section-title">
+          <div>
+            <span>Rule scoring</span>
+            <h3>Rules</h3>
+          </div>
+          <button type="button" (click)="addRule()">
+            <i class="bi bi-plus-lg"></i>
+            Add Rule
+          </button>
+        </div>
+
+        <div class="builder-row" *ngFor="let rule of form.rules; let i = index">
+          <select [(ngModel)]="rule.type" aria-label="Rule type">
+            <option value="REQUIRED_KEYWORD">Required Keyword</option>
+            <option value="FORBIDDEN_KEYWORD">Forbidden Keyword</option>
+            <option value="MIN_LINES">Minimum Lines</option>
+          </select>
+
+          <input [(ngModel)]="rule.value" placeholder="if / loop / sort / 5" />
+          <input type="number" min="0" [(ngModel)]="rule.marks" placeholder="Marks" />
+
+          <button type="button" class="icon-danger" (click)="removeRule(i)" title="Remove rule">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="builder-section">
+        <div class="section-title">
+          <div>
+            <span>Output checks</span>
+            <h3>Test Cases</h3>
+          </div>
+          <button type="button" (click)="addTestCase()">
+            <i class="bi bi-plus-lg"></i>
+            Add Test
+          </button>
+        </div>
+
+        <div class="test-case" *ngFor="let tc of form.testCases; let i = index">
+          <label>
+            <span>Input</span>
+            <textarea rows="3" [(ngModel)]="tc.inputData"></textarea>
+          </label>
+
+          <label>
+            <span>Expected Output</span>
+            <textarea rows="3" [(ngModel)]="tc.expectedOutput"></textarea>
+          </label>
+
+          <label>
+            <span>Marks</span>
+            <input type="number" min="0" [(ngModel)]="tc.marks" />
+          </label>
+
+          <label class="hidden-check">
+            <input type="checkbox" [(ngModel)]="tc.hidden" />
+            <span>Hidden</span>
+          </label>
+
+          <button type="button" class="icon-danger" (click)="removeTestCase(i)" title="Remove test">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <button
+        class="submit-btn"
+        type="button"
+        [disabled]="saving || isFormInvalid"
+        (click)="saveChallenge()"
+      >
+        <i class="bi bi-cloud-arrow-up"></i>
+        {{ saving ? 'Saving...' : editingChallengeId ? 'Update Challenge' : 'Create Challenge' }}
+      </button>
+
+      <button
+        class="preview-draft-btn"
+        type="button"
+        [disabled]="isFormInvalid"
+        (click)="previewBuilder()"
+      >
+        <i class="bi bi-window-sidebar"></i>
+        Preview Before Posting
+      </button>
+    </article>
+
+    <article class="panel list-panel">
+      <div class="panel-head">
+        <div>
+          <span>Library</span>
+          <h2>Posted Challenges</h2>
+        </div>
+        <strong>{{ filteredChallenges.length }}</strong>
+      </div>
+
+      <div class="toolbar">
+        <label class="search-box">
+          <i class="bi bi-search"></i>
+          <input [(ngModel)]="search" placeholder="Search by title, batch, status..." />
+        </label>
+
+        <select [(ngModel)]="statusFilter" aria-label="Filter status">
+          <option value="ALL">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="DRAFT">Draft</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
+
+      <div class="loading" *ngIf="loading">
+        <div class="loader"></div>
+        <p>Loading challenges...</p>
+      </div>
+
+      <div class="challenge-list" *ngIf="!loading && filteredChallenges.length">
+        <article class="challenge-card" *ngFor="let item of filteredChallenges; trackBy: trackById">
+          <div class="card-top">
+            <span>Batch #{{ item.batchId }}</span>
+            <b>{{ item.attemptCount || 0 }} attempts</b>
+          </div>
+
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.problemStatement }}</p>
+
+          <div class="meta-grid">
+            <div>
+              <span>Marks</span>
+              <strong>{{ item.totalMarks }}</strong>
+            </div>
+            <div>
+              <span>Pass</span>
+              <strong>{{ item.passPercentage }}%</strong>
+            </div>
+            <div>
+              <span>Rules</span>
+              <strong>{{ item.rulesCount || item.rules?.length || 0 }}</strong>
+            </div>
+            <div>
+              <span>Tests</span>
+              <strong>{{ item.testCasesCount || item.testCases?.length || 0 }}</strong>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" (click)="previewChallenge(item.id)">
+              <i class="bi bi-eye"></i>
+              Preview
+            </button>
+
+            <button type="button" (click)="editChallenge(item.id)">
+              <i class="bi bi-pencil-square"></i>
+              Edit
+            </button>
+
+            <button type="button" (click)="duplicateChallenge(item)">
+              <i class="bi bi-copy"></i>
+              Reuse
+            </button>
+
+            <button type="button" class="danger" (click)="deleteChallenge(item.id)">
+              <i class="bi bi-trash"></i>
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty" *ngIf="!loading && !filteredChallenges.length">
+        <i class="bi bi-code-slash"></i>
+        <h3>No challenges found</h3>
+        <p>Create a new challenge or adjust your search filters.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div class="preview-overlay" *ngIf="draftPreview">
+  <div class="preview-modal">
+    <button
+      type="button"
+      class="close-btn"
+      (click)="closeDraftPreview()"
+      title="Close draft preview"
+    >
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="preview-head">
+      <span>Draft Preview</span>
+      <h2>{{ draftPreview.title }}</h2>
+      <p>{{ draftPreview.problemStatement }}</p>
+    </div>
+
+    <div class="preview-meta">
+      <div>
+        <span>Batch</span><strong>#{{ draftPreview.batchId }}</strong>
+      </div>
+      <div>
+        <span>Marks</span><strong>{{ draftPreview.totalMarks }}</strong>
+      </div>
+      <div>
+        <span>Pass</span><strong>{{ draftPreview.passPercentage }}%</strong>
+      </div>
+      <div>
+        <span>Duration</span><strong>{{ draftPreview.durationMinutes }}m</strong>
+      </div>
+    </div>
+
+    <div class="preview-grid">
+      <article>
+        <h3>Problem Details</h3>
+        <div class="case-box">
+          <span>Constraints</span>
+          <pre>{{ draftPreview.constraintsText || 'No constraints added.' }}</pre>
+        </div>
+        <div class="case-box">
+          <span>Input Format</span>
+          <pre>{{ draftPreview.inputFormat || 'Not provided.' }}</pre>
+        </div>
+        <div class="case-box">
+          <span>Output Format</span>
+          <pre>{{ draftPreview.outputFormat || 'Not provided.' }}</pre>
+        </div>
+      </article>
+
+      <article>
+        <h3>Test Cases</h3>
+        <div class="case-box" *ngFor="let tc of draftPreview.testCases; let i = index">
+          <div class="case-title">
+            <strong>Test {{ i + 1 }}</strong>
+            <b [class.pass]="!tc.hidden">{{ tc.hidden ? 'Hidden' : 'Sample' }}</b>
+          </div>
+          <span>Input</span>
+          <pre>{{ tc.inputData }}</pre>
+          <span>Expected</span>
+          <pre>{{ tc.expectedOutput }}</pre>
+          <b>{{ tc.marks }} marks</b>
+        </div>
+      </article>
+    </div>
+
+    <div class="attempts-box">
+      <h3>Rules</h3>
+      <div class="rule-pill" *ngFor="let rule of draftPreview.rules">
+        <strong>{{ rule.type }}</strong>
+        <span>{{ rule.value }} - {{ rule.marks }} marks</span>
+      </div>
+      <p class="muted" *ngIf="!draftPreview.rules?.length">No static code rules configured.</p>
+    </div>
+  </div>
+</div>
+
+<div class="preview-overlay" *ngIf="selectedChallenge || previewLoading">
+  <div class="preview-modal">
+    <button type="button" class="close-btn" (click)="closePreview()" title="Close preview">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="loading compact" *ngIf="previewLoading">
+      <div class="loader"></div>
+      <p>Loading preview...</p>
+    </div>
+
+    <ng-container *ngIf="!previewLoading && selectedChallenge">
+      <div class="preview-head">
+        <span>Challenge Preview</span>
+        <h2>{{ selectedChallenge.title }}</h2>
+        <p>{{ selectedChallenge.problemStatement }}</p>
+      </div>
+
+      <div class="preview-meta">
+        <div>
+          <span>Batch</span><strong>#{{ selectedChallenge.batchId }}</strong>
+        </div>
+        <div>
+          <span>Marks</span><strong>{{ selectedChallenge.totalMarks }}</strong>
+        </div>
+        <div>
+          <span>Pass</span><strong>{{ selectedChallenge.passPercentage }}%</strong>
+        </div>
+        <div>
+          <span>Duration</span><strong>{{ selectedChallenge.durationMinutes }}m</strong>
+        </div>
+      </div>
+
+      <div class="preview-grid">
+        <article>
+          <h3>Rules</h3>
+          <div class="rule-pill" *ngFor="let rule of selectedChallenge.rules">
+            <strong>{{ rule.type }}</strong>
+            <span>{{ rule.value }} - {{ rule.marks }} marks</span>
+          </div>
+          <p class="muted" *ngIf="!selectedChallenge.rules?.length">No rules configured.</p>
+        </article>
+
+        <article>
+          <h3>Test Cases</h3>
+          <div class="case-box" *ngFor="let tc of selectedChallenge.testCases">
+            <span>Input</span>
+            <pre>{{ tc.inputData }}</pre>
+            <span>Expected</span>
+            <pre>{{ tc.expectedOutput }}</pre>
+            <b>{{ tc.marks }} marks</b>
+          </div>
+          <p class="muted" *ngIf="!selectedChallenge.testCases?.length">No tests configured.</p>
+        </article>
+      </div>
+
+      <div class="attempts-box">
+        <h3>Attempts</h3>
+
+        <div class="attempt-row" *ngFor="let attempt of attempts">
+          <strong>{{ attempt.studentName || 'Student' }}</strong>
+          <span>{{ attempt.score }}/{{ attempt.totalMarks }}</span>
+          <b [class.pass]="attempt.status === 'PASS'" [class.fail]="attempt.status === 'FAIL'">
+            {{ attempt.status }}
+          </b>
+        </div>
+
+        <p class="muted" *ngIf="!attempts.length">No attempts yet.</p>
+      </div>
+    </ng-container>
+  </div>
+</div>
