@@ -298,6 +298,9 @@ export class AssessmentAttemptComponent implements OnInit, OnDestroy {
 
   submitAssessment(): void {
     if (this.submitted || this.loading || this.submitting) return;
+
+    this.updateAnsweredQuestions();
+
     this.submitting = true;
     this.loading = true;
     this.showSubmitConfirm = false;
