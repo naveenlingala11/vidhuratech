@@ -1,43 +1,46 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { DashboardBreadcrumb } from '../dashboard-breadcrumb/dashboard-breadcrumb';
+import { Router, RouterOutlet } from '@angular/router';
+
 import { DashboardSidebar } from '../dashboard-sidebar/dashboard-sidebar';
 import { DashboardTopbar } from '../dashboard-topbar/dashboard-topbar';
+
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    DashboardSidebar,
-    DashboardTopbar,
-    DashboardBreadcrumb
-  ],
+  imports: [CommonModule, RouterOutlet, DashboardSidebar, DashboardTopbar],
   templateUrl: './dashboard-layout.html',
-  styleUrls: ['./dashboard-layout.css']
+  styleUrls: ['./dashboard-layout.css'],
 })
 export class DashboardLayout {
   sidebarOpen = true;
   mobile = false;
-  constructor() {
+
+  constructor(private router: Router) {
     this.checkScreen();
   }
+
   @HostListener('window:resize')
-  checkScreen() {
+  checkScreen(): void {
     this.mobile = window.innerWidth < 992;
-    if (this.mobile) {
-      this.sidebarOpen = false;
-    } else {
-      this.sidebarOpen = true;
-    }
+    this.sidebarOpen = !this.mobile;
   }
-  toggleSidebar() {
+
+  toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
   }
-  closeSidebar() {
+
+  closeSidebar(): void {
     if (this.mobile) {
       this.sidebarOpen = false;
     }
+  }
+
+  isFullscreenPage(): boolean {
+    return (
+      this.router.url.includes('/student/pseudocode') ||
+      this.router.url.includes('/student/compiler') ||
+      this.router.url.includes('/student/coding')
+    );
   }
 }

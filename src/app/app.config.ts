@@ -1,11 +1,17 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
-import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+
+import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -17,16 +23,17 @@ export const appConfig: ApplicationConfig = {
     provideToastr({
       positionClass: 'toast-top-right',
       timeOut: 3000,
-      preventDuplicates: true
+      preventDuplicates: true,
     }),
-    provideHttpClient(
-      withInterceptors([authInterceptor])
-    ),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(
       routes,
       withInMemoryScrolling({
         scrollPositionRestoration: 'top',
-      })
+      }),
     ),
+    provideMonacoEditor({
+      baseUrl: 'assets/monaco/min/vs',
+    }),
   ],
 };

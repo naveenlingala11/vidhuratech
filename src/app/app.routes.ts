@@ -118,6 +118,7 @@ import { roleGuard } from './features/auth/services/role-guard';
 import { StudentPseudoChallengesComponent } from './features/student/student-pseudo-challenges/student-pseudo-challenges';
 import { TrainerPseudoChallengesComponent } from './features/trainer/trainer-pseudo-challenges/trainer-pseudo-challenges';
 import { AssessmentResults } from './features/trainer/assessment-results/assessment-results';
+import { StudentPseudoChallengeLabComponent } from './features/student/student-pseudo-challenge-lab/student-pseudo-challenge-lab';
 
 export const routes: Routes = [
   /* =========================
@@ -358,6 +359,11 @@ export const routes: Routes = [
       {
         path: 'student/pseudo-challenges',
         component: StudentPseudoChallengesComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
+        path: 'student/pseudocode-lab/:id',
+        component: StudentPseudoChallengeLabComponent,
         canActivate: [roleGuard(['STUDENT'])],
       },
 

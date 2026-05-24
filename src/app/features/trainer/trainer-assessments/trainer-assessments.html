@@ -1,29 +1,46 @@
 <section class="trainer-assessments">
   <div class="toast" *ngIf="toast">{{ toast }}</div>
 
-  <div class="page-hero">
-    <div>
-      <span>Assessment Center</span>
-      <h1>Assessments & Results</h1>
+  <header class="page-hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
+    <div class="hero-copy">
+      <span class="hero-badge">
+        <i class="bi bi-stars"></i>
+        Assessment Center
+      </span>
+
+      <h1>
+        Assessments
+        <span>& Results Studio</span>
+      </h1>
+
       <p>
-        Create assessments, monitor attempts, and review student performance from one polished
-        workspace.
+        Create assessments, monitor submissions, export tests, preview questions, and review student
+        performance from one polished trainer workspace.
       </p>
     </div>
 
     <div class="hero-actions">
-      <button type="button" routerLink="/dashboard/trainer/create-assessment">
+      <button
+        type="button"
+        class="primary-action"
+        routerLink="/dashboard/trainer/create-assessment"
+      >
         <i class="bi bi-plus-circle"></i>
         Create Assessment
       </button>
-      <button type="button" (click)="loadAssessments()">
+
+      <button type="button" class="ghost-action" (click)="loadAssessments()">
         <i class="bi bi-arrow-clockwise"></i>
         Refresh
       </button>
     </div>
-  </div>
+  </header>
 
-  <div class="summary-grid">
+  <section class="summary-grid">
     <button
       type="button"
       class="summary-card blue"
@@ -33,6 +50,7 @@
       <i class="bi bi-clipboard-data"></i>
       <span>Total Assessments</span>
       <strong>{{ totalAssessments }}</strong>
+      <small>All created tests</small>
     </button>
 
     <button
@@ -44,12 +62,14 @@
       <i class="bi bi-check2-circle"></i>
       <span>Total Attempts</span>
       <strong>{{ totalAttempts }}</strong>
+      <small>Student submissions</small>
     </button>
 
     <button type="button" class="summary-card purple">
       <i class="bi bi-question-circle"></i>
       <span>Total Questions</span>
       <strong>{{ totalQuestions }}</strong>
+      <small>Across assessments</small>
     </button>
 
     <button
@@ -61,35 +81,89 @@
       <i class="bi bi-hourglass-split"></i>
       <span>No Submissions</span>
       <strong>{{ noAttemptCount }}</strong>
+      <small>Awaiting attempts</small>
     </button>
-  </div>
 
-  <div class="toolbar">
+    <button type="button" class="summary-card slate">
+      <i class="bi bi-award"></i>
+      <span>Total Marks</span>
+      <strong>{{ totalMarks }}</strong>
+      <small>Maximum score pool</small>
+    </button>
+
+    <button type="button" class="summary-card cyan">
+      <i class="bi bi-graph-up-arrow"></i>
+      <span>Avg Attempts</span>
+      <strong>{{ averageAttempts }}</strong>
+      <small>Per assessment</small>
+    </button>
+  </section>
+
+  <section class="toolbar">
     <label class="search-box">
       <i class="bi bi-search"></i>
-      <input [(ngModel)]="search" placeholder="Search assessment, batch, description..." />
+      <input [(ngModel)]="search" placeholder="Search title, batch, course, description..." />
     </label>
 
-    <div class="filter-tabs">
-      <button type="button" [class.active]="filterMode === 'ALL'" (click)="setFilter('ALL')">
-        All
-      </button>
-      <button
-        type="button"
-        [class.active]="filterMode === 'WITH_ATTEMPTS'"
-        (click)="setFilter('WITH_ATTEMPTS')"
-      >
-        With Submissions
-      </button>
-      <button
-        type="button"
-        [class.active]="filterMode === 'NO_ATTEMPTS'"
-        (click)="setFilter('NO_ATTEMPTS')"
-      >
-        No Submissions
+    <div class="toolbar-controls">
+      <select [(ngModel)]="sortMode">
+        <option value="LATEST">Latest Created</option>
+        <option value="TITLE">Title A-Z</option>
+        <option value="ATTEMPTS_HIGH">Most Attempts</option>
+        <option value="QUESTIONS_HIGH">Most Questions</option>
+        <option value="MARKS_HIGH">Highest Marks</option>
+      </select>
+
+      <div class="filter-tabs">
+        <button type="button" [class.active]="filterMode === 'ALL'" (click)="setFilter('ALL')">
+          All
+        </button>
+
+        <button
+          type="button"
+          [class.active]="filterMode === 'WITH_ATTEMPTS'"
+          (click)="setFilter('WITH_ATTEMPTS')"
+        >
+          With Submissions
+        </button>
+
+        <button
+          type="button"
+          [class.active]="filterMode === 'NO_ATTEMPTS'"
+          (click)="setFilter('NO_ATTEMPTS')"
+        >
+          No Submissions
+        </button>
+      </div>
+
+      <div class="view-toggle">
+        <button type="button" [class.active]="viewMode === 'GRID'" (click)="setView('GRID')">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+
+        <button type="button" [class.active]="viewMode === 'TABLE'" (click)="setView('TABLE')">
+          <i class="bi bi-table"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="selection-bar" *ngIf="filteredAssessments.length">
+    <div>
+      <strong>{{ filteredAssessments.length }}</strong>
+      <span>assessments showing</span>
+      <b *ngIf="selectedCount">{{ selectedCount }} selected</b>
+    </div>
+
+    <div>
+      <button type="button" (click)="selectVisible()">Select Visible</button>
+      <button type="button" (click)="clearSelection()" [disabled]="!selectedCount">Clear</button>
+      <button type="button" (click)="downloadSelected()" [disabled]="!selectedCount">
+        <i class="bi bi-download"></i>
+        Export Selected
       </button>
     </div>
-  </div>
+  </section>
 
   <div class="loading" *ngIf="loading">
     <div class="loader"></div>
@@ -109,18 +183,31 @@
   <div class="empty" *ngIf="!loading && assessments.length && !filteredAssessments.length">
     <i class="bi bi-search"></i>
     <h2>No matching assessments</h2>
-    <p>Try a different search or filter.</p>
+    <p>Try a different search, filter, or sort option.</p>
   </div>
 
-  <div class="assessment-grid" *ngIf="!loading && filteredAssessments.length">
-    <article class="assessment-card" *ngFor="let a of filteredAssessments">
+  <section
+    class="assessment-grid"
+    [class.table-view]="viewMode === 'TABLE'"
+    *ngIf="!loading && filteredAssessments.length"
+  >
+    <article
+      class="assessment-card"
+      *ngFor="let a of filteredAssessments; trackBy: trackById"
+      [class.selected]="isSelected(a.id)"
+    >
       <div class="card-top">
+        <label class="select-check">
+          <input type="checkbox" [checked]="isSelected(a.id)" (change)="toggleSelected(a.id)" />
+          <span></span>
+        </label>
+
         <span class="batch-pill">
           <i class="bi bi-collection"></i>
-          Batch #{{ a.batchId }}
+          {{ a.batchName || 'Batch #' + a.batchId }}
         </span>
 
-        <span class="submission-pill" [class.empty-pill]="!(a.attemptCount || 0)">
+        <span class="submission-pill" [class.empty-pill]="!hasAttempts(a)">
           {{ a.attemptCount || 0 }} Submissions
         </span>
       </div>
@@ -132,39 +219,55 @@
 
         <div>
           <h2>{{ a.title }}</h2>
-          <p>{{ a.description || 'No description added.' }}</p>
+
+          <p [class.expanded]="isDescriptionExpanded(a.id)">
+            {{ a.description || 'No description added.' }}
+          </p>
+
+          <button
+            type="button"
+            class="description-toggle"
+            *ngIf="shouldShowDescriptionToggle(a.description)"
+            (click)="toggleDescription(a.id)"
+          >
+            {{ isDescriptionExpanded(a.id) ? 'View Less' : 'View More' }}
+          </button>
         </div>
       </div>
 
       <div class="meta-grid">
         <div>
           <span>Questions</span>
-          <strong>{{ a.questionCount || a.questions?.length || 0 }}</strong>
+          <strong>{{ questionCount(a) }}</strong>
         </div>
+
         <div>
           <span>Duration</span>
           <strong>{{ a.durationMinutes || 0 }}m</strong>
         </div>
+
         <div>
           <span>Marks</span>
           <strong>{{ a.totalMarks || 0 }}</strong>
         </div>
+
         <div>
           <span>Created</span>
           <strong>{{ formatDate(a.createdAt) }}</strong>
         </div>
       </div>
 
-      <div class="submission-state" [class.has-submissions]="(a.attemptCount || 0) > 0">
-        <i class="bi" [ngClass]="(a.attemptCount || 0) > 0 ? 'bi-graph-up-arrow' : 'bi-inbox'"></i>
+      <div class="submission-state" [class.has-submissions]="hasAttempts(a)">
+        <i class="bi" [ngClass]="hasAttempts(a) ? 'bi-graph-up-arrow' : 'bi-inbox'"></i>
 
         <div>
           <strong>
-            {{ (a.attemptCount || 0) > 0 ? 'Results available' : 'No submissions yet' }}
+            {{ hasAttempts(a) ? 'Results available' : 'No submissions yet' }}
           </strong>
+
           <p>
             {{
-              (a.attemptCount || 0) > 0
+              hasAttempts(a)
                 ? 'Open results to review student attempts.'
                 : 'Students have not submitted this assessment yet.'
             }}
@@ -183,7 +286,7 @@
           Download
         </button>
 
-        <button type="button" [disabled]="!(a.attemptCount || 0)" (click)="viewResults(a.id)">
+        <button type="button" [disabled]="!hasAttempts(a)" (click)="viewResults(a.id)">
           <i class="bi bi-bar-chart"></i>
           Results
         </button>
@@ -194,11 +297,14 @@
         </button>
       </div>
     </article>
-  </div>
+  </section>
 </section>
+
 <div class="preview-overlay" *ngIf="selectedAssessment || previewLoading">
   <div class="preview-modal">
-    <button type="button" class="preview-close" (click)="closePreview()">x</button>
+    <button type="button" class="preview-close" (click)="closePreview()">
+      <i class="bi bi-x-lg"></i>
+    </button>
 
     <div class="loading compact" *ngIf="previewLoading">
       <div class="loader"></div>
@@ -219,14 +325,17 @@
             selectedAssessment.batchName || 'Batch #' + selectedAssessment.batchId
           }}</strong>
         </div>
+
         <div>
           <span>Questions</span>
           <strong>{{ selectedAssessment.questions?.length || 0 }}</strong>
         </div>
+
         <div>
           <span>Marks</span>
           <strong>{{ selectedAssessment.totalMarks || 0 }}</strong>
         </div>
+
         <div>
           <span>Duration</span>
           <strong>{{ selectedAssessment.durationMinutes || 0 }}m</strong>

@@ -14,6 +14,8 @@ import { StudentLmsService } from '../../../../services/student-lms.service';
 import { StudentProgressService } from '../../../../services/student-progress-lms';
 
 type PlayerTab = 'sessions' | 'curriculum' | 'overview';
+type LessonSort = 'DEFAULT' | 'TITLE' | 'DURATION_HIGH' | 'DURATION_LOW';
+type DurationFilter = 'ALL' | 'SHORT' | 'MEDIUM' | 'LONG';
 
 @Component({
   standalone: true,
@@ -40,6 +42,13 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
   playerWaitInterval: any;
   startTime = 0;
 
+  lessonSort: LessonSort = 'DEFAULT';
+  durationFilter: DurationFilter = 'ALL';
+  theaterMode = false;
+  sidebarCollapsed = false;
+  descriptionExpanded = false;
+  toast = '';
+
   constructor(
     private route: ActivatedRoute,
     private service: StudentLmsService,
@@ -62,8 +71,9 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.service.getSessions(this.batchId).subscribe({
       next: (res: any) => {
-        this.sessions = (res?.data || []).map((session: any) => ({
+        this.sessions = (res?.data || []).map((session: any, index: number) => ({
           ...session,
+          originalIndex: index,
           videoId: this.extractVideoId(session.videoUrl),
         }));
 
@@ -76,6 +86,7 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
               : this.sessions[0];
 
             this.loading = false;
+            this.descriptionExpanded = false;
             this.cdr.detectChanges();
             this.waitForPlayer();
           },
@@ -83,6 +94,7 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
             this.selected = this.sessions[0];
             this.startTime = 0;
             this.loading = false;
+            this.descriptionExpanded = false;
             this.cdr.detectChanges();
             this.waitForPlayer();
           },
@@ -111,6 +123,10 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
       },
     });
 
+    this.refreshProgress();
+  }
+
+  refreshProgress(): void {
     this.progressService.getProgress(this.batchId).subscribe({
       next: (progress: any) => (this.progress = Number(progress || 0)),
       error: () => (this.progress = 0),
@@ -184,6 +200,24 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
+  getSessionDuration(session: any): number {
+    const minutes =
+      Number(session?.durationMinutes) ||
+      Number(session?.duration) ||
+      Number(session?.videoDurationMinutes);
+
+    if (minutes > 0) return Math.ceil(minutes);
+
+    const seconds =
+      Number(session?.durationSeconds) ||
+      Number(session?.videoDurationSeconds) ||
+      Number(session?.videoDuration);
+
+    if (seconds > 0) return Math.ceil(seconds / 60);
+
+    return 0;
+  }
+
   startTracking(): void {
     clearInterval(this.watchInterval);
 
@@ -205,6 +239,7 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
     this.saveCurrentTime();
     this.selected = session;
     this.startTime = 0;
+    this.descriptionExpanded = false;
 
     if (this.player?.loadVideoById) {
       this.player.loadVideoById(session.videoId);
@@ -218,13 +253,30 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
   onVideoEnd(): void {
     if (!this.selected?.id) return;
 
-    this.progressService.markCompleted(this.batchId, this.selected.id).subscribe();
-
-    this.progressService.getProgress(this.batchId).subscribe({
-      next: (progress: any) => (this.progress = Number(progress || 0)),
+    this.progressService.markCompleted(this.batchId, this.selected.id).subscribe({
+      next: () => this.refreshProgress(),
+      error: () => this.refreshProgress(),
     });
 
     this.goToNextLesson();
+  }
+
+  markCurrentComplete(): void {
+    if (!this.selected?.id) return;
+
+    this.progressService.markCompleted(this.batchId, this.selected.id).subscribe({
+      next: () => {
+        this.showToast('Lesson marked as completed');
+        this.refreshProgress();
+      },
+      error: () => this.showToast('Unable to update lesson progress'),
+    });
+  }
+
+  goToPreviousLesson(): void {
+    if (!this.previousSession) return;
+
+    this.select(this.previousSession);
   }
 
   goToNextLesson(): void {
@@ -232,6 +284,7 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.selected = this.nextSession;
     this.startTime = 0;
+    this.descriptionExpanded = false;
 
     setTimeout(() => {
       if (this.player?.loadVideoById) {
@@ -247,18 +300,48 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
   get filteredSessions(): any[] {
     const term = this.searchText.trim().toLowerCase();
 
-    if (!term) return this.sessions;
+    return [...this.sessions]
+      .filter((session) => {
+        const matchesSearch =
+          !term ||
+          [session.title, session.description, session.durationMinutes]
+            .join(' ')
+            .toLowerCase()
+            .includes(term);
 
-    return this.sessions.filter((session) =>
-      [session.title, session.description, session.durationMinutes]
-        .join(' ')
-        .toLowerCase()
-        .includes(term),
-    );
+        const duration = this.getSessionDuration(session);
+        const matchesDuration =
+          this.durationFilter === 'ALL' ||
+          (this.durationFilter === 'SHORT' && duration <= 15) ||
+          (this.durationFilter === 'MEDIUM' && duration > 15 && duration <= 45) ||
+          (this.durationFilter === 'LONG' && duration > 45);
+
+        return matchesSearch && matchesDuration;
+      })
+      .sort((a, b) => {
+        if (this.lessonSort === 'TITLE') {
+          return String(a.title || '').localeCompare(String(b.title || ''));
+        }
+
+        if (this.lessonSort === 'DURATION_HIGH') {
+          return Number(b.durationMinutes || 0) - Number(a.durationMinutes || 0);
+        }
+
+        if (this.lessonSort === 'DURATION_LOW') {
+          return Number(a.durationMinutes || 0) - Number(b.durationMinutes || 0);
+        }
+
+        return Number(a.originalIndex || 0) - Number(b.originalIndex || 0);
+      });
   }
 
   get currentIndex(): number {
     return this.sessions.findIndex((session) => session.id === this.selected?.id);
+  }
+
+  get previousSession(): any {
+    if (this.currentIndex <= 0) return null;
+    return this.sessions[this.currentIndex - 1] || null;
   }
 
   get nextSession(): any {
@@ -271,11 +354,73 @@ export class StudentPlayerComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   get totalDuration(): number {
-    return this.sessions.reduce((sum, session) => sum + Number(session.durationMinutes || 0), 0);
+    return this.sessions.reduce((sum, session) => sum + this.getSessionDuration(session), 0);
+  }
+
+  get totalHours(): string {
+    return (this.totalDuration / 60).toFixed(1);
   }
 
   get curriculumModules(): any[] {
     return this.curriculum?.curriculum || this.curriculum?.modules || [];
+  }
+
+  get resumeLabel(): string {
+    if (!this.startTime) return 'Start from beginning';
+
+    const minutes = Math.floor(this.startTime / 60);
+    const seconds = this.startTime % 60;
+
+    return `${minutes}m ${seconds}s`;
+  }
+
+  shouldShowDescriptionToggle(description: string): boolean {
+    return String(description || '').length > 150;
+  }
+
+  toggleDescription(): void {
+    this.descriptionExpanded = !this.descriptionExpanded;
+  }
+
+  toggleTheaterMode(): void {
+    this.theaterMode = !this.theaterMode;
+  }
+
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  copyVideoLink(): void {
+    if (!this.selected?.videoUrl) {
+      this.showToast('No video link available');
+      return;
+    }
+
+    navigator.clipboard
+      ?.writeText(this.selected.videoUrl)
+      .then(() => this.showToast('Video link copied'))
+      .catch(() => this.showToast('Unable to copy video link'));
+  }
+
+  openVideoInNewTab(): void {
+    if (!this.selected?.videoUrl) {
+      this.showToast('No video link available');
+      return;
+    }
+
+    window.open(this.selected.videoUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  setTab(tab: PlayerTab): void {
+    this.activeTab = tab;
+  }
+
+  showToast(message: string): void {
+    this.toast = message;
+
+    setTimeout(() => {
+      this.toast = '';
+    }, 2500);
   }
 
   extractVideoId(url: string): string {

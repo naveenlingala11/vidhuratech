@@ -1,12 +1,30 @@
-<section class="lms-page">
+<section
+  class="lms-page"
+  [class.theater-mode]="theaterMode"
+  [class.sidebar-collapsed]="sidebarCollapsed"
+>
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
   <div class="page-shell">
     <header class="player-hero">
-      <div>
-        <span class="eyebrow">Learning Studio</span>
-        <h1>{{ selected?.title || 'Course Player' }}</h1>
+      <div class="hero-mesh"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-scan"></div>
+
+      <div class="hero-copy">
+        <span class="eyebrow">
+          <i class="bi bi-stars"></i>
+          Learning Studio
+        </span>
+
+        <h1>
+          {{ selected?.title || 'Course Player' }}
+          <span>Keep learning smarter.</span>
+        </h1>
+
         <p>
-          Continue your lessons with saved progress, structured curriculum, and a focused learning
-          workspace.
+          Continue lessons with saved resume, structured curriculum, focused playback controls, and
+          a faster learning workspace.
         </p>
       </div>
 
@@ -15,13 +33,15 @@
           <strong>{{ progressValue }}%</strong>
           <span>Progress</span>
         </div>
+
         <div>
           <strong>{{ sessions.length }}</strong>
           <span>Lessons</span>
         </div>
+
         <div>
-          <strong>{{ totalDuration }}</strong>
-          <span>Minutes</span>
+          <strong>{{ totalHours }}h</strong>
+          <span>{{ totalDuration }} mins</span>
         </div>
       </div>
     </header>
@@ -30,24 +50,42 @@
       <main class="watch-panel">
         <div class="watch-top">
           <div>
-            <span class="lesson-kicker"
-              >Lesson {{ currentIndex + 1 || 1 }} of {{ sessions.length }}</span
-            >
+            <span class="lesson-kicker">
+              Lesson {{ currentIndex + 1 || 1 }} of {{ sessions.length }}
+            </span>
+
             <h2>{{ selected?.title || 'Select a lesson' }}</h2>
-            <p>
+
+            <p [class.expanded]="descriptionExpanded">
               {{ selected?.description || 'Pick a session from the learning panel to begin.' }}
             </p>
+
+            <button
+              type="button"
+              class="description-toggle"
+              *ngIf="shouldShowDescriptionToggle(selected?.description)"
+              (click)="toggleDescription()"
+            >
+              {{ descriptionExpanded ? 'View Less' : 'View More' }}
+            </button>
           </div>
 
-          <button
-            class="next-btn"
-            type="button"
-            [disabled]="!nextSession"
-            (click)="goToNextLesson()"
-          >
-            <span>{{ nextSession ? 'Next Lesson' : 'Course End' }}</span>
-            <i class="bi bi-arrow-right"></i>
-          </button>
+          <div class="watch-actions">
+            <button type="button" class="icon-btn" (click)="toggleTheaterMode()">
+              <i class="bi" [ngClass]="theaterMode ? 'bi-fullscreen-exit' : 'bi-aspect-ratio'"></i>
+              <span>{{ theaterMode ? 'Exit Theater' : 'Theater' }}</span>
+            </button>
+
+            <button type="button" class="icon-btn" (click)="copyVideoLink()">
+              <i class="bi bi-link-45deg"></i>
+              <span>Copy Link</span>
+            </button>
+
+            <button type="button" class="icon-btn" (click)="openVideoInNewTab()">
+              <i class="bi bi-box-arrow-up-right"></i>
+              <span>Open</span>
+            </button>
+          </div>
         </div>
 
         <div class="video-card">
@@ -59,9 +97,41 @@
             <div class="empty-video">
               <i class="bi bi-play-btn"></i>
               <h3>No video selected</h3>
-              <p>Select a lesson from the right panel.</p>
+              <p>Select a lesson from the learning panel.</p>
             </div>
           </ng-template>
+        </div>
+
+        <div class="player-controls">
+          <button
+            type="button"
+            class="secondary-control"
+            [disabled]="!previousSession"
+            (click)="goToPreviousLesson()"
+          >
+            <i class="bi bi-arrow-left"></i>
+            Previous
+          </button>
+
+          <button
+            type="button"
+            class="complete-control"
+            [disabled]="!selected"
+            (click)="markCurrentComplete()"
+          >
+            <i class="bi bi-check2-circle"></i>
+            Mark Complete
+          </button>
+
+          <button
+            type="button"
+            class="next-control"
+            [disabled]="!nextSession"
+            (click)="goToNextLesson()"
+          >
+            <span>{{ nextSession ? 'Next Lesson' : 'Course End' }}</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
         </div>
 
         <div class="lesson-insights">
@@ -69,9 +139,7 @@
             <i class="bi bi-bookmark-check"></i>
             <div>
               <span>Resume</span>
-              <strong>{{
-                startTime ? 'Saved at ' + startTime + 's' : 'Start from beginning'
-              }}</strong>
+              <strong>{{ resumeLabel }}</strong>
             </div>
           </article>
 
@@ -79,7 +147,7 @@
             <i class="bi bi-clock-history"></i>
             <div>
               <span>Duration</span>
-              <strong>{{ selected?.durationMinutes || 0 }} minutes</strong>
+              <strong>{{ getSessionDuration(selected) }} minutes</strong>
             </div>
           </article>
 
@@ -94,11 +162,19 @@
       </main>
 
       <aside class="learning-panel">
+        <button type="button" class="collapse-panel-btn" (click)="toggleSidebar()">
+          <i
+            class="bi"
+            [ngClass]="sidebarCollapsed ? 'bi-layout-sidebar-inset' : 'bi-layout-sidebar'"
+          ></i>
+        </button>
+
         <div class="panel-head">
           <div>
             <span>Course Panel</span>
             <h3>Learning Path</h3>
           </div>
+
           <b>{{ sessions.length }}</b>
         </div>
 
@@ -107,6 +183,7 @@
             <span>Course Progress</span>
             <strong>{{ progressValue }}%</strong>
           </div>
+
           <div class="progress-bar">
             <i [style.width.%]="progressValue"></i>
           </div>
@@ -116,23 +193,25 @@
           <button
             type="button"
             [class.active]="activeTab === 'sessions'"
-            (click)="activeTab = 'sessions'"
+            (click)="setTab('sessions')"
           >
             <i class="bi bi-play-btn"></i>
             Sessions
           </button>
+
           <button
             type="button"
             [class.active]="activeTab === 'curriculum'"
-            (click)="activeTab = 'curriculum'"
+            (click)="setTab('curriculum')"
           >
             <i class="bi bi-journal-text"></i>
             Curriculum
           </button>
+
           <button
             type="button"
             [class.active]="activeTab === 'overview'"
-            (click)="activeTab = 'overview'"
+            (click)="setTab('overview')"
           >
             <i class="bi bi-grid"></i>
             Overview
@@ -140,9 +219,27 @@
         </div>
 
         <ng-container *ngIf="activeTab === 'sessions'">
-          <div class="search-box">
-            <i class="bi bi-search"></i>
-            <input type="text" [(ngModel)]="searchText" placeholder="Search lessons..." />
+          <div class="session-tools">
+            <label class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="text" [(ngModel)]="searchText" placeholder="Search lessons..." />
+            </label>
+
+            <div class="filters-row">
+              <select [(ngModel)]="lessonSort">
+                <option value="DEFAULT">Default Order</option>
+                <option value="TITLE">Title A-Z</option>
+                <option value="DURATION_HIGH">Longest</option>
+                <option value="DURATION_LOW">Shortest</option>
+              </select>
+
+              <select [(ngModel)]="durationFilter">
+                <option value="ALL">All Durations</option>
+                <option value="SHORT">Short ≤ 15m</option>
+                <option value="MEDIUM">Medium 16-45m</option>
+                <option value="LONG">Long 45m+</option>
+              </select>
+            </div>
           </div>
 
           <div class="lesson-list" *ngIf="!loading && filteredSessions.length">
@@ -153,11 +250,11 @@
               [class.active]="selected?.id === session.id"
               (click)="select(session)"
             >
-              <span class="lesson-number">{{ i + 1 }}</span>
+              <span class="lesson-number">{{ session.originalIndex + 1 }}</span>
 
               <span class="lesson-text">
                 <strong>{{ session.title }}</strong>
-                <small>{{ session.durationMinutes || 0 }} mins</small>
+                <small>{{ getSessionDuration(session) }} mins</small>
               </span>
 
               <i
@@ -170,7 +267,7 @@
           <div class="empty-state" *ngIf="!loading && !filteredSessions.length">
             <i class="bi bi-search"></i>
             <h4>No lessons found</h4>
-            <p>Try another search keyword.</p>
+            <p>Try another search or filter.</p>
           </div>
 
           <div class="skeleton-list" *ngIf="loading">
@@ -207,8 +304,8 @@
 
             <article>
               <i class="bi bi-clock"></i>
-              <strong>{{ totalDuration }}</strong>
-              <span>Total minutes</span>
+              <strong>{{ totalHours }}h</strong>
+              <span>Total duration</span>
             </article>
 
             <article>
