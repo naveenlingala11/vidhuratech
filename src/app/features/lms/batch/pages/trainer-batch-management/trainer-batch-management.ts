@@ -1,15 +1,20 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { BatchService } from '../../services/batch';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
+type SessionFilter = 'ALL' | 'PUBLISHED' | 'DRAFT';
+type SessionSort = 'LATEST' | 'OLDEST' | 'TITLE' | 'DURATION_HIGH' | 'DURATION_LOW';
+type SessionView = 'GRID' | 'COMPACT';
+
 @Component({
   selector: 'app-trainer-batch-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './trainer-batch-management.html',
   styleUrls: ['./trainer-batch-management.css'],
 })
@@ -19,16 +24,24 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
   sessions: any[] = [];
   loading = false;
   form!: FormGroup;
+
   editingSessionId: number | null = null;
   expandedDescriptions = new Set<number>();
+
   durationLoading = false;
   durationError = '';
   private videoUrlSubscription?: Subscription;
   private durationProbePlayer: any;
+
   previewSession: any = null;
   previewEmbedUrl: SafeResourceUrl | null = null;
   previewVideoUrl = '';
   previewIsYouTube = false;
+
+  search = '';
+  sessionFilter: SessionFilter = 'ALL';
+  sessionSort: SessionSort = 'LATEST';
+  sessionView: SessionView = 'GRID';
 
   constructor(
     private route: ActivatedRoute,
@@ -78,6 +91,92 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
     });
   }
 
+  get filteredSessions(): any[] {
+    const term = this.search.trim().toLowerCase();
+
+    return [...this.sessions]
+      .filter((session) => {
+        const matchesSearch =
+          !term ||
+          [session.title, session.description, session.sessionDate, session.videoUrl]
+            .join(' ')
+            .toLowerCase()
+            .includes(term);
+
+        const matchesFilter =
+          this.sessionFilter === 'ALL' ||
+          (this.sessionFilter === 'PUBLISHED' && session.published) ||
+          (this.sessionFilter === 'DRAFT' && !session.published);
+
+        return matchesSearch && matchesFilter;
+      })
+      .sort((a, b) => {
+        if (this.sessionSort === 'TITLE') {
+          return String(a.title || '').localeCompare(String(b.title || ''));
+        }
+
+        if (this.sessionSort === 'DURATION_HIGH') {
+          return Number(b.durationMinutes || 0) - Number(a.durationMinutes || 0);
+        }
+
+        if (this.sessionSort === 'DURATION_LOW') {
+          return Number(a.durationMinutes || 0) - Number(b.durationMinutes || 0);
+        }
+
+        const aTime = new Date(a.sessionDate || 0).getTime();
+        const bTime = new Date(b.sessionDate || 0).getTime();
+
+        if (this.sessionSort === 'OLDEST') {
+          return aTime - bTime;
+        }
+
+        return bTime - aTime;
+      });
+  }
+
+  get publishedCount(): number {
+    return this.sessions.filter((session) => session.published).length;
+  }
+
+  get draftCount(): number {
+    return this.sessions.filter((session) => !session.published).length;
+  }
+
+  get totalMinutes(): number {
+    return this.sessions.reduce((sum, session) => sum + Number(session.durationMinutes || 0), 0);
+  }
+
+  get totalHours(): string {
+    return (this.totalMinutes / 60).toFixed(1);
+  }
+
+  get averageMinutes(): number {
+    if (!this.sessions.length) return 0;
+    return Math.round(this.totalMinutes / this.sessions.length);
+  }
+
+  get formCompletion(): number {
+    if (!this.form) return 0;
+
+    const fields = ['title', 'videoUrl', 'durationMinutes', 'sessionDate'];
+    const completed = fields.filter((field) => {
+      const value = this.form.get(field)?.value;
+      return (
+        value !== null && value !== undefined && String(value).trim() !== '' && Number(value) !== 0
+      );
+    }).length;
+
+    return Math.round((completed / fields.length) * 100);
+  }
+
+  setFilter(filter: SessionFilter): void {
+    this.sessionFilter = filter;
+  }
+
+  setView(view: SessionView): void {
+    this.sessionView = view;
+  }
+
   editSession(session: any): void {
     this.editingSessionId = session.id;
 
@@ -99,6 +198,7 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
   submitSession(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.toastr.warning('Please complete required fields');
       return;
     }
 
@@ -112,16 +212,7 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
           this.editingSessionId ? 'Session updated successfully' : 'Session uploaded successfully',
         );
 
-        this.form.reset({
-          title: '',
-          description: '',
-          videoUrl: '',
-          durationMinutes: 0,
-          sessionDate: '',
-          published: false,
-        });
-
-        this.editingSessionId = null;
+        this.resetForm();
         this.loadSessions();
       },
       error: () => {
@@ -130,9 +221,7 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancelEdit(): void {
-    this.editingSessionId = null;
-
+  resetForm(): void {
     this.form.reset({
       title: '',
       description: '',
@@ -142,8 +231,14 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
       published: false,
     });
 
+    this.durationError = '';
+    this.editingSessionId = null;
     this.form.markAsPristine();
     this.form.markAsUntouched();
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
     this.toastr.info('Edit cancelled');
   }
 
@@ -158,6 +253,27 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
     this.batchService.unpublishSession(this.batchId, sessionId).subscribe(() => {
       this.toastr.warning('Session unpublished');
       this.loadSessions();
+    });
+  }
+
+  publishAllDrafts(): void {
+    const drafts = this.sessions.filter((session) => !session.published);
+
+    if (!drafts.length) {
+      this.toastr.info('No draft sessions to publish');
+      return;
+    }
+
+    drafts.forEach((session, index) => {
+      this.batchService.publishSession(this.batchId, session.id).subscribe({
+        next: () => {
+          if (index === drafts.length - 1) {
+            this.toastr.success('All draft sessions published');
+            this.loadSessions();
+          }
+        },
+        error: () => this.toastr.error(`Failed to publish ${session.title}`),
+      });
     });
   }
 
@@ -185,18 +301,6 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
 
   shouldShowDescriptionToggle(description: string): boolean {
     return String(description || '').length > 120;
-  }
-
-  get publishedCount(): number {
-    return this.sessions.filter((session) => session.published).length;
-  }
-
-  get draftCount(): number {
-    return this.sessions.filter((session) => !session.published).length;
-  }
-
-  get totalMinutes(): number {
-    return this.sessions.reduce((sum, session) => sum + Number(session.durationMinutes || 0), 0);
   }
 
   trackBySessionId(_: number, session: any): any {
@@ -255,14 +359,17 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
   detectYouTubeDuration(videoId: string): void {
     this.durationLoading = true;
     this.durationError = '';
+
     this.loadYouTubeApi()
       .then(() => {
         const probe = document.createElement('div');
+
         probe.style.position = 'fixed';
         probe.style.left = '-9999px';
         probe.style.top = '-9999px';
         probe.style.width = '1px';
         probe.style.height = '1px';
+
         document.body.appendChild(probe);
 
         if (this.durationProbePlayer?.destroy) {
@@ -346,6 +453,7 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
     this.durationError = '';
 
     const video = document.createElement('video');
+
     video.preload = 'metadata';
     video.src = url;
 
@@ -370,14 +478,6 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
     };
   }
 
-  ngOnDestroy(): void {
-    this.videoUrlSubscription?.unsubscribe();
-
-    if (this.durationProbePlayer?.destroy) {
-      this.durationProbePlayer.destroy();
-    }
-  }
-
   openPreview(session: any): void {
     this.previewSession = session;
 
@@ -400,5 +500,13 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
     this.previewEmbedUrl = null;
     this.previewVideoUrl = '';
     this.previewIsYouTube = false;
+  }
+
+  ngOnDestroy(): void {
+    this.videoUrlSubscription?.unsubscribe();
+
+    if (this.durationProbePlayer?.destroy) {
+      this.durationProbePlayer.destroy();
+    }
   }
 }

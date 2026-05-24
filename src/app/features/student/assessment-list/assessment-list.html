@@ -1,139 +1,256 @@
-<div class="assessment-page">
-  <section class="overview-panel">
+<section class="assessment-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="overview-panel">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
     <div class="overview-copy">
-      <span class="eyebrow">Student Portal</span>
-      <h1>My Assessments</h1>
+      <span class="eyebrow">
+        <i class="bi bi-stars"></i>
+        Student Assessment Hub
+      </span>
+
+      <h1>
+        My Assessments
+        <span>Track. Attempt. Improve.</span>
+      </h1>
+
       <p>
-        Monitor your assigned tests, review recent performance, and continue every assessment journey with confidence.
+        Monitor assigned tests, continue your attempts, compare performance, and improve with a
+        cleaner assessment dashboard built for focused progress.
       </p>
+
       <div class="quick-highlights">
         <div>
+          <i class="bi bi-graph-up-arrow"></i>
           <span>Focus Area</span>
           <strong>Skill Growth</strong>
         </div>
+
         <div>
+          <i class="bi bi-arrow-repeat"></i>
           <span>Progress Mode</span>
           <strong>Continuous</strong>
         </div>
       </div>
     </div>
+
     <div class="overview-stats">
-      <div class="stat-card primary">
-        <span>Total Assessments</span>
+      <article class="stat-card primary">
+        <i class="bi bi-journal-check"></i>
+        <span>Total</span>
         <strong>{{ assessments.length }}</strong>
-        <small>Assigned to you</small>
-      </div>
-      <div class="stat-card success">
+        <small>Assigned assessments</small>
+      </article>
+
+      <article class="stat-card success">
+        <i class="bi bi-check2-circle"></i>
         <span>Passed</span>
         <strong>{{ passedCount }}</strong>
-        <small>Completed successfully</small>
-      </div>
-      <div class="stat-card warning">
+        <small>Qualified attempts</small>
+      </article>
+
+      <article class="stat-card danger">
+        <i class="bi bi-x-circle"></i>
+        <span>Failed</span>
+        <strong>{{ failedCount }}</strong>
+        <small>Needs practice</small>
+      </article>
+
+      <article class="stat-card warning">
+        <i class="bi bi-hourglass-split"></i>
         <span>Pending</span>
-        <strong>{{ assessments.length - passedCount }}</strong>
-        <small>Needs attention</small>
-      </div>
+        <strong>{{ pendingCount }}</strong>
+        <small>Not attempted</small>
+      </article>
+
+      <article class="stat-card violet">
+        <i class="bi bi-percent"></i>
+        <span>Average</span>
+        <strong>{{ averageScore }}%</strong>
+        <small>Overall score</small>
+      </article>
+
+      <article class="stat-card slate">
+        <i class="bi bi-ui-checks-grid"></i>
+        <span>Attempted</span>
+        <strong>{{ attemptedCount }}</strong>
+        <small>Submitted once</small>
+      </article>
     </div>
+  </header>
+
+  <section class="toolbar-panel">
+    <div class="toolbar-title">
+      <span>Assessment Library</span>
+      <h2>Available Tests</h2>
+    </div>
+
+    <label class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" [(ngModel)]="search" placeholder="Search title, status, marks..." />
+    </label>
+
+    <div class="toolbar-controls">
+      <select [(ngModel)]="statusFilter">
+        <option value="ALL">All Status</option>
+        <option value="PENDING">Not Attempted</option>
+        <option value="PASS">Passed</option>
+        <option value="FAIL">Needs Practice</option>
+      </select>
+
+      <select [(ngModel)]="sortBy">
+        <option value="LATEST">Latest Attempt</option>
+        <option value="SCORE_HIGH">Score High to Low</option>
+        <option value="SCORE_LOW">Score Low to High</option>
+        <option value="TITLE">Title A to Z</option>
+      </select>
+
+      <button type="button" class="refresh-btn" (click)="loadAssessments()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+    </div>
+
+    <div class="view-chip">{{ filteredAssessments.length }} Showing</div>
   </section>
-  <section class="section-bar" *ngIf="assessments.length">
-    <div>
-      <h2>Assessment Dashboard</h2>
-      <p>Choose an assessment to start, reattempt, or review your latest score.</p>
-    </div>
-    <div class="view-chip">
-      {{ assessments.length }} Available
-    </div>
-  </section>
+
   <section class="loading-state" *ngIf="loading">
     <div class="loader"></div>
     <h2>Loading assessments</h2>
     <p>Please wait while your latest assigned assessments are being prepared.</p>
   </section>
-  <section class="empty-state" *ngIf="!loading && !assessments.length">
-    <div class="empty-icon">📘</div>
-    <h2>No assessments available</h2>
-    <p>Assigned assessments from your trainers will appear here once they are published.</p>
+
+  <section class="empty-state" *ngIf="!loading && !filteredAssessments.length">
+    <div class="empty-icon">
+      <i class="bi bi-journal-x"></i>
+    </div>
+
+    <h2>No assessments found</h2>
+    <p>Try changing your search or filter. Newly assigned assessments will appear here.</p>
   </section>
-  <section class="assessment-grid" *ngIf="!loading && assessments.length">
-    <article class="assessment-card" *ngFor="let assessment of assessments">
+
+  <section class="assessment-grid" *ngIf="!loading && filteredAssessments.length">
+    <article
+      class="assessment-card"
+      *ngFor="let assessment of filteredAssessments; trackBy: trackById"
+      [class.pass-card]="normalizedStatus(assessment) === 'PASS'"
+      [class.fail-card]="normalizedStatus(assessment) === 'FAIL'"
+      [class.pending-card]="normalizedStatus(assessment) === 'PENDING'"
+    >
       <div class="card-topline">
-        <span class="subject-chip">Assessment</span>
-        <span class="status-pill" [ngClass]="getStatusClass(assessment.status)">
-          {{ assessment.status }}
+        <span class="subject-chip">
+          <i class="bi bi-patch-check"></i>
+          Assessment
+        </span>
+
+        <span class="status-pill" [ngClass]="getStatusClass(assessment)">
+          <i class="bi" [ngClass]="getStatusIcon(assessment)"></i>
+          {{ getStatusLabel(assessment) }}
         </span>
       </div>
+
       <div class="card-main">
         <div class="title-block">
           <h3>{{ assessment.title }}</h3>
-          <p>{{ assessment.description }}</p>
+
+          <p [class.expanded]="isDescriptionExpanded(assessment.id)">
+            {{ assessment.description || 'No description provided for this assessment.' }}
+          </p>
+
+          <button
+            type="button"
+            class="description-toggle"
+            *ngIf="shouldShowDescriptionToggle(assessment.description)"
+            (click)="toggleDescription(assessment.id)"
+          >
+            {{ isDescriptionExpanded(assessment.id) ? 'View Less' : 'View More' }}
+          </button>
         </div>
+
         <div class="score-box">
-          <div class="score-ring">
-            <strong>{{ assessment.percentage || 0 }}%</strong>
-            <span>Score</span>
+          <div class="score-ring" [style.--score]="assessment.percentage || 0">
+            <div>
+              <strong>{{ getScoreLabel(assessment) }}</strong>
+              <span>Score</span>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="insight-row">
         <div>
+          <i class="bi bi-activity"></i>
           <span>Latest Result</span>
           <strong>
-            {{ assessment.status === 'PASS' ? 'Qualified' : 'Needs Practice' }}
+            {{
+              normalizedStatus(assessment) === 'PASS'
+                ? 'Qualified'
+                : normalizedStatus(assessment) === 'FAIL'
+                  ? 'Needs Practice'
+                  : 'Not Started'
+            }}
           </strong>
         </div>
+
         <div>
+          <i class="bi bi-arrow-repeat"></i>
           <span>Attempt Type</span>
-          <strong>
-            {{ assessment.attemptCount > 0 ? 'Reattempt Ready' : 'First Attempt' }}
-          </strong>
+          <strong>{{ assessment.attemptCount > 0 ? 'Reattempt Ready' : 'First Attempt' }}</strong>
         </div>
       </div>
+
       <div class="metrics-grid">
         <div class="metric-card">
           <span>Marks</span>
-          <strong>{{ assessment.lastScore || 0 }}/{{ assessment.totalMarks }}</strong>
+          <strong>{{ assessment.lastScore || 0 }}/{{ assessment.totalMarks || 0 }}</strong>
         </div>
+
         <div class="metric-card">
           <span>Duration</span>
-          <strong>{{ assessment.durationMinutes }} min</strong>
+          <strong>{{ assessment.durationMinutes || 0 }} min</strong>
         </div>
+
         <div class="metric-card">
           <span>Attempts</span>
-          <strong>{{ assessment.attemptCount }}</strong>
+          <strong>{{ assessment.attemptCount || 0 }}</strong>
         </div>
+
         <div class="metric-card">
           <span>Questions</span>
-          <strong>{{ assessment.questionCount }}</strong>
+          <strong>{{ assessment.questionCount || 0 }}</strong>
         </div>
       </div>
+
       <div class="progress-section">
         <div class="progress-head">
           <span>Performance Progress</span>
           <strong>{{ assessment.percentage || 0 }}%</strong>
         </div>
+
         <div class="progress-track">
-          <div
-            class="progress-fill"
-            [style.width.%]="assessment.percentage || 0">
-          </div>
+          <div class="progress-fill" [style.width.%]="assessment.percentage || 0"></div>
         </div>
+
         <div class="progress-note">
           <span>0%</span>
           <span>Target 100%</span>
         </div>
       </div>
+
       <div class="card-footer">
         <div class="date-block">
           <span>Last Attempt</span>
           <strong>{{ formatDate(assessment.lastSubmittedAt) }}</strong>
         </div>
-        <button
-          type="button"
-          class="attempt-button"
-          (click)="startAssessment(assessment.id)">
-          {{ assessment.attemptCount > 0 ? 'Reattempt Test' : 'Start Test' }}
+
+        <button type="button" class="attempt-button" (click)="startAssessment(assessment.id)">
+          <i class="bi bi-play-fill"></i>
+          {{ getActionLabel(assessment) }}
         </button>
       </div>
     </article>
   </section>
-</div>
+</section>

@@ -206,7 +206,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       this.showToast(this.validationErrors[0]);
       return;
     }
-
+    this.normalizeTestCaseVisibility();
     const payload = this.buildCreatePayload(this.form);
     this.saving = true;
 
@@ -285,6 +285,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
   importChallengeJson(): void {
     const challenge = this.parseChallengeJson();
+    this.normalizeTestCaseVisibility();
     if (!challenge) return;
 
     this.form = this.normalizeChallengePayload(challenge);
@@ -351,6 +352,13 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     });
   }
 
+  normalizeTestCaseVisibility(): void {
+    this.form.testCases = this.form.testCases.map((tc, index) => ({
+      ...tc,
+      hidden: index >= 3,
+    }));
+  }
+
   previewChallenge(id: number): void {
     this.previewLoading = true;
     this.selectedChallenge = null;
@@ -371,7 +379,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
   editChallenge(id: number): void {
     this.previewLoading = true;
-
+    this.normalizeTestCaseVisibility();
     this.service.getTrainerChallengeDetails(id).subscribe({
       next: (res: any) => {
         const challenge = res?.data || res;

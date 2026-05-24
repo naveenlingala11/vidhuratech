@@ -1,24 +1,49 @@
 <aside class="sidebar" [class.collapsed]="collapsed" [class.mobile]="mobile">
-  <div class="brand">
-    <button class="menu-btn" type="button" (click)="menuToggle.emit(); $event.stopPropagation()">
-      <i class="bi bi-list"></i>
+  <label class="search-box" *ngIf="!collapsed">
+    <i class="bi bi-search"></i>
+    <input [(ngModel)]="searchText" type="text" placeholder="Search menu" />
+    <button *ngIf="searchText" type="button" (click)="clearSearch()">
+      <i class="bi bi-x"></i>
     </button>
-    <div class="brand-logo" (click)="goHome()">
-      <img src="VidhuraTechLogo.png" alt="Vidhura Tech" />
-      <span *ngIf="!collapsed">Vidhura Tech</span>
-    </div>
-  </div>
-  <div class="user-strip" *ngIf="!collapsed">
-    <small>{{ user?.role || 'Dashboard' }}</small>
-    <strong>{{ user?.name || 'User' }}</strong>
-  </div>
+  </label>
+
   <nav class="menu">
-    <a *ngFor="let item of menuItems" [routerLink]="item.route" routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }">
+    <button
+      type="button"
+      class="menu-link"
+      *ngFor="let item of filteredMenuItems"
+      [class.active]="isActive(item.route)"
+      [attr.title]="collapsed ? item.label : null"
+      (click)="navigateTo(item)"
+    >
       <i [class]="item.icon"></i>
-      <span *ngIf="!collapsed">
-        {{ item.label }}
-      </span>
-    </a>
+      <span *ngIf="!collapsed">{{ item.label }}</span>
+    </button>
   </nav>
+
+  <div class="empty-menu" *ngIf="!collapsed && !filteredMenuItems.length">No menu found</div>
+
+  <footer class="sidebar-footer">
+    <button
+      type="button"
+      class="footer-btn"
+      (click)="goHome()"
+      [attr.title]="collapsed ? 'Home' : null"
+    >
+      <i class="bi bi-house"></i>
+      <span *ngIf="!collapsed">Home</span>
+    </button>
+
+    <button
+      type="button"
+      class="footer-btn logout"
+      (click)="logout()"
+      [attr.title]="collapsed ? 'Logout' : null"
+    >
+      <i class="bi bi-box-arrow-right"></i>
+      <span *ngIf="!collapsed">Logout</span>
+    </button>
+
+    <div class="footer-note" *ngIf="!collapsed">© {{ currentYear }} Vidhura Tech</div>
+  </footer>
 </aside>

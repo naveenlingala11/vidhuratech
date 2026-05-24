@@ -5,6 +5,8 @@ import { Router, RouterLink } from '@angular/router';
 import { AssessmentService } from '../../services/assessment.service';
 
 type FilterMode = 'ALL' | 'WITH_ATTEMPTS' | 'NO_ATTEMPTS';
+type SortMode = 'LATEST' | 'TITLE' | 'ATTEMPTS_HIGH' | 'QUESTIONS_HIGH' | 'MARKS_HIGH';
+type ViewMode = 'GRID' | 'TABLE';
 
 @Component({
   selector: 'app-trainer-assessments',
@@ -19,8 +21,14 @@ export class TrainerAssessmentsComponent implements OnInit {
   toast = '';
   search = '';
   filterMode: FilterMode = 'ALL';
+  sortMode: SortMode = 'LATEST';
+  viewMode: ViewMode = 'GRID';
+
   selectedAssessment: any = null;
   previewLoading = false;
+
+  expandedDescriptions = new Set<number>();
+  selectedIds = new Set<number>();
 
   constructor(
     private assessmentService: AssessmentService,
@@ -47,6 +55,7 @@ export class TrainerAssessmentsComponent implements OnInit {
                 : [];
 
         this.assessments = data;
+        this.selectedIds.clear();
         this.loading = false;
       },
       error: (err) => {
@@ -61,20 +70,33 @@ export class TrainerAssessmentsComponent implements OnInit {
   get filteredAssessments(): any[] {
     const term = this.search.trim().toLowerCase();
 
-    return this.assessments.filter((a) => {
-      const attemptCount = Number(a.attemptCount || 0);
+    return [...this.assessments]
+      .filter((a) => {
+        const attemptCount = Number(a.attemptCount || 0);
 
-      const matchesFilter =
-        this.filterMode === 'ALL' ||
-        (this.filterMode === 'WITH_ATTEMPTS' && attemptCount > 0) ||
-        (this.filterMode === 'NO_ATTEMPTS' && attemptCount === 0);
+        const matchesFilter =
+          this.filterMode === 'ALL' ||
+          (this.filterMode === 'WITH_ATTEMPTS' && attemptCount > 0) ||
+          (this.filterMode === 'NO_ATTEMPTS' && attemptCount === 0);
 
-      const searchable = [a.title, a.description, a.batchId, a.batchName, a.courseName]
-        .join(' ')
-        .toLowerCase();
+        const searchable = [a.title, a.description, a.batchId, a.batchName, a.courseName]
+          .join(' ')
+          .toLowerCase();
 
-      return matchesFilter && (!term || searchable.includes(term));
-    });
+        return matchesFilter && (!term || searchable.includes(term));
+      })
+      .sort((a, b) => {
+        if (this.sortMode === 'TITLE')
+          return String(a.title || '').localeCompare(String(b.title || ''));
+        if (this.sortMode === 'ATTEMPTS_HIGH')
+          return Number(b.attemptCount || 0) - Number(a.attemptCount || 0);
+        if (this.sortMode === 'QUESTIONS_HIGH')
+          return this.questionCount(b) - this.questionCount(a);
+        if (this.sortMode === 'MARKS_HIGH')
+          return Number(b.totalMarks || 0) - Number(a.totalMarks || 0);
+
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
   }
 
   get totalAssessments(): number {
@@ -86,11 +108,82 @@ export class TrainerAssessmentsComponent implements OnInit {
   }
 
   get totalQuestions(): number {
-    return this.assessments.reduce((sum, a) => sum + Number(a.questionCount || 0), 0);
+    return this.assessments.reduce((sum, a) => sum + this.questionCount(a), 0);
   }
 
   get noAttemptCount(): number {
     return this.assessments.filter((a) => Number(a.attemptCount || 0) === 0).length;
+  }
+
+  get totalMarks(): number {
+    return this.assessments.reduce((sum, a) => sum + Number(a.totalMarks || 0), 0);
+  }
+
+  get averageAttempts(): number {
+    if (!this.assessments.length) return 0;
+    return Math.round(this.totalAttempts / this.assessments.length);
+  }
+
+  get selectedCount(): number {
+    return this.selectedIds.size;
+  }
+
+  setFilter(mode: FilterMode): void {
+    this.filterMode = mode;
+  }
+
+  setView(mode: ViewMode): void {
+    this.viewMode = mode;
+  }
+
+  trackById(_: number, item: any): number {
+    return item.id;
+  }
+
+  questionCount(a: any): number {
+    return Number(a.questionCount || a.questions?.length || 0);
+  }
+
+  hasAttempts(a: any): boolean {
+    return Number(a.attemptCount || 0) > 0;
+  }
+
+  shouldShowDescriptionToggle(description: string): boolean {
+    return String(description || '').length > 130;
+  }
+
+  isDescriptionExpanded(id: number): boolean {
+    return this.expandedDescriptions.has(id);
+  }
+
+  toggleDescription(id: number): void {
+    if (this.expandedDescriptions.has(id)) {
+      this.expandedDescriptions.delete(id);
+      return;
+    }
+
+    this.expandedDescriptions.add(id);
+  }
+
+  isSelected(id: number): boolean {
+    return this.selectedIds.has(id);
+  }
+
+  toggleSelected(id: number): void {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+      return;
+    }
+
+    this.selectedIds.add(id);
+  }
+
+  selectVisible(): void {
+    this.filteredAssessments.forEach((a) => this.selectedIds.add(a.id));
+  }
+
+  clearSelection(): void {
+    this.selectedIds.clear();
   }
 
   viewResults(id: number): void {
@@ -113,23 +206,11 @@ export class TrainerAssessmentsComponent implements OnInit {
     this.assessmentService.deleteAssessment(id).subscribe({
       next: () => {
         this.assessments = this.assessments.filter((a) => a.id !== id);
+        this.selectedIds.delete(id);
         this.showToast('Assessment deleted');
       },
       error: () => this.showToast('Unable to delete assessment'),
     });
-  }
-
-  setFilter(mode: FilterMode): void {
-    this.filterMode = mode;
-  }
-
-  showToast(message: string): void {
-    this.toast = message;
-    setTimeout(() => (this.toast = ''), 2500);
-  }
-
-  formatDate(date: string): string {
-    return date ? new Date(date).toLocaleString() : '-';
   }
 
   previewAssessment(id: number): void {
@@ -156,6 +237,30 @@ export class TrainerAssessmentsComponent implements OnInit {
     this.selectedAssessment = null;
   }
 
+  downloadSelected(): void {
+    const items = this.assessments.filter((a) => this.selectedIds.has(a.id));
+
+    if (!items.length) {
+      this.showToast('Select assessments to export');
+      return;
+    }
+
+    const payload = items.map((a) => ({
+      id: a.id,
+      batchId: a.batchId,
+      batchName: a.batchName,
+      title: a.title,
+      description: a.description,
+      totalMarks: a.totalMarks,
+      durationMinutes: a.durationMinutes,
+      questionCount: this.questionCount(a),
+      attemptCount: a.attemptCount || 0,
+      createdAt: a.createdAt,
+    }));
+
+    this.downloadJson(payload, 'selected-assessments.json');
+  }
+
   downloadAssessment(assessment: any): void {
     if (!assessment?.id) {
       this.showToast('Invalid assessment');
@@ -179,24 +284,45 @@ export class TrainerAssessmentsComponent implements OnInit {
           questions: data.questions || [],
         };
 
-        const blob = new Blob([JSON.stringify(payload, null, 2)], {
-          type: 'application/json',
-        });
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-
-        link.href = url;
-        link.download = fileName;
-        link.click();
-
-        URL.revokeObjectURL(url);
+        this.downloadJson(payload, fileName);
       },
       error: () => this.showToast('Unable to download assessment'),
     });
   }
 
+  private downloadJson(payload: any, fileName: string): void {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = fileName;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  }
+
   getOptionValue(options: any, key: string): string {
     return options?.[key] || '';
+  }
+
+  formatDate(date: string): string {
+    return date
+      ? new Date(date).toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '-';
+  }
+
+  showToast(message: string): void {
+    this.toast = message;
+    setTimeout(() => (this.toast = ''), 2500);
   }
 }

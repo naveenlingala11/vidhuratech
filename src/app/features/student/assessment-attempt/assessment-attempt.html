@@ -1,204 +1,417 @@
-<div class="attempt-container" *ngIf="assessment && !submitted">
-  <!-- HEADER -->
-  <div class="attempt-header">
-    <div class="assessment-info">
-      <h2>
-        {{ assessment.title }}
-      </h2>
-      <p>
-        {{ assessment.description }}
-      </p>
+<div class="toast" *ngIf="toast">{{ toast }}</div>
+
+<section class="assessment-page" [ngClass]="getAttemptPageClass()">
+  <div class="loading-state" *ngIf="loading && !assessment">
+    <div class="loading-orbit">
+      <span></span>
+      <i class="bi bi-mortarboard-fill"></i>
     </div>
-    <div class="timer-box" [ngClass]="getTimeRemainingClass()">
-      <div class="timer-label">
-        Time Remaining
-      </div>
-      <div class="timer-display">
-        {{ getFormattedTime() }}
-      </div>
-    </div>
+
+    <h2>Opening assessment</h2>
+    <p>Preparing your questions, timer, and answer workspace.</p>
   </div>
-  <!-- PROGRESS -->
-  <div class="progress-section">
-    <div class="progress-info">
-      <span>
-        {{ answeredQuestions.length }}/{{ assessment.questions.length }}
-        Answered
-      </span>
-      <span>
-        {{ getProgressPercentage() }}%
-      </span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" [style.width.%]="getProgressPercentage()">
-      </div>
-    </div>
-  </div>
-  <!-- CONTENT -->
-  <div class="attempt-content">
-    <!-- LEFT NAV -->
-    <div class="question-navigator">
-      <h3>
-        Questions
-      </h3>
-      <div class="question-list">
-        <button *ngFor="let q of assessment.questions; let i=index" class="question-nav-item"
-          [class.current]="currentQuestionIndex === i" [class.answered]="isQuestionAnswered(i)"
-          [class.bookmarked]="isQuestionBookmarked(i)" (click)="selectQuestion(i)">
-          {{ i + 1 }}
+
+  <ng-container *ngIf="assessment && !submitted">
+    <header class="attempt-hero">
+      <div class="hero-mesh"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-scan"></div>
+
+      <div class="hero-content">
+        <button type="button" class="back-btn" (click)="backToAssessments()">
+          <i class="bi bi-arrow-left"></i>
+          Back to Assessments
         </button>
+
+        <span class="hero-chip">
+          <i class="bi bi-patch-check-fill"></i>
+          Live Assessment Attempt
+        </span>
+
+        <h1>{{ assessment.title }}</h1>
+        <p>{{ assessment.description || 'Answer every question carefully before submitting.' }}</p>
+
+        <div class="hero-stats">
+          <div>
+            <span>Questions</span>
+            <strong>{{ totalQuestions }}</strong>
+          </div>
+
+          <div>
+            <span>Total Marks</span>
+            <strong>{{ assessment.totalMarks || 0 }}</strong>
+          </div>
+
+          <div>
+            <span>Answered</span>
+            <strong>{{ answeredQuestions.length }}</strong>
+          </div>
+
+          <div>
+            <span>Bookmarked</span>
+            <strong>{{ bookmarkedCount }}</strong>
+          </div>
+        </div>
       </div>
+
+      <aside class="timer-card" [ngClass]="getTimeRemainingClass()">
+        <div class="timer-ring" [style.--timer]="getTimerPercentage()">
+          <div>
+            <span>Time</span>
+            <strong>{{ getFormattedTime() }}</strong>
+          </div>
+        </div>
+
+        <div class="timer-meta">
+          <span>Remaining</span>
+          <strong>{{ getTimeRemainingClass() }}</strong>
+        </div>
+      </aside>
+    </header>
+    <div class="critical-time-banner" *ngIf="isCriticalTime()">
+      <div>
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Final {{ timeRemaining }} seconds</strong>
+      </div>
+
+      <span>Your assessment will auto-submit when the timer reaches zero.</span>
     </div>
-    <!-- QUESTION AREA -->
-    <div class="questions-area">
-      <div class="question-card" *ngIf="assessment.questions[currentQuestionIndex] as q">
-        <div class="question-header">
-          <h3>
-            Question
-            {{ currentQuestionIndex + 1 }}
-          </h3>
-          <button class="bookmark-btn" (click)="toggleBookmark(currentQuestionIndex)">
-            {{
-            isQuestionBookmarked(currentQuestionIndex)
-            ? '🔖'
-            : '🔗'
-            }}
+    <section class="progress-panel">
+      <div class="progress-copy">
+        <span>Assessment Progress</span>
+        <strong>{{ answeredQuestions.length }}/{{ totalQuestions }} answered</strong>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+      </div>
+
+      <button type="button" class="next-unanswered-btn" (click)="goToNextUnanswered()">
+        <i class="bi bi-skip-forward"></i>
+        Next Unanswered
+      </button>
+    </section>
+
+    <main class="attempt-layout">
+      <aside class="question-navigator">
+        <div class="navigator-head">
+          <span>Question Map</span>
+          <strong>{{ getProgressPercentage() }}%</strong>
+        </div>
+
+        <div class="question-list">
+          <button
+            *ngFor="let q of assessment.questions; let i = index"
+            type="button"
+            class="question-nav-item"
+            [class.current]="currentQuestionIndex === i"
+            [class.answered]="isQuestionAnswered(i)"
+            [class.bookmarked]="isQuestionBookmarked(i)"
+            (click)="selectQuestion(i)"
+            [title]="'Question ' + (i + 1)"
+          >
+            <span>{{ i + 1 }}</span>
+            <i class="bi bi-check-lg answered-dot" *ngIf="isQuestionAnswered(i)"></i>
+            <i class="bi bi-bookmark-fill bookmark-dot" *ngIf="isQuestionBookmarked(i)"></i>
           </button>
         </div>
-        <div class="question-text">
+
+        <div class="legend">
+          <div><span class="legend-dot current"></span> Current</div>
+          <div><span class="legend-dot answered"></span> Answered</div>
+          <div><span class="legend-dot bookmarked"></span> Bookmarked</div>
+        </div>
+      </aside>
+
+      <section class="question-workspace">
+        <article class="question-card" *ngIf="currentQuestion as q">
+          <div class="question-header">
+            <div>
+              <span class="question-kicker">Question {{ currentQuestionIndex + 1 }}</span>
+              <h2>{{ q.question }}</h2>
+            </div>
+
+            <div class="question-actions">
+              <span class="marks-badge">{{ q.marks }} Marks</span>
+
+              <button
+                type="button"
+                class="icon-action"
+                [class.active]="isQuestionBookmarked(currentQuestionIndex)"
+                (click)="toggleBookmark(currentQuestionIndex)"
+                title="Bookmark question"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="
+                    isQuestionBookmarked(currentQuestionIndex) ? 'bi-bookmark-fill' : 'bi-bookmark'
+                  "
+                ></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="options-container">
+            <label
+              class="option"
+              *ngFor="let opt of optionKeys"
+              [class.selected]="answers[currentQuestionIndex].selectedAnswer === opt"
+            >
+              <input
+                type="radio"
+                [name]="'q' + currentQuestionIndex"
+                [value]="opt"
+                [(ngModel)]="answers[currentQuestionIndex].selectedAnswer"
+                (change)="onAnswerChange()"
+              />
+
+              <span class="option-label">{{ opt }}</span>
+              <span class="option-text">{{ getOptionValue(q.options, opt) }}</span>
+              <i class="bi bi-check-circle-fill selected-icon"></i>
+            </label>
+          </div>
+
+          <div class="question-footer">
+            <button
+              type="button"
+              class="secondary-btn"
+              [disabled]="!answers[currentQuestionIndex].selectedAnswer"
+              (click)="clearCurrentAnswer()"
+            >
+              <i class="bi bi-eraser"></i>
+              Clear Answer
+            </button>
+
+            <div class="navigation-buttons">
+              <button
+                type="button"
+                class="nav-btn"
+                [disabled]="currentQuestionIndex === 0"
+                (click)="goPrevious()"
+              >
+                <i class="bi bi-arrow-left"></i>
+                Previous
+              </button>
+
+              <button
+                type="button"
+                class="nav-btn primary"
+                [disabled]="currentQuestionIndex === totalQuestions - 1"
+                (click)="goNext()"
+              >
+                Next
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <section class="submit-panel">
+          <div>
+            <span>Ready to submit?</span>
+            <strong
+              >{{ unansweredCount }} unanswered question{{
+                unansweredCount === 1 ? '' : 's'
+              }}</strong
+            >
+          </div>
+
+          <button
+            type="button"
+            class="submit-btn"
+            [disabled]="loading || submitting"
+            (click)="openSubmitConfirm()"
+          >
+            <i class="bi bi-send-check"></i>
+            {{ submitting ? 'Submitting...' : 'Submit Assessment' }}
+          </button>
+        </section>
+      </section>
+    </main>
+  </ng-container>
+
+  <section class="results-container" *ngIf="submitted">
+    <header class="results-hero" [ngClass]="getPassStatus()">
+      <div class="result-glow"></div>
+
+      <button type="button" class="back-btn light" (click)="backToAssessments()">
+        <i class="bi bi-arrow-left"></i>
+        Back to Assessments
+      </button>
+
+      <div class="results-title">
+        <div class="result-icon">
+          <i
+            class="bi"
+            [ngClass]="getPassStatus() === 'pass' ? 'bi-trophy-fill' : 'bi-flag-fill'"
+          ></i>
+        </div>
+
+        <div>
+          <span>Assessment Submitted</span>
+          <h1>{{ getPassStatus() === 'pass' ? 'You Passed' : 'Review and Improve' }}</h1>
           <p>
-            {{ q.question }}
-          </p>
-          <span class="marks-badge">
-            {{ q.marks }} Marks
-          </span>
-        </div>
-        <div class="options-container">
-          <label class="option" *ngFor="let opt of optionKeys">
-            <input type="radio" [name]="'q' + currentQuestionIndex" [value]="opt"
-              [(ngModel)]="answers[currentQuestionIndex].selectedAnswer" (change)="onAnswerChange()">
-            <span class="option-label">
-              {{ opt }}.
-            </span>
-            <span class="option-text">
-              {{ getOptionValue(q.options, opt) }}
-            </span>
-          </label>
-        </div>
-      </div>
-      <!-- NAVIGATION -->
-      <div class="navigation-buttons">
-        <button class="nav-btn" [disabled]="currentQuestionIndex === 0"
-          (click)="selectQuestion(currentQuestionIndex - 1)">
-          Previous
-        </button>
-        <button class="nav-btn" [disabled]="currentQuestionIndex === assessment.questions.length - 1"
-          (click)="selectQuestion(currentQuestionIndex + 1)">
-          Next
-        </button>
-      </div>
-    </div>
-  </div>
-  <!-- SUBMIT -->
-  <div class="submit-section">
-    <button class="submit-btn" (click)="submitAssessment()">
-      Submit Assessment
-    </button>
-  </div>
-</div>
-<!-- RESULTS VIEW -->
-<div class="results-container" *ngIf="submitted">
-  <div class="results-header">
-    <h2>
-      Assessment Submitted Successfully
-    </h2>
-    <button class="close-btn" (click)="hideDetailedResults()">
-      Close
-    </button>
-  </div>
-  <div class="score-summary" [ngClass]="getPassStatus()">
-    <div class="score-display">
-      <div class="score-value">
-        {{ getTotalScore() }}/{{ assessment.totalMarks }}
-      </div>
-      <div class="score-percentage">
-        {{ getPercentageScore() }}%
-      </div>
-    </div>
-    <div class="score-status">
-      <h3 class="status-text">
-        {{
-        getPassStatus() === 'pass'
-        ? 'PASSED'
-        : 'FAILED'
-        }}
-      </h3>
-      <p class="correct-answers">
-        Correct Answers:
-        {{ result.correctAnswers }}/{{ result.totalQuestions }}
-      </p>
-    </div>
-  </div>
-  <div class="results-toggle">
-    <button class="toggle-btn" *ngIf="!showDetailedResults" (click)="viewDetailedResults()">
-      View Detailed Results
-    </button>
-    <button class="toggle-btn" *ngIf="showDetailedResults" (click)="hideDetailedResults()">
-      Hide Detailed Results
-    </button>
-  </div>
-  <div class="detailed-results" *ngIf="showDetailedResults">
-    <h3>
-      Question Review
-    </h3>
-    <div class="question-result" *ngFor="let q of questionResults; let i=index">
-      <div class="result-header" [ngClass]="q.isCorrect ? 'correct' : 'incorrect'">
-        <h4>
-          Question {{ i + 1 }}
-        </h4>
-        <span class="result-marks">
-          {{
-          q.marksObtained
-          }}/{{ q.question.marks }} Marks
-        </span>
-      </div>
-      <div class="result-question">
-        <p class="question-text">
-          {{ q.question.question }}
-        </p>
-      </div>
-      <div class="result-options">
-        <div class="option-result" *ngFor="let opt of optionKeys">
-          <span class="opt-label">
-            {{ opt }}
-          </span>
-          <span class="opt-text">
             {{
-            getOptionValue(
-            q.question.options,
-            opt
-            )
+              getPassStatus() === 'pass'
+                ? 'Strong work. Your score crossed the required benchmark.'
+                : 'You can review each answer below and learn from the explanations.'
             }}
-          </span>
-          <span class="opt-badge correct" *ngIf="q.correctAnswer === opt">
-            Correct
-          </span>
-          <span class="opt-badge incorrect" *ngIf="
-              q.studentAnswer === opt &&
-              q.correctAnswer !== opt
-            ">
-            Your Answer
-          </span>
+          </p>
         </div>
       </div>
-      <div class="result-explanation">
-        <h5>
-          Explanation
-        </h5>
-        <p>
-          {{ q.explanation }}
-        </p>
+
+      <div class="score-ring" [style.--score]="getPercentageScore()">
+        <div>
+          <strong>{{ getPercentageScore() }}%</strong>
+          <span>{{ getTotalScore() }}/{{ assessment.totalMarks }}</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="result-metrics">
+      <article>
+        <i class="bi bi-check2-circle"></i>
+        <span>Correct Answers</span>
+        <strong>{{ getCorrectCount() }}/{{ result?.totalQuestions || totalQuestions }}</strong>
+      </article>
+
+      <article>
+        <i class="bi bi-award"></i>
+        <span>Score</span>
+        <strong>{{ getTotalScore() }}</strong>
+      </article>
+
+      <article>
+        <i class="bi bi-percent"></i>
+        <span>Percentage</span>
+        <strong>{{ getPercentageScore() }}%</strong>
+      </article>
+
+      <article>
+        <i class="bi bi-ui-checks-grid"></i>
+        <span>Status</span>
+        <strong>{{ getPassStatus() === 'pass' ? 'Passed' : 'Failed' }}</strong>
+      </article>
+    </section>
+
+    <div class="results-toggle">
+      <button
+        type="button"
+        class="toggle-btn"
+        *ngIf="!showDetailedResults"
+        (click)="viewDetailedResults()"
+      >
+        <i class="bi bi-list-check"></i>
+        View Detailed Results
+      </button>
+
+      <button
+        type="button"
+        class="toggle-btn ghost"
+        *ngIf="showDetailedResults"
+        (click)="hideDetailedResults()"
+      >
+        <i class="bi bi-eye-slash"></i>
+        Hide Detailed Results
+      </button>
+    </div>
+
+    <section class="detailed-results" *ngIf="showDetailedResults">
+      <div class="review-head">
+        <span>Question Review</span>
+        <strong>{{ questionResults.length }} Questions</strong>
+      </div>
+
+      <article
+        class="question-result"
+        *ngFor="let item of questionResults; let i = index"
+        [class.correct-card]="item.isCorrect"
+        [class.incorrect-card]="!item.isCorrect"
+      >
+        <div class="result-header">
+          <div>
+            <span>Question {{ i + 1 }}</span>
+            <h3>{{ item.question.question }}</h3>
+          </div>
+
+          <strong>{{ item.marksObtained }}/{{ item.question.marks }} Marks</strong>
+        </div>
+
+        <div class="result-options">
+          <div
+            class="option-result"
+            *ngFor="let opt of optionKeys"
+            [class.correct-option]="item.correctAnswer === opt"
+            [class.wrong-option]="item.studentAnswer === opt && item.correctAnswer !== opt"
+          >
+            <span class="opt-label">{{ opt }}</span>
+            <span class="opt-text">{{ getOptionValue(item.question.options, opt) }}</span>
+
+            <span class="opt-badge correct" *ngIf="item.correctAnswer === opt">Correct</span>
+            <span
+              class="opt-badge incorrect"
+              *ngIf="item.studentAnswer === opt && item.correctAnswer !== opt"
+            >
+              Your Answer
+            </span>
+          </div>
+        </div>
+
+        <div class="result-explanation">
+          <h4>Explanation</h4>
+          <p>{{ item.explanation }}</p>
+        </div>
+      </article>
+    </section>
+  </section>
+</section>
+
+<div class="confirm-backdrop" *ngIf="showSubmitConfirm">
+  <section class="confirm-modal">
+    <div class="confirm-icon">
+      <i class="bi bi-send-check"></i>
+    </div>
+
+    <h2>Submit Assessment?</h2>
+
+    <p>
+      You answered {{ answeredQuestions.length }} out of {{ totalQuestions }} questions.
+      {{ unansweredCount }} question{{ unansweredCount === 1 ? '' : 's' }} still unanswered.
+    </p>
+
+    <div class="confirm-stats">
+      <div>
+        <span>Answered</span>
+        <strong>{{ answeredQuestions.length }}</strong>
+      </div>
+
+      <div>
+        <span>Unanswered</span>
+        <strong>{{ unansweredCount }}</strong>
+      </div>
+
+      <div>
+        <span>Bookmarked</span>
+        <strong>{{ bookmarkedCount }}</strong>
       </div>
     </div>
-  </div>
+
+    <div class="confirm-actions">
+      <button type="button" class="cancel-btn" (click)="closeSubmitConfirm()">
+        Keep Reviewing
+      </button>
+
+      <button
+        type="button"
+        class="submit-btn"
+        [disabled]="loading || submitting"
+        (click)="openSubmitConfirm()"
+      >
+        <i class="bi bi-send-check"></i>
+        {{
+          submitting ? 'Submitting...' : isCriticalTime() ? 'Auto-submit soon' : 'Submit Assessment'
+        }}
+      </button>
+    </div>
+  </section>
 </div>

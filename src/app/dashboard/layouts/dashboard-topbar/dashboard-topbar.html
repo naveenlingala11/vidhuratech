@@ -1,134 +1,168 @@
-<div class="topbar">
-  <!-- LEFT -->
-  <div class="left">
-    <!-- MOBILE MENU -->
-    <button class="menu-toggle" type="button" (click)="menuToggle.emit()">
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="menu-toggle" type="button" (click)="menuToggle.emit()" title="Menu">
       <i class="bi bi-list"></i>
     </button>
-    <!-- SEARCH -->
-    <div class="search-box">
-      <i class="bi bi-search"></i>
-      <input type="text" placeholder="Search courses, modules, sessions..." />
+
+    <button class="brand" type="button" (click)="goHome()">
+      <img src="VidhuraTechLogo.png" alt="Vidhura Tech" />
+      <span>Vidhura Tech</span>
+    </button>
+
+    <div class="divider"></div>
+
+    <div class="breadcrumb-wrap">
+      <app-dashboard-breadcrumb></app-dashboard-breadcrumb>
     </div>
   </div>
-  <!-- RIGHT -->
-  <div class="right">
-    <!-- THEME -->
-    <button class="icon-btn" type="button" (click)="toggleTheme()" title="Toggle theme">
-      <i class="bi" [ngClass]="themeService.isDark() ? 'bi-sun-fill' : 'bi-moon-stars'">
-      </i>
-    </button>
-    <!-- NOTIFICATIONS -->
-    <div class="notification-wrapper">
-      <button class="icon-btn notification-btn" type="button" title="Notifications"
-        (click)="toggleNotifications($event)">
-        <i class="bi bi-bell"></i>
-        <!-- REAL COUNT -->
-        <span *ngIf="notifications.length > 0">
-          {{ notifications.length }}
-        </span>
+
+  <div class="topbar-center" (click)="focusSearch($event)">
+    <label class="global-search" [class.focused]="searchFocused">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        placeholder="Search dashboard, courses, assessments..."
+      />
+      <kbd>⌘K</kbd>
+    </label>
+
+    <div class="search-panel" *ngIf="searchFocused">
+      <div class="search-title">
+        <span>Quick Search</span>
+        <small>{{ searchSuggestions.length }} results</small>
+      </div>
+
+      <button
+        type="button"
+        class="search-result"
+        *ngFor="let item of searchSuggestions"
+        (click)="goTo(item.route)"
+      >
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+        <small>{{ item.route }}</small>
       </button>
-      <!-- DROPDOWN -->
-      <div class="notification-dropdown" *ngIf="notificationOpen">
-        <!-- HEADER -->
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="date-chip">
+      <i class="bi bi-calendar3"></i>
+      <span>{{ todayLabel }}</span>
+    </div>
+
+    <button
+      class="icon-btn quick-btn"
+      type="button"
+      (click)="toggleQuick($event)"
+      title="Quick actions"
+    >
+      <i class="bi bi-lightning-charge"></i>
+    </button>
+
+    <div class="quick-wrapper">
+      <div class="quick-dropdown" *ngIf="quickOpen" (click)="$event.stopPropagation()">
+        <div class="dropdown-heading">
+          <strong>Quick Actions</strong>
+          <small>Move faster</small>
+        </div>
+
+        <button
+          type="button"
+          *ngFor="let action of searchSuggestions.slice(0, 6)"
+          (click)="goTo(action.route)"
+        >
+          <i [class]="action.icon"></i>
+          <span>{{ action.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <button class="icon-btn" type="button" (click)="toggleTheme()" title="Toggle theme">
+      <i class="bi" [ngClass]="themeService.isDark() ? 'bi-sun-fill' : 'bi-moon-stars'"></i>
+    </button>
+
+    <div class="notification-wrapper">
+      <button
+        class="icon-btn notification-btn"
+        type="button"
+        title="Notifications"
+        (click)="toggleNotifications($event)"
+      >
+        <i class="bi bi-bell"></i>
+        <span *ngIf="notifications.length > 0">{{ notifications.length }}</span>
+      </button>
+
+      <div
+        class="notification-dropdown"
+        *ngIf="notificationOpen"
+        (click)="$event.stopPropagation()"
+      >
         <div class="notification-header">
           <div>
-            <h3>
-              Activity Updates
-            </h3>
-            <p>
-              Recent LMS notifications
-            </p>
+            <h3>Activity Updates</h3>
+            <p>Recent LMS notifications</p>
           </div>
-          <small>
-            {{ notifications.length }} New
-          </small>
+          <small>{{ notifications.length }} New</small>
         </div>
-        <!-- EMPTY -->
+
         <div class="empty-notification" *ngIf="notifications.length === 0">
           <i class="bi bi-bell-slash"></i>
-          <span>
-            No notifications available
-          </span>
+          <span>No notifications available</span>
         </div>
-        <!-- LIST -->
+
         <div class="notification-list" *ngIf="notifications.length > 0">
-          <div class="notification-item" *ngFor="
-          let n of notifications.slice(0,5)
-        ">
-            <!-- ICON -->
+          <div class="notification-item" *ngFor="let n of notifications.slice(0, 5)">
             <div class="notification-icon">
               <i class="bi bi-lightning-charge"></i>
             </div>
-            <!-- CONTENT -->
+
             <div class="notification-content">
-              <strong>
-                {{ n.title }}
-              </strong>
-              <p>
-                {{ n.message }}
-              </p>
-              <span>
-                {{ n.timeAgo || 'Recently' }}
-              </span>
+              <strong>{{ n.title }}</strong>
+              <p>{{ n.message }}</p>
+              <span>{{ n.timeAgo || 'Recently' }}</span>
             </div>
           </div>
         </div>
-        <!-- FOOTER -->
+
         <div class="notification-footer" *ngIf="notifications.length > 5">
-          +{{ notifications.length - 5 }}
-          more notifications
+          +{{ notifications.length - 5 }} more notifications
         </div>
       </div>
     </div>
-    <!-- PROFILE -->
+
     <div class="profile" (click)="$event.stopPropagation()">
       <button class="profile-btn" type="button" (click)="toggleProfile($event)">
-        <div class="avatar">
-          {{ getInitials() }}
-        </div>
+        <div class="avatar">{{ getInitials() }}</div>
+
         <div class="profile-meta">
-          <strong>
-            {{ authService.getUser()?.name || 'User' }}
-          </strong>
-          <span>
-            {{ authService.getUser()?.role || 'Member' }}
-          </span>
+          <strong>{{ user?.name || 'User' }}</strong>
+          <span>{{ roleLabel }}</span>
         </div>
+
         <i class="bi bi-chevron-down caret"></i>
       </button>
-      <!-- DROPDOWN -->
+
       <div class="dropdown" *ngIf="profileOpen">
-        <!-- USER -->
         <div class="dropdown-user">
-          <div class="avatar large">
-            {{ getInitials() }}
-          </div>
+          <div class="avatar large">{{ getInitials() }}</div>
           <div>
-            <strong>
-              {{ authService.getUser()?.name || 'User' }}
-            </strong>
-            <span>
-              {{ authService.getUser()?.role || 'Member' }}
-            </span>
+            <strong>{{ user?.name || 'User' }}</strong>
+            <span>{{ roleLabel }}</span>
           </div>
         </div>
-        <!-- CONDITIONAL BUTTON -->
+
         <button type="button" (click)="goToMainPage()">
-          <i class="bi" [ngClass]="isProfilePage()
-              ? 'bi-speedometer2'
-              : 'bi-person-circle'">
-          </i>
-          {{ isProfilePage()
-          ? 'Go To Dashboard'
-          : 'View Profile' }}
+          <i class="bi" [ngClass]="isProfilePage() ? 'bi-speedometer2' : 'bi-person-circle'"></i>
+          {{ isProfilePage() ? 'Go To Dashboard' : 'View Profile' }}
         </button>
-        <!-- SETTINGS -->
+
         <button type="button">
           <i class="bi bi-gear"></i>
           Settings
         </button>
-        <!-- LOGOUT -->
+
         <button type="button" class="logout" (click)="logout()">
           <i class="bi bi-box-arrow-right"></i>
           Logout
@@ -136,4 +170,4 @@
       </div>
     </div>
   </div>
-</div>
+</header>

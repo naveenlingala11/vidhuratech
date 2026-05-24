@@ -1,9 +1,24 @@
 <section class="trainer-batch-page">
   <header class="batch-hero" *ngIf="batch">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
     <div class="hero-copy">
-      <span class="eyebrow">Trainer Workspace</span>
-      <h1>{{ batch.name }}</h1>
-      <p>{{ batch.courseName || batch.course?.title || 'Course sessions and learning content' }}</p>
+      <span class="eyebrow">
+        <i class="bi bi-stars"></i>
+        Trainer Workspace
+      </span>
+
+      <h1>
+        {{ batch.name }}
+        <span>{{ batch.courseName || batch.course?.title || 'Course Sessions' }}</span>
+      </h1>
+
+      <p>
+        Build a polished session library for this batch. Upload recordings, detect duration, publish
+        lessons, preview content, and keep drafts organized.
+      </p>
 
       <div class="hero-meta">
         <div class="meta-card">
@@ -39,7 +54,7 @@
     </div>
   </header>
 
-  <div class="stats-grid">
+  <section class="stats-grid">
     <article class="stat-card blue">
       <i class="bi bi-collection-play"></i>
       <span>Total Sessions</span>
@@ -64,12 +79,19 @@
     <article class="stat-card purple">
       <i class="bi bi-clock-history"></i>
       <span>Total Time</span>
-      <strong>{{ totalMinutes }}</strong>
-      <small>Learning minutes</small>
+      <strong>{{ totalHours }}h</strong>
+      <small>{{ totalMinutes }} learning minutes</small>
     </article>
-  </div>
 
-  <div class="workspace-grid">
+    <article class="stat-card cyan">
+      <i class="bi bi-stopwatch"></i>
+      <span>Average Time</span>
+      <strong>{{ averageMinutes }}m</strong>
+      <small>Per session</small>
+    </article>
+  </section>
+
+  <main class="workspace-grid">
     <article class="panel upload-panel">
       <div class="section-header">
         <div>
@@ -86,6 +108,17 @@
 
         <div class="header-icon">
           <i class="bi" [ngClass]="editingSessionId ? 'bi-pencil-square' : 'bi-cloud-arrow-up'"></i>
+        </div>
+      </div>
+
+      <div class="form-progress">
+        <div>
+          <span>Form Completion</span>
+          <strong>{{ formCompletion }}%</strong>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="formCompletion"></div>
         </div>
       </div>
 
@@ -162,6 +195,11 @@
           <button *ngIf="editingSessionId" type="button" class="cancel-btn" (click)="cancelEdit()">
             Cancel Edit
           </button>
+
+          <button type="button" class="clear-btn" (click)="resetForm()">
+            <i class="bi bi-eraser"></i>
+            Clear Form
+          </button>
         </div>
       </form>
     </article>
@@ -174,7 +212,64 @@
           <p>Manage uploaded learning sessions and publish visibility.</p>
         </div>
 
-        <div class="session-count">{{ sessions.length }}</div>
+        <div class="session-count">{{ filteredSessions.length }}</div>
+      </div>
+
+      <div class="session-toolbar">
+        <label class="session-search">
+          <i class="bi bi-search"></i>
+          <input [(ngModel)]="search" placeholder="Search sessions..." />
+        </label>
+
+        <select [(ngModel)]="sessionSort">
+          <option value="LATEST">Latest Date</option>
+          <option value="OLDEST">Oldest Date</option>
+          <option value="TITLE">Title A-Z</option>
+          <option value="DURATION_HIGH">Longest</option>
+          <option value="DURATION_LOW">Shortest</option>
+        </select>
+
+        <div class="filter-tabs">
+          <button type="button" [class.active]="sessionFilter === 'ALL'" (click)="setFilter('ALL')">
+            All
+          </button>
+          <button
+            type="button"
+            [class.active]="sessionFilter === 'PUBLISHED'"
+            (click)="setFilter('PUBLISHED')"
+          >
+            Published
+          </button>
+          <button
+            type="button"
+            [class.active]="sessionFilter === 'DRAFT'"
+            (click)="setFilter('DRAFT')"
+          >
+            Drafts
+          </button>
+        </div>
+
+        <div class="view-tabs">
+          <button type="button" [class.active]="sessionView === 'GRID'" (click)="setView('GRID')">
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+          <button
+            type="button"
+            [class.active]="sessionView === 'COMPACT'"
+            (click)="setView('COMPACT')"
+          >
+            <i class="bi bi-list-ul"></i>
+          </button>
+        </div>
+
+        <button type="button" class="publish-all-btn" (click)="publishAllDrafts()">
+          <i class="bi bi-broadcast"></i>
+          Publish Drafts
+        </button>
+
+        <button type="button" class="refresh-btn" (click)="loadSessions()">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
       </div>
 
       <div *ngIf="loading" class="loader-box">
@@ -188,10 +283,23 @@
         <p>Upload your first session for this batch.</p>
       </div>
 
-      <div *ngIf="!loading && sessions.length > 0" class="sessions-grid">
+      <div
+        *ngIf="!loading && sessions.length > 0 && filteredSessions.length === 0"
+        class="empty-state"
+      >
+        <i class="bi bi-search"></i>
+        <h4>No Matching Sessions</h4>
+        <p>Try changing your search, filter, or sort option.</p>
+      </div>
+
+      <div
+        *ngIf="!loading && filteredSessions.length > 0"
+        class="sessions-grid"
+        [class.compact-view]="sessionView === 'COMPACT'"
+      >
         <article
           class="session-item"
-          *ngFor="let session of sessions; trackBy: trackBySessionId"
+          *ngFor="let session of filteredSessions; trackBy: trackBySessionId"
           [class.published-card]="session.published"
         >
           <div class="session-top">
@@ -271,7 +379,8 @@
         </article>
       </div>
     </article>
-  </div>
+  </main>
+
   <div class="preview-overlay" *ngIf="previewSession">
     <div class="preview-modal">
       <button class="preview-close" type="button" (click)="closePreview()">
