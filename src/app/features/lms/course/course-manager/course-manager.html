@@ -1,0 +1,203 @@
+<section class="course-manager">
+  <div class="manager-header">
+    <div>
+      <span class="eyebrow">LMS Admin</span>
+      <h2>Course Manager</h2>
+      <p>
+        Create courses, update details, manage pricing, publish live programs, and archive old
+        tracks.
+      </p>
+    </div>
+    <button type="button" class="primary-action" (click)="createNew()">
+      <i class="fa-solid fa-plus"></i>
+      New Course
+    </button>
+  </div>
+
+  <div class="manager-grid">
+    <form class="course-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="panel-title">
+        <div>
+          <span>{{ selectedCourse ? 'Edit Course' : 'Create Course' }}</span>
+          <h3>{{ selectedCourse?.title || 'New course setup' }}</h3>
+        </div>
+        <button type="button" class="ghost-action" (click)="formatMetadata()">Format JSON</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Title</span>
+          <input formControlName="title" placeholder="Java Full Stack" />
+          <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid"
+            >Title is required</small
+          >
+        </label>
+
+        <label>
+          <span>Code</span>
+          <input formControlName="code" placeholder="JAVA_FS" />
+          <small *ngIf="form.get('code')?.touched && form.get('code')?.invalid"
+            >Code is required</small
+          >
+        </label>
+
+        <label>
+          <span>Level</span>
+          <select formControlName="level">
+            <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Duration Hours</span>
+          <input type="number" formControlName="durationHours" min="1" />
+          <small *ngIf="form.get('durationHours')?.touched && form.get('durationHours')?.invalid">
+            Duration must be at least 1 hour
+          </small>
+        </label>
+
+        <label>
+          <span>Start Date</span>
+          <input type="date" formControlName="startDate" />
+        </label>
+
+        <label>
+          <span>End Date</span>
+          <input type="date" formControlName="endDate" />
+        </label>
+
+        <label>
+          <span>Price</span>
+          <input type="number" formControlName="price" min="0" />
+          <small *ngIf="form.get('price')?.touched && form.get('price')?.invalid"
+            >Price is required</small
+          >
+        </label>
+
+        <label>
+          <span>Thumbnail URL</span>
+          <input formControlName="thumbnailUrl" placeholder="https://..." />
+        </label>
+      </div>
+
+      <label class="full-field">
+        <span>Description</span>
+        <textarea
+          rows="4"
+          formControlName="description"
+          placeholder="Short public course description"
+        ></textarea>
+      </label>
+
+      <label class="full-field">
+        <span>Metadata JSON</span>
+        <textarea
+          rows="7"
+          formControlName="metadataJson"
+          placeholder='{"highlights":[""],"syllabus":[""],"outcomes":[""]}'
+        ></textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" class="secondary-action" (click)="createNew()">Clear</button>
+        <button type="submit" class="primary-action" [disabled]="saving">
+          {{ saving ? 'Saving...' : selectedCourse ? 'Update Course' : 'Create Course' }}
+        </button>
+      </div>
+    </form>
+
+    <div class="courses-panel">
+      <div class="filters">
+        <input
+          placeholder="Search course..."
+          [(ngModel)]="filters.keyword"
+          (input)="loadCourses(true)"
+        />
+        <select [(ngModel)]="filters.level" (change)="loadCourses(true)">
+          <option value="">All Levels</option>
+          <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+        </select>
+        <select [(ngModel)]="filters.status" (change)="loadCourses(true)">
+          <option value="">All Status</option>
+          <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+        </select>
+        <select [(ngModel)]="filters.active" (change)="loadCourses(true)">
+          <option value="">All Active</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+
+      <div *ngIf="loading" class="loading-state">
+        <span></span>
+        Loading courses...
+      </div>
+
+      <div *ngIf="!loading" class="course-table">
+        <div class="table-row table-head">
+          <span>Course</span>
+          <span>Level</span>
+          <span>Status</span>
+          <span>Dates</span>
+          <span>Price</span>
+          <span>Actions</span>
+        </div>
+
+        <div class="table-row" *ngFor="let course of courses">
+          <div>
+            <strong>{{ course.title }}</strong>
+            <small>{{ course.code }} · {{ course.durationHours || 0 }} hrs</small>
+          </div>
+          <span>{{ course.level }}</span>
+          <span class="status-pill" [ngClass]="statusClass(course.status)">{{
+            course.status
+          }}</span>
+          <span class="date-range"
+            >{{ course.startDate || 'TBD' }} - {{ course.endDate || 'TBD' }}</span
+          >
+          <span>{{ course.price | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+          <div class="row-actions">
+            <button type="button" title="Edit" (click)="editCourse(course)">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button
+              type="button"
+              title="Publish"
+              [disabled]="course.status === 'PUBLISHED'"
+              (click)="publish(course)"
+            >
+              <i class="fa-solid fa-upload"></i>
+            </button>
+            <button
+              type="button"
+              title="Archive"
+              [disabled]="course.status === 'ARCHIVED'"
+              (click)="archive(course)"
+            >
+              <i class="fa-solid fa-box-archive"></i>
+            </button>
+            <button type="button" title="Delete" class="danger" (click)="deleteCourse(course)">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="!courses.length" class="empty-state">No courses found</div>
+      </div>
+
+      <div class="pagination-bar">
+        <span>Page {{ page + 1 }} · {{ totalElements }} courses</span>
+        <div>
+          <button type="button" (click)="prevPage()" [disabled]="page === 0">Previous</button>
+          <button
+            type="button"
+            (click)="nextPage()"
+            [disabled]="(page + 1) * size >= totalElements"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

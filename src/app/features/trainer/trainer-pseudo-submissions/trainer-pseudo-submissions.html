@@ -1,0 +1,544 @@
+<section class="submissions-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="submissions-hero">
+    <div class="hero-copy">
+      <button type="button" class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+        Back to Challenges
+      </button>
+
+      <span class="hero-kicker">
+        <i class="bi bi-send-check-fill"></i>
+        Student Submissions
+      </span>
+
+      <h1>Submission Review Center</h1>
+
+      <p>
+        Review every student attempt with source code, compiler output, score, test-case feedback,
+        challenge details, company grouping, and submission timeline.
+      </p>
+    </div>
+
+    <div class="hero-panel">
+      <div>
+        <span>Students</span>
+        <strong>{{ uniqueStudents }}</strong>
+      </div>
+
+      <div>
+        <span>Pass Rate</span>
+        <strong>{{ passRate }}%</strong>
+      </div>
+
+      <div>
+        <span>Review Needed</span>
+        <strong>{{ needsReviewCount }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <section class="metric-grid">
+    <button
+      type="button"
+      class="metric-card blue"
+      [class.active-metric]="isFilterActive('ALL')"
+      (click)="applyFilter('ALL')"
+    >
+      <i class="bi bi-people-fill"></i>
+      <span>Students</span>
+      <strong>{{ uniqueStudents }}</strong>
+      <small>{{ submissions.length }} total submissions</small>
+    </button>
+
+    <button
+      type="button"
+      class="metric-card green"
+      [class.active-metric]="isFilterActive('PASS')"
+      (click)="applyFilter('PASS')"
+    >
+      <i class="bi bi-patch-check-fill"></i>
+      <span>Pass Rate</span>
+      <strong>{{ passRate }}%</strong>
+      <small>{{ passedCount }} successful submissions</small>
+    </button>
+
+    <button
+      type="button"
+      class="metric-card rose"
+      [class.active-metric]="isFilterActive('FAIL')"
+      (click)="applyFilter('FAIL')"
+    >
+      <i class="bi bi-clipboard2-pulse-fill"></i>
+      <span>Needs Review</span>
+      <strong>{{ needsReviewCount }}</strong>
+      <small>Failed or incomplete attempts</small>
+    </button>
+
+    <button type="button" class="metric-card amber" (click)="loadSubmissions()">
+      <i class="bi bi-lightning-charge-fill"></i>
+      <span>Latest Activity</span>
+      <strong>{{ latestSubmissionLabel }}</strong>
+      <small>{{ latestSubmission?.studentName || 'No submissions yet' }}</small>
+    </button>
+  </section>
+
+  <section class="submission-surface">
+    <div class="surface-head upgraded-head">
+      <div>
+        <span>Review Queue</span>
+        <h2>{{ activeFilterLabel }}</h2>
+        <p>
+          Grouped by student for faster review. Expand a student to inspect every submitted
+          challenge.
+        </p>
+      </div>
+
+      <div class="head-insights">
+        <div>
+          <span>Students</span>
+          <strong>{{ groupedByStudent.length }}</strong>
+        </div>
+
+        <div>
+          <span>Top Performer</span>
+          <strong>{{ topPerformer?.studentName || 'N/A' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          [(ngModel)]="search"
+          (ngModelChange)="page = 1"
+          placeholder="Search student, email, challenge, company, language..."
+        />
+      </label>
+
+      <select [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
+        <option value="ALL">All Status</option>
+        <option value="PASS">Passed</option>
+        <option value="FAIL">Failed</option>
+      </select>
+
+      <select [(ngModel)]="sortBy" (ngModelChange)="page = 1">
+        <option value="LATEST">Latest</option>
+        <option value="SCORE">Score</option>
+        <option value="STUDENT">Student</option>
+        <option value="CHALLENGE">Challenge</option>
+      </select>
+
+      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
+        <option [ngValue]="2">2 students</option>
+        <option [ngValue]="4">4 students</option>
+        <option [ngValue]="6">6 students</option>
+        <option [ngValue]="8">8 students</option>
+      </select>
+
+      <button type="button" class="toolbar-refresh" (click)="loadSubmissions()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <div class="loader"></div>
+      <h3>Loading submissions...</h3>
+      <p>Fetching student attempts and compiler results.</p>
+    </div>
+
+    <div class="empty" *ngIf="!loading && !groupedByStudent.length">
+      <i class="bi bi-inbox"></i>
+      <h3>No submissions found</h3>
+      <p>Students have not submitted matching attempts yet.</p>
+    </div>
+
+    <div class="submission-list student-group-list" *ngIf="!loading && pagedStudentGroups.length">
+      <article
+        class="student-group-card"
+        *ngFor="let group of pagedStudentGroups; trackBy: trackByStudent"
+      >
+        <div class="student-group-top">
+          <div class="student-avatar">
+            {{ (group.studentName || 'S').charAt(0).toUpperCase() }}
+          </div>
+
+          <div class="student-info">
+            <h3>{{ group.studentName }}</h3>
+            <p>{{ group.studentEmail || 'No email' }}</p>
+          </div>
+
+          <span class="student-score-pill"> {{ group.averageScore }}% avg </span>
+        </div>
+
+        <div class="student-group-metrics">
+          <div>
+            <span>Submissions</span>
+            <strong>{{ group.submissions.length }}</strong>
+          </div>
+
+          <div>
+            <span>Passed</span>
+            <strong>{{ group.passedCount }}</strong>
+          </div>
+
+          <div>
+            <span>Failed</span>
+            <strong>{{ group.failedCount }}</strong>
+          </div>
+
+          <div>
+            <span>Latest</span>
+            <strong>{{ group.latestSubmittedAt | date: 'short' }}</strong>
+          </div>
+        </div>
+
+        <div class="student-group-actions">
+          <button type="button" class="view-btn" (click)="openStudentPrimary(group)">
+            <i class="bi bi-eye-fill"></i>
+            Review Latest
+          </button>
+
+          <button type="button" class="copy-btn" (click)="toggleStudent(group.id)">
+            <i
+              class="bi"
+              [ngClass]="expandedStudents[group.id] ? 'bi-chevron-up' : 'bi-chevron-down'"
+            ></i>
+            {{ expandedStudents[group.id] ? 'Hide Submissions' : 'View Submissions' }}
+          </button>
+        </div>
+
+        <div
+          class="student-submissions premium-student-submissions"
+          *ngIf="expandedStudents[group.id]"
+        >
+          <div class="student-submissions-head">
+            <div>
+              <span>Student Attempts</span>
+              <h4>{{ group.studentName }} submissions</h4>
+            </div>
+
+            <strong>
+              {{ getStudentSubmissionPageStart(group) }}-{{ getStudentSubmissionPageEnd(group) }} of
+              {{ group.submissions.length }}
+            </strong>
+          </div>
+
+          <div class="student-submissions-grid">
+            <article
+              class="student-submission-row premium-submission-tile"
+              *ngFor="let item of getPagedStudentSubmissions(group); trackBy: trackByAttempt"
+              [class.pass-row]="item.status === 'PASS'"
+              [class.fail-row]="item.status !== 'PASS'"
+            >
+              <div class="tile-top">
+                <span class="company-chip">
+                  <i class="bi bi-building"></i>
+                  {{ item.companyName || 'General' }}
+                </span>
+
+                <span
+                  class="tile-status"
+                  [ngClass]="item.status === 'PASS' ? 'tile-pass' : 'tile-fail'"
+                >
+                  <i class="bi" [ngClass]="getStatusIcon(item.status)"></i>
+                  {{ item.status }}
+                </span>
+              </div>
+
+              <div class="tile-body">
+                <h4>{{ item.challengeTitle }}</h4>
+                <p>
+                  {{ item.challengeGroupTitle || 'Ungrouped Challenge' }} · Batch #{{
+                    item.batchId
+                  }}
+                </p>
+              </div>
+
+              <div class="tile-score-band">
+                <div>
+                  <span>Score</span>
+                  <strong>{{ item.score }}/{{ item.totalMarks }}</strong>
+                </div>
+
+                <div>
+                  <span>Percent</span>
+                  <strong>{{ item.percentage }}%</strong>
+                </div>
+
+                <div>
+                  <span>Language</span>
+                  <strong>{{ item.language }}</strong>
+                </div>
+              </div>
+
+              <div class="tile-meta">
+                <span>
+                  <i class="bi bi-clock-history"></i>
+                  {{ item.submittedAt | date: 'medium' }}
+                </span>
+
+                <span>
+                  <i class="bi bi-ui-checks"></i>
+                  {{ getPassedTests(item) }}/{{ item.testResults?.length || 0 }} tests
+                </span>
+              </div>
+
+              <div class="tile-actions">
+                <button type="button" class="view-btn" (click)="openSubmission(item)">
+                  <i class="bi bi-eye-fill"></i>
+                  Review
+                </button>
+
+                <button type="button" class="copy-btn" (click)="copySourceCode(item)">
+                  <i class="bi bi-copy"></i>
+                  Copy
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <footer
+            class="inner-pagination"
+            *ngIf="group.submissions.length > studentSubmissionPageSize"
+          >
+            <button
+              type="button"
+              (click)="changeStudentSubmissionPage(group, getStudentSubmissionPage(group.id) - 1)"
+              [disabled]="getStudentSubmissionPage(group.id) === 1"
+            >
+              <i class="bi bi-chevron-left"></i>
+              Prev
+            </button>
+
+            <span>
+              Page {{ getStudentSubmissionPage(group.id) }} /
+              {{ getStudentSubmissionTotalPages(group) }}
+            </span>
+
+            <button
+              type="button"
+              (click)="changeStudentSubmissionPage(group, getStudentSubmissionPage(group.id) + 1)"
+              [disabled]="
+                getStudentSubmissionPage(group.id) === getStudentSubmissionTotalPages(group)
+              "
+            >
+              Next
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </footer>
+        </div>
+      </article>
+    </div>
+
+    <footer class="premium-pagination" *ngIf="!loading && groupedByStudent.length">
+      <div class="page-summary">
+        <span>Showing</span>
+        <strong>{{ pageStart }}-{{ pageEnd }}</strong>
+        <span>of</span>
+        <strong>{{ groupedByStudent.length }}</strong>
+        <span>students</span>
+      </div>
+
+      <div class="page-controls" *ngIf="hasPagination">
+        <button type="button" class="page-arrow" (click)="changePage(1)" [disabled]="page === 1">
+          <i class="bi bi-chevron-double-left"></i>
+        </button>
+
+        <button
+          type="button"
+          class="page-arrow"
+          (click)="changePage(page - 1)"
+          [disabled]="page === 1"
+        >
+          <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <button
+          type="button"
+          class="page-number"
+          *ngFor="let item of visiblePageNumbers"
+          [class.active]="page === item"
+          (click)="changePage(item)"
+        >
+          {{ item }}
+        </button>
+
+        <button
+          type="button"
+          class="page-arrow"
+          (click)="changePage(page + 1)"
+          [disabled]="page === totalPages"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+
+        <button
+          type="button"
+          class="page-arrow"
+          (click)="changePage(totalPages)"
+          [disabled]="page === totalPages"
+        >
+          <i class="bi bi-chevron-double-right"></i>
+        </button>
+      </div>
+
+      <div class="page-count-pill">Page {{ page }} / {{ totalPages }}</div>
+    </footer>
+  </section>
+</section>
+
+<div class="review-overlay" *ngIf="selectedSubmission">
+  <section class="review-modal">
+    <button type="button" class="close-btn" (click)="closeSubmission()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <header class="review-head">
+      <span>Submission Details</span>
+      <h2>{{ selectedSubmission.challengeTitle }}</h2>
+      <p>
+        {{ selectedSubmission.studentName }} · {{ selectedSubmission.studentEmail }} ·
+        {{ selectedSubmission.submittedAt | date: 'medium' }}
+      </p>
+    </header>
+
+    <div class="review-metrics">
+      <div>
+        <span>Status</span>
+        <strong [ngClass]="selectedSubmission.status === 'PASS' ? 'pass-text' : 'fail-text'">
+          {{ selectedSubmission.status }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Score</span>
+        <strong>{{ selectedSubmission.score }}/{{ selectedSubmission.totalMarks }}</strong>
+      </div>
+
+      <div>
+        <span>Percentage</span>
+        <strong>{{ selectedSubmission.percentage }}%</strong>
+      </div>
+
+      <div>
+        <span>Language</span>
+        <strong>{{ selectedSubmission.language }}</strong>
+      </div>
+    </div>
+
+    <div class="review-grid">
+      <article class="review-panel">
+        <div class="panel-title">
+          <div>
+            <span>Submitted Code</span>
+            <h3>Source Code</h3>
+          </div>
+
+          <button type="button" (click)="copySourceCode(selectedSubmission)">
+            <i class="bi bi-copy"></i>
+            Copy
+          </button>
+        </div>
+
+        <pre class="source-code">{{
+          selectedSubmission.sourceCode || 'No source code found.'
+        }}</pre>
+      </article>
+
+      <article class="review-panel">
+        <div class="panel-title">
+          <div>
+            <span>Problem</span>
+            <h3>Challenge Info</h3>
+          </div>
+        </div>
+
+        <div class="info-list">
+          <div>
+            <span>Company</span>
+            <strong>{{ selectedSubmission.companyName || 'General' }}</strong>
+          </div>
+
+          <div>
+            <span>Group</span>
+            <strong>{{ selectedSubmission.challengeGroupTitle || 'Ungrouped' }}</strong>
+          </div>
+
+          <div>
+            <span>Batch</span>
+            <strong>#{{ selectedSubmission.batchId }}</strong>
+          </div>
+        </div>
+
+        <p class="problem-text">{{ selectedSubmission.problemStatement }}</p>
+
+        <div class="compile-error" *ngIf="selectedSubmission.compileError">
+          <span>
+            <i class="bi bi-bug-fill"></i>
+            Compile Error
+          </span>
+
+          <pre>{{ selectedSubmission.compileError }}</pre>
+        </div>
+      </article>
+    </div>
+
+    <section class="tests-section">
+      <div class="tests-head">
+        <div>
+          <span>Evaluation</span>
+          <h3>Test Case Results</h3>
+        </div>
+
+        <strong>
+          {{ getPassedTests(selectedSubmission) }}/{{ selectedSubmission.testResults?.length || 0 }}
+          Passed
+        </strong>
+      </div>
+
+      <div class="tests-list">
+        <article
+          class="test-card"
+          *ngFor="let test of selectedSubmission.testResults; let i = index"
+          [class.test-pass]="test.status === 'PASS'"
+          [class.test-fail]="test.status !== 'PASS'"
+        >
+          <div class="test-top">
+            <div>
+              <span>Test Case {{ i + 1 }}</span>
+              <h4>{{ test.status }}</h4>
+            </div>
+
+            <strong>{{ test.marksObtained || 0 }} marks</strong>
+          </div>
+
+          <div class="io-grid">
+            <div>
+              <span>Input</span>
+              <pre>{{ test.inputData || 'No input' }}</pre>
+            </div>
+
+            <div>
+              <span>Expected</span>
+              <pre>{{ test.expectedOutput || 'No expected output' }}</pre>
+            </div>
+
+            <div>
+              <span>Actual</span>
+              <pre>{{ test.actualOutput || 'No output' }}</pre>
+            </div>
+          </div>
+
+          <div class="test-error" *ngIf="test.errorMessage">
+            <span>Error</span>
+            <pre>{{ test.errorMessage }}</pre>
+          </div>
+        </article>
+      </div>
+    </section>
+  </section>
+</div>

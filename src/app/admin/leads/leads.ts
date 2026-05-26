@@ -5,11 +5,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+
 type LeadStatus = 'New' | 'Contacted' | 'Joined';
 type SortDirection = 'asc' | 'desc';
 type LeadView = 'active' | 'bin';
+type ViewMode = 'table' | 'pipeline' | 'cards';
 type ToastType = 'success' | 'error';
-type FormFeedbackType = 'success' | 'error' | '';
+
 interface LeadRow {
   id: number;
   Date: string;
@@ -30,6 +32,14 @@ interface LeadRow {
   ExpectedAmount: number | null;
   DeletedAt?: string;
 }
+
+interface PipelineColumn {
+  status: LeadStatus;
+  label: string;
+  leads: LeadRow[];
+  value: number;
+}
+
 @Component({
   selector: 'app-leads',
   standalone: true,
@@ -41,28 +51,69 @@ export class LeadsComponent implements OnInit {
   leads: LeadRow[] = [];
   filteredLeads: LeadRow[] = [];
   binLeads: LeadRow[] = [];
+
   loading = false;
   binLoading = false;
   actionBusy = false;
   bulkBusy = false;
+  addLeadSaving = false;
+
   error = '';
   binError = '';
+
   activeView: LeadView = 'active';
-  courseOptions: string[] = [];
+  viewMode: ViewMode = 'table';
+
   searchText = '';
   selectedStatus = '';
   selectedCity = '';
+  selectedCourse = '';
+  selectedSource = '';
+  selectedTemperature = '';
   fromDate = '';
   toDate = '';
+
   cities: string[] = [];
+  courseOptions: string[] = [];
+  sourceOptions: string[] = [];
+
   page = 0;
   size = 10;
   totalPages = 0;
   totalElements = 0;
+
   binPage = 0;
   binSize = 10;
   binTotalPages = 0;
   binTotalElements = 0;
+
+  leadSortBy = 'createdAt';
+  leadSortDirection: SortDirection = 'desc';
+  selectedSortIndex = 0;
+
+  readonly statuses: LeadStatus[] = ['New', 'Contacted', 'Joined'];
+  readonly pageSizeOptions = [10, 25, 50, 100];
+  readonly todayDate = new Date().toISOString().split('T')[0];
+
+  readonly sortOptions = [
+    { label: 'Newest First', field: 'createdAt', direction: 'desc' as SortDirection },
+    { label: 'Oldest First', field: 'createdAt', direction: 'asc' as SortDirection },
+    { label: 'Name A-Z', field: 'name', direction: 'asc' as SortDirection },
+    { label: 'Name Z-A', field: 'name', direction: 'desc' as SortDirection },
+  ];
+
+  readonly sources = [
+    'Website',
+    'Call',
+    'Walk-in',
+    'Reference',
+    'WhatsApp',
+    'PUBLIC_PRACTICE_START',
+    'PUBLIC_MOCK_TEST',
+    'PUBLIC_CODING_CHALLENGE',
+    'Other',
+  ];
+
   stats = {
     total: 0,
     new: 0,
@@ -70,118 +121,167 @@ export class LeadsComponent implements OnInit {
     joined: 0,
     conversionRate: 0,
   };
+
   pageStats = {
     showing: 0,
     todayFollowups: 0,
+    overdueFollowups: 0,
     pendingEdits: 0,
+    hot: 0,
+    warm: 0,
+    cold: 0,
   };
-  leadSortBy = 'date';
-  leadSortDirection: SortDirection = 'desc';
-  readonly sortOptions = [
-    { label: 'Newest', field: 'date', direction: 'desc' as SortDirection },
-    { label: 'Oldest', field: 'date', direction: 'asc' as SortDirection },
-    { label: 'Name A-Z', field: 'name', direction: 'asc' as SortDirection },
-    { label: 'Name Z-A', field: 'name', direction: 'desc' as SortDirection },
-  ];
-  selectedSortIndex = 0;
-  readonly statuses: LeadStatus[] = ['New', 'Contacted', 'Joined'];
-  readonly pageSizeOptions = [10, 25, 50];
-  readonly todayDate = new Date().toISOString().split('T')[0];
+
   selectedIds = new Set<number>();
   bulkStatus: LeadStatus = 'Contacted';
+
   selectedMessageLead: LeadRow | null = null;
   showMessagePopup = false;
+
   selectedLeadToDelete: LeadRow | null = null;
   showDeletePopup = false;
+
   selectedLead: LeadRow | null = null;
   showLeadDrawer = false;
+
   toastMessage = '';
   toastType: ToastType = 'success';
-  addLeadSaving = false;
+
   addLeadForm = {
     name: '',
     phone: '',
     email: '',
     course: '',
+    city: '',
     message: '',
     source: 'Call',
   };
-  addLeadSources = ['Call', 'Walk-in', 'Reference', 'WhatsApp', 'Other'];
-  formErrors = {
-    name: '',
-    phone: '',
-    email: '',
-  };
+
+  formErrors = { name: '', phone: '', email: '' };
   formFeedback = '';
-  formFeedbackType: FormFeedbackType = '';
+  formFeedbackType: ToastType | '' = '';
+
   private searchTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
-  constructor(
-    private http: HttpClient
-  ) { }
-  ngOnInit() {
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
     this.loadLeads();
     this.loadBin();
     this.loadAnalytics();
   }
-  loadLeads() {
+
+  get selectedCount(): number {
+    return this.selectedIds.size;
+  }
+
+  get pageNumbers(): number[] {
+    const total = this.totalPages || 1;
+    const current = this.page + 1;
+    const start = Math.max(1, current - 2);
+    const end = Math.min(total, current + 2);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  get binPageNumbers(): number[] {
+    const total = this.binTotalPages || 1;
+    const current = this.binPage + 1;
+    const start = Math.max(1, current - 2);
+    const end = Math.min(total, current + 2);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  get pipelineColumns(): PipelineColumn[] {
+    return this.statuses.map((status) => {
+      const leads = this.filteredLeads.filter((lead) => lead.Status === status);
+      return {
+        status,
+        label: status,
+        leads,
+        value: leads.reduce((sum, lead) => sum + (lead.ExpectedAmount || 0), 0),
+      };
+    });
+  }
+
+  get topSources(): { source: string; count: number }[] {
+    const map = new Map<string, number>();
+    this.leads.forEach((lead) =>
+      map.set(lead.Source || 'Website', (map.get(lead.Source || 'Website') || 0) + 1),
+    );
+    return Array.from(map.entries())
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  }
+
+  get premiumSummary(): string {
+    if (!this.filteredLeads.length) return 'No matching leads right now.';
+    const hot = this.filteredLeads.filter((lead) => this.getLeadTemperature(lead) === 'Hot').length;
+    const overdue = this.filteredLeads.filter(
+      (lead) => lead.FollowUp && lead.FollowUp < this.todayDate,
+    ).length;
+    return `${hot} hot leads, ${overdue} overdue follow-ups, ${this.filteredLeads.length} visible records.`;
+  }
+
+  loadLeads(): void {
     this.loading = true;
     this.error = '';
+
     const params = new HttpParams()
       .set('search', this.searchText.trim())
       .set('page', this.page)
       .set('size', this.size)
-      .set('sortBy', this.mapLeadSortField())
+      .set('sortBy', this.leadSortBy)
       .set('direction', this.leadSortDirection);
-    this.http.get<any>(`${environment.apiUrl}/api/leads`, { params })
-      .pipe(finalize(() => {
-        this.loading = false;
-      }))
+
+    this.http
+      .get<any>(`${environment.apiUrl}/api/leads`, { params })
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (data) => {
           this.leads = (data?.content || []).map((item: any) => this.mapLead(item));
           this.totalPages = data?.totalPages || 0;
           this.totalElements = data?.totalElements || 0;
-          this.refreshCityOptions();
+          this.refreshFilterOptions();
           this.applyLocalFilters();
           this.selectedIds.clear();
-          this.refreshCourseOptions();
         },
         error: (err) => {
-          console.error('Leads API failed:', err);
-          if (err.status === 403) {
-            this.error = 'Access denied. Please login as Admin or Super Admin.';
-          } else {
-            this.error = 'Unable to load leads.';
-          }
-        }
-      });
-  }
-  loadAnalytics() {
-    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`)
-      .subscribe({
-        next: (res) => {
-          const total = res.total || 0;
-          const joined = res.joined || 0;
-          this.stats.total = total;
-          this.stats.new = res.new || 0;
-          this.stats.contacted = res.contacted || 0;
-          this.stats.joined = joined;
-          this.stats.conversionRate = total ? Math.round((joined / total) * 100) : 0;
+          this.error =
+            err.status === 403
+              ? 'Access denied. Please login as Admin or Super Admin.'
+              : 'Unable to load leads.';
         },
-        error: () => { }
       });
   }
-  loadBin() {
+
+  loadAnalytics(): void {
+    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`).subscribe({
+      next: (res) => {
+        const total = res.total || 0;
+        const joined = res.joined || 0;
+        this.stats = {
+          total,
+          new: res.new || 0,
+          contacted: res.contacted || 0,
+          joined,
+          conversionRate: total ? Math.round((joined / total) * 100) : 0,
+        };
+      },
+      error: () => {},
+    });
+  }
+
+  loadBin(): void {
     this.binLoading = true;
     this.binError = '';
-    const params = new HttpParams()
-      .set('page', this.binPage)
-      .set('size', this.binSize);
-    this.http.get<any>(`${environment.apiUrl}/api/leads/bin`, { params })
-      .pipe(finalize(() => {
-        this.binLoading = false;
-      }))
+
+    const params = new HttpParams().set('page', this.binPage).set('size', this.binSize);
+
+    this.http
+      .get<any>(`${environment.apiUrl}/api/leads/bin`, { params })
+      .pipe(finalize(() => (this.binLoading = false)))
       .subscribe({
         next: (data) => {
           this.binLeads = (data?.content || []).map((item: any) => this.mapLead(item));
@@ -190,86 +290,99 @@ export class LeadsComponent implements OnInit {
         },
         error: () => {
           this.binError = 'Unable to load bin.';
-        }
+        },
       });
   }
-  switchView(view: LeadView) {
+
+  switchView(view: LeadView): void {
     this.activeView = view;
     this.closeLeadDrawer();
     this.closeMessagePopup();
     this.closeDeletePopup();
-    if (view === 'bin') {
-      this.loadBin();
-      return;
-    }
-    this.loadLeads();
-    this.loadAnalytics();
+    view === 'bin' ? this.loadBin() : this.refreshLeads();
   }
-  nextPage() {
-    if (this.page < this.totalPages - 1) {
-      this.page++;
-      this.loadLeads();
-    }
+
+  setViewMode(mode: ViewMode): void {
+    this.viewMode = mode;
   }
-  prevPage() {
-    if (this.page > 0) {
-      this.page--;
-      this.loadLeads();
-    }
-  }
-  nextBinPage() {
-    if (this.binPage < this.binTotalPages - 1) {
-      this.binPage++;
-      this.loadBin();
-    }
-  }
-  prevBinPage() {
-    if (this.binPage > 0) {
-      this.binPage--;
-      this.loadBin();
-    }
-  }
-  onSearchInput() {
-    clearTimeout(this.searchTimer);
-    this.searchTimer = setTimeout(() => this.applyFilter(), 350);
-  }
-  applyFilter() {
-    window.clearTimeout(this.searchTimer);
+
+  applySortByIndex(index: string | number): void {
+    const selectedIndex = Number(index);
+    const option = this.sortOptions[selectedIndex];
+    if (!option) return;
+
+    this.selectedSortIndex = selectedIndex;
+    this.leadSortBy = option.field;
+    this.leadSortDirection = option.direction;
     this.page = 0;
     this.loadLeads();
   }
-  applyLocalFilters() {
+
+  onSearchInput(): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.applyFilter(), 350);
+  }
+
+  applyFilter(): void {
+    clearTimeout(this.searchTimer);
+    this.page = 0;
+    this.loadLeads();
+  }
+
+  applyLocalFilters(): void {
     const search = this.searchText.trim().toLowerCase();
+
     this.filteredLeads = this.leads.filter((lead) => {
-      const matchSearch =
-        !search ||
-        lead.Name.toLowerCase().includes(search) ||
-        lead.Phone.includes(this.searchText.trim());
-      const matchStatus = this.selectedStatus ? lead.Status === this.selectedStatus : true;
-      const matchCity = this.selectedCity ? lead.City === this.selectedCity : true;
       const leadDate = lead.Date ? lead.Date.split('T')[0] : '';
-      const matchDate =
+      const searchable = [
+        lead.Name,
+        lead.Phone,
+        lead.Email,
+        lead.Course,
+        lead.City,
+        lead.Source,
+        lead.Message,
+        lead.Status,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return (
+        (!search || searchable.includes(search)) &&
+        (!this.selectedStatus || lead.Status === this.selectedStatus) &&
+        (!this.selectedCity || lead.City === this.selectedCity) &&
+        (!this.selectedCourse || lead.Course === this.selectedCourse) &&
+        (!this.selectedSource || lead.Source === this.selectedSource) &&
+        (!this.selectedTemperature || this.getLeadTemperature(lead) === this.selectedTemperature) &&
         (!this.fromDate || leadDate >= this.fromDate) &&
-        (!this.toDate || leadDate <= this.toDate);
-      return matchSearch && matchStatus && matchCity && matchDate;
+        (!this.toDate || leadDate <= this.toDate)
+      );
     });
+
     this.syncSelectionWithFilteredRows();
     this.calculatePageStats();
   }
-  clearFilters() {
+
+  clearFilters(): void {
     this.searchText = '';
     this.selectedStatus = '';
     this.selectedCity = '';
+    this.selectedCourse = '';
+    this.selectedSource = '';
+    this.selectedTemperature = '';
     this.fromDate = '';
     this.toDate = '';
     this.page = 0;
     this.loadLeads();
   }
-  saveManualLead() {
+
+  saveManualLead(): void {
     this.clearAddLeadMessages();
+
     const name = this.addLeadForm.name.trim();
     const phone = this.cleanPhone(this.addLeadForm.phone);
     const email = this.addLeadForm.email.trim();
+
     if (!name || !phone) {
       if (!name) this.formErrors.name = 'Name is required.';
       if (!phone) this.formErrors.phone = 'Phone is required.';
@@ -277,29 +390,36 @@ export class LeadsComponent implements OnInit {
       this.formFeedbackType = 'error';
       return;
     }
+
     if (phone.length < 10) {
       this.formErrors.phone = 'Enter valid phone number.';
       this.formFeedback = 'Phone number is invalid.';
       this.formFeedbackType = 'error';
       return;
     }
+
     if (email && !this.isValidEmail(email)) {
       this.formErrors.email = 'Enter valid email address.';
       this.formFeedback = 'Email format is invalid.';
       this.formFeedbackType = 'error';
       return;
     }
+
     const payload = {
       name,
       phone,
       email,
       course: this.addLeadForm.course.trim(),
+      city: this.addLeadForm.city.trim(),
       message: this.addLeadForm.message.trim(),
       source: this.addLeadForm.source || 'Call',
     };
+
     this.addLeadSaving = true;
-    this.http.post(`${environment.apiUrl}/api/leads/save`, payload)
-      .pipe(finalize(() => this.addLeadSaving = false))
+
+    this.http
+      .post(`${environment.apiUrl}/api/leads/save`, payload)
+      .pipe(finalize(() => (this.addLeadSaving = false)))
       .subscribe({
         next: () => {
           this.showToast('Lead saved successfully.');
@@ -307,205 +427,277 @@ export class LeadsComponent implements OnInit {
           this.formFeedbackType = 'success';
           this.resetManualLeadForm();
           this.page = 0;
-          this.loadLeads();
-          this.loadAnalytics();
+          this.refreshLeads();
         },
         error: (err) => {
-          const msg = err?.error || 'Failed to add lead. Try again.';
+          const msg = err?.error?.message || err?.error || 'Failed to add lead.';
           this.formFeedback = msg;
           this.formFeedbackType = 'error';
           this.showToast(msg, 'error');
         },
       });
   }
-  onAddLeadPhoneBlur() {
-    const phone = this.cleanPhone(this.addLeadForm.phone);
-    this.addLeadForm.phone = phone;
-  }
-  resetManualLeadForm() {
+
+  resetManualLeadForm(): void {
     this.addLeadForm = {
       name: '',
       phone: '',
       email: '',
       course: '',
+      city: '',
       message: '',
       source: 'Call',
     };
     this.clearAddLeadMessages();
   }
-  applySort(option: { field: string; direction: SortDirection }) {
-    this.leadSortBy = option.field;
-    this.leadSortDirection = option.direction;
-    this.syncSelectedSortIndex();
-    this.page = 0;
-    this.loadLeads();
+
+  onAddLeadPhoneBlur(): void {
+    this.addLeadForm.phone = this.cleanPhone(this.addLeadForm.phone);
   }
-  applySortByIndex(index: string | number) {
-    const selectedIndex = Number(index);
-    const option = this.sortOptions[selectedIndex];
-    if (!option) {
-      return;
-    }
-    this.selectedSortIndex = selectedIndex;
-    this.applySort(option);
+
+  saveStatus(lead: LeadRow): void {
+    const params = new HttpParams().set('phone', lead.Phone).set('status', lead.tempStatus);
+
+    this.http.post(`${environment.apiUrl}/api/leads/status`, null, { params }).subscribe({
+      next: () => {
+        lead.Status = lead.tempStatus;
+        lead.isChanged = false;
+        this.applyLocalFilters();
+        this.loadAnalytics();
+        this.showToast('Status updated.');
+      },
+      error: () => this.showToast('Failed to update status.', 'error'),
+    });
   }
-  toggleSort(field: 'date' | 'name') {
-    if (this.leadSortBy === field) {
-      this.leadSortDirection = this.leadSortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.leadSortBy = field;
-      this.leadSortDirection = field === 'date' ? 'desc' : 'asc';
-    }
-    this.page = 0;
-    this.syncSelectedSortIndex();
-    this.loadLeads();
-  }
-  mapLeadSortField() {
-    return this.leadSortBy === 'name' ? 'name' : 'createdAt';
-  }
-  getSortLabel(field: 'date' | 'name') {
-    if (this.leadSortBy !== field) {
-      return '';
-    }
-    return this.leadSortDirection === 'asc' ? 'Asc' : 'Desc';
-  }
-  onStatusChange(lead: LeadRow) {
+
+  onStatusChange(lead: LeadRow): void {
     lead.isChanged = lead.tempStatus !== lead.Status;
     this.calculatePageStats();
   }
-  saveStatus(lead: LeadRow) {
-    const params = new HttpParams()
-      .set('phone', lead.Phone)
-      .set('status', lead.tempStatus);
-    this.http.post(`${environment.apiUrl}/api/leads/status`, null, { params })
-      .subscribe({
-        next: () => {
-          lead.Status = lead.tempStatus;
-          lead.isChanged = false;
-          this.loadAnalytics();
-          this.applyLocalFilters();
-          this.showToast('Status updated.');
-        },
-        error: () => this.showToast('Failed to update status.', 'error')
-      });
-  }
-  cancelStatus(lead: LeadRow) {
+
+  cancelStatus(lead: LeadRow): void {
     lead.tempStatus = lead.Status;
     lead.isChanged = false;
     this.calculatePageStats();
   }
-  onFollowUpChange(lead: LeadRow) {
-    lead.isFollowUpChanged = lead.tempFollowUp !== lead.FollowUp;
-    this.calculatePageStats();
-  }
-  saveFollowUp(lead: LeadRow) {
+
+  saveFollowUp(lead: LeadRow): void {
     if (!lead.tempFollowUp) {
       this.showToast('Choose a follow-up date first.', 'error');
       return;
     }
-    const params = new HttpParams()
-      .set('phone', lead.Phone)
-      .set('date', lead.tempFollowUp);
-    this.http.post(`${environment.apiUrl}/api/leads/followup`, null, { params })
-      .subscribe({
-        next: () => {
-          lead.FollowUp = lead.tempFollowUp;
-          lead.isFollowUpChanged = false;
-          this.calculatePageStats();
-          this.showToast('Follow-up updated.');
-        },
-        error: () => this.showToast('Failed to update follow-up.', 'error')
-      });
+
+    const params = new HttpParams().set('phone', lead.Phone).set('date', lead.tempFollowUp);
+
+    this.http.post(`${environment.apiUrl}/api/leads/followup`, null, { params }).subscribe({
+      next: () => {
+        lead.FollowUp = lead.tempFollowUp;
+        lead.isFollowUpChanged = false;
+        this.calculatePageStats();
+        this.showToast('Follow-up updated.');
+      },
+      error: () => this.showToast('Failed to update follow-up.', 'error'),
+    });
   }
-  markFollowUpToday(lead: LeadRow) {
+
+  onFollowUpChange(lead: LeadRow): void {
+    lead.isFollowUpChanged = lead.tempFollowUp !== lead.FollowUp;
+    this.calculatePageStats();
+  }
+
+  markFollowUpToday(lead: LeadRow): void {
     lead.tempFollowUp = this.todayDate;
     this.onFollowUpChange(lead);
     this.saveFollowUp(lead);
   }
-  cancelFollowUp(lead: LeadRow) {
+
+  cancelFollowUp(lead: LeadRow): void {
     lead.tempFollowUp = lead.FollowUp;
     lead.isFollowUpChanged = false;
     this.calculatePageStats();
   }
-  openDeletePopup(lead: LeadRow) {
+
+  bulkUpdateStatus(): void {
+    const selected = this.leads.filter((lead) => this.selectedIds.has(lead.id));
+    if (!selected.length) return;
+
+    this.bulkBusy = true;
+
+    const requests = selected.map((lead) => {
+      const params = new HttpParams().set('phone', lead.Phone).set('status', this.bulkStatus);
+      return this.http.post(`${environment.apiUrl}/api/leads/status`, null, { params });
+    });
+
+    forkJoin(requests)
+      .pipe(finalize(() => (this.bulkBusy = false)))
+      .subscribe({
+        next: () => {
+          this.showToast(`${selected.length} lead(s) updated.`);
+          this.selectedIds.clear();
+          this.refreshLeads();
+        },
+        error: () => this.showToast('Bulk status update failed.', 'error'),
+      });
+  }
+
+  bulkDelete(): void {
+    const ids = [...this.selectedIds];
+    if (!ids.length) return;
+
+    this.bulkBusy = true;
+
+    forkJoin(ids.map((id) => this.http.delete(`${environment.apiUrl}/api/leads/${id}`)))
+      .pipe(finalize(() => (this.bulkBusy = false)))
+      .subscribe({
+        next: () => {
+          this.showToast(`${ids.length} lead(s) moved to bin.`);
+          this.selectedIds.clear();
+          this.refreshLeads();
+        },
+        error: () => this.showToast('Bulk delete failed.', 'error'),
+      });
+  }
+
+  openDeletePopup(lead: LeadRow): void {
     this.selectedLeadToDelete = lead;
     this.showDeletePopup = true;
   }
-  closeDeletePopup() {
+
+  closeDeletePopup(): void {
     this.showDeletePopup = false;
     this.selectedLeadToDelete = null;
   }
-  confirmDelete() {
-    if (!this.selectedLeadToDelete) {
-      return;
-    }
+
+  confirmDelete(): void {
+    if (!this.selectedLeadToDelete) return;
+
     this.actionBusy = true;
-    this.http.delete(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`)
-      .pipe(finalize(() => this.actionBusy = false))
+
+    this.http
+      .delete(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`)
+      .pipe(finalize(() => (this.actionBusy = false)))
       .subscribe({
         next: () => {
           this.showToast('Lead moved to bin.');
           this.closeDeletePopup();
-          this.loadLeads();
-          this.loadAnalytics();
+          this.refreshLeads();
         },
-        error: () => this.showToast('Failed to delete lead.', 'error')
+        error: () => this.showToast('Failed to delete lead.', 'error'),
       });
   }
-  restoreLead(lead: LeadRow) {
+
+  restoreLead(lead: LeadRow): void {
     this.actionBusy = true;
-    this.http.put(`${environment.apiUrl}/api/leads/restore/${lead.id}`, null)
-      .pipe(finalize(() => this.actionBusy = false))
+
+    this.http
+      .put(`${environment.apiUrl}/api/leads/restore/${lead.id}`, null)
+      .pipe(finalize(() => (this.actionBusy = false)))
       .subscribe({
         next: () => {
           this.showToast('Lead restored.');
           this.loadBin();
           this.loadAnalytics();
         },
-        error: () => this.showToast('Failed to restore lead.', 'error')
+        error: () => this.showToast('Failed to restore lead.', 'error'),
       });
   }
-  deletePermanent(lead: LeadRow) {
-    const confirmed = window.confirm(`Permanently delete ${lead.Name || lead.Phone}?`);
-    if (!confirmed) {
-      return;
-    }
+
+  deletePermanent(lead: LeadRow): void {
+    if (!window.confirm(`Permanently delete ${lead.Name || lead.Phone}?`)) return;
+
     this.actionBusy = true;
-    this.http.delete(`${environment.apiUrl}/api/leads/permanent/${lead.id}`)
-      .pipe(finalize(() => this.actionBusy = false))
+
+    this.http
+      .delete(`${environment.apiUrl}/api/leads/permanent/${lead.id}`)
+      .pipe(finalize(() => (this.actionBusy = false)))
       .subscribe({
         next: () => {
           this.showToast('Lead permanently deleted.');
           this.loadBin();
           this.loadAnalytics();
         },
-        error: () => this.showToast('Failed to permanently delete lead.', 'error')
+        error: () => this.showToast('Failed to permanently delete lead.', 'error'),
       });
   }
-  openMessagePopup(lead: LeadRow) {
+
+  goToPage(pageNumber: number): void {
+    if (pageNumber < 1 || pageNumber > this.totalPages) return;
+    this.page = pageNumber - 1;
+    this.loadLeads();
+  }
+
+  goToBinPage(pageNumber: number): void {
+    if (pageNumber < 1 || pageNumber > this.binTotalPages) return;
+    this.binPage = pageNumber - 1;
+    this.loadBin();
+  }
+
+  nextPage(): void {
+    this.goToPage(this.page + 2);
+  }
+
+  prevPage(): void {
+    this.goToPage(this.page);
+  }
+
+  nextBinPage(): void {
+    this.goToBinPage(this.binPage + 2);
+  }
+
+  prevBinPage(): void {
+    this.goToBinPage(this.binPage);
+  }
+
+  toggleLeadSelection(lead: LeadRow, checked: boolean): void {
+    if (!lead.id) return;
+    checked ? this.selectedIds.add(lead.id) : this.selectedIds.delete(lead.id);
+  }
+
+  toggleSelectAll(checked: boolean): void {
+    this.filteredLeads.forEach((lead) => this.toggleLeadSelection(lead, checked));
+  }
+
+  isLeadSelected(lead: LeadRow): boolean {
+    return this.selectedIds.has(lead.id);
+  }
+
+  areAllVisibleSelected(): boolean {
+    return (
+      this.filteredLeads.length > 0 &&
+      this.filteredLeads.every((lead) => this.selectedIds.has(lead.id))
+    );
+  }
+
+  openMessagePopup(lead: LeadRow): void {
     this.selectedMessageLead = lead;
     this.showMessagePopup = true;
   }
-  closeMessagePopup() {
+
+  closeMessagePopup(): void {
     this.showMessagePopup = false;
     this.selectedMessageLead = null;
   }
-  openLeadDrawer(lead: LeadRow) {
+
+  openLeadDrawer(lead: LeadRow): void {
     this.selectedLead = lead;
     this.showLeadDrawer = true;
   }
-  closeLeadDrawer() {
+
+  closeLeadDrawer(): void {
     this.showLeadDrawer = false;
     this.selectedLead = null;
   }
-  openWhatsAppLead(lead: LeadRow) {
+
+  openWhatsAppLead(lead: LeadRow): void {
     window.open(this.getWhatsappLink(lead), '_blank');
   }
-  callLead(lead: LeadRow) {
+
+  callLead(lead: LeadRow): void {
     const phone = this.cleanPhone(lead.Phone);
     window.open(`tel:${phone}`, '_self');
   }
-  async copyPhone(lead: LeadRow) {
+
+  async copyPhone(lead: LeadRow): Promise<void> {
     try {
       await navigator.clipboard.writeText(lead.Phone);
       this.showToast('Phone copied.');
@@ -513,12 +705,14 @@ export class LeadsComponent implements OnInit {
       this.showToast('Copy failed.', 'error');
     }
   }
-  getWhatsappLink(lead: LeadRow) {
+
+  getWhatsappLink(lead: LeadRow): string {
     const phone = this.cleanPhone(lead.Phone);
     const normalized = phone.length === 10 ? `91${phone}` : phone;
     return `https://api.whatsapp.com/send?phone=${normalized}`;
   }
-  exportCSV() {
+
+  exportCSV(): void {
     const headers = [
       'DATE',
       'NAME',
@@ -531,150 +725,115 @@ export class LeadsComponent implements OnInit {
       'FOLLOW_UP',
       'SOURCE',
       'EXPECTED_AMOUNT',
-      'MESSAGE'
+      'MESSAGE',
     ];
-    const rows = this.filteredLeads.map((lead) => [
-      lead.Date,
-      lead.Name,
-      lead.Phone,
-      lead.Email,
-      lead.Course,
-      lead.Batch,
-      lead.Status,
-      lead.City,
-      lead.FollowUp,
-      lead.Source,
-      lead.ExpectedAmount ?? '',
-      lead.Message
-    ].map(value => this.escapeCsv(value)).join(','));
+
+    const rows = this.filteredLeads.map((lead) =>
+      [
+        lead.Date,
+        lead.Name,
+        lead.Phone,
+        lead.Email,
+        lead.Course,
+        lead.Batch,
+        lead.Status,
+        lead.City,
+        lead.FollowUp,
+        lead.Source,
+        lead.ExpectedAmount ?? '',
+        lead.Message,
+      ]
+        .map((value) => this.escapeCsv(value))
+        .join(','),
+    );
+
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
+
     link.href = URL.createObjectURL(blob);
     link.download = `VT_Leads_${this.todayDate}.csv`;
     link.click();
+
     URL.revokeObjectURL(link.href);
   }
-  refreshLeads() {
+
+  refreshLeads(): void {
     if (this.activeView === 'bin') {
       this.loadBin();
       return;
     }
+
     this.loadLeads();
     this.loadAnalytics();
   }
-  getTodayFollowups() {
-    return this.filteredLeads.filter(lead => lead.FollowUp === this.todayDate).length;
-  }
-  getInitials(lead: LeadRow | null) {
-    if (!lead) {
-      return 'LD';
-    }
+
+  getInitials(lead: LeadRow | null): string {
+    if (!lead) return 'LD';
     const source = lead.Name || lead.Phone || 'Lead';
-    return source
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map(part => part[0]?.toUpperCase())
-      .join('') || 'LD';
+    return (
+      source
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join('') || 'LD'
+    );
   }
-  getStatusClass(status: string) {
+
+  getStatusClass(status: string): any {
     return {
       'status-new': status === 'New',
       'status-contacted': status === 'Contacted',
       'status-joined': status === 'Joined',
     };
   }
-  getFollowUpClass(lead: LeadRow) {
-    if (!lead.FollowUp) {
-      return 'follow-neutral';
-    }
-    if (lead.FollowUp < this.todayDate) {
-      return 'follow-overdue';
-    }
-    if (lead.FollowUp === this.todayDate) {
-      return 'follow-today';
-    }
+
+  getFollowUpClass(lead: LeadRow): string {
+    if (!lead.FollowUp) return 'follow-neutral';
+    if (lead.FollowUp < this.todayDate) return 'follow-overdue';
+    if (lead.FollowUp === this.todayDate) return 'follow-today';
     return 'follow-upcoming';
   }
-  toggleLeadSelection(lead: LeadRow, checked: boolean) {
-    if (!lead.id) {
-      return;
-    }
-    if (checked) {
-      this.selectedIds.add(lead.id);
-    } else {
-      this.selectedIds.delete(lead.id);
-    }
+
+  getLeadTemperature(lead: LeadRow): 'Hot' | 'Warm' | 'Cold' {
+    if (lead.Status === 'Joined') return 'Hot';
+    if (lead.FollowUp && lead.FollowUp <= this.todayDate) return 'Hot';
+    if (lead.Source?.includes('PUBLIC_')) return 'Warm';
+    if (lead.Message?.length > 30) return 'Warm';
+    return 'Cold';
   }
-  toggleSelectAll(checked: boolean) {
-    this.filteredLeads.forEach((lead) => this.toggleLeadSelection(lead, checked));
+
+  getLeadScore(lead: LeadRow): number {
+    let score = 35;
+
+    if (lead.Name) score += 8;
+    if (lead.Phone) score += 12;
+    if (lead.Email) score += 8;
+    if (lead.Course) score += 12;
+    if (lead.City) score += 6;
+    if (lead.Message) score += 8;
+    if (lead.Source?.includes('PUBLIC_')) score += 8;
+    if (lead.FollowUp && lead.FollowUp <= this.todayDate) score += 12;
+    if (lead.Status === 'Contacted') score += 8;
+    if (lead.Status === 'Joined') score = 100;
+
+    return Math.min(score, 100);
   }
-  isLeadSelected(lead: LeadRow) {
-    return this.selectedIds.has(lead.id);
+
+  getTemperatureClass(lead: LeadRow): string {
+    return `temp-${this.getLeadTemperature(lead).toLowerCase()}`;
   }
-  areAllVisibleSelected() {
-    return this.filteredLeads.length > 0 &&
-      this.filteredLeads.every(lead => this.selectedIds.has(lead.id));
-  }
-  get selectedCount() {
-    return this.selectedIds.size;
-  }
-  bulkUpdateStatus() {
-    const selected = this.leads.filter(lead => this.selectedIds.has(lead.id));
-    if (!selected.length) {
-      return;
-    }
-    this.bulkBusy = true;
-    const requests = selected.map((lead) => {
-      const params = new HttpParams()
-        .set('phone', lead.Phone)
-        .set('status', this.bulkStatus);
-      return this.http.post(`${environment.apiUrl}/api/leads/status`, null, { params });
-    });
-    forkJoin(requests)
-      .pipe(finalize(() => this.bulkBusy = false))
-      .subscribe({
-        next: () => {
-          this.showToast(`${selected.length} lead(s) updated.`);
-          this.selectedIds.clear();
-          this.loadLeads();
-          this.loadAnalytics();
-        },
-        error: () => this.showToast('Bulk status update failed.', 'error')
-      });
-  }
-  bulkDelete() {
-    const ids = [...this.selectedIds];
-    if (!ids.length) {
-      return;
-    }
-    this.bulkBusy = true;
-    const requests = ids.map(id => this.http.delete(`${environment.apiUrl}/api/leads/${id}`));
-    forkJoin(requests)
-      .pipe(finalize(() => this.bulkBusy = false))
-      .subscribe({
-        next: () => {
-          this.showToast(`${ids.length} lead(s) moved to bin.`);
-          this.selectedIds.clear();
-          this.loadLeads();
-          this.loadAnalytics();
-        },
-        error: () => this.showToast('Bulk delete failed.', 'error')
-      });
-  }
+
   @HostListener('window:beforeunload', ['$event'])
-  confirmExit(event: any) {
-    const hasChanges = this.leads.some(lead => lead.isChanged || lead.isFollowUpChanged);
-    if (hasChanges) {
-      event.returnValue = true;
-    }
+  confirmExit(event: any): void {
+    const hasChanges = this.leads.some((lead) => lead.isChanged || lead.isFollowUpChanged);
+    if (hasChanges) event.returnValue = true;
   }
-  private refreshCourseOptions() {
-    this.courseOptions = [...new Set(this.leads.map(lead => lead.Course).filter(Boolean))].sort();
-  }
+
   private mapLead(item: any): LeadRow {
     const status = (item.status || 'New') as LeadStatus;
+
     return {
       id: item.id,
       Date: item.createdAt || '',
@@ -696,56 +855,65 @@ export class LeadsComponent implements OnInit {
       DeletedAt: item.deletedAt || '',
     };
   }
-  private refreshCityOptions() {
-    this.cities = [...new Set(this.leads.map(lead => lead.City).filter(Boolean))].sort();
+
+  private refreshFilterOptions(): void {
+    this.cities = [...new Set(this.leads.map((lead) => lead.City).filter(Boolean))].sort();
+    this.courseOptions = [...new Set(this.leads.map((lead) => lead.Course).filter(Boolean))].sort();
+    this.sourceOptions = [...new Set(this.leads.map((lead) => lead.Source).filter(Boolean))].sort();
   }
-  private calculatePageStats() {
+
+  private calculatePageStats(): void {
     this.pageStats.showing = this.filteredLeads.length;
-    this.pageStats.todayFollowups = this.filteredLeads.filter(lead => lead.FollowUp === this.todayDate).length;
-    this.pageStats.pendingEdits = this.leads.filter(lead => lead.isChanged || lead.isFollowUpChanged).length;
+    this.pageStats.todayFollowups = this.filteredLeads.filter(
+      (lead) => lead.FollowUp === this.todayDate,
+    ).length;
+    this.pageStats.overdueFollowups = this.filteredLeads.filter(
+      (lead) => lead.FollowUp && lead.FollowUp < this.todayDate,
+    ).length;
+    this.pageStats.pendingEdits = this.leads.filter(
+      (lead) => lead.isChanged || lead.isFollowUpChanged,
+    ).length;
+    this.pageStats.hot = this.filteredLeads.filter(
+      (lead) => this.getLeadTemperature(lead) === 'Hot',
+    ).length;
+    this.pageStats.warm = this.filteredLeads.filter(
+      (lead) => this.getLeadTemperature(lead) === 'Warm',
+    ).length;
+    this.pageStats.cold = this.filteredLeads.filter(
+      (lead) => this.getLeadTemperature(lead) === 'Cold',
+    ).length;
   }
-  private syncSelectionWithFilteredRows() {
-    const visibleIds = new Set(this.filteredLeads.map(lead => lead.id));
+
+  private syncSelectionWithFilteredRows(): void {
+    const visibleIds = new Set(this.filteredLeads.map((lead) => lead.id));
     [...this.selectedIds].forEach((id) => {
-      if (!visibleIds.has(id)) {
-        this.selectedIds.delete(id);
-      }
+      if (!visibleIds.has(id)) this.selectedIds.delete(id);
     });
   }
-  private syncSelectedSortIndex() {
-    const index = this.sortOptions.findIndex((option) =>
-      option.field === this.leadSortBy && option.direction === this.leadSortDirection
-    );
-    this.selectedSortIndex = index >= 0 ? index : 0;
-  }
-  private cleanPhone(phone: string) {
+
+  private cleanPhone(phone: string): string {
     return String(phone || '').replace(/\D/g, '');
   }
-  private clearAddLeadMessages() {
-    this.formErrors = {
-      name: '',
-      phone: '',
-      email: '',
-    };
+
+  private clearAddLeadMessages(): void {
+    this.formErrors = { name: '', phone: '', email: '' };
     this.formFeedback = '';
     this.formFeedbackType = '';
   }
-  private isValidEmail(email: string) {
+
+  private isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
-  private escapeCsv(value: any) {
+
+  private escapeCsv(value: any): string {
     const text = String(value ?? '');
-    if (/[",\n]/.test(text)) {
-      return `"${text.replace(/"/g, '""')}"`;
-    }
-    return text;
+    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   }
-  private showToast(message: string, type: ToastType = 'success') {
+
+  private showToast(message: string, type: ToastType = 'success'): void {
     clearTimeout(this.toastTimer);
     this.toastMessage = message;
     this.toastType = type;
-    this.toastTimer = setTimeout(() => {
-      this.toastMessage = '';
-    }, 2800);
+    this.toastTimer = setTimeout(() => (this.toastMessage = ''), 2800);
   }
 }

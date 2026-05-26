@@ -17,6 +17,7 @@ import { Company } from './pages/company/company';
 import { CertificateView } from './certificate-view/certificate-view';
 import { Checkout } from './pages/checkout/checkout';
 import { CoursesComponent } from './pages/courses/courses';
+import { PublicPracticeComponent } from './features/public/public-practice/public-practice/public-practice';
 
 /* =========================
    POLICY PAGES
@@ -82,6 +83,7 @@ import { TrainerMockInterviewsComponent } from './dashboard/trainer-pages/traine
 ========================= */
 import { CourseListComponent } from './features/lms/course/pages/course-list/course-list';
 import { CourseFormComponent } from './features/lms/course/pages/course-form/course-form';
+import { CourseManagerComponent } from './features/lms/course/course-manager/course-manager';
 import { TrainerBatchManagementComponent } from './features/lms/batch/pages/trainer-batch-management/trainer-batch-management';
 import { BatchEnrollmentComponent } from './features/lms/batch/pages/batch-enrollment/batch-enrollment';
 import { AdminBatchManagementComponent } from './features/lms/batch/pages/admin-batch-management/admin-batch-management';
@@ -119,6 +121,9 @@ import { StudentPseudoChallengesComponent } from './features/student/student-pse
 import { TrainerPseudoChallengesComponent } from './features/trainer/trainer-pseudo-challenges/trainer-pseudo-challenges';
 import { AssessmentResults } from './features/trainer/assessment-results/assessment-results';
 import { StudentPseudoChallengeLabComponent } from './features/student/student-pseudo-challenge-lab/student-pseudo-challenge-lab';
+import { CourseDetailsComponent } from './pages/courses/course-details/course-details';
+import { SettingsComponent } from './dashboard/shared/settings/settings';
+import { TrainerPseudoSubmissionsComponent } from './features/trainer/trainer-pseudo-submissions/trainer-pseudo-submissions';
 
 export const routes: Routes = [
   /* =========================
@@ -139,6 +144,9 @@ export const routes: Routes = [
   { path: 'certificate/:id', component: CertificateView },
   { path: 'checkout', component: Checkout },
 
+  { path: 'courses/:slug', component: CourseDetailsComponent },
+  { path: 'free-mock-tests', component: PublicPracticeComponent },
+  { path: 'free-mock-tests/:type/:id', component: PublicPracticeComponent },
   /* =========================
      POLICY ROUTES
   ========================= */
@@ -241,6 +249,39 @@ export const routes: Routes = [
         canActivate: [roleGuard(['MENTOR'])],
       },
 
+      /* --- SETTINGS PAGES FOR ALL ROLES --- */
+
+      {
+        path: 'student/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
+        path: 'trainer/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'admin/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['ADMIN'])],
+      },
+      {
+        path: 'hr/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['HR'])],
+      },
+      {
+        path: 'manager/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['MANAGER'])],
+      },
+      {
+        path: 'mentor/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+
       /* --- SUPER ADMIN --- */
       {
         path: 'super-admin',
@@ -248,6 +289,8 @@ export const routes: Routes = [
         children: [
           { path: '', component: SuperAdminDashboard },
           { path: 'users', component: SuperAdminDashboard },
+          { path: 'profile', component: ProfileComponent },
+          { path: 'settings', component: SettingsComponent },
         ],
       },
 
@@ -297,6 +340,11 @@ export const routes: Routes = [
       {
         path: 'lms/courses',
         component: CourseListComponent,
+        canActivate: [roleGuard(['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'MENTOR'])],
+      },
+      {
+        path: 'lms/courses-manager',
+        component: CourseManagerComponent,
         canActivate: [roleGuard(['SUPER_ADMIN', 'ADMIN', 'TRAINER', 'MENTOR'])],
       },
       {
@@ -406,6 +454,11 @@ export const routes: Routes = [
       {
         path: 'trainer/assessments',
         component: TrainerAssessmentsComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'trainer/pseudo-submissions',
+        component: TrainerPseudoSubmissionsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
     ],

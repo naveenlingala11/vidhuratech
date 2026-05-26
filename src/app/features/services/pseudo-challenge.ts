@@ -45,6 +45,10 @@ export class PseudoChallengeService {
     return this.http.get(`${this.baseUrl}/trainer/pseudo-challenges/${id}/attempts`);
   }
 
+  getTrainerSubmissions() {
+    return this.http.get(`${this.baseUrl}/trainer/pseudo-challenges/submissions`);
+  }
+
   deleteTrainerChallenge(id: number) {
     return this.http.delete(`${this.baseUrl}/trainer/pseudo-challenges/${id}`);
   }

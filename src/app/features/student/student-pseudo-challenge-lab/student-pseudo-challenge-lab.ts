@@ -83,6 +83,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   };
 
   isFullscreen = false;
+  showSubmitSuccess = false;
+  successRedirectSeconds = 3;
+  private successRedirectTimer: any;
+  private successCountdownTimer: any;
 
   primaryLanguages: LanguageOption[] = [
     { label: 'Python', value: 'PYTHON', fileName: 'main.py', runtime: 'Python 3.14' },
@@ -147,6 +151,8 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
     clearTimeout(this.hoverTimer);
+    clearTimeout(this.successRedirectTimer);
+    clearInterval(this.successCountdownTimer);
     this.diagnosticHoverDisposable?.dispose?.();
     this.cursorHoverDisposable?.dispose?.();
   }
@@ -501,16 +507,31 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
         next: (res: any) => {
           this.submitting = false;
           this.showSubmitModal = false;
+
           const data = res?.data || res;
           this.result = data;
+
           const compilerError = data?.compileError || this.firstExecutionError(data);
-          if (compilerError) this.result = { ...this.result, compileError: compilerError };
+
+          if (compilerError) {
+            this.result = { ...this.result, compileError: compilerError };
+          }
+
           this.applyCompilerErrors(compilerError);
 
           const passed = data?.status === 'PASS' || data?.allTestsPassed === true;
-          if (passed) this.showToast('Challenge submitted successfully');
-          else if (compilerError) this.showToast('Challenge submitted with compiler errors');
-          else this.showToast('Challenge submitted with failed test cases');
+
+          if (passed && !compilerError) {
+            this.showSubmitSuccessAndRedirect();
+            return;
+          }
+
+          if (compilerError) {
+            this.showToast('Challenge submitted with compiler errors');
+            return;
+          }
+
+          this.showToast('Challenge submitted with failed test cases');
         },
         error: (error) => {
           this.submitting = false;
@@ -1379,5 +1400,23 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     };
 
     return starters[language];
+  }
+
+  private showSubmitSuccessAndRedirect(): void {
+    this.showSubmitSuccess = true;
+    this.successRedirectSeconds = 3;
+    this.showSubmitModal = false;
+
+    clearTimeout(this.successRedirectTimer);
+    clearInterval(this.successCountdownTimer);
+
+    this.successCountdownTimer = setInterval(() => {
+      this.successRedirectSeconds = Math.max(this.successRedirectSeconds - 1, 0);
+    }, 1000);
+
+    this.successRedirectTimer = setTimeout(() => {
+      clearInterval(this.successCountdownTimer);
+      this.closeCompiler();
+    }, 3200);
   }
 }

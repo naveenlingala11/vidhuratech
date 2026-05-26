@@ -3,11 +3,11 @@
 
   <header class="hero">
     <div class="hero-copy">
-      <span>Code Challenge Lab</span>
-      <h1>Build compiler-ready challenges</h1>
+      <span><i class="bi bi-stars"></i> Code Challenge Studio</span>
+      <h1>Build grouped coding assessments</h1>
       <p>
-        Create Java and Python coding tasks with JSON upload, hidden test cases, edit flow,
-        validation, preview, and attempt tracking for every batch.
+        Create company-wise challenge groups, upload bulk JSON, track attempts, preview tests, reuse
+        groups, and manage every batch from a polished trainer workspace.
       </p>
     </div>
 
@@ -16,10 +16,12 @@
         <i class="bi bi-braces"></i>
         JSON
       </button>
+
       <button type="button" class="ghost-btn" (click)="fillSampleChallenge()">
-        <i class="bi bi-stars"></i>
+        <i class="bi bi-magic"></i>
         Sample
       </button>
+
       <button type="button" class="light-btn" (click)="loadChallenges()">
         <i class="bi bi-arrow-clockwise"></i>
         Refresh
@@ -28,33 +30,33 @@
   </header>
 
   <div class="stats-grid">
-    <article class="stat-card blue">
-      <i class="bi bi-code-square"></i>
-      <span>Challenges</span>
-      <strong>{{ challenges.length }}</strong>
-      <small>Total posted</small>
-    </article>
+    <button type="button" class="stat-card blue" (click)="applyStatusFilter('ALL')">
+      <i class="bi bi-folder2-open"></i>
+      <span>Groups</span>
+      <strong>{{ totalGroups }}</strong>
+      <small>{{ challenges.length }} total challenges</small>
+    </button>
 
-    <article class="stat-card green">
-      <i class="bi bi-check2-circle"></i>
-      <span>Attempts</span>
+    <button type="button" class="stat-card green" (click)="applyStatusFilter('ACTIVE')">
+      <i class="bi bi-broadcast-pin"></i>
+      <span>Active</span>
+      <strong>{{ activeChallenges }}</strong>
+      <small>Live for students</small>
+    </button>
+
+    <button type="button" class="stat-card orange" (click)="openSubmissionsPage()">
+      <i class="bi bi-graph-up-arrow"></i>
+      <span>Submissions</span>
       <strong>{{ totalAttempts }}</strong>
-      <small>Student submissions</small>
-    </article>
+      <small>View all student attempts</small>
+    </button>
 
-    <article class="stat-card orange">
-      <i class="bi bi-input-cursor-text"></i>
-      <span>Test Cases</span>
-      <strong>{{ totalTestCases }}</strong>
-      <small>Validation checks</small>
-    </article>
-
-    <article class="stat-card rose">
-      <i class="bi bi-bullseye"></i>
-      <span>Pass Mark</span>
-      <strong>{{ passMarks }}</strong>
-      <small>{{ form.passPercentage }}% of current form</small>
-    </article>
+    <button type="button" class="stat-card rose" (click)="openCompaniesView()">
+      <i class="bi bi-buildings-fill"></i>
+      <span>Companies</span>
+      <strong>{{ companyCount }}</strong>
+      <small>Company-wise groups</small>
+    </button>
   </div>
 
   <div class="workspace-grid">
@@ -64,19 +66,26 @@
           <span>{{ editingChallengeId ? 'Editing' : 'Builder' }}</span>
           <h2>{{ editingChallengeId ? 'Update Challenge' : 'New Challenge' }}</h2>
         </div>
+
         <div class="panel-actions">
           <button type="button" class="subtle-btn" (click)="showJsonImporter = !showJsonImporter">
+            <i class="bi bi-filetype-json"></i>
             JSON Import
           </button>
-          <button type="button" class="subtle-btn" (click)="resetForm()">Clear</button>
+
+          <button type="button" class="subtle-btn" (click)="resetForm()">
+            <i class="bi bi-eraser"></i>
+            Clear
+          </button>
         </div>
       </div>
 
       <div class="edit-banner" *ngIf="editingChallengeId">
         <div>
-          <strong>Editing posted challenge #{{ editingChallengeId }}</strong>
-          <span>Saving will update the existing challenge instead of creating a new one.</span>
+          <strong>Editing challenge #{{ editingChallengeId }}</strong>
+          <span>Saving will update this challenge.</span>
         </div>
+
         <button type="button" class="subtle-btn" (click)="resetForm()">Exit Edit</button>
       </div>
 
@@ -84,10 +93,11 @@
         <div class="section-title">
           <div>
             <span>Bulk Upload</span>
-            <h3>Paste Challenge JSON</h3>
+            <h3>Paste Group JSON</h3>
           </div>
+
           <button type="button" (click)="loadSampleJson()">
-            <i class="bi bi-filetype-json"></i>
+            <i class="bi bi-file-earmark-code"></i>
             Load Sample
           </button>
         </div>
@@ -97,14 +107,15 @@
           rows="18"
           [(ngModel)]="jsonChallengeText"
           spellcheck="false"
-          placeholder='{"batchId":101,"title":"Sum of Two Numbers","testCases":[...]}'
+          placeholder='[{"batchId":101,"companyName":"TCS","challengeGroupTitle":"TCS Round 1","title":"Sum of Two Numbers"}]'
         ></textarea>
 
         <div class="json-actions">
           <button type="button" class="subtle-btn" (click)="importChallengeJson()">
             <i class="bi bi-box-arrow-in-down"></i>
-            Import to Builder
+            Import First
           </button>
+
           <button
             type="button"
             class="submit-btn inline-submit"
@@ -112,26 +123,29 @@
             (click)="postChallengeJson()"
           >
             <i class="bi bi-cloud-arrow-up"></i>
-            {{ saving ? 'Posting...' : 'Post JSON Challenge' }}
+            {{ saving ? 'Posting...' : 'Post Group JSON' }}
           </button>
         </div>
       </div>
 
       <div class="builder-summary">
         <div>
-          <span>Configured Marks</span>
+          <span>Configured</span>
           <strong>{{ builderMarks }}/{{ form.totalMarks }}</strong>
         </div>
+
+        <div>
+          <span>Pass Mark</span>
+          <strong>{{ passMarks }}</strong>
+        </div>
+
         <div>
           <span>Rules</span>
           <strong>{{ form.rules.length }}</strong>
         </div>
+
         <div>
-          <span>Tests</span>
-          <strong>{{ visibleTestsCount }}</strong>
-        </div>
-        <div>
-          <span>Visible Samples</span>
+          <span>Samples</span>
           <strong>{{ visibleTestsCount }}</strong>
         </div>
       </div>
@@ -155,7 +169,17 @@
         </label>
 
         <label>
-          <span>Title</span>
+          <span>Company</span>
+          <input [(ngModel)]="form.companyName" placeholder="TCS / Infosys / Wipro" />
+        </label>
+
+        <label class="full">
+          <span>Group Title</span>
+          <input [(ngModel)]="form.challengeGroupTitle" placeholder="TCS Java Basics Round" />
+        </label>
+
+        <label class="full">
+          <span>Challenge Title</span>
           <input [(ngModel)]="form.title" placeholder="Find largest number" />
         </label>
 
@@ -164,7 +188,7 @@
           <textarea
             rows="5"
             [(ngModel)]="form.problemStatement"
-            placeholder="Write pseudo code to solve the problem..."
+            placeholder="Explain the coding problem clearly..."
           ></textarea>
         </label>
 
@@ -173,22 +197,18 @@
           <textarea
             rows="3"
             [(ngModel)]="form.constraintsText"
-            placeholder="Use loops, avoid sorting, handle edge cases..."
+            placeholder="Mention rules, edge cases, input limits..."
           ></textarea>
         </label>
 
         <label>
           <span>Input Format</span>
-          <textarea rows="3" [(ngModel)]="form.inputFormat" placeholder="Describe input"></textarea>
+          <textarea rows="3" [(ngModel)]="form.inputFormat"></textarea>
         </label>
 
         <label>
           <span>Output Format</span>
-          <textarea
-            rows="3"
-            [(ngModel)]="form.outputFormat"
-            placeholder="Describe output"
-          ></textarea>
+          <textarea rows="3" [(ngModel)]="form.outputFormat"></textarea>
         </label>
 
         <label>
@@ -210,9 +230,10 @@
       <div class="builder-section">
         <div class="section-title">
           <div>
-            <span>Rule scoring</span>
+            <span>Static Checks</span>
             <h3>Rules</h3>
           </div>
+
           <button type="button" (click)="addRule()">
             <i class="bi bi-plus-lg"></i>
             Add Rule
@@ -220,13 +241,13 @@
         </div>
 
         <div class="builder-row" *ngFor="let rule of form.rules; let i = index">
-          <select [(ngModel)]="rule.type" aria-label="Rule type">
+          <select [(ngModel)]="rule.type">
             <option value="REQUIRED_KEYWORD">Required Keyword</option>
             <option value="FORBIDDEN_KEYWORD">Forbidden Keyword</option>
             <option value="MIN_LINES">Minimum Lines</option>
           </select>
 
-          <input [(ngModel)]="rule.value" placeholder="if / loop / sort / 5" />
+          <input [(ngModel)]="rule.value" placeholder="for / while / sort / 5" />
           <input type="number" min="0" [(ngModel)]="rule.marks" placeholder="Marks" />
 
           <button type="button" class="icon-danger" (click)="removeRule(i)" title="Remove rule">
@@ -238,9 +259,10 @@
       <div class="builder-section">
         <div class="section-title">
           <div>
-            <span>Output checks</span>
+            <span>Compiler Checks</span>
             <h3>Test Cases</h3>
           </div>
+
           <button type="button" (click)="addTestCase()">
             <i class="bi bi-plus-lg"></i>
             Add Test
@@ -296,174 +318,365 @@
     </article>
 
     <article class="panel list-panel">
-      <div class="panel-head">
+      <div class="panel-head upgraded-list-head">
         <div>
           <span>Library</span>
-          <h2>Posted Challenges</h2>
+          <h2>{{ libraryView === 'COMPANIES' ? 'Company Groups' : 'Challenge Groups' }}</h2>
+          <p>Manage grouped coding assessments by company, batch, attempts, and status.</p>
         </div>
-        <strong>{{ filteredChallenges.length }}</strong>
+
+        <div class="head-pills">
+          <div>
+            <span>{{ libraryView === 'COMPANIES' ? 'Companies' : 'Groups' }}</span>
+            <strong>{{ activeLibraryItemsCount }}</strong>
+          </div>
+
+          <div>
+            <span>Avg Attempts</span>
+            <strong>{{ averageAttemptsPerGroup }}</strong>
+          </div>
+        </div>
       </div>
 
-      <div class="toolbar">
-        <label class="search-box">
+      <div class="library-switch">
+        <button
+          type="button"
+          [class.active]="libraryView === 'GROUPS'"
+          (click)="setLibraryView('GROUPS')"
+        >
+          <i class="bi bi-folder2-open"></i>
+          Groups
+        </button>
+
+        <button
+          type="button"
+          [class.active]="libraryView === 'COMPANIES'"
+          (click)="setLibraryView('COMPANIES')"
+        >
+          <i class="bi bi-buildings-fill"></i>
+          Companies
+        </button>
+      </div>
+
+      <div class="toolbar responsive-toolbar">
+        <label class="search-box toolbar-search">
           <i class="bi bi-search"></i>
-          <input [(ngModel)]="search" placeholder="Search by title, batch, status..." />
+          <input
+            [(ngModel)]="search"
+            (ngModelChange)="page = 1"
+            placeholder="Search company, group, title, batch..."
+          />
         </label>
 
-        <select [(ngModel)]="statusFilter" aria-label="Filter status">
-          <option value="ALL">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="DRAFT">Draft</option>
-          <option value="CLOSED">Closed</option>
-        </select>
+        <label class="filter-field">
+          <span>Status</span>
+          <select [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
+            <option value="ALL">All</option>
+            <option value="ACTIVE">Active</option>
+            <option value="DRAFT">Draft</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span>Sort</span>
+          <select [(ngModel)]="sortBy" (ngModelChange)="page = 1">
+            <option value="LATEST">Latest</option>
+            <option value="TITLE">Title</option>
+            <option value="ATTEMPTS">Attempts</option>
+            <option value="MARKS">Marks</option>
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span>Page</span>
+          <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
+            <option [ngValue]="4">4 items</option>
+            <option [ngValue]="6">6 items</option>
+            <option [ngValue]="10">10 items</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="quick-actions">
+        <button type="button" (click)="expandAll()">
+          <i class="bi bi-arrows-expand"></i>
+          {{ libraryView === 'COMPANIES' ? 'Open Companies' : 'Open All Groups' }}
+        </button>
+
+        <button type="button" (click)="collapseAll()">
+          <i class="bi bi-arrows-collapse"></i>
+          Close All
+        </button>
       </div>
 
       <div class="loading" *ngIf="loading">
         <div class="loader"></div>
-        <p>Loading challenges...</p>
+        <p>Loading challenge groups...</p>
       </div>
 
-      <div class="challenge-list" *ngIf="!loading && filteredChallenges.length">
-        <article class="challenge-card" *ngFor="let item of filteredChallenges; trackBy: trackById">
+      <div
+        class="challenge-list"
+        *ngIf="!loading && libraryView === 'GROUPS' && pagedGroups.length"
+      >
+        <article
+          class="challenge-card group-card"
+          *ngFor="let group of pagedGroups; trackBy: trackByGroup"
+        >
           <div class="card-top">
-            <span>Batch #{{ item.batchId }}</span>
-            <b>{{ item.attemptCount || 0 }} attempts</b>
+            <span><i class="bi bi-building"></i> {{ group.companyName }}</span>
+            <b [ngClass]="groupStatusClass(group)">{{ groupStatusLabel(group) }}</b>
           </div>
 
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.problemStatement }}</p>
+          <h3>{{ group.title }}</h3>
 
-          <div class="meta-grid">
+          <p>
+            Batch #{{ group.batchId }} · {{ group.companyName }} ·
+            {{ group.challenges.length }} challenges grouped for this assessment.
+          </p>
+
+          <div class="meta-grid group-meta-grid">
+            <div>
+              <span>Challenges</span>
+              <strong>{{ group.challenges.length }}</strong>
+            </div>
+
             <div>
               <span>Marks</span>
-              <strong>{{ item.totalMarks }}</strong>
+              <strong>{{ group.totalMarks }}</strong>
             </div>
+
             <div>
-              <span>Pass</span>
-              <strong>{{ item.passPercentage }}%</strong>
+              <span>Submissions</span>
+              <strong>{{ group.attemptCount }}</strong>
             </div>
+
             <div>
-              <span>Rules</span>
-              <strong>{{ item.rulesCount || item.rules?.length || 0 }}</strong>
-            </div>
-            <div>
-              <span>Tests</span>
-              <strong>{{ item.testCasesCount || item.testCases?.length || 0 }}</strong>
+              <span>Status</span>
+              <strong>{{ groupStatusLabel(group) }}</strong>
             </div>
           </div>
 
-          <div class="actions">
-            <button type="button" (click)="previewChallenge(item.id)">
+          <div class="actions group-actions">
+            <button type="button" (click)="previewGroup(group)">
               <i class="bi bi-eye"></i>
               Preview
             </button>
 
-            <button type="button" (click)="editChallenge(item.id)">
-              <i class="bi bi-pencil-square"></i>
-              Edit
+            <button type="button" (click)="toggleGroup(group.id)">
+              <i
+                class="bi"
+                [ngClass]="expandedGroups[group.id] ? 'bi-chevron-up' : 'bi-chevron-down'"
+              ></i>
+              {{ expandedGroups[group.id] ? 'Hide' : 'Open' }}
             </button>
 
-            <button type="button" (click)="duplicateChallenge(item)">
+            <button type="button" (click)="duplicateGroup(group)">
               <i class="bi bi-copy"></i>
               Reuse
             </button>
 
-            <button type="button" class="danger" (click)="deleteChallenge(item.id)">
+            <button type="button" class="danger" (click)="deleteGroup(group)">
               <i class="bi bi-trash"></i>
               Delete
             </button>
           </div>
+
+          <div class="group-items" *ngIf="expandedGroups[group.id]">
+            <div
+              class="group-trainer-item"
+              *ngFor="let item of group.challenges; trackBy: trackById"
+            >
+              <div>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.totalMarks }} marks · {{ item.attemptCount || 0 }} attempts</small>
+              </div>
+
+              <button type="button" (click)="previewChallenge(item.id)">
+                <i class="bi bi-eye"></i>
+                Preview
+              </button>
+
+              <button type="button" (click)="editChallenge(item.id)">
+                <i class="bi bi-pencil-square"></i>
+                Edit
+              </button>
+
+              <button type="button" (click)="duplicateChallenge(item)">
+                <i class="bi bi-copy"></i>
+                Reuse
+              </button>
+
+              <button type="button" class="danger" (click)="deleteChallenge(item.id)">
+                <i class="bi bi-trash"></i>
+                Delete
+              </button>
+            </div>
+          </div>
         </article>
       </div>
 
-      <div class="empty" *ngIf="!loading && !filteredChallenges.length">
+      <div
+        class="company-list"
+        *ngIf="!loading && libraryView === 'COMPANIES' && pagedCompanyGroups.length"
+      >
+        <article
+          class="company-card"
+          *ngFor="let company of pagedCompanyGroups; trackBy: trackByCompany"
+        >
+          <div class="company-top">
+            <div class="company-icon">
+              {{ company.name.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="company-title">
+              <span>Company</span>
+              <h3>{{ company.name }}</h3>
+              <p>{{ company.groups.length }} groups · {{ company.challengeCount }} challenges</p>
+            </div>
+
+            <b class="company-submissions-pill">{{ company.attemptCount }} submissions</b>
+          </div>
+
+          <div class="company-metrics">
+            <div>
+              <span>Groups</span>
+              <strong>{{ company.groups.length }}</strong>
+            </div>
+
+            <div>
+              <span>Challenges</span>
+              <strong>{{ company.challengeCount }}</strong>
+            </div>
+
+            <div>
+              <span>Marks</span>
+              <strong>{{ company.totalMarks }}</strong>
+            </div>
+
+            <div>
+              <span>Live</span>
+              <strong>{{ company.activeCount }}</strong>
+            </div>
+          </div>
+
+          <div class="company-actions">
+            <button type="button" (click)="toggleCompany(company.id)">
+              <i
+                class="bi"
+                [ngClass]="expandedCompanies[company.id] ? 'bi-chevron-up' : 'bi-chevron-down'"
+              ></i>
+              {{ expandedCompanies[company.id] ? 'Hide Groups' : 'View Groups' }}
+            </button>
+
+            <button type="button" (click)="previewCompany(company)">
+              <i class="bi bi-eye"></i>
+              Preview
+            </button>
+          </div>
+
+          <div class="company-groups" *ngIf="expandedCompanies[company.id]">
+            <article
+              class="company-group-row"
+              *ngFor="let group of company.groups; trackBy: trackByGroup"
+            >
+              <div>
+                <span>Batch #{{ group.batchId }}</span>
+                <h4>{{ group.title }}</h4>
+                <p>
+                  {{ group.challenges.length }} challenges · {{ group.attemptCount }} submissions
+                </p>
+              </div>
+
+              <div class="company-row-actions">
+                <button type="button" (click)="previewGroup(group)">
+                  <i class="bi bi-eye"></i>
+                  Preview
+                </button>
+
+                <button type="button" (click)="toggleGroup(group.id)">
+                  <i class="bi bi-folder2-open"></i>
+                  Open
+                </button>
+
+                <button type="button" (click)="duplicateGroup(group)">
+                  <i class="bi bi-copy"></i>
+                  Reuse
+                </button>
+
+                <button type="button" class="danger" (click)="deleteGroup(group)">
+                  <i class="bi bi-trash"></i>
+                  Delete
+                </button>
+              </div>
+
+              <div class="group-items nested-group-items" *ngIf="expandedGroups[group.id]">
+                <div
+                  class="group-trainer-item"
+                  *ngFor="let item of group.challenges; trackBy: trackById"
+                >
+                  <div>
+                    <strong>{{ item.title }}</strong>
+                    <small>
+                      {{ item.totalMarks }} marks · {{ item.attemptCount || 0 }} attempts
+                    </small>
+                  </div>
+
+                  <button type="button" (click)="previewChallenge(item.id)">
+                    <i class="bi bi-eye"></i>
+                    Preview
+                  </button>
+
+                  <button type="button" (click)="editChallenge(item.id)">
+                    <i class="bi bi-pencil-square"></i>
+                    Edit
+                  </button>
+
+                  <button type="button" (click)="duplicateChallenge(item)">
+                    <i class="bi bi-copy"></i>
+                    Reuse
+                  </button>
+
+                  <button type="button" class="danger" (click)="deleteChallenge(item.id)">
+                    <i class="bi bi-trash"></i>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </article>
+      </div>
+
+      <div class="pagination" *ngIf="!loading && activeLibraryItemsCount > pageSize">
+        <button type="button" (click)="changePage(page - 1)" [disabled]="page === 1">
+          <i class="bi bi-chevron-left"></i>
+          Prev
+        </button>
+
+        <span>Page {{ page }} / {{ totalPages }}</span>
+
+        <button type="button" (click)="changePage(page + 1)" [disabled]="page === totalPages">
+          Next
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="empty" *ngIf="!loading && !activeLibraryItemsCount">
         <i class="bi bi-code-slash"></i>
-        <h3>No challenges found</h3>
-        <p>Create a new challenge or adjust your search filters.</p>
+        <h3>No challenge groups found</h3>
+        <p>Create a new challenge or adjust filters.</p>
       </div>
     </article>
   </div>
 </section>
 
-<div class="preview-overlay" *ngIf="draftPreview">
+<div
+  class="preview-overlay"
+  *ngIf="draftPreview || selectedChallenge || selectedGroup || previewLoading"
+>
   <div class="preview-modal">
-    <button
-      type="button"
-      class="close-btn"
-      (click)="closeDraftPreview()"
-      title="Close draft preview"
-    >
-      <i class="bi bi-x-lg"></i>
-    </button>
-
-    <div class="preview-head">
-      <span>Draft Preview</span>
-      <h2>{{ draftPreview.title }}</h2>
-      <p>{{ draftPreview.problemStatement }}</p>
-    </div>
-
-    <div class="preview-meta">
-      <div>
-        <span>Batch</span><strong>#{{ draftPreview.batchId }}</strong>
-      </div>
-      <div>
-        <span>Marks</span><strong>{{ draftPreview.totalMarks }}</strong>
-      </div>
-      <div>
-        <span>Pass</span><strong>{{ draftPreview.passPercentage }}%</strong>
-      </div>
-      <div>
-        <span>Duration</span><strong>{{ draftPreview.durationMinutes }}m</strong>
-      </div>
-    </div>
-
-    <div class="preview-grid">
-      <article>
-        <h3>Problem Details</h3>
-        <div class="case-box">
-          <span>Constraints</span>
-          <pre>{{ draftPreview.constraintsText || 'No constraints added.' }}</pre>
-        </div>
-        <div class="case-box">
-          <span>Input Format</span>
-          <pre>{{ draftPreview.inputFormat || 'Not provided.' }}</pre>
-        </div>
-        <div class="case-box">
-          <span>Output Format</span>
-          <pre>{{ draftPreview.outputFormat || 'Not provided.' }}</pre>
-        </div>
-      </article>
-
-      <article>
-        <h3>Test Cases</h3>
-        <div class="case-box" *ngFor="let tc of draftPreview.testCases; let i = index">
-          <div class="case-title">
-            <strong>Test {{ i + 1 }}</strong>
-            <b [class.pass]="!tc.hidden">{{ tc.hidden ? 'Hidden' : 'Sample' }}</b>
-          </div>
-          <span>Input</span>
-          <pre>{{ tc.inputData }}</pre>
-          <span>Expected</span>
-          <pre>{{ tc.expectedOutput }}</pre>
-          <b>{{ tc.marks }} marks</b>
-        </div>
-      </article>
-    </div>
-
-    <div class="attempts-box">
-      <h3>Rules</h3>
-      <div class="rule-pill" *ngFor="let rule of draftPreview.rules">
-        <strong>{{ rule.type }}</strong>
-        <span>{{ rule.value }} - {{ rule.marks }} marks</span>
-      </div>
-      <p class="muted" *ngIf="!draftPreview.rules?.length">No static code rules configured.</p>
-    </div>
-  </div>
-</div>
-
-<div class="preview-overlay" *ngIf="selectedChallenge || previewLoading">
-  <div class="preview-modal">
-    <button type="button" class="close-btn" (click)="closePreview()" title="Close preview">
+    <button type="button" class="close-btn" (click)="closePreview(); closeDraftPreview()">
       <i class="bi bi-x-lg"></i>
     </button>
 
@@ -471,6 +684,62 @@
       <div class="loader"></div>
       <p>Loading preview...</p>
     </div>
+
+    <ng-container *ngIf="!previewLoading && draftPreview">
+      <div class="preview-head">
+        <span>Draft Preview</span>
+        <h2>{{ draftPreview.title }}</h2>
+        <p>{{ draftPreview.problemStatement }}</p>
+      </div>
+
+      <div class="preview-meta">
+        <div>
+          <span>Company</span><strong>{{ draftPreview.companyName }}</strong>
+        </div>
+        <div>
+          <span>Group</span><strong>{{ draftPreview.challengeGroupTitle }}</strong>
+        </div>
+        <div>
+          <span>Marks</span><strong>{{ draftPreview.totalMarks }}</strong>
+        </div>
+        <div>
+          <span>Duration</span><strong>{{ draftPreview.durationMinutes }}m</strong>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!previewLoading && selectedGroup">
+      <div class="preview-head">
+        <span>Group Preview</span>
+        <h2>{{ selectedGroup.title }}</h2>
+        <p>{{ selectedGroup.companyName }} · Batch #{{ selectedGroup.batchId }}</p>
+      </div>
+
+      <div class="preview-meta">
+        <div>
+          <span>Challenges</span><strong>{{ selectedGroup.challenges.length }}</strong>
+        </div>
+        <div>
+          <span>Marks</span><strong>{{ selectedGroup.totalMarks }}</strong>
+        </div>
+        <div>
+          <span>Attempts</span><strong>{{ selectedGroup.attemptCount }}</strong>
+        </div>
+        <div>
+          <span>Status</span><strong>{{ groupStatusLabel(selectedGroup) }}</strong>
+        </div>
+      </div>
+
+      <div class="attempts-box">
+        <h3>Challenges</h3>
+
+        <div class="attempt-row" *ngFor="let item of selectedGroup.challenges">
+          <strong>{{ item.title }}</strong>
+          <span>{{ item.totalMarks }} marks</span>
+          <b>{{ item.attemptCount || 0 }} attempts</b>
+        </div>
+      </div>
+    </ng-container>
 
     <ng-container *ngIf="!previewLoading && selectedChallenge">
       <div class="preview-head">
@@ -513,7 +782,6 @@
             <pre>{{ tc.expectedOutput }}</pre>
             <b>{{ tc.marks }} marks</b>
           </div>
-          <p class="muted" *ngIf="!selectedChallenge.testCases?.length">No tests configured.</p>
         </article>
       </div>
 
