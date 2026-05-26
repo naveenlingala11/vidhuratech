@@ -1,58 +1,293 @@
-<div class="card main-card shadow-sm">
-    <!-- HEADER -->
-    <div class="card-header header-bar">
-        <h5>👥 Users Management</h5>
+<section class="users-page">
+  <div class="users-header">
+    <div>
+      <p class="eyebrow">Admin Console</p>
+      <h2>Users Management</h2>
+      <span>Manage active, inactive, and deleted users.</span>
     </div>
-    <div class="card-body">
-        <!-- FILTERS -->
-        <div class="filters mb-3">
-            <input class="form-control search-box" [(ngModel)]="filters.keyword" (keyup)="search()"
-                placeholder="🔍 Search users..." />
-            <div class="status-filters mt-2">
-                <button class="chip" [class.active]="filters.role === ''" (click)="setRole('')">All</button>
-                <button *ngFor="let r of roles" class="chip" [class.active]="filters.role === r" (click)="setRole(r)">
-                    {{ r }}
-                </button>
+
+    <button class="primary-btn" routerLink="/dashboard/admin/create-user">
+      <i class="bi bi-person-plus"></i>
+      New User
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <small>Total Users</small>
+      <strong>{{ stats.totalUsers }}</strong>
+    </div>
+
+    <div class="stat-card success">
+      <small>Active</small>
+      <strong>{{ stats.activeUsers }}</strong>
+    </div>
+
+    <div class="stat-card danger">
+      <small>Inactive</small>
+      <strong>{{ stats.inactiveUsers }}</strong>
+    </div>
+
+    <div class="stat-card muted">
+      <small>Deleted</small>
+      <strong>{{ stats.deletedUsers }}</strong>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input
+        class="form-control"
+        [(ngModel)]="filters.keyword"
+        (input)="search()"
+        placeholder="Search by name..."
+      />
+    </div>
+
+    <select class="form-select" [(ngModel)]="filters.role" (change)="applyFilters()">
+      <option value="">All Roles</option>
+      <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+    </select>
+
+    <select class="form-select" [(ngModel)]="filters.active" (change)="applyFilters()">
+      <option value="">All Status</option>
+      <option value="true">Active</option>
+      <option value="false">Inactive</option>
+    </select>
+
+    <select class="form-select" [(ngModel)]="filters.deleted" (change)="applyFilters()">
+      <option value="false">Active Records</option>
+      <option value="true">Deleted Users</option>
+      <option value="">All Records</option>
+    </select>
+
+    <select class="form-select" [(ngModel)]="filters.size" (change)="applyFilters()">
+      <option [ngValue]="10">10</option>
+      <option [ngValue]="20">20</option>
+      <option [ngValue]="50">50</option>
+    </select>
+
+    <button class="secondary-btn" (click)="resetFilters()">
+      <i class="bi bi-arrow-clockwise"></i>
+      Reset
+    </button>
+
+    <button class="secondary-btn" (click)="refresh()">
+      <i class="bi bi-arrow-repeat"></i>
+      Refresh
+    </button>
+
+    <button class="primary-btn" (click)="exportCsv()">
+      <i class="bi bi-download"></i>
+      Export
+    </button>
+  </div>
+
+  <div class="role-chips">
+    <button class="chip" [class.active]="filters.role === ''" (click)="setRole('')">All</button>
+    <button
+      *ngFor="let r of roles"
+      class="chip"
+      [class.active]="filters.role === r"
+      (click)="setRole(r)"
+    >
+      {{ r }}
+    </button>
+  </div>
+
+  <div class="table-shell">
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner-border text-primary"></div>
+      <span>Loading users...</span>
+    </div>
+
+    <table class="users-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th (click)="sort('name')">User <i [class]="sortIcon('name')"></i></th>
+          <th (click)="sort('email')">Email <i [class]="sortIcon('email')"></i></th>
+          <th>Phone</th>
+          <th (click)="sort('role')">Role <i [class]="sortIcon('role')"></i></th>
+          <th (click)="sort('active')">Status <i [class]="sortIcon('active')"></i></th>
+          <th>Record</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let u of users" [class.deleted-row]="u.deleted">
+          <td>
+            <div class="user-cell">
+              <div class="avatar">{{ getInitials(u.name) }}</div>
+              <div>
+                <strong>{{ u.name || 'Unnamed User' }}</strong>
+                <small>ID: {{ u.id }}</small>
+              </div>
             </div>
-        </div>
-        <!-- LOADING -->
-        <div class="text-center py-4" *ngIf="loading">
-            <div class="spinner-border text-primary"></div>
-        </div>
-        <!-- TABLE -->
-        <table class="table" *ngIf="!loading">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let u of users">
-                    <td>{{ u.name }}</td>
-                    <td>{{ u.email }}</td>
-                    <td>{{ u.role }}</td>
-                    <td>
-                        <span class="badge" [ngClass]="{
-                'bg-success': u.active,
-                'bg-danger': !u.active
-              }">
-                            {{ u.active ? 'Active' : 'Inactive' }}
-                        </span>
-                    </td>
-                </tr>
-                <tr *ngIf="users.length === 0">
-                    <td colspan="4" class="text-center">No users found</td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- PAGINATION -->
-        <div class="d-flex justify-content-between mt-3">
-            <button (click)="prevPage()">⬅ Prev</button>
-            <span>Page {{filters.page + 1}} / {{totalPages}}</span>
-            <button (click)="nextPage()">Next ➡</button>
-        </div>
+          </td>
+
+          <td>{{ u.email }}</td>
+          <td>{{ u.phone || '-' }}</td>
+
+          <td>
+            <span class="role-pill">{{ u.role }}</span>
+          </td>
+
+          <td>
+            <button
+              class="status-pill"
+              [class.inactive]="!u.active"
+              [disabled]="u.deleted"
+              (click)="toggleStatus(u)"
+            >
+              {{ u.active ? 'Active' : 'Inactive' }}
+            </button>
+          </td>
+
+          <td>
+            <span class="deleted-pill" *ngIf="u.deleted">Deleted</span>
+            <span class="record-pill" *ngIf="!u.deleted">Live</span>
+          </td>
+
+          <td>
+            <div class="actions">
+              <button class="icon-btn view" title="Preview" (click)="openPreview(u)">
+                <i class="bi bi-eye"></i>
+              </button>
+
+              <button
+                class="icon-btn edit"
+                title="Edit"
+                [disabled]="u.deleted"
+                (click)="openEdit(u)"
+              >
+                <i class="bi bi-pencil-square"></i>
+              </button>
+
+              <button
+                class="icon-btn restore"
+                title="Restore"
+                *ngIf="u.deleted"
+                (click)="restoreUser(u)"
+              >
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+
+              <button
+                class="icon-btn delete"
+                title="Delete"
+                *ngIf="!u.deleted"
+                (click)="openDelete(u)"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="users.length === 0">
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="bi bi-people"></i>
+              <strong>No users found</strong>
+              <span>Try changing your filters.</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-bar">
+    <button class="secondary-btn" [disabled]="filters.page === 0" (click)="prevPage()">
+      <i class="bi bi-chevron-left"></i>
+      Prev
+    </button>
+
+    <span>
+      Page {{ filters.page + 1 }} of {{ totalPages || 1 }} · {{ totalElements }} records
+    </span>
+
+    <button class="secondary-btn" [disabled]="filters.page + 1 >= totalPages" (click)="nextPage()">
+      Next
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</section>
+
+<div class="modal-backdrop-custom" *ngIf="previewUser || editUser || deleteUser">
+  <div class="custom-modal preview-modal" *ngIf="previewUser">
+    <div class="modal-head">
+      <h5>User Preview</h5>
+      <button class="close-btn" (click)="closeModals()"><i class="bi bi-x-lg"></i></button>
     </div>
+
+    <div class="preview-profile">
+      <div class="avatar large">{{ getInitials(previewUser.name) }}</div>
+      <h4>{{ previewUser.name }}</h4>
+      <span class="role-pill">{{ previewUser.role }}</span>
+    </div>
+
+    <div class="info-grid">
+      <div>
+        <small>Email</small><strong>{{ previewUser.email }}</strong>
+      </div>
+      <div>
+        <small>Phone</small><strong>{{ previewUser.phone || '-' }}</strong>
+      </div>
+      <div>
+        <small>Status</small><strong>{{ previewUser.active ? 'Active' : 'Inactive' }}</strong>
+      </div>
+      <div>
+        <small>Record</small><strong>{{ previewUser.deleted ? 'Deleted' : 'Live' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="custom-modal" *ngIf="editUser">
+    <div class="modal-head">
+      <h5>Edit User</h5>
+      <button class="close-btn" (click)="closeModals()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="form-grid">
+      <label>Name <input class="form-control" [(ngModel)]="editUser.name" /></label>
+      <label>Email <input class="form-control" [(ngModel)]="editUser.email" /></label>
+      <label>Phone <input class="form-control" [(ngModel)]="editUser.phone" /></label>
+
+      <label>
+        Role
+        <select class="form-select" [(ngModel)]="editUser.role">
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="secondary-btn" (click)="closeModals()">Cancel</button>
+      <button class="primary-btn" [disabled]="saving" (click)="saveUser()">
+        {{ saving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="custom-modal danger-modal" *ngIf="deleteUser">
+    <div class="modal-head">
+      <h5>Delete User</h5>
+      <button class="close-btn" (click)="closeModals()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <p>
+      Are you sure you want to delete <strong>{{ deleteUser.name }}</strong
+      >? You can restore this user later.
+    </p>
+
+    <div class="modal-actions">
+      <button class="secondary-btn" (click)="closeModals()">Cancel</button>
+      <button class="danger-btn" [disabled]="saving" (click)="confirmDelete()">
+        {{ saving ? 'Deleting...' : 'Delete User' }}
+      </button>
+    </div>
+  </div>
 </div>

@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environment';
 
 type ContentType = 'ALL' | 'PRACTICE' | 'MATERIAL' | 'NOTE';
 type UploadContentType = 'PRACTICE' | 'MATERIAL' | 'NOTE';
-type ContentMode = 'file' | 'json';
+type ContentMode = 'file' | 'json' | 'link';
 
 @Component({
   selector: 'app-trainer-content',
@@ -32,6 +32,10 @@ export class TrainerContentComponent implements OnInit {
   contentMode: ContentMode = 'file';
   selectedContentFile?: File;
   contentJsonText = '';
+  contentLinks: string[] = [''];
+
+  dragActive = false;
+  copiedLink = '';
 
   contentForm: {
     batchId: string;
@@ -72,18 +76,47 @@ export class TrainerContentComponent implements OnInit {
   setContentMode(mode: ContentMode): void {
     this.contentMode = mode;
 
-    if (mode === 'file') {
+    if (mode !== 'file') {
+      this.selectedContentFile = undefined;
+    }
+
+    if (mode !== 'json') {
       this.contentJsonText = '';
     }
 
-    if (mode === 'json') {
-      this.selectedContentFile = undefined;
+    if (mode !== 'link') {
+      this.contentLinks = [''];
     }
   }
 
   onContentFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedContentFile = input.files?.[0];
+  }
+
+  addLink(): void {
+    this.contentLinks.push('');
+  }
+
+  removeLink(index: number): void {
+    this.contentLinks.splice(index, 1);
+
+    if (!this.contentLinks.length) {
+      this.contentLinks = [''];
+    }
+  }
+
+  get cleanLinks(): string[] {
+    return this.contentLinks.map((link) => link.trim()).filter(Boolean);
+  }
+
+  isValidUrl(value: string): boolean {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
   }
 
   uploadContent(): void {
@@ -98,7 +131,12 @@ export class TrainerContentComponent implements OnInit {
     formData.append('title', this.contentForm.title.trim());
     formData.append('description', this.contentForm.description || '');
 
-    if (this.contentMode === 'file' && this.selectedContentFile) {
+    if (this.contentMode === 'file') {
+      if (!this.selectedContentFile) {
+        this.showToast('Choose a file to upload');
+        return;
+      }
+
       formData.append('file', this.selectedContentFile);
     }
 
@@ -115,6 +153,22 @@ export class TrainerContentComponent implements OnInit {
         this.showToast('Invalid JSON format');
         return;
       }
+    }
+
+    if (this.contentMode === 'link') {
+      const links = this.cleanLinks;
+
+      if (!links.length) {
+        this.showToast('Add at least one link');
+        return;
+      }
+
+      if (links.some((link) => !this.isValidUrl(link))) {
+        this.showToast('Use valid http or https links');
+        return;
+      }
+
+      formData.append('links', JSON.stringify(links));
     }
 
     this.uploading = true;
@@ -143,6 +197,7 @@ export class TrainerContentComponent implements OnInit {
 
     this.contentMode = 'file';
     this.contentJsonText = '';
+    this.contentLinks = [''];
     this.selectedContentFile = undefined;
   }
 
@@ -197,6 +252,8 @@ export class TrainerContentComponent implements OnInit {
         item.type,
         item.batchId,
         item.fileName,
+        item.links,
+        item.url,
         item.jsonData ? 'json' : '',
       ]
         .join(' ')
@@ -216,6 +273,27 @@ export class TrainerContentComponent implements OnInit {
 
   get notesCount(): number {
     return this.contentItems.filter((item) => item.type === 'NOTE').length;
+  }
+
+  get totalLinksCount(): number {
+    return this.contentItems.reduce((count, item) => count + this.getItemLinks(item).length, 0);
+  }
+
+  getItemLinks(item: any): string[] {
+    if (Array.isArray(item.links)) return item.links;
+    if (typeof item.links === 'string') {
+      try {
+        const parsed = JSON.parse(item.links);
+        return Array.isArray(parsed) ? parsed : [item.links];
+      } catch {
+        return item.links ? [item.links] : [];
+      }
+    }
+
+    if (item.url) return [item.url];
+    if (item.link) return [item.link];
+
+    return [];
   }
 
   getTypeLabel(type: string): string {
@@ -243,5 +321,54 @@ export class TrainerContentComponent implements OnInit {
 
   trackById(_: number, item: any): any {
     return item.id || item.title;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.dragActive = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.dragActive = false;
+  }
+
+  onDropFile(event: DragEvent): void {
+    event.preventDefault();
+    this.dragActive = false;
+
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      this.selectedContentFile = file;
+      this.contentMode = 'file';
+    }
+  }
+
+  copyLink(link: string): void {
+    navigator.clipboard.writeText(link).then(() => {
+      this.copiedLink = link;
+      this.showToast('Link copied');
+      setTimeout(() => (this.copiedLink = ''), 1600);
+    });
+  }
+
+  getInitials(title: string): string {
+    return (title || 'CT')
+      .split(' ')
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  getContentAccent(type: string): string {
+    if (type === 'PRACTICE') return 'Practice Sprint';
+    if (type === 'MATERIAL') return 'Learning Asset';
+    if (type === 'NOTE') return 'Trainer Note';
+    return 'Resource';
   }
 }

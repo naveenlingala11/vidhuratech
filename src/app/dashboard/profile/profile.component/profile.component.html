@@ -1,181 +1,261 @@
 <div class="profile-page">
   <div class="toast success" *ngIf="message">
+    <i class="bi bi-check-circle-fill"></i>
     <span>{{ message }}</span>
-    <button type="button" (click)="message = ''">x</button>
+    <button type="button" (click)="message = ''" aria-label="Close">
+      <i class="bi bi-x"></i>
+    </button>
   </div>
+
   <div class="toast error" *ngIf="error">
+    <i class="bi bi-exclamation-triangle-fill"></i>
     <span>{{ error }}</span>
-    <button type="button" (click)="error = ''">x</button>
+    <button type="button" (click)="error = ''" aria-label="Close">
+      <i class="bi bi-x"></i>
+    </button>
   </div>
+
   <div class="loading-card" *ngIf="loading">
     <div class="spinner"></div>
     <h3>Loading Profile</h3>
     <p>Preparing your account workspace...</p>
   </div>
+
   <ng-container *ngIf="!loading">
-    <section class="profile-cover">
-      <div class="cover-grid"></div>
-      <div class="profile-identity">
+    <section class="profile-hero">
+      <div class="hero-grid"></div>
+
+      <div class="identity-block">
         <div class="avatar-shell">
           <div class="avatar">{{ getInitials() }}</div>
-          <span class="status-dot"></span>
+          <span class="status-dot" [class.danger]="statusTone === 'danger'"></span>
         </div>
+
         <div class="identity-copy">
           <span class="eyebrow">Vidhura Tech Account</span>
           <h1>{{ user?.name || 'User Profile' }}</h1>
-          <p>{{ roleLabel }} Workspace · {{ accountStatus }}</p>
+          <p>{{ roleLabel }} Workspace | {{ accountStatus }}</p>
+
           <div class="identity-tags">
-            <span>{{ user?.email || 'Email not available' }}</span>
-            <span>{{ user?.phone || 'Phone not added' }}</span>
-            <span>ID: {{ user?.id || '-' }}</span>
+            <span><i class="bi bi-envelope"></i>{{ user?.email || 'Email not available' }}</span>
+            <span><i class="bi bi-phone"></i>{{ user?.phone || 'Phone not added' }}</span>
+            <span><i class="bi bi-person-badge"></i>ID: {{ user?.id || '-' }}</span>
           </div>
         </div>
       </div>
-      <div class="cover-actions">
-        <button class="ghost-btn" type="button" (click)="copyEmail()">Copy Email</button>
+
+      <div class="hero-actions">
+        <button class="ghost-btn" type="button" (click)="copyEmail()">
+          <i class="bi bi-copy"></i>
+          Copy Email
+        </button>
+        <button class="ghost-btn" type="button" (click)="goToSettings()">
+          <i class="bi bi-sliders"></i>
+          Settings
+        </button>
         <button class="primary-btn" type="button" (click)="toggleEdit()">
+          <i class="bi" [ngClass]="editMode ? 'bi-x-circle' : 'bi-pencil-square'"></i>
           {{ editMode ? 'Close Edit' : 'Edit Profile' }}
         </button>
       </div>
     </section>
-    <section class="profile-stats">
-      <div class="stat-card">
-        <span>Profile Completion</span>
-        <strong>{{ profileCompletion }}%</strong>
-        <div class="track"><i [style.width.%]="profileCompletion"></i></div>
-      </div>
-      <div class="stat-card">
-        <span>Account Status</span>
-        <strong>{{ accountStatus }}</strong>
-        <small>Ready to use</small>
-      </div>
-      <div class="stat-card">
-        <span>Role Access</span>
-        <strong>{{ roleLabel }}</strong>
-        <small>Permissions enabled</small>
-      </div>
-      <div class="stat-card">
-        <span>Security</span>
-        <strong>Protected</strong>
-        <small>Secure dashboard session</small>
-      </div>
+
+    <section class="insight-grid">
+      <article class="insight-card" *ngFor="let insight of insights">
+        <div class="insight-icon">
+          <i [class]="insight.icon"></i>
+        </div>
+        <div>
+          <span>{{ insight.label }}</span>
+          <strong>{{ insight.value }}</strong>
+          <small>{{ insight.helper }}</small>
+        </div>
+      </article>
     </section>
+
     <section class="profile-layout">
       <main class="profile-main">
         <section class="profile-panel">
-          <div class="panel-heading">
+          <div class="panel-heading split">
             <div>
               <span>Personal Details</span>
               <h2>Account Information</h2>
-              <p>Keep your profile updated for course communication, invoices, and support.</p>
+              <p>Keep your profile accurate for learning, invoices, and support communication.</p>
             </div>
+
+            <button class="soft-btn" type="button" (click)="toggleEdit()">
+              <i class="bi bi-pencil-square"></i>
+              {{ editMode ? 'Close' : 'Update' }}
+            </button>
           </div>
+
           <div class="form-grid">
-            <div class="info-field">
+            <div class="info-field featured">
               <label>Full Name</label>
-              <input *ngIf="editMode" type="text" [(ngModel)]="form.name" placeholder="Enter full name" />
+              <input
+                *ngIf="editMode"
+                type="text"
+                [(ngModel)]="form.name"
+                placeholder="Enter full name"
+              />
               <strong *ngIf="!editMode">{{ user?.name || '-' }}</strong>
             </div>
-            <div class="info-field">
+
+            <div class="info-field featured">
               <label>Phone Number</label>
-              <input *ngIf="editMode" type="tel" [(ngModel)]="form.phone" placeholder="Enter phone number" />
+              <input
+                *ngIf="editMode"
+                type="tel"
+                [(ngModel)]="form.phone"
+                placeholder="Enter phone number"
+              />
               <strong *ngIf="!editMode">{{ user?.phone || '-' }}</strong>
             </div>
+
             <div class="info-field">
               <label>Email Address</label>
               <strong>{{ user?.email || '-' }}</strong>
             </div>
+
             <div class="info-field">
               <label>Role</label>
               <strong>{{ roleLabel }}</strong>
             </div>
+
             <div class="info-field">
               <label>User ID</label>
               <strong>{{ user?.id || '-' }}</strong>
             </div>
+
             <div class="info-field">
-              <label>Status</label>
-              <strong class="status-text">{{ accountStatus }}</strong>
+              <label>Joined</label>
+              <strong>{{ joinedLabel }}</strong>
             </div>
           </div>
+
           <div class="edit-actions" *ngIf="editMode">
             <button class="primary-btn" type="button" (click)="saveProfile()" [disabled]="saving">
+              <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check2-circle'"></i>
               {{ saving ? 'Saving...' : 'Save Changes' }}
             </button>
-            <button class="danger-soft-btn" type="button" (click)="cancelEdit()">Cancel</button>
+            <button class="danger-soft-btn" type="button" (click)="cancelEdit()">
+              <i class="bi bi-x-circle"></i>
+              Cancel
+            </button>
           </div>
         </section>
+
         <section class="profile-panel">
-          <div class="panel-heading">
+          <div class="panel-heading split">
             <div>
               <span>Workspace</span>
               <h2>{{ roleLabel }} Quick Actions</h2>
-              <p>Useful tools based on your current platform role.</p>
+              <p>Role-aware shortcuts built from your active account permissions.</p>
             </div>
           </div>
+
           <div class="quick-actions">
-            <button type="button" class="quick-card" *ngFor="let action of roleActions">
+            <button
+              type="button"
+              class="quick-card"
+              *ngFor="let action of roleActions"
+              (click)="goToAction(action)"
+            >
               <b>{{ action.code }}</b>
               <div>
                 <strong>{{ action.title }}</strong>
                 <small>{{ action.desc }}</small>
               </div>
+              <i [class]="action.icon"></i>
             </button>
           </div>
         </section>
+
         <section class="profile-panel">
           <div class="panel-heading">
-            <div>
-              <span>Preferences</span>
-              <h2>Notification Settings</h2>
-              <p>Choose which platform updates you want to receive.</p>
-            </div>
+            <span>Preferences</span>
+            <h2>Notification Settings</h2>
+            <p>
+              These preferences are saved instantly on this browser for your dashboard experience.
+            </p>
           </div>
+
           <div class="preferences">
-            <div class="preference-item" *ngFor="let pref of preferences">
+            <button
+              class="preference-item"
+              type="button"
+              *ngFor="let pref of preferences"
+              (click)="togglePreference(pref)"
+            >
+              <i [class]="pref.icon"></i>
               <div>
                 <strong>{{ pref.title }}</strong>
                 <span>{{ pref.desc }}</span>
               </div>
-              <label class="switch">
-                <input type="checkbox" [(ngModel)]="pref.enabled" />
+              <label class="switch" (click)="$event.stopPropagation()">
+                <input
+                  type="checkbox"
+                  [ngModel]="pref.enabled"
+                  (ngModelChange)="setPreference(pref, $event)"
+                />
                 <i></i>
               </label>
-            </div>
+            </button>
           </div>
         </section>
       </main>
+
       <aside class="profile-side">
         <section class="side-card score-card">
           <div class="score-circle" [style.--score]="profileCompletion">
             <div>
               <strong>{{ profileCompletion }}%</strong>
-              <span>Complete</span>
+              <span>{{ completionText }}</span>
             </div>
           </div>
           <h3>Profile Strength</h3>
-          <p>Add accurate contact details to improve account quality and support communication.</p>
+          <p>Add contact and preference details to improve account quality.</p>
         </section>
+
+        <section class="side-card">
+          <div class="side-heading">
+            <span>Checklist</span>
+            <h3>Account Readiness</h3>
+          </div>
+
+          <div class="checklist">
+            <div class="check-item" *ngFor="let item of profileChecklist" [class.done]="item.done">
+              <i class="bi" [ngClass]="item.done ? 'bi-check2' : 'bi-circle'"></i>
+              <span>{{ item.label }}</span>
+            </div>
+          </div>
+        </section>
+
         <section class="side-card">
           <div class="side-heading">
             <span>Activity</span>
             <h3>Recent Timeline</h3>
           </div>
+
           <div class="timeline">
             <div class="timeline-item" *ngFor="let item of activities">
-              <i></i>
+              <i [class]="item.icon"></i>
               <div>
-                <strong>{{ item }}</strong>
-                <span>Updated recently</span>
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.time }}</span>
               </div>
             </div>
           </div>
         </section>
+
         <section class="support-card">
           <span>Need Help?</span>
           <h3>Contact Support</h3>
           <p>For account, course, or dashboard help, reach out to Vidhura Tech support.</p>
-          <a href="mailto:support@vidhuratech.com">support@vidhuratech.com</a>
+          <a href="mailto:support@vidhuratech.com">
+            <i class="bi bi-envelope"></i>
+            support@vidhuratech.com
+          </a>
         </section>
       </aside>
     </section>

@@ -7,6 +7,10 @@ export interface Course {
   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   durationHours?: number;
+  startDate?: string;
+  endDate?: string;
+  price?: number;
+  metadataJson?: string;
   active?: boolean;
   createdAt?: string;
 }

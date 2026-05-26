@@ -1,0 +1,610 @@
+<section class="public-practice-page">
+  <div class="sunrise-glow"></div>
+  <div class="ocean-wave wave-one"></div>
+  <div class="ocean-wave wave-two"></div>
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <section class="practice-hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-shine"></div>
+
+    <div class="hero-copy">
+      <span class="hero-chip">Free Placement Practice</span>
+      <h1>TCS NQT 2026 Mock Tests & Coding Challenges</h1>
+      <p>
+        Practice company-wise aptitude, verbal ability, technical basics, pseudo code, and coding
+        challenges before enrolling into a job-oriented course.
+      </p>
+
+      <div class="hero-actions">
+        <button type="button" routerLink="/" class="ghost-btn">Home</button>
+        <button type="button" (click)="backToLibrary()" class="primary-btn">Explore Tests</button>
+      </div>
+
+      <div class="hero-logo-row">
+        <img src="logos/tcs.svg" alt="TCS" />
+        <img src="logos/infosys.svg" alt="Infosys" />
+        <img src="logos/wipro.svg" alt="Wipro" />
+        <img src="logos/deloitte.svg" alt="Deloitte" />
+        <img src="logos/accenture.svg" alt="Accenture" />
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <article>
+        <span>Mock Tests</span>
+        <strong>{{ assessments.length }}</strong>
+      </article>
+
+      <article>
+        <span>Challenges</span>
+        <strong>{{ challenges.length }}</strong>
+      </article>
+
+      <article>
+        <span>Result</span>
+        <strong>Instant</strong>
+      </article>
+    </div>
+  </section>
+
+  <section class="loading-state" *ngIf="loading">
+    <div class="loader"></div>
+    <h2>Loading practice workspace</h2>
+    <p>Please wait while we prepare your tests and challenges.</p>
+  </section>
+
+  <ng-container *ngIf="!loading && mode === 'LIBRARY'">
+    <section class="featured-strip" *ngIf="featuredItems.length">
+      <div class="section-title">
+        <span>Recommended</span>
+        <h2>Start with high-demand company practice</h2>
+      </div>
+
+      <div class="featured-grid">
+        <button
+          type="button"
+          class="featured-card"
+          *ngFor="let item of featuredItems"
+          (click)="openLeadModal(item)"
+        >
+          <img [src]="companyLogo(item.company)" [alt]="item.company" />
+          <div>
+            <span>{{ item.company }}</span>
+            <strong>{{ item.title }}</strong>
+          </div>
+          <b>{{ item.type === 'ASSESSMENT' ? 'Mock Test' : 'Code Lab' }}</b>
+        </button>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <label class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          [(ngModel)]="search"
+          (ngModelChange)="resetPage()"
+          placeholder="Search TCS, aptitude, coding, verbal..."
+        />
+      </label>
+
+      <select [(ngModel)]="selectedCompany" (ngModelChange)="resetPage()">
+        <option value="ALL">All Companies</option>
+        <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedSkill" (ngModelChange)="resetPage()">
+        <option value="ALL">All Skills</option>
+        <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedType" (ngModelChange)="resetPage()">
+        <option value="ALL">All Types</option>
+        <option value="ASSESSMENT">Mock Tests</option>
+        <option value="CHALLENGE">Coding Challenges</option>
+      </select>
+    </section>
+
+    <section class="trust-strip">
+      <article>
+        <strong>Real Exam Feel</strong>
+        <span>Time-bound practice and instant score analysis</span>
+      </article>
+
+      <article>
+        <strong>Company Wise</strong>
+        <span>TCS, Deloitte, Infosys, Wipro and more</span>
+      </article>
+
+      <article>
+        <strong>Lead Capture</strong>
+        <span>Students enter basic details before attempting</span>
+      </article>
+    </section>
+
+    <section class="result-count">
+      <div>
+        <strong>{{ filteredItems.length }}</strong>
+        <span>practice items available</span>
+      </div>
+
+      <div>Page {{ currentPage }} of {{ totalPages }}</div>
+    </section>
+
+    <section class="practice-grid" *ngIf="pagedItems.length">
+      <article class="practice-card" *ngFor="let item of pagedItems">
+        <div class="card-top">
+          <span class="company-chip">
+            <img [src]="companyLogo(item.company)" [alt]="item.company" />
+            {{ item.company }}
+          </span>
+
+          <span class="type-chip" [class.challenge]="item.type === 'CHALLENGE'">
+            {{ item.type === 'ASSESSMENT' ? 'Mock Test' : 'Coding Challenge' }}
+          </span>
+        </div>
+
+        <h2>{{ item.title }}</h2>
+        <p>{{ item.description || 'Practice item prepared by Frontlines EduTech trainers.' }}</p>
+
+        <div class="meta-grid">
+          <div>
+            <span>Skill</span>
+            <strong>{{ item.skill }}</strong>
+          </div>
+
+          <div>
+            <span>Duration</span>
+            <strong>{{ item.durationMinutes || 0 }} min</strong>
+          </div>
+
+          <div>
+            <span>Marks</span>
+            <strong>{{ item.totalMarks || 0 }}</strong>
+          </div>
+
+          <div>
+            <span>{{ item.type === 'ASSESSMENT' ? 'Questions' : 'Tests' }}</span>
+            <strong>{{ item.questionCount || 0 }}</strong>
+          </div>
+        </div>
+
+        <button type="button" class="attempt-btn" (click)="openLeadModal(item)">
+          {{ item.type === 'ASSESSMENT' ? 'Start Free Mock Test' : 'Try Coding Challenge' }}
+        </button>
+      </article>
+    </section>
+
+    <nav class="pagination" *ngIf="totalPages > 1">
+      <button type="button" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
+        Previous
+      </button>
+
+      <button
+        type="button"
+        *ngFor="let page of pages"
+        [class.active]="page === currentPage"
+        (click)="setPage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        type="button"
+        [disabled]="currentPage === totalPages"
+        (click)="setPage(currentPage + 1)"
+      >
+        Next
+      </button>
+    </nav>
+
+    <section class="empty-state" *ngIf="!filteredItems.length">
+      <h2>No practice items found</h2>
+      <p>Try changing company, skill, type, or search filters.</p>
+    </section>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && mode === 'ASSESSMENT' && assessment">
+    <section class="attempt-shell" *ngIf="!assessmentResult">
+      <div class="attempt-head">
+        <button type="button" class="ghost-btn" (click)="backToLibrary()">Back</button>
+
+        <div>
+          <span>{{ assessment.company }} Mock Test</span>
+          <h2>{{ assessment.title }}</h2>
+          <p>{{ assessment.description }}</p>
+        </div>
+
+        <strong>{{ answeredCount }}/{{ assessment.questions.length }} Answered</strong>
+      </div>
+
+      <div class="attempt-progress">
+        <div>
+          <span>Progress</span>
+          <strong>{{ assessmentProgress }}%</strong>
+        </div>
+        <i><em [style.width.%]="assessmentProgress"></em></i>
+      </div>
+
+      <div class="attempt-layout">
+        <aside class="question-map">
+          <button
+            type="button"
+            *ngFor="let answer of answers; let i = index"
+            [class.active]="currentQuestionIndex === i"
+            [class.done]="answer.selectedAnswer"
+            (click)="goToQuestion(i)"
+          >
+            {{ i + 1 }}
+          </button>
+        </aside>
+
+        <article class="question-card" *ngIf="currentQuestion as q">
+          <div class="question-top">
+            <span>Question {{ currentQuestionIndex + 1 }}</span>
+            <strong>{{ q.marks }} Marks</strong>
+          </div>
+
+          <h3>{{ q.question }}</h3>
+
+          <div class="options">
+            <label
+              class="option"
+              *ngFor="let key of optionKeys"
+              [class.selected]="answers[currentQuestionIndex].selectedAnswer === key"
+            >
+              <input
+                type="radio"
+                [name]="'q' + currentQuestionIndex"
+                [value]="key"
+                [(ngModel)]="answers[currentQuestionIndex].selectedAnswer"
+              />
+              <b>{{ key }}</b>
+              <span>{{ getOptionValue(q.options, key) }}</span>
+            </label>
+          </div>
+
+          <div class="question-actions">
+            <button type="button" class="ghost-btn" (click)="clearAnswer()">Clear</button>
+            <button type="button" class="ghost-btn" (click)="goToNextUnanswered()">
+              Next Unanswered
+            </button>
+            <button
+              type="button"
+              class="ghost-btn"
+              [disabled]="currentQuestionIndex === 0"
+              (click)="goPrevious()"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              class="ghost-btn"
+              [disabled]="currentQuestionIndex === assessment.questions.length - 1"
+              (click)="goNext()"
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              class="primary-btn"
+              [disabled]="submitting"
+              (click)="submitAssessment()"
+            >
+              {{ submitting ? 'Submitting...' : 'Submit Test' }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="result-shell" *ngIf="assessmentResult">
+      <div class="result-hero" [ngClass]="getScoreClass(assessmentResult.status)">
+        <span>Mock Test Completed</span>
+        <h2>{{ assessmentResult.status === 'PASS' ? 'You Passed' : 'Keep Practicing' }}</h2>
+        <strong>{{ assessmentResult.percentage }}%</strong>
+        <p>{{ assessmentResult.score }}/{{ assessmentResult.totalMarks }} Marks</p>
+      </div>
+
+      <div class="review-list">
+        <article
+          class="review-card"
+          *ngFor="let item of assessmentResult.questionResults; let i = index"
+          [class.correct]="item.isCorrect"
+        >
+          <div class="review-top">
+            <strong>Q{{ i + 1 }}. {{ item.question }}</strong>
+            <span>{{ item.marksObtained }}/{{ item.marks }}</span>
+          </div>
+
+          <p>Your Answer: {{ item.selectedAnswer || 'Not Answered' }}</p>
+          <p>Correct Answer: {{ item.correctAnswer }}</p>
+          <small>{{ item.explanation || 'No explanation available.' }}</small>
+        </article>
+      </div>
+
+      <button type="button" class="primary-btn" (click)="backToLibrary()">
+        Explore More Tests
+      </button>
+    </section>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && mode === 'CHALLENGE' && challenge">
+    <section class="challenge-shell">
+      <div class="attempt-head">
+        <button type="button" class="ghost-btn" (click)="backToLibrary()">Back</button>
+
+        <div>
+          <span>{{ challenge.company }} Coding Challenge</span>
+          <h2>{{ challenge.title }}</h2>
+          <p>{{ challenge.problemStatement }}</p>
+        </div>
+
+        <strong>{{ challenge.totalMarks }} Marks</strong>
+      </div>
+
+      <div class="challenge-layout">
+        <aside class="problem-panel">
+          <h3>Problem Details</h3>
+
+          <div>
+            <span>Input Format</span>
+            <p>{{ challenge.inputFormat || '-' }}</p>
+          </div>
+
+          <div>
+            <span>Output Format</span>
+            <p>{{ challenge.outputFormat || '-' }}</p>
+          </div>
+
+          <div>
+            <span>Constraints</span>
+            <p>{{ challenge.constraintsText || '-' }}</p>
+          </div>
+
+          <div>
+            <span>Sample Test Cases</span>
+            <article class="sample-case" *ngFor="let tc of challenge.sampleTestCases">
+              <b>Input</b>
+              <pre>{{ tc.inputData }}</pre>
+              <b>Expected Output</b>
+              <pre>{{ tc.expectedOutput }}</pre>
+            </article>
+          </div>
+        </aside>
+
+        <section class="code-panel">
+          <div class="code-toolbar">
+            <select [(ngModel)]="language" (ngModelChange)="onLanguageChange()">
+              <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+            </select>
+
+            <div>
+              <button type="button" class="ghost-btn" (click)="resetCode()">Reset Code</button>
+              <button
+                type="button"
+                class="primary-btn"
+                [disabled]="submitting"
+                (click)="runChallenge()"
+              >
+                {{ submitting ? 'Running...' : 'Run Challenge' }}
+              </button>
+            </div>
+          </div>
+
+          <textarea [(ngModel)]="sourceCode" spellcheck="false"></textarea>
+        </section>
+      </div>
+
+      <section class="result-shell compact" *ngIf="challengeResult">
+        <div class="result-hero" [ngClass]="getScoreClass(challengeResult.status)">
+          <span>Challenge Result</span>
+          <h2>{{ challengeResult.status }}</h2>
+          <strong>{{ challengeResult.percentage }}%</strong>
+          <p>{{ challengeResult.score }}/{{ challengeResult.totalMarks }} Marks</p>
+        </div>
+
+        <article class="review-card" *ngFor="let item of challengeResult.testResults">
+          <div class="review-top">
+            <strong>{{ item.inputData }}</strong>
+            <span>{{ item.status }}</span>
+          </div>
+          <p>Actual Output: {{ item.actualOutput || '-' }}</p>
+          <small *ngIf="item.errorMessage">{{ item.errorMessage }}</small>
+        </article>
+      </section>
+    </section>
+  </ng-container>
+</section>
+
+<div class="lead-auth-backdrop" *ngIf="showLeadModal">
+  <section class="lead-auth-modal">
+    <button type="button" class="lead-auth-close" (click)="closeLeadModal()" aria-label="Close">
+      x
+    </button>
+
+    <aside class="lead-auth-visual">
+      <div class="lead-auth-brand">
+        <span class="brand-mark">VT</span>
+        <div>
+          <strong>VidhuraTech</strong>
+          <small>Free Practice Gateway</small>
+        </div>
+      </div>
+
+      <div class="lead-auth-copy">
+        <span>Placement Practice</span>
+        <h2>Unlock mock tests and coding challenges.</h2>
+        <p>
+          Register once to access company-wise tests, instant scoring, coding practice, and trainer
+          guidance.
+        </p>
+      </div>
+
+      <div class="lead-auth-stats">
+        <article>
+          <strong>Free</strong>
+          <span>Access</span>
+        </article>
+        <article>
+          <strong>Instant</strong>
+          <span>Score</span>
+        </article>
+        <article>
+          <strong>2026</strong>
+          <span>Pattern</span>
+        </article>
+      </div>
+
+      <div class="lead-auth-flow">
+        <div><b>1</b><span>Enter details</span></div>
+        <div><b>2</b><span>Attempt practice</span></div>
+        <div><b>3</b><span>Get result</span></div>
+      </div>
+    </aside>
+
+    <div class="practice-register-backdrop" *ngIf="showLeadModal">
+      <section class="practice-register-modal">
+        <button
+          type="button"
+          class="practice-register-close"
+          (click)="closeLeadModal()"
+          aria-label="Close registration popup"
+        >
+          x
+        </button>
+
+        <div class="practice-register-body">
+          <aside class="practice-register-side">
+            <div class="practice-register-brand">
+              <div class="practice-register-logo visual-brand">
+                <img src="VidhuraTechLogo.png" alt="Vidhura Tech" />
+              </div>
+              <div>
+                <strong>VidhuraTech</strong>
+                <span>Practice Gateway</span>
+              </div>
+            </div>
+
+            <div class="practice-register-copy">
+              <span class="practice-register-kicker">Free Placement Practice</span>
+              <h2>Unlock your mock test workspace.</h2>
+              <p>
+                Get instant access to company-wise mock tests, coding challenges, readiness score,
+                and review reports.
+              </p>
+            </div>
+
+            <div class="practice-register-stats">
+              <article>
+                <strong>Free</strong>
+                <span>Access</span>
+              </article>
+              <article>
+                <strong>Instant</strong>
+                <span>Score</span>
+              </article>
+              <article>
+                <strong>2026</strong>
+                <span>Pattern</span>
+              </article>
+            </div>
+
+            <div class="practice-register-flow">
+              <div>
+                <b>01</b>
+                <span>Register details</span>
+              </div>
+              <div>
+                <b>02</b>
+                <span>Attempt test</span>
+              </div>
+              <div>
+                <b>03</b>
+                <span>View result</span>
+              </div>
+            </div>
+          </aside>
+
+          <div class="practice-register-form">
+            <div class="practice-register-head">
+              <span>Instant Access</span>
+              <h2>Register for Free Practice</h2>
+              <p>Enter your details to continue to the selected mock test or coding challenge.</p>
+            </div>
+
+            <div class="practice-register-alert" *ngIf="redirectMessage">
+              {{ redirectMessage }}
+            </div>
+
+            <div class="practice-register-grid">
+              <label [class.invalid]="leadErrors.name">
+                <span>Full Name *</span>
+                <input [(ngModel)]="lead.name" placeholder="Enter full name" autocomplete="name" />
+                <small *ngIf="leadErrors.name">{{ leadErrors.name }}</small>
+              </label>
+
+              <label [class.invalid]="leadErrors.phone">
+                <span>Phone Number *</span>
+                <input
+                  [(ngModel)]="lead.phone"
+                  placeholder="Enter mobile number"
+                  autocomplete="tel"
+                  inputmode="numeric"
+                />
+                <small *ngIf="leadErrors.phone">{{ leadErrors.phone }}</small>
+              </label>
+
+              <label [class.invalid]="leadErrors.email">
+                <span>Email Address</span>
+                <input
+                  [(ngModel)]="lead.email"
+                  placeholder="you@example.com"
+                  autocomplete="email"
+                />
+                <small *ngIf="leadErrors.email">{{ leadErrors.email }}</small>
+              </label>
+
+              <label>
+                <span>City</span>
+                <input
+                  [(ngModel)]="lead.city"
+                  placeholder="Your city"
+                  autocomplete="address-level2"
+                />
+              </label>
+            </div>
+
+            <label class="practice-register-message">
+              <span>Goal / Interest</span>
+              <textarea
+                [(ngModel)]="lead.message"
+                placeholder="Example: TCS NQT, aptitude, coding, placement preparation"
+              ></textarea>
+            </label>
+
+            <div class="practice-register-actions">
+              <button
+                type="button"
+                class="practice-register-submit"
+                [disabled]="submitting"
+                (click)="continueAfterLead()"
+              >
+                <span>{{ submitting ? 'Saving Details...' : 'Continue to Free Practice' }}</span>
+                <i>→</i>
+              </button>
+
+              <div class="practice-register-login">
+                <span>Already registered?</span>
+                <a routerLink="/login">Login to continue</a>
+              </div>
+
+              <p>Your details are used only for practice access and training guidance.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+</div>
