@@ -1,0 +1,218 @@
+<section class="manage-trainers">
+  <div class="toast" *ngIf="toast" [ngClass]="toastType">
+    <i class="bi" [ngClass]="toastType === 'error' ? 'bi-x-circle' : 'bi-check-circle'"></i>
+    <span>{{ toast }}</span>
+  </div>
+
+  <header class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Admin Workspace</span>
+      <h1>Manage Trainers</h1>
+      <p>
+        Assign trainers to courses, automate monthly batches, and keep trainer notifications in
+        sync.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="ghost" (click)="loadAll()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+        Refresh
+      </button>
+
+      <button type="button" (click)="generateCurrent()" [disabled]="generatingCurrent">
+        <i
+          class="bi"
+          [ngClass]="generatingCurrent ? 'bi-arrow-repeat spin' : 'bi-calendar-check'"
+        ></i>
+        {{ generatingCurrent ? 'Generating...' : 'Current Month' }}
+      </button>
+
+      <button type="button" (click)="generateNext()" [disabled]="generatingNext">
+        <i class="bi" [ngClass]="generatingNext ? 'bi-arrow-repeat spin' : 'bi-calendar-plus'"></i>
+        {{ generatingNext ? 'Generating...' : 'Next Month' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article>
+      <span>Total Assignments</span>
+      <strong>{{ stats.assignments }}</strong>
+    </article>
+
+    <article>
+      <span>Active Trainers</span>
+      <strong>{{ stats.trainers }}</strong>
+    </article>
+
+    <article>
+      <span>Assigned Trainers</span>
+      <strong>{{ stats.assignedTrainers }}</strong>
+    </article>
+
+    <article>
+      <span>Assigned Courses</span>
+      <strong>{{ stats.assignedCourses }}</strong>
+    </article>
+  </section>
+
+  <section class="assign-shell">
+    <div class="assign-panel">
+      <div class="section-title">
+        <div>
+          <span>Trainer Mapping</span>
+          <h2>Assign Trainer To Course</h2>
+        </div>
+        <i class="bi bi-person-workspace"></i>
+      </div>
+
+      <div class="assign-grid">
+        <label>
+          <span>Course</span>
+          <select [(ngModel)]="form.courseId" [disabled]="saving">
+            <option [ngValue]="0">Select course</option>
+            <option *ngFor="let course of courses" [ngValue]="course.id">
+              {{ course.title }} - Rs. {{ formatPrice(course.price) }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Trainer</span>
+          <select [(ngModel)]="form.trainerId" [disabled]="saving">
+            <option [ngValue]="0">Select trainer</option>
+            <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">
+              {{ trainer.name }} - {{ trainer.email }}
+            </option>
+          </select>
+        </label>
+
+        <button type="button" class="assign-btn" [disabled]="saving" (click)="assign()">
+          <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin' : 'bi-check2-circle'"></i>
+          {{ saving ? 'Assigning Trainer...' : 'Assign Trainer' }}
+        </button>
+      </div>
+
+      <div class="progress-line" *ngIf="saving"></div>
+    </div>
+
+    <aside class="preview-card">
+      <span>Assignment Preview</span>
+
+      <div class="preview-empty" *ngIf="!selectedCourse && !selectedTrainer">
+        <i class="bi bi-diagram-3"></i>
+        <p>Select a course and trainer to preview the assignment.</p>
+      </div>
+
+      <div class="preview-content" *ngIf="selectedCourse || selectedTrainer">
+        <div>
+          <small>Course</small>
+          <strong>{{ selectedCourse?.title || 'Not selected' }}</strong>
+          <em *ngIf="selectedCourse">Rs. {{ formatPrice(selectedCourse.price) }}</em>
+        </div>
+
+        <div>
+          <small>Trainer</small>
+          <strong>{{ selectedTrainer?.name || 'Not selected' }}</strong>
+          <em>{{ selectedTrainer?.email || '' }}</em>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="table-panel">
+    <div class="panel-head">
+      <div>
+        <span>Active Assignments</span>
+        <h2>Course Trainer Assignments</h2>
+      </div>
+
+      <strong>{{ filteredAssignments.length }}</strong>
+    </div>
+
+    <div class="filters">
+      <label class="search">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchText"
+          placeholder="Search course, code, trainer, email..."
+        />
+      </label>
+
+      <select [(ngModel)]="courseFilter">
+        <option [ngValue]="0">All courses</option>
+        <option *ngFor="let course of courses" [ngValue]="course.id">{{ course.title }}</option>
+      </select>
+
+      <select [(ngModel)]="trainerFilter">
+        <option [ngValue]="0">All trainers</option>
+        <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">{{ trainer.name }}</option>
+      </select>
+    </div>
+
+    <div class="skeleton-list" *ngIf="loading">
+      <div *ngFor="let item of [1, 2, 3, 4]" class="skeleton-row"></div>
+    </div>
+
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Code</th>
+            <th>Trainer</th>
+            <th>Email</th>
+            <th>Assigned At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of filteredAssignments">
+            <td>
+              <div class="course-cell">
+                <span>{{ item.courseTitle?.slice(0, 1) || 'C' }}</span>
+                <strong>{{ item.courseTitle }}</strong>
+              </div>
+            </td>
+
+            <td>
+              <b class="code-pill">{{ item.courseCode || '-' }}</b>
+            </td>
+
+            <td>{{ item.trainerName }}</td>
+            <td>{{ item.trainerEmail }}</td>
+            <td>{{ item.assignedAt | date: 'medium' }}</td>
+
+            <td>
+              <button
+                type="button"
+                class="danger"
+                [disabled]="deactivatingId === item.id"
+                (click)="deactivate(item)"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="deactivatingId === item.id ? 'bi-arrow-repeat spin' : 'bi-x-circle'"
+                ></i>
+                {{ deactivatingId === item.id ? 'Removing...' : 'Remove' }}
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="!filteredAssignments.length">
+            <td colspan="6">
+              <div class="empty">
+                <i class="bi bi-person-plus"></i>
+                <strong>No assignments found</strong>
+                <p>Try changing filters or assign a trainer to a course.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

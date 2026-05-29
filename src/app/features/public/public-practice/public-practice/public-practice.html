@@ -170,9 +170,17 @@
           </div>
         </div>
 
-        <button type="button" class="attempt-btn" (click)="openLeadModal(item)">
-          {{ item.type === 'ASSESSMENT' ? 'Start Free Mock Test' : 'Try Coding Challenge' }}
+        <button
+          class="attempt-btn"
+          [class.disabled]="!isLeadRequired(item)"
+          [disabled]="!isLeadRequired(item)"
+          (click)="openLeadModal(item)"
+        >
+          {{ isLeadRequired(item) ? 'Attempt Now' : 'Preview Only' }}
         </button>
+        <small class="policy-note" *ngIf="!isLeadRequired(item)">
+          {{ accessPolicyMessage(item) }}
+        </small>
       </article>
     </section>
 
@@ -205,7 +213,7 @@
     </section>
   </ng-container>
 
-  <ng-container *ngIf="!loading && mode === 'ASSESSMENT' && assessment">
+  <ng-container *ngIf="!loading && mode === 'ASSESSMENT' && assessment && workspaceUnlocked">
     <section class="attempt-shell" *ngIf="!assessmentResult">
       <div class="attempt-head">
         <button type="button" class="ghost-btn" (click)="backToLibrary()">Back</button>
@@ -330,7 +338,28 @@
     </section>
   </ng-container>
 
-  <ng-container *ngIf="!loading && mode === 'CHALLENGE' && challenge">
+  <section
+    class="workspace-locked-state"
+    *ngIf="!loading && mode === 'ASSESSMENT' && assessment && !workspaceUnlocked && !showLeadModal"
+  >
+    <div class="lock-mark">VT</div>
+    <span>Registration Required</span>
+    <h2>Unlock {{ assessment.company }} Mock Test</h2>
+    <p>
+      Complete the registration form to access questions, submit your answers, and receive your
+      instant score report.
+    </p>
+
+    <button
+      type="button"
+      class="primary-btn"
+      (click)="requestWorkspaceAccess('Please register to start this mock test')"
+    >
+      Register to Start Test
+    </button>
+  </section>
+
+  <ng-container *ngIf="!loading && mode === 'CHALLENGE' && challenge && workspaceUnlocked">
     <section class="challenge-shell">
       <div class="attempt-head">
         <button type="button" class="ghost-btn" (click)="backToLibrary()">Back</button>
@@ -416,195 +445,212 @@
       </section>
     </section>
   </ng-container>
+  <section
+    class="workspace-locked-state"
+    *ngIf="!loading && mode === 'CHALLENGE' && challenge && !workspaceUnlocked && !showLeadModal"
+  >
+    <div class="lock-mark">VT</div>
+    <span>Registration Required</span>
+    <h2>Unlock {{ challenge.company }} Coding Challenge</h2>
+    <p>
+      Complete the registration form to access the coding editor, execute your solution, and receive
+      evaluated test-case results.
+    </p>
+
+    <button
+      type="button"
+      class="primary-btn"
+      (click)="requestWorkspaceAccess('Please register to start this coding challenge')"
+    >
+      Register to Open Lab
+    </button>
+  </section>
 </section>
 
-<div class="lead-auth-backdrop" *ngIf="showLeadModal">
-  <section class="lead-auth-modal">
-    <button type="button" class="lead-auth-close" (click)="closeLeadModal()" aria-label="Close">
-      x
+<div class="practice-register-backdrop" *ngIf="showLeadModal">
+  <section
+    class="practice-register-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="practice-register-title"
+  >
+    <button
+      type="button"
+      class="practice-register-close"
+      (click)="closeLeadModal()"
+      aria-label="Close registration popup"
+    >
+      &times;
     </button>
 
-    <aside class="lead-auth-visual">
-      <div class="lead-auth-brand">
-        <span class="brand-mark">VT</span>
-        <div>
-          <strong>VidhuraTech</strong>
-          <small>Free Practice Gateway</small>
-        </div>
-      </div>
+    <div class="practice-register-body">
+      <aside class="practice-register-side">
+        <div class="practice-register-brand">
+          <div class="practice-register-logo visual-brand">
+            <img src="VidhuraTechLogo.png" alt="VidhuraTech" />
+          </div>
 
-      <div class="lead-auth-copy">
-        <span>Placement Practice</span>
-        <h2>Unlock mock tests and coding challenges.</h2>
-        <p>
-          Register once to access company-wise tests, instant scoring, coding practice, and trainer
-          guidance.
-        </p>
-      </div>
-
-      <div class="lead-auth-stats">
-        <article>
-          <strong>Free</strong>
-          <span>Access</span>
-        </article>
-        <article>
-          <strong>Instant</strong>
-          <span>Score</span>
-        </article>
-        <article>
-          <strong>2026</strong>
-          <span>Pattern</span>
-        </article>
-      </div>
-
-      <div class="lead-auth-flow">
-        <div><b>1</b><span>Enter details</span></div>
-        <div><b>2</b><span>Attempt practice</span></div>
-        <div><b>3</b><span>Get result</span></div>
-      </div>
-    </aside>
-
-    <div class="practice-register-backdrop" *ngIf="showLeadModal">
-      <section class="practice-register-modal">
-        <button
-          type="button"
-          class="practice-register-close"
-          (click)="closeLeadModal()"
-          aria-label="Close registration popup"
-        >
-          x
-        </button>
-
-        <div class="practice-register-body">
-          <aside class="practice-register-side">
-            <div class="practice-register-brand">
-              <div class="practice-register-logo visual-brand">
-                <img src="VidhuraTechLogo.png" alt="Vidhura Tech" />
-              </div>
-              <div>
-                <strong>VidhuraTech</strong>
-                <span>Practice Gateway</span>
-              </div>
-            </div>
-
-            <div class="practice-register-copy">
-              <span class="practice-register-kicker">Free Placement Practice</span>
-              <h2>Unlock your mock test workspace.</h2>
-              <p>
-                Get instant access to company-wise mock tests, coding challenges, readiness score,
-                and review reports.
-              </p>
-            </div>
-
-            <div class="practice-register-stats">
-              <article>
-                <strong>Free</strong>
-                <span>Access</span>
-              </article>
-              <article>
-                <strong>Instant</strong>
-                <span>Score</span>
-              </article>
-              <article>
-                <strong>2026</strong>
-                <span>Pattern</span>
-              </article>
-            </div>
-
-            <div class="practice-register-flow">
-              <div>
-                <b>01</b>
-                <span>Register details</span>
-              </div>
-              <div>
-                <b>02</b>
-                <span>Attempt test</span>
-              </div>
-              <div>
-                <b>03</b>
-                <span>View result</span>
-              </div>
-            </div>
-          </aside>
-
-          <div class="practice-register-form">
-            <div class="practice-register-head">
-              <span>Instant Access</span>
-              <h2>Register for Free Practice</h2>
-              <p>Enter your details to continue to the selected mock test or coding challenge.</p>
-            </div>
-
-            <div class="practice-register-alert" *ngIf="redirectMessage">
-              {{ redirectMessage }}
-            </div>
-
-            <div class="practice-register-grid">
-              <label [class.invalid]="leadErrors.name">
-                <span>Full Name *</span>
-                <input [(ngModel)]="lead.name" placeholder="Enter full name" autocomplete="name" />
-                <small *ngIf="leadErrors.name">{{ leadErrors.name }}</small>
-              </label>
-
-              <label [class.invalid]="leadErrors.phone">
-                <span>Phone Number *</span>
-                <input
-                  [(ngModel)]="lead.phone"
-                  placeholder="Enter mobile number"
-                  autocomplete="tel"
-                  inputmode="numeric"
-                />
-                <small *ngIf="leadErrors.phone">{{ leadErrors.phone }}</small>
-              </label>
-
-              <label [class.invalid]="leadErrors.email">
-                <span>Email Address</span>
-                <input
-                  [(ngModel)]="lead.email"
-                  placeholder="you@example.com"
-                  autocomplete="email"
-                />
-                <small *ngIf="leadErrors.email">{{ leadErrors.email }}</small>
-              </label>
-
-              <label>
-                <span>City</span>
-                <input
-                  [(ngModel)]="lead.city"
-                  placeholder="Your city"
-                  autocomplete="address-level2"
-                />
-              </label>
-            </div>
-
-            <label class="practice-register-message">
-              <span>Goal / Interest</span>
-              <textarea
-                [(ngModel)]="lead.message"
-                placeholder="Example: TCS NQT, aptitude, coding, placement preparation"
-              ></textarea>
-            </label>
-
-            <div class="practice-register-actions">
-              <button
-                type="button"
-                class="practice-register-submit"
-                [disabled]="submitting"
-                (click)="continueAfterLead()"
-              >
-                <span>{{ submitting ? 'Saving Details...' : 'Continue to Free Practice' }}</span>
-                <i>→</i>
-              </button>
-
-              <div class="practice-register-login">
-                <span>Already registered?</span>
-                <a routerLink="/login">Login to continue</a>
-              </div>
-
-              <p>Your details are used only for practice access and training guidance.</p>
-            </div>
+          <div>
+            <strong>VidhuraTech</strong>
+            <span>Practice Gateway</span>
           </div>
         </div>
-      </section>
+
+        <div class="practice-register-copy">
+          <span class="practice-register-kicker">Free Placement Practice</span>
+
+          <h2>Unlock your practice workspace.</h2>
+
+          <p>
+            Register once to access company-wise mock tests, coding challenges, instant scoring and
+            detailed review reports.
+          </p>
+        </div>
+
+        <div class="practice-register-stats">
+          <article>
+            <strong>Free</strong>
+            <span>Practice Access</span>
+          </article>
+
+          <article>
+            <strong>Instant</strong>
+            <span>Score Report</span>
+          </article>
+
+          <article>
+            <strong>2026</strong>
+            <span>Hiring Pattern</span>
+          </article>
+        </div>
+
+        <div class="practice-register-flow">
+          <div>
+            <b>01</b>
+            <span>Enter your details</span>
+          </div>
+
+          <div>
+            <b>02</b>
+            <span>Attempt selected practice</span>
+          </div>
+
+          <div>
+            <b>03</b>
+            <span>View instant result</span>
+          </div>
+        </div>
+      </aside>
+
+      <form class="practice-register-form" (ngSubmit)="continueAfterLead()" novalidate>
+        <header class="practice-register-head">
+          <span>Registration Required</span>
+
+          <h2 id="practice-register-title">Register for Free Practice</h2>
+
+          <p>Enter your details to continue to the selected mock test or coding challenge.</p>
+        </header>
+
+        <div class="practice-register-alert" *ngIf="redirectMessage" role="alert">
+          {{ redirectMessage }}
+        </div>
+
+        <div class="practice-register-grid">
+          <label [class.invalid]="leadErrors.name">
+            <span>Full Name <b>*</b></span>
+
+            <input
+              type="text"
+              name="leadName"
+              [(ngModel)]="lead.name"
+              placeholder="Enter full name"
+              autocomplete="name"
+              [disabled]="submitting"
+              required
+            />
+
+            <small *ngIf="leadErrors.name">{{ leadErrors.name }}</small>
+          </label>
+
+          <label [class.invalid]="leadErrors.phone">
+            <span>Phone Number <b>*</b></span>
+
+            <input
+              type="tel"
+              name="leadPhone"
+              [(ngModel)]="lead.phone"
+              placeholder="Enter mobile number"
+              autocomplete="tel"
+              inputmode="numeric"
+              maxlength="15"
+              [disabled]="submitting"
+              required
+            />
+
+            <small *ngIf="leadErrors.phone">{{ leadErrors.phone }}</small>
+          </label>
+
+          <label [class.invalid]="leadErrors.email">
+            <span>Email Address</span>
+
+            <input
+              type="email"
+              name="leadEmail"
+              [(ngModel)]="lead.email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              [disabled]="submitting"
+            />
+
+            <small *ngIf="leadErrors.email">{{ leadErrors.email }}</small>
+          </label>
+
+          <label>
+            <span>City</span>
+
+            <input
+              type="text"
+              name="leadCity"
+              [(ngModel)]="lead.city"
+              placeholder="Enter your city"
+              autocomplete="address-level2"
+              [disabled]="submitting"
+            />
+          </label>
+        </div>
+
+        <label class="practice-register-message">
+          <span>Goal / Interest</span>
+
+          <textarea
+            name="leadMessage"
+            [(ngModel)]="lead.message"
+            placeholder="Example: TCS NQT, aptitude, coding, placement preparation"
+            [disabled]="submitting"
+          ></textarea>
+        </label>
+
+        <div class="selected-practice" *ngIf="lead.interest">
+          <span>Selected Practice</span>
+          <strong>{{ lead.interest }}</strong>
+        </div>
+
+        <footer class="practice-register-actions">
+          <button type="submit" class="practice-register-submit" [disabled]="submitting">
+            <span>
+              {{ submitting ? 'Saving Details...' : 'Continue to Free Practice' }}
+            </span>
+            <i aria-hidden="true">&rarr;</i>
+          </button>
+
+          <div class="practice-register-login">
+            <span>Already registered?</span>
+            <a routerLink="/login" (click)="closeLeadModal()">Login to continue</a>
+          </div>
+
+          <p>Your details are used only for practice access and training guidance.</p>
+        </footer>
+      </form>
     </div>
   </section>
 </div>

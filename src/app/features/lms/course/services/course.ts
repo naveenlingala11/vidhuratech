@@ -3,14 +3,14 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CourseService {
   private API = `${environment.apiUrl}/api/lms/courses`;
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
   getCourses(params: any): Observable<any> {
     let httpParams = new HttpParams();
-    Object.keys(params).forEach(key => {
+    Object.keys(params).forEach((key) => {
       if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
         httpParams = httpParams.set(key, params[key]);
       }
@@ -34,5 +34,13 @@ export class CourseService {
   }
   deleteCourse(id: number): Observable<any> {
     return this.http.delete(`${this.API}/${id}`);
+  }
+  unpublishCourse(id: number): Observable<any> {
+    return this.http.patch(`${this.API}/${id}/unpublish`, {});
+  }
+  uploadThumbnail(id: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.API}/${id}/thumbnail`, formData);
   }
 }

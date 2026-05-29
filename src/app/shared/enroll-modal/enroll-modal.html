@@ -6,7 +6,11 @@
       <div class="top-bar">
         <div>🔥 Limited Seats | Join Free Demo Class on May 02nd 2026</div>
         <div class="timing">⏰ 7:30 PM – 8:30 PM</div>
-        <button class="btn-close custom-close" data-bs-dismiss="modal" (click)="resetForm(enrollForm)">
+        <button
+          class="btn-close custom-close"
+          data-bs-dismiss="modal"
+          (click)="resetForm(enrollForm)"
+        >
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -66,8 +70,15 @@
           <div class="row">
             <div class="col-md-6">
               <div class="field">
-                <input type="text" name="name" [(ngModel)]="formData.name" required minlength="3" #name="ngModel"
-                  placeholder=" " />
+                <input
+                  type="text"
+                  name="name"
+                  [(ngModel)]="formData.name"
+                  required
+                  minlength="3"
+                  #name="ngModel"
+                  placeholder=" "
+                />
                 <label>Name *</label>
                 <small class="v-error" *ngIf="name.invalid && (name.dirty || name.touched)">
                   Name must be at least 3 characters
@@ -76,8 +87,15 @@
             </div>
             <div class="col-md-6">
               <div class="field">
-                <input type="tel" name="phone" [(ngModel)]="formData.phone" required pattern="^[6-9][0-9]{9}$"
-                  #phone="ngModel" placeholder=" " />
+                <input
+                  type="tel"
+                  name="phone"
+                  [(ngModel)]="formData.phone"
+                  required
+                  pattern="^[6-9][0-9]{9}$"
+                  #phone="ngModel"
+                  placeholder=" "
+                />
                 <label>Phone *</label>
                 <small class="v-error" *ngIf="phone.invalid && (phone.dirty || phone.touched)">
                   Enter valid 10-digit mobile number
@@ -88,8 +106,14 @@
           <div class="row">
             <div class="col-md-6">
               <div class="field">
-                <input type="email" name="email" [(ngModel)]="formData.email" #email="ngModel"
-                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" placeholder=" " />
+                <input
+                  type="email"
+                  name="email"
+                  [(ngModel)]="formData.email"
+                  #email="ngModel"
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                  placeholder=" "
+                />
                 <label>Email</label>
                 <small class="v-error" *ngIf="email.invalid && (email.dirty || email.touched)">
                   Enter valid email (example@gmail.com)
@@ -107,9 +131,10 @@
                 <div class="live-course-card" *ngIf="selectedLiveCourse; else noLiveCourse">
                   <span class="live-dot"></span>
                   <div>
-                    <small>Live Course</small>
+                    <small>Selected Course</small>
                     <strong>{{ selectedLiveCourse.title }}</strong>
-                    <em>{{ selectedLiveCourse.activeBatch?.name }}</em>
+                    <em>{{ selectedLiveCourse.activeBatch?.name || 'Upcoming batch' }}</em>
+                    <b class="course-price">Rs. {{ formatPrice(selectedLiveCourse.price) }}</b>
                   </div>
                 </div>
                 <ng-template #noLiveCourse>
@@ -135,14 +160,21 @@
             </div>
             <div class="col-12">
               <div class="field">
-                <textarea name="message" [(ngModel)]="formData.message"
-                  placeholder="Tell us your goal (e.g., job, career switch, learning coding)..."></textarea>
+                <textarea
+                  name="message"
+                  [(ngModel)]="formData.message"
+                  placeholder="Tell us your goal (e.g., job, career switch, learning coding)..."
+                ></textarea>
               </div>
             </div>
           </div>
           <div class="d-flex gap-2">
-            <button type="button" (click)="submitForm()" [disabled]="isSubmitting || !selectedLiveCourse"
-              class="btn submit-btn w-100">
+            <button
+              type="button"
+              (click)="submitForm()"
+              [disabled]="isSubmitting || !selectedLiveCourse"
+              class="btn submit-btn w-100"
+            >
               {{ isSubmitting ? 'Submitting...' : 'Submit' }}
             </button>
           </div>
@@ -158,12 +190,18 @@
     <button class="close-btn" (click)="submitted = false">✕</button>
     <!-- CONFETTI -->
     <div class="confetti-container">
-      <span *ngFor="let i of [].constructor(80); let idx = index" class="confetti" [ngClass]="{
+      <span
+        *ngFor="let i of [].constructor(80); let idx = index"
+        class="confetti"
+        [ngClass]="{
           square: idx % 3 === 0,
           circle: idx % 3 === 1,
           triangle: idx % 3 === 2,
-        }" [style.left.%]="idx * 1.2" [style.animationDelay]="idx * 0.05 + 's'"
-        [style.animationDuration]="3 + (idx % 5) + 's'"></span>
+        }"
+        [style.left.%]="idx * 1.2"
+        [style.animationDelay]="idx * 0.05 + 's'"
+        [style.animationDuration]="3 + (idx % 5) + 's'"
+      ></span>
     </div>
     <!-- CHECK -->
     <div class="checkmark"></div>

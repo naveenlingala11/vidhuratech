@@ -1,24 +1,255 @@
-<div class="prep-container">
-  <h1 class="title">🚀 Placement Preparation Hub</h1>
-  <p class="subtitle">
-    Crack top companies with structured interview preparation
-  </p>
-  <div class="company-grid">
-    <div
-      class="company-card"
-      *ngFor="let company of companies"
-      (click)="openCompany(company)"
-    >
-      <img [src]="company.logo" class="logo" />
-      <div class="card-body">
-        <h3>{{ company.name }}</h3>
-        <p>{{ company.desc }}</p>
-        <div class="tags">
-          <span>Aptitude</span>
-          <span>DSA</span>
-          <span>HR</span>
+<main class="prep-page">
+  <section class="prep-hero">
+    <img class="hero-image" src="career-training.png" alt="" />
+
+    <div class="hero-overlay"></div>
+    <div class="hero-pattern"></div>
+
+    <header class="hero-topbar">
+      <div class="brand">
+        <img src="VidhuraTechLogo.png" alt="VidhuraTech" />
+        <div>
+          <strong>VidhuraTech</strong>
+          <span>Placement Preparation</span>
         </div>
       </div>
+
+      <div class="access-pill">
+        <span class="access-dot"></span>
+        Registration required before attempt
+      </div>
+    </header>
+
+    <div class="hero-content">
+      <span class="hero-label">Company Preparation Library</span>
+
+      <h1>Placement Preparation Hub</h1>
+
+      <p>
+        Build confidence for assessments, coding rounds and interviews with company-focused
+        preparation paths.
+      </p>
+
+      <div class="hero-actions">
+        <a class="primary-action" href="#company-directory">
+          Explore Companies
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+
+        <button type="button" class="secondary-action" (click)="selectTrack('PRODUCT')">
+          Product Companies
+        </button>
+      </div>
     </div>
-  </div>
-</div>
+
+    <div class="hero-company-rail">
+      <span>Popular tracks</span>
+
+      <div class="rail-items">
+        <button
+          type="button"
+          *ngFor="let company of featuredCompanies"
+          (click)="openCompany(company)"
+          [attr.aria-label]="'Open ' + company.name + ' preparation'"
+        >
+          <img [src]="company.logo" [alt]="company.name" />
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="metrics-band" aria-label="Preparation library summary">
+    <article>
+      <strong>{{ companies.length }}</strong>
+      <span>Company Tracks</span>
+      <small>Curated preparation hubs</small>
+    </article>
+
+    <article>
+      <strong>{{ serviceCount }}</strong>
+      <span>IT Services</span>
+      <small>Graduate hiring pathways</small>
+    </article>
+
+    <article>
+      <strong>{{ productCount }}</strong>
+      <span>Product Companies</span>
+      <small>Technical role practice</small>
+    </article>
+
+    <article>
+      <strong>{{ consultingCount }}</strong>
+      <span>Consulting Firms</span>
+      <small>Advisory role readiness</small>
+    </article>
+  </section>
+
+  <section class="recommended-band">
+    <div class="band-heading">
+      <div>
+        <span class="section-label">Recommended</span>
+        <h2>High-demand preparation tracks</h2>
+      </div>
+
+      <button type="button" class="text-action" (click)="resetFilters()">
+        View all companies
+        <span aria-hidden="true">&rarr;</span>
+      </button>
+    </div>
+
+    <div class="recommended-grid">
+      <button
+        type="button"
+        class="recommended-card"
+        *ngFor="let company of featuredCompanies"
+        [attr.data-accent]="company.accent"
+        (click)="openCompany(company)"
+      >
+        <div class="recommended-logo">
+          <img [src]="company.logo" [alt]="company.name" />
+        </div>
+
+        <div class="recommended-copy">
+          <span>{{ trackLabel(company.track) }}</span>
+          <strong>{{ company.name }}</strong>
+          <small>{{ company.hiringRoute }}</small>
+        </div>
+
+        <div class="arrow-button" aria-hidden="true">&rarr;</div>
+      </button>
+    </div>
+  </section>
+
+  <section class="directory-band" id="company-directory">
+    <div class="directory-header">
+      <div>
+        <span class="section-label">Directory</span>
+        <h2>Choose your target company</h2>
+        <p>Open a company workspace for mock tests, coding challenges and interview preparation.</p>
+      </div>
+
+      <div class="result-summary">
+        <strong>{{ filteredCompanies.length }}</strong>
+        <span>results</span>
+      </div>
+    </div>
+
+    <section class="filter-panel" aria-label="Company filters">
+      <label class="search-control">
+        <span>Search Companies</span>
+
+        <div>
+          <i aria-hidden="true"></i>
+          <input
+            type="search"
+            [(ngModel)]="search"
+            placeholder="Search TCS, coding, consulting..."
+            autocomplete="off"
+          />
+        </div>
+      </label>
+
+      <div class="track-control">
+        <span>Company Type</span>
+
+        <div class="segmented-control">
+          <button
+            type="button"
+            *ngFor="let filter of trackFilters"
+            [class.active]="selectedTrack === filter.value"
+            (click)="selectTrack(filter.value)"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+      </div>
+
+      <label class="sort-control">
+        <span>Sort By</span>
+
+        <select [(ngModel)]="sortMode">
+          <option value="FEATURED">Featured First</option>
+          <option value="AZ">Name A-Z</option>
+          <option value="TRACK">Company Type</option>
+        </select>
+      </label>
+    </section>
+
+    <div class="company-grid" *ngIf="filteredCompanies.length">
+      <article
+        class="company-card"
+        *ngFor="let company of filteredCompanies; let i = index"
+        [attr.data-accent]="company.accent"
+        [style.animation-delay.ms]="i * 28"
+      >
+        <header class="card-header">
+          <div class="company-logo">
+            <img [src]="company.logo" [alt]="company.name + ' logo'" />
+          </div>
+
+          <span class="track-chip">{{ trackLabel(company.track) }}</span>
+        </header>
+
+        <div class="card-copy">
+          <h3>{{ company.name }}</h3>
+          <p>{{ company.desc }}</p>
+        </div>
+
+        <div class="focus-tags">
+          <span *ngFor="let topic of company.focus">{{ topic }}</span>
+        </div>
+
+        <div class="card-footer">
+          <div class="route-label">
+            <span>Preparation Route</span>
+            <strong>{{ company.hiringRoute }}</strong>
+          </div>
+
+          <button
+            type="button"
+            class="open-company"
+            (click)="openCompany(company)"
+            [attr.aria-label]="'Open ' + company.name + ' preparation'"
+          >
+            Open
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <section class="empty-results" *ngIf="!filteredCompanies.length">
+      <div class="empty-mark">VT</div>
+      <h2>No companies match your search</h2>
+      <p>Reset your filters to browse every available preparation track.</p>
+      <button type="button" class="primary-action" (click)="resetFilters()">Reset Filters</button>
+    </section>
+  </section>
+
+  <section class="journey-band">
+    <div class="journey-copy">
+      <span class="section-label">Preparation Journey</span>
+      <h2>One focused path for every hiring round</h2>
+    </div>
+
+    <div class="journey-grid">
+      <article>
+        <span>01</span>
+        <strong>Choose Company</strong>
+        <p>Enter the preparation workspace aligned to your target employer.</p>
+      </article>
+
+      <article>
+        <span>02</span>
+        <strong>Register to Attempt</strong>
+        <p>Complete your details before starting tests or coding labs.</p>
+      </article>
+
+      <article>
+        <span>03</span>
+        <strong>Practice and Review</strong>
+        <p>Receive instant results and prepare for the next hiring stage.</p>
+      </article>
+    </div>
+  </section>
+</main>

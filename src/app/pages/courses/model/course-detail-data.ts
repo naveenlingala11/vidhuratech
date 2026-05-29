@@ -5,6 +5,7 @@ export interface CourseDetail {
   subtitle: string;
   level: string;
   duration: string;
+  // price is fallback only. Runtime price should come from /api/public/courses.
   price: string;
   badge: string;
   heroStats: Array<{ label: string; value: string }>;
@@ -2374,14 +2375,24 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Complete LMS Platform',
-        description: 'Course manager, batch management, enrollment, checkout, student dashboard, trainer content, curriculum, and role-based access.',
+        description:
+          'Course manager, batch management, enrollment, checkout, student dashboard, trainer content, curriculum, and role-based access.',
       },
       {
         title: 'Enterprise HR Portal',
-        description: 'Employees, attendance, leave approval, payroll summary, admin reports, role permissions, and Angular dashboard.',
+        description:
+          'Employees, attendance, leave approval, payroll summary, admin reports, role permissions, and Angular dashboard.',
       },
     ],
-    tools: ['Maven', 'IntelliJ IDEA', 'VS Code', 'Swagger/OpenAPI', 'JWT', 'Nginx', 'Docker Compose'],
+    tools: [
+      'Maven',
+      'IntelliJ IDEA',
+      'VS Code',
+      'Swagger/OpenAPI',
+      'JWT',
+      'Nginx',
+      'Docker Compose',
+    ],
     outcomes: [
       'Explain and build complete Java full stack workflows confidently.',
       'Create secure APIs and polished Angular screens from the same business requirement.',
@@ -2491,14 +2502,23 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'SaaS Admin Dashboard',
-        description: 'Auth layout, analytics cards, charts, filters, tables, modals, API states, settings, and responsive UI.',
+        description:
+          'Auth layout, analytics cards, charts, filters, tables, modals, API states, settings, and responsive UI.',
       },
       {
         title: 'Course Marketplace Frontend',
-        description: 'Course listing, detail page, search, filters, checkout UI, student dashboard, and reusable design system.',
+        description:
+          'Course listing, detail page, search, filters, checkout UI, student dashboard, and reusable design system.',
       },
     ],
-    tools: ['Vite', 'React Query', 'Zustand Basics', 'Framer Motion Basics', 'Chart.js/Recharts', 'ESLint'],
+    tools: [
+      'Vite',
+      'React Query',
+      'Zustand Basics',
+      'Framer Motion Basics',
+      'Chart.js/Recharts',
+      'ESLint',
+    ],
     outcomes: [
       'Build premium React applications with reusable components and clean state flow.',
       'Create API-driven dashboards, forms, filters, and responsive product screens.',
@@ -2604,10 +2624,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Production Deployment Pipeline',
-        description: 'GitHub Actions pipeline that builds, tests, dockerizes, pushes image, deploys, verifies health, and supports rollback.',
+        description:
+          'GitHub Actions pipeline that builds, tests, dockerizes, pushes image, deploys, verifies health, and supports rollback.',
       },
     ],
-    tools: ['GitHub Actions Advanced', 'Jenkins', 'Docker Hub', 'Nginx', 'CloudWatch', 'Terraform Basics'],
+    tools: [
+      'GitHub Actions Advanced',
+      'Jenkins',
+      'Docker Hub',
+      'Nginx',
+      'CloudWatch',
+      'Terraform Basics',
+    ],
     outcomes: [
       'Build CI/CD pipelines and deploy applications with confidence.',
       'Dockerize full stack apps and troubleshoot production issues.',
@@ -2711,7 +2739,8 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Python DSA Interview Repository',
-        description: 'Topic-wise solutions with explanation, complexity, dry-run examples, and revision notes.',
+        description:
+          'Topic-wise solutions with explanation, complexity, dry-run examples, and revision notes.',
       },
     ],
     tools: ['LeetCode Basics', 'HackerRank', 'PyCharm', 'pytest', 'CSV/JSON', 'GitHub Projects'],
@@ -2811,10 +2840,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Enterprise Admin Console',
-        description: 'Role-based dashboard with CRUD, reactive forms, API services, interceptors, guards, tables, filters, and charts.',
+        description:
+          'Role-based dashboard with CRUD, reactive forms, API services, interceptors, guards, tables, filters, and charts.',
       },
     ],
-    tools: ['Angular CLI Advanced', 'RxJS Operators', 'Angular Material Basics', 'Chart.js', 'Interceptors', 'Guards'],
+    tools: [
+      'Angular CLI Advanced',
+      'RxJS Operators',
+      'Angular Material Basics',
+      'Chart.js',
+      'Interceptors',
+      'Guards',
+    ],
     outcomes: [
       'Build scalable Angular applications with professional structure.',
       'Connect APIs, handle auth, forms, routing, and enterprise UI flows.',
@@ -2911,10 +2948,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'AWS Full Stack Deployment',
-        description: 'Frontend, backend, database, Nginx, domain, SSL, monitoring, and cost checklist on AWS.',
+        description:
+          'Frontend, backend, database, Nginx, domain, SSL, monitoring, and cost checklist on AWS.',
       },
     ],
-    tools: ['AWS Budgets', 'IAM Policy Simulator', 'CloudWatch Alarms', 'Route 53', 'ACM Basics', 'EC2 User Data'],
+    tools: [
+      'AWS Budgets',
+      'IAM Policy Simulator',
+      'CloudWatch Alarms',
+      'Route 53',
+      'ACM Basics',
+      'EC2 User Data',
+    ],
     outcomes: [
       'Deploy and monitor applications on AWS.',
       'Understand IAM, EC2, S3, VPC, RDS, and CloudWatch basics.',
@@ -2997,10 +3042,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Business Reporting Database',
-        description: 'Schema design, joins, aggregations, indexes, views, and reports for sales, users, payments, and monthly trends.',
+        description:
+          'Schema design, joins, aggregations, indexes, views, and reports for sales, users, payments, and monthly trends.',
       },
     ],
-    tools: ['MySQL Workbench', 'pgAdmin', 'DB Diagram Tools', 'EXPLAIN Plans', 'Stored Procedures', 'Window Functions'],
+    tools: [
+      'MySQL Workbench',
+      'pgAdmin',
+      'DB Diagram Tools',
+      'EXPLAIN Plans',
+      'Stored Procedures',
+      'Window Functions',
+    ],
     outcomes: [
       'Write strong SQL queries and design clean relational schemas.',
       'Prepare for backend, analyst, QA, and database interview rounds.',
@@ -3080,10 +3133,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Executive Business Dashboard',
-        description: 'Sales, profit, customers, geography, product categories, monthly trends, KPIs, drillthrough, and insight summary.',
+        description:
+          'Sales, profit, customers, geography, product categories, monthly trends, KPIs, drillthrough, and insight summary.',
       },
     ],
-    tools: ['Power BI Service', 'Dataflows Basics', 'DAX Studio Basics', 'Excel Power Query', 'SQL Connector', 'Dashboard Themes'],
+    tools: [
+      'Power BI Service',
+      'Dataflows Basics',
+      'DAX Studio Basics',
+      'Excel Power Query',
+      'SQL Connector',
+      'Dashboard Themes',
+    ],
     outcomes: [
       'Build business-ready dashboards with Power Query, DAX, and storytelling.',
       'Prepare for Power BI developer, data analyst, and BI analyst roles.',
@@ -3164,7 +3225,8 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Production REST API Platform',
-        description: 'Auth, roles, CRUD, file upload, validation, pagination, filters, reports, logging, Docker, and API docs.',
+        description:
+          'Auth, roles, CRUD, file upload, validation, pagination, filters, reports, logging, Docker, and API docs.',
       },
     ],
     tools: ['Nodemon', 'Mongoose', 'Prisma Basics', 'Helmet', 'Rate Limit', 'Swagger', 'PM2'],
@@ -3248,10 +3310,19 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Cloud-Ready Microservices Platform',
-        description: 'Gateway, discovery, config, user service, order service, payment service, Kafka events, Docker Compose, logs, and tracing notes.',
+        description:
+          'Gateway, discovery, config, user service, order service, payment service, Kafka events, Docker Compose, logs, and tracing notes.',
       },
     ],
-    tools: ['Resilience4j', 'Spring Cloud Config', 'Eureka', 'Gateway', 'Kafka', 'Actuator', 'Zipkin Basics'],
+    tools: [
+      'Resilience4j',
+      'Spring Cloud Config',
+      'Eureka',
+      'Gateway',
+      'Kafka',
+      'Actuator',
+      'Zipkin Basics',
+    ],
     outcomes: [
       'Design and build Spring Boot microservices with discovery, gateway, config, messaging, and observability.',
       'Prepare for senior Java and microservices interviews.',
@@ -3329,10 +3400,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Premium Product Design Portfolio',
-        description: 'Three case studies covering research, flows, wireframes, UI design, prototype, usability notes, and design rationale.',
+        description:
+          'Three case studies covering research, flows, wireframes, UI design, prototype, usability notes, and design rationale.',
       },
     ],
-    tools: ['FigJam', 'Figma Variables', 'Design Tokens', 'Prototype Links', 'Accessibility Checkers', 'UI Inspiration Boards'],
+    tools: [
+      'FigJam',
+      'Figma Variables',
+      'Design Tokens',
+      'Prototype Links',
+      'Accessibility Checkers',
+      'UI Inspiration Boards',
+    ],
     outcomes: [
       'Design polished web/mobile screens and explain UX decisions professionally.',
       'Build portfolio-ready UI/UX case studies.',
@@ -3409,10 +3488,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Web Security Lab Portfolio',
-        description: 'OWASP testing notes, secure login app, vulnerability reports, remediation checklist, and safe lab documentation.',
+        description:
+          'OWASP testing notes, secure login app, vulnerability reports, remediation checklist, and safe lab documentation.',
       },
     ],
-    tools: ['OWASP ZAP Basics', 'DVWA/Juice Shop', 'Kali Basics', 'SIEM Basics', 'Security Headers', 'JWT Debugger'],
+    tools: [
+      'OWASP ZAP Basics',
+      'DVWA/Juice Shop',
+      'Kali Basics',
+      'SIEM Basics',
+      'Security Headers',
+      'JWT Debugger',
+    ],
     outcomes: [
       'Understand web security fundamentals and ethical testing workflow.',
       'Prepare for SOC, VAPT beginner, and application security entry paths.',
@@ -3492,7 +3579,8 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'End-to-End ML Prediction App',
-        description: 'EDA, feature engineering, model comparison, saved model, FastAPI/Streamlit demo, and business explanation.',
+        description:
+          'EDA, feature engineering, model comparison, saved model, FastAPI/Streamlit demo, and business explanation.',
       },
     ],
     tools: ['Joblib', 'XGBoost Basics', 'MLflow Basics', 'FastAPI', 'Streamlit', 'Kaggle Datasets'],
@@ -3572,10 +3660,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Production Mobile App Portfolio',
-        description: 'Auth, API data, profile, list/detail screens, forms, Firebase/local storage, responsive UI, and APK demo.',
+        description:
+          'Auth, API data, profile, list/detail screens, forms, Firebase/local storage, responsive UI, and APK demo.',
       },
     ],
-    tools: ['Flutter DevTools', 'Firebase Auth', 'Firestore', 'Provider', 'SharedPreferences', 'Android Studio Emulator'],
+    tools: [
+      'Flutter DevTools',
+      'Firebase Auth',
+      'Firestore',
+      'Provider',
+      'SharedPreferences',
+      'Android Studio Emulator',
+    ],
     outcomes: [
       'Build cross-platform mobile apps with clean UI and API integration.',
       'Prepare for Flutter and mobile app developer roles.',
@@ -3651,10 +3747,18 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
     projects: [
       {
         title: 'Production Data Pipeline Portfolio',
-        description: 'API/CSV extraction, cleaning, SQL warehouse loading, fact/dim modeling, Airflow schedule, validation, logs, and documentation.',
+        description:
+          'API/CSV extraction, cleaning, SQL warehouse loading, fact/dim modeling, Airflow schedule, validation, logs, and documentation.',
       },
     ],
-    tools: ['dbt Basics', 'Airflow DAGs', 'Spark DataFrames', 'Parquet', 'Great Expectations Basics', 'Cloud Storage'],
+    tools: [
+      'dbt Basics',
+      'Airflow DAGs',
+      'Spark DataFrames',
+      'Parquet',
+      'Great Expectations Basics',
+      'Cloud Storage',
+    ],
     outcomes: [
       'Build ETL pipelines and analytics-ready data models.',
       'Prepare for data engineer and analytics engineer roles.',
@@ -3662,7 +3766,11 @@ const PREMIUM_COURSE_DETAIL_EXPANSIONS: Record<string, CourseDetailExpansion> = 
   },
 };
 
-function appendUnique<T>(base: T[], extra: T[], keyFn: (item: T) => string = (item) => String(item)): T[] {
+function appendUnique<T>(
+  base: T[],
+  extra: T[],
+  keyFn: (item: T) => string = (item) => String(item),
+): T[] {
   const seen = new Set(base.map(keyFn));
   const merged = [...base];
 
@@ -3692,7 +3800,6 @@ COURSE_DETAILS.forEach((course) => {
   course.tools = appendUnique(course.tools, expansion.tools);
   course.outcomes = appendUnique(course.outcomes, expansion.outcomes);
 });
-
 
 export function findCourseDetail(value: string | null | undefined): CourseDetail | undefined {
   if (!value) {

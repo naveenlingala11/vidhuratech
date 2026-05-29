@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CourseDetail, findCourseDetail } from '../model/course-detail-data';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface PremiumTopic {
   icon: string;
@@ -68,13 +70,20 @@ export class CourseDetailsComponent implements OnInit {
   capstoneBlueprint: string[] = [];
   masteryChecklist: string[] = [];
 
-  constructor(private route: ActivatedRoute) {}
+  backendCourse: any = null;
+  activeBatch: any = null;
+
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+  ) {}
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug');
     this.course = findCourseDetail(slug);
 
     if (this.course) {
+      this.loadBackendCourse(this.course);
       this.preparePremiumContent(this.course);
     }
   }
@@ -311,5 +320,63 @@ export class CourseDetailsComponent implements OnInit {
           'The course gives a strong path, but job readiness depends on consistent practice, project quality, communication, interview preparation, and how clearly you demonstrate proof of skill.',
       },
     ];
+  }
+
+  loadBackendCourse(detail: CourseDetail): void {
+    this.http.get<any>(`${environment.apiUrl}/api/public/courses`).subscribe({
+      next: (res) => {
+        const list = res?.data || [];
+
+        this.backendCourse = list.find(
+          (course: any) =>
+            detail.codes.some(
+              (code) => String(course.code || '').toLowerCase() === code.toLowerCase(),
+            ) || String(course.title || '').toLowerCase() === detail.title.toLowerCase(),
+        );
+
+        if (this.backendCourse?.id) {
+          this.loadActiveBatch(this.backendCourse.id);
+        }
+      },
+    });
+  }
+
+  loadActiveBatch(courseId: number): void {
+    this.http
+      .get<any>(`${environment.apiUrl}/api/lms/batches/course/${courseId}/active`)
+      .subscribe({
+        next: (res) => {
+          this.activeBatch = res?.data || null;
+        },
+        error: () => {
+          this.activeBatch = null;
+        },
+      });
+  }
+
+  get displayPrice(): string {
+    if (this.backendCourse?.price !== undefined && this.backendCourse?.price !== null) {
+      return `Rs. ${this.formatPrice(this.backendCourse.price)}`;
+    }
+
+    return this.course?.price || '';
+  }
+
+  get displayDuration(): string {
+    if (this.backendCourse?.durationHours) {
+      return `${this.backendCourse.durationHours} hrs`;
+    }
+
+    return this.course?.duration || '';
+  }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('en-IN').format(Number(price || 0));
+  }
+
+  courseImage(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    return `${environment.apiUrl}${url}`;
   }
 }

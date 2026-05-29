@@ -7,6 +7,14 @@ import { PublicPracticeService } from '../../../services/public-practice.service
 type PracticeType = 'ASSESSMENT' | 'CHALLENGE';
 type OptionKey = 'A' | 'B' | 'C' | 'D';
 
+interface PracticeGrant {
+  accessToken: string;
+  practiceType: PracticeType;
+  practiceId: number;
+  expiresAt: string;
+  maxAttempts: number;
+}
+
 @Component({
   selector: 'app-public-practice',
   standalone: true,
@@ -79,7 +87,8 @@ export class PublicPracticeComponent implements OnInit {
   showLeadModal = false;
   pendingItem: any = null;
   leadSaved = false;
-
+  workspaceUnlocked = false;
+  currentGrant: PracticeGrant | null = null;
   redirectMessage = '';
   redirectSeconds = 0;
   private redirectTimer?: ReturnType<typeof setInterval>;
@@ -108,6 +117,8 @@ export class PublicPracticeComponent implements OnInit {
 
   ngOnInit(): void {
     this.restoreLead();
+    this.workspaceUnlocked = false;
+    this.currentGrant = null;
 
     const type = this.route.snapshot.paramMap.get('type');
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -179,7 +190,13 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   get canUseWorkspace(): boolean {
-    return this.leadSaved && !!this.lead.phone.trim();
+    if (!this.currentGrant?.accessToken) {
+      return false;
+    }
+
+    const expiresAt = new Date(this.currentGrant.expiresAt).getTime();
+
+    return Number.isFinite(expiresAt) && expiresAt > Date.now();
   }
 
   loadLibrary(): void {
@@ -202,12 +219,22 @@ export class PublicPracticeComponent implements OnInit {
     });
   }
 
+  requestWorkspaceAccess(message = 'Please register to continue with this practice item'): void {
+    this.showToast(message);
+    this.showLeadModal = true;
+  }
+
   openLeadModal(item: any): void {
-    const type = String(item?.type || '')
+    const type: PracticeType = String(item?.type || '')
       .toUpperCase()
       .includes('CHALLENGE')
       ? 'CHALLENGE'
       : 'ASSESSMENT';
+
+    if (!this.isLeadRequired(item)) {
+      this.showToast(this.accessPolicyMessage(item));
+      return;
+    }
 
     this.pendingItem = { ...item, type };
 
@@ -216,6 +243,22 @@ export class PublicPracticeComponent implements OnInit {
         ? `${item.company || ''} ${item.title || ''} Mock Test`.trim()
         : `${item.company || ''} ${item.title || ''} Coding Challenge`.trim();
 
+    const savedGrant = this.restoreGrant(type, Number(item.id));
+
+    if (savedGrant) {
+      this.currentGrant = savedGrant;
+      this.workspaceUnlocked = true;
+
+      if (type === 'ASSESSMENT') {
+        this.router.navigate(['/free-mock-tests', 'assessment', item.id]);
+        return;
+      }
+
+      this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
+      return;
+    }
+
+    this.workspaceUnlocked = false;
     this.showLeadModal = true;
   }
 
@@ -226,12 +269,16 @@ export class PublicPracticeComponent implements OnInit {
     }
     this.redirectMessage = '';
     this.redirectSeconds = 0;
-    
+
     if (this.mode === 'LIBRARY') {
       this.pendingItem = null;
     }
 
     this.showLeadModal = false;
+    if (!this.canUseWorkspace && this.mode !== 'LIBRARY') {
+      this.workspaceUnlocked = false;
+      this.showToast('Please complete registration to start this practice item');
+    }
   }
 
   continueAfterLead(): void {
@@ -239,39 +286,43 @@ export class PublicPracticeComponent implements OnInit {
       return;
     }
 
-    if (!this.lead.name.trim()) {
-      this.showToast('Please enter your name');
-      return;
-    }
-
-    if (!this.lead.phone.trim()) {
-      this.showToast('Please enter your phone number');
-      return;
-    }
-
     const item = this.pendingItem;
 
     this.submitting = true;
 
+    if (!item) {
+      this.submitting = false;
+      this.showToast('Please select a practice item');
+      return;
+    }
+
     this.publicPracticeService
-      .saveLead({
+      .registerAccess({
+        practiceType: item.type,
+        practiceId: Number(item.id),
         lead: {
           ...this.lead,
-          interest: item
-            ? item.type === 'ASSESSMENT'
-              ? `${item.company} ${item.title} Mock Test`
-              : `${item.company} ${item.title} Coding Challenge`
-            : this.lead.interest,
+          interest:
+            item.type === 'ASSESSMENT'
+              ? `${item.company || ''} ${item.title || ''} Mock Test`.trim()
+              : `${item.company || ''} ${item.title || ''} Coding Challenge`.trim(),
         },
       })
       .subscribe({
-        next: () => {
+        next: (res: any) => {
           this.submitting = false;
-          this.leadSaved = true;
-          this.persistLead();
-          this.showLeadModal = false;
 
-          if (!item) return;
+          const grant = res?.data as PracticeGrant;
+
+          this.currentGrant = grant;
+          this.leadSaved = true;
+          this.workspaceUnlocked = true;
+
+          this.persistLead();
+          this.persistGrant(grant);
+
+          this.showLeadModal = false;
+          this.showToast('Registration completed. Your practice access is ready.');
 
           this.pendingItem = null;
 
@@ -286,10 +337,16 @@ export class PublicPracticeComponent implements OnInit {
           this.submitting = false;
 
           const message =
-            err?.error?.message || err?.error?.error || err?.message || 'Unable to save details';
+            err?.error?.message ||
+            err?.error?.error ||
+            err?.message ||
+            'Unable to complete registration';
 
-          if (err?.status === 409 || message.toLowerCase().includes('already a member')) {
-            this.startLoginRedirectCountdown(message);
+          if (err?.status === 403 || err?.status === 400) {
+            this.workspaceUnlocked = false;
+            this.currentGrant = null;
+            this.showLeadModal = false;
+            this.showToast(message);
             return;
           }
 
@@ -302,23 +359,38 @@ export class PublicPracticeComponent implements OnInit {
     this.mode = 'ASSESSMENT';
     this.assessmentId = id;
     this.loading = true;
-
+    this.currentGrant = this.restoreGrant('ASSESSMENT', id);
+    this.workspaceUnlocked = this.canUseWorkspace;
     this.publicPracticeService.getAssessment(id).subscribe({
       next: (res: any) => {
         this.assessment = res?.data;
+        if (!this.isLeadRequired(this.assessment)) {
+          this.workspaceUnlocked = false;
+          this.showLeadModal = false;
+          this.showToast(this.accessPolicyMessage(this.assessment));
+          this.router.navigate(['/free-mock-tests']);
+          return;
+        }
         this.answers = (this.assessment?.questions || []).map((q: any) => ({
           questionId: q.id,
           selectedAnswer: '',
         }));
+
         this.currentQuestionIndex = 0;
         this.assessmentResult = null;
         this.loading = false;
 
         if (!this.canUseWorkspace) {
+          this.workspaceUnlocked = false;
           this.pendingItem = null;
-          this.lead.interest = `${this.assessment?.company || ''} ${this.assessment?.title || ''} Mock Test`;
+          this.lead.interest =
+            `${this.assessment?.company || ''} ${this.assessment?.title || ''} Mock Test`.trim();
+
           this.showLeadModal = true;
+          return;
         }
+
+        this.workspaceUnlocked = true;
       },
       error: () => {
         this.loading = false;
@@ -378,8 +450,10 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   submitAssessment(): void {
-    if (!this.canUseWorkspace) {
-      this.showLeadModal = true;
+    if (!this.canUseWorkspace || !this.workspaceUnlocked) {
+      this.requestWorkspaceAccess(
+        'Please fill the registration form before submitting the mock test',
+      );
       return;
     }
 
@@ -387,19 +461,34 @@ export class PublicPracticeComponent implements OnInit {
 
     this.publicPracticeService
       .submitAssessment(this.assessmentId, {
-        lead: this.lead,
+        accessToken: this.currentGrant?.accessToken,
         answers: this.answers,
       })
       .subscribe({
         next: (res: any) => {
           this.assessmentResult = res?.data;
           this.submitting = false;
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          if (isPlatformBrowser(this.platformId)) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+
           this.showToast('Mock test submitted successfully');
         },
         error: (err) => {
           this.submitting = false;
-          this.showToast(err?.error?.message || 'Submission failed');
+
+          const message = err?.error?.message || err?.error?.error || 'Submission failed';
+
+          if (err?.status === 403) {
+            this.clearGrant('ASSESSMENT', this.assessmentId);
+            this.currentGrant = null;
+            this.workspaceUnlocked = false;
+            this.requestWorkspaceAccess(message);
+            return;
+          }
+
+          this.showToast(message);
         },
       });
   }
@@ -408,20 +497,34 @@ export class PublicPracticeComponent implements OnInit {
     this.mode = 'CHALLENGE';
     this.challengeId = id;
     this.loading = true;
-
+    this.currentGrant = this.restoreGrant('CHALLENGE', id);
+    this.workspaceUnlocked = this.canUseWorkspace;
     this.publicPracticeService.getChallenge(id).subscribe({
       next: (res: any) => {
         this.challenge = res?.data;
+        if (!this.isLeadRequired(this.challenge)) {
+          this.workspaceUnlocked = false;
+          this.showLeadModal = false;
+          this.showToast(this.accessPolicyMessage(this.challenge));
+          this.router.navigate(['/free-mock-tests']);
+          return;
+        }
         this.sourceCode = this.getStarterCode(this.language);
         this.lastStarterCode = this.sourceCode;
         this.challengeResult = null;
         this.loading = false;
 
         if (!this.canUseWorkspace) {
+          this.workspaceUnlocked = false;
           this.pendingItem = null;
-          this.lead.interest = `${this.challenge?.company || ''} ${this.challenge?.title || ''} Coding Challenge`;
+          this.lead.interest =
+            `${this.challenge?.company || ''} ${this.challenge?.title || ''} Coding Challenge`.trim();
+
           this.showLeadModal = true;
+          return;
         }
+
+        this.workspaceUnlocked = true;
       },
       error: () => {
         this.loading = false;
@@ -445,8 +548,10 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   runChallenge(): void {
-    if (!this.canUseWorkspace) {
-      this.showLeadModal = true;
+    if (!this.canUseWorkspace || !this.workspaceUnlocked) {
+      this.requestWorkspaceAccess(
+        'Please fill the registration form before running this challenge',
+      );
       return;
     }
 
@@ -459,7 +564,7 @@ export class PublicPracticeComponent implements OnInit {
 
     this.publicPracticeService
       .runChallenge(this.challengeId, {
-        lead: this.lead,
+        accessToken: this.currentGrant?.accessToken,
         language: this.language,
         sourceCode: this.sourceCode,
       })
@@ -471,7 +576,18 @@ export class PublicPracticeComponent implements OnInit {
         },
         error: (err) => {
           this.submitting = false;
-          this.showToast(err?.error?.message || 'Challenge run failed');
+
+          const message = err?.error?.message || err?.error?.error || 'Challenge run failed';
+
+          if (err?.status === 403) {
+            this.clearGrant('CHALLENGE', this.challengeId);
+            this.currentGrant = null;
+            this.workspaceUnlocked = false;
+            this.requestWorkspaceAccess(message);
+            return;
+          }
+
+          this.showToast(message);
         },
       });
   }
@@ -612,6 +728,35 @@ puts value`,
     return String(status || '').toLowerCase();
   }
 
+  isLeadRequired(item: any): boolean {
+    return (
+      String(item?.accessLevel || item?.publicAccessLevel || 'LEAD_REQUIRED').toUpperCase() ===
+      'LEAD_REQUIRED'
+    );
+  }
+
+  accessPolicyMessage(item: any): string {
+    const policy = String(item?.accessLevel || item?.publicAccessLevel || '').toUpperCase();
+
+    if (policy === 'PUBLIC_PREVIEW') {
+      return 'This item is currently available for preview only. Full attempt is not enabled.';
+    }
+
+    if (policy === 'ACCOUNT_REQUIRED') {
+      return 'Please login with your account to attempt this practice item.';
+    }
+
+    if (policy === 'ENROLLED_STUDENT_ONLY') {
+      return 'This practice item is available only for enrolled students.';
+    }
+
+    if (policy === 'PAID_STUDENT_ONLY') {
+      return 'This practice item is available only for paid students.';
+    }
+
+    return 'This practice item is not open for guest registration.';
+  }
+
   companyLogo(company: string): string {
     return this.companyLogos[company] || 'VidhuraTechIcon.png';
   }
@@ -630,6 +775,47 @@ puts value`,
     this.router.navigate(['/free-mock-tests']);
   }
 
+  private grantStorageKey(type: PracticeType, id: number): string {
+    return `practiceGrant_${type}_${id}`;
+  }
+
+  private persistGrant(grant: PracticeGrant): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    sessionStorage.setItem(
+      this.grantStorageKey(grant.practiceType, grant.practiceId),
+      JSON.stringify(grant),
+    );
+  }
+
+  private restoreGrant(type: PracticeType, id: number): PracticeGrant | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+
+    const saved = sessionStorage.getItem(this.grantStorageKey(type, id));
+
+    if (!saved) return null;
+
+    try {
+      const grant = JSON.parse(saved) as PracticeGrant;
+      const expiresAt = new Date(grant.expiresAt).getTime();
+
+      if (!grant.accessToken || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+        sessionStorage.removeItem(this.grantStorageKey(type, id));
+        return null;
+      }
+
+      return grant;
+    } catch {
+      sessionStorage.removeItem(this.grantStorageKey(type, id));
+      return null;
+    }
+  }
+
+  private clearGrant(type: PracticeType, id: number): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    sessionStorage.removeItem(this.grantStorageKey(type, id));
+  }
+
   private persistLead(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     sessionStorage.setItem('publicPracticeLead', JSON.stringify(this.lead));
@@ -645,7 +831,7 @@ puts value`,
     try {
       const parsed = JSON.parse(saved);
       this.lead = { ...this.lead, ...parsed };
-      this.leadSaved = !!this.lead.name && !!this.lead.phone;
+      this.leadSaved = false;
     } catch {
       this.leadSaved = false;
     }

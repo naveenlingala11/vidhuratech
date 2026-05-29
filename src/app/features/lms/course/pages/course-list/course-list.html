@@ -1,79 +1,311 @@
-<div class="card shadow-sm">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5>Courses</h5>
-    <button class="btn btn-primary" routerLink="/dashboard/lms/courses/create">
-      Create Course
-    </button>
+<section class="course-shell">
+  <header class="course-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">LMS Control Center</span>
+      <h1>Course Operations</h1>
+      <p>
+        Manage publishing, home hero placement, pricing, monthly batch automation, and trainer-ready
+        course delivery from one premium workspace.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="ghost action-btn" (click)="loadCourses()">
+        <span>Refresh</span>
+      </button>
+
+      <button type="button" class="primary action-btn" routerLink="/dashboard/lms/courses/create">
+        <span>Create Course</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="insight-grid">
+    <article class="insight-card total">
+      <span>Total Catalog</span>
+      <strong>{{ totalElements }}</strong>
+      <p>All available courses</p>
+    </article>
+
+    <article class="insight-card published">
+      <span>Published</span>
+      <strong>{{ publishedCount }}</strong>
+      <p>Visible to learners</p>
+    </article>
+
+    <article class="insight-card hero">
+      <span>Home Hero</span>
+      <strong>{{ featuredCount }}</strong>
+      <p>Featured programs</p>
+    </article>
+
+    <article class="insight-card monthly">
+      <span>Monthly Auto</span>
+      <strong>{{ monthlyCount }}</strong>
+      <p>Recurring batches</p>
+    </article>
+  </section>
+
+  <section class="filter-panel">
+    <div class="search-control">
+      <span>Search</span>
+      <input
+        placeholder="Search by title or code..."
+        [(ngModel)]="filters.keyword"
+        (keyup.enter)="loadCourses()"
+      />
+    </div>
+
+    <label>
+      <span>Level</span>
+      <select [(ngModel)]="filters.level" (change)="loadCourses()">
+        <option value="">All Levels</option>
+        <option value="BEGINNER">Beginner</option>
+        <option value="INTERMEDIATE">Intermediate</option>
+        <option value="ADVANCED">Advanced</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Status</span>
+      <select [(ngModel)]="filters.status" (change)="loadCourses()">
+        <option value="">All Status</option>
+        <option value="DRAFT">Draft</option>
+        <option value="PUBLISHED">Published</option>
+        <option value="ARCHIVED">Archived</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Hero</span>
+      <select [(ngModel)]="filters.featured">
+        <option value="">All</option>
+        <option value="true">Featured</option>
+        <option value="false">Normal</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Batch</span>
+      <select [(ngModel)]="filters.monthly">
+        <option value="">All</option>
+        <option value="true">Monthly Auto</option>
+        <option value="false">Manual</option>
+      </select>
+    </label>
+
+    <button type="button" class="reset-btn" (click)="resetFilters()">Reset</button>
+  </section>
+
+  <div *ngIf="loading" class="loader-card">
+    <div class="spinner"></div>
+    <strong>Loading courses...</strong>
+    <p>Preparing the course catalog workspace.</p>
   </div>
-  <div class="card-body">
-    <!-- Filters -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <input
-          class="form-control"
-          placeholder="Search..."
-          [(ngModel)]="filters.keyword"
-          (keyup)="loadCourses()"
-        />
+
+  <section class="course-grid" *ngIf="!loading">
+    <article
+      class="course-card"
+      *ngFor="let course of visibleCourses"
+      (click)="editCourse(course)"
+      [class.is-published]="course.status === 'PUBLISHED'"
+    >
+      <div
+        class="course-media"
+        [style.backgroundImage]="
+          course.thumbnailUrl ? 'url(' + courseImage(course.thumbnailUrl) + ')' : ''
+        "
+      >
+        <div class="media-shade"></div>
+
+        <span class="status-chip" [ngClass]="statusClass(course.status)">
+          {{ statusLabel(course.status) }}
+        </span>
+
+        <span class="rank-chip" *ngIf="course.featuredOnHome">Hero #{{ course.featuredRank }}</span>
+
+        <div class="media-title">
+          <small>{{ course.code }}</small>
+          <h2>{{ course.title }}</h2>
+        </div>
       </div>
-      <div class="col-md-3">
-        <select class="form-select" [(ngModel)]="filters.level" (change)="loadCourses()">
-          <option value="">All Levels</option>
-          <option value="BEGINNER">Beginner</option>
-          <option value="INTERMEDIATE">Intermediate</option>
-          <option value="ADVANCED">Advanced</option>
-        </select>
+
+      <div class="course-body">
+        <div class="price-row">
+          <span>{{ course.level }}</span>
+          <strong>Rs. {{ formatPrice(course.price) }}</strong>
+        </div>
+
+        <p>{{ course.description || 'No description added yet.' }}</p>
+
+        <div class="meta-grid">
+          <div>
+            <small>Duration</small>
+            <b>{{ course.durationHours || 1 }} hrs</b>
+          </div>
+
+          <div>
+            <small>Trainer</small>
+            <b>{{ course.defaultTrainerName || 'Not assigned' }}</b>
+          </div>
+
+          <div>
+            <small>Hero</small>
+            <b>{{ course.featuredOnHome ? 'Featured' : 'Normal' }}</b>
+          </div>
+
+          <div>
+            <small>Batches</small>
+            <b>{{ course.autoMonthlyBatchEnabled ? 'Monthly Auto' : 'Manual' }}</b>
+          </div>
+        </div>
+
+        <div class="automation-panel" (click)="$event.stopPropagation()">
+          <label class="switch-line">
+            <span>Home Hero</span>
+            <input
+              type="checkbox"
+              [checked]="course.featuredOnHome"
+              [disabled]="savingId === course.id"
+              (change)="toggleFeatured(course, $event)"
+            />
+            <i></i>
+          </label>
+
+          <label class="rank-input">
+            <span>Rank</span>
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="course.featuredRank"
+              [disabled]="!course.featuredOnHome || savingId === course.id"
+              (click)="$event.stopPropagation()"
+              (blur)="updateFeaturedRank(course, $event)"
+            />
+          </label>
+
+          <label class="switch-line">
+            <span>Monthly Batch</span>
+            <input
+              type="checkbox"
+              [checked]="course.autoMonthlyBatchEnabled"
+              [disabled]="savingId === course.id"
+              (change)="toggleMonthly(course, $event)"
+            />
+            <i></i>
+          </label>
+        </div>
+
+        <div class="warning" *ngIf="course.featuredOnHome && course.status !== 'PUBLISHED'">
+          Publish this course to show it on the Home hero.
+        </div>
+
+        <footer (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="success"
+            [disabled]="savingId === course.id || course.status === 'PUBLISHED'"
+            (click)="publish(course, $event)"
+          >
+            {{
+              savingId === course.id
+                ? 'Publishing...'
+                : course.status === 'PUBLISHED'
+                  ? 'Published'
+                  : 'Publish'
+            }}
+          </button>
+
+          <button
+            type="button"
+            class="primary-soft"
+            [routerLink]="['/dashboard/lms/courses', course.id, 'edit']"
+          >
+            Edit
+          </button>
+
+          <!-- <button
+            type="button"
+            class="warn"
+            [disabled]="savingId === course.id"
+            (click)="archive(course, $event)"
+          >
+            Archive
+          </button> -->
+
+          <button
+            type="button"
+            class="warn"
+            [disabled]="savingId === course.id || course.status !== 'PUBLISHED'"
+            (click)="unpublish(course, $event)"
+          >
+            Unpublish
+          </button>
+
+          <button
+            type="button"
+            class="danger"
+            [disabled]="savingId === course.id"
+            (click)="delete(course, $event)"
+          >
+            Delete
+          </button>
+        </footer>
+
+        <div class="saving" *ngIf="savingId === course.id">
+          <div class="spinner small"></div>
+          <strong>Saving changes...</strong>
+        </div>
       </div>
+    </article>
+
+    <div class="empty-state" *ngIf="visibleCourses.length === 0">
+      <h3>No courses found</h3>
+      <p>Try changing filters or create a new course.</p>
+      <button type="button" class="primary" routerLink="/dashboard/lms/courses/create">
+        Create Course
+      </button>
     </div>
-    <!-- Loader -->
-    <div *ngIf="loading" class="text-center py-4">
-      <div class="spinner-border text-primary"></div>
+  </section>
+  <section class="pagination-panel" *ngIf="!loading && totalElements > 0">
+    <div class="pagination-info">
+      <strong>
+        Showing {{ page * size + 1 }} -
+        {{
+          page * size + visibleCourses.length > totalElements
+            ? totalElements
+            : page * size + visibleCourses.length
+        }}
+      </strong>
+      <span>of {{ totalElements }} courses</span>
     </div>
-    <!-- Table -->
-    <div *ngIf="!loading">
-      <table class="table table-bordered table-hover">
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Title</th>
-            <th>Level</th>
-            <th>Status</th>
-            <th>Duration</th>
-            <th>Dates</th>
-            <th>Price</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let course of courses">
-            <td>{{ course.code }}</td>
-            <td>{{ course.title }}</td>
-            <td>{{ course.level }}</td>
-            <td>{{ course.status }}</td>
-            <td>{{ course.durationHours }} hrs</td>
-            <td>{{ course.startDate || 'TBD' }} - {{ course.endDate || 'TBD' }}</td>
-            <td>{{ course.price | currency: 'INR' : 'symbol' : '1.0-0' }}</td>
-            <td>
-              <button class="btn btn-success btn-sm me-1" (click)="publish(course.id)">
-                Publish
-              </button>
-              <button
-                class="btn btn-primary btn-sm me-1"
-                [routerLink]="['/dashboard/lms/courses', course.id, 'edit']"
-              >
-                Edit
-              </button>
-              <button class="btn btn-warning btn-sm me-1" (click)="archive(course.id)">
-                Archive
-              </button>
-              <button class="btn btn-danger btn-sm" (click)="delete(course.id)">Delete</button>
-            </td>
-          </tr>
-          <tr *ngIf="courses.length === 0">
-            <td colspan="8" class="text-center text-muted">No courses found</td>
-          </tr>
-        </tbody>
-      </table>
+
+    <div class="page-size">
+      <span>Rows</span>
+      <select [(ngModel)]="size" (change)="changePageSize()">
+        <option [ngValue]="6">6</option>
+        <option [ngValue]="12">12</option>
+        <option [ngValue]="24">24</option>
+        <option [ngValue]="48">48</option>
+      </select>
     </div>
-  </div>
-</div>
+
+    <div class="page-controls">
+      <button type="button" [disabled]="page === 0" (click)="prevPage()">Prev</button>
+
+      <button
+        type="button"
+        *ngFor="let p of pageNumbers"
+        [class.active]="p === page"
+        (click)="goToPage(p)"
+      >
+        {{ p + 1 }}
+      </button>
+
+      <button type="button" [disabled]="page >= totalPages - 1" (click)="nextPage()">Next</button>
+    </div>
+  </section>
+</section>

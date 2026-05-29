@@ -21,11 +21,18 @@ export interface IAssessment {
   batchId: number;
   title: string;
   description: string;
+  companyName?: string;
+  skill?: string;
   totalMarks: number;
   durationMinutes: number;
   questions: IQuestion[];
   createdAt?: Date;
   createdBy?: number;
+  publicVisible?: boolean;
+  publicAccessLevel?: string;
+  publicAttemptLimit?: number;
+  publishedAt?: Date;
+  publishedByUserId?: number;
 }
 
 export interface IStudentAnswer {

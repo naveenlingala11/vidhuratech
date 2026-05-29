@@ -16,6 +16,7 @@ import { DashboardBreadcrumb } from '../dashboard-breadcrumb/dashboard-breadcrum
 export class DashboardTopbar {
   @Output() menuToggle = new EventEmitter<void>();
   @Input() notifications: any[] = [];
+  @Output() markNotificationRead = new EventEmitter<number>();
 
   profileOpen = false;
   notificationOpen = false;
@@ -260,5 +261,23 @@ export class DashboardTopbar {
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  get unreadNotifications(): any[] {
+    return this.notifications.filter((n) => !n.read);
+  }
+
+  openNotification(n: any): void {
+    if (!n) return;
+
+    if (!n.read && n.id) {
+      this.markNotificationRead.emit(n.id);
+    }
+
+    if (n.link) {
+      this.router.navigate([n.link]);
+    }
+
+    this.notificationOpen = false;
   }
 }

@@ -53,7 +53,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
     { title: 'Certificates', code: 'CR', route: '/admin/certificates', desc: 'Generate and manage certificates', accent: 'violet' },
     { title: 'Interview Prep', code: 'IP', route: '/admin/questions', desc: 'Manage question bank and preparation content', accent: 'cyan' },
     { title: 'Invoices', code: 'IV', route: '/admin/invoice', desc: 'Create invoices and payment records', accent: 'green' },
-    { title: 'Analytics', code: 'AN', route: '/invoice-analytics', desc: 'Track revenue, trends, and reports', accent: 'orange' }
+    { title: 'Analytics', code: 'AN', route: '/invoice-analytics', desc: 'Track revenue, trends, and reports', accent: 'orange' },
+    { title: 'Public Practice', code: 'PP', route: '/dashboard/admin/public-practice', desc: 'Publish assessments and coding challenges for guest practice', accent: 'cyan' },
+    { title: 'Manage Trainers', code: 'MT', route: '/dashboard/admin/manage-trainers', desc: 'Assign trainers to courses and generate monthly batches', accent: 'green'},
   ];
   refreshInterval: any;
   constructor(

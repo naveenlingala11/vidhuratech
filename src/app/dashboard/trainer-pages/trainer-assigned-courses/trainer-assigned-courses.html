@@ -1,0 +1,140 @@
+<section class="assigned-courses-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="hero">
+    <div>
+      <span>Trainer Workspace</span>
+      <h1>Assigned Courses</h1>
+      <p>
+        Courses assigned by admin appear here. Use this page to track course ownership, monthly
+        automation, linked batches, and preparation flow.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="ghost" routerLink="/dashboard/trainer">
+        <i class="bi bi-arrow-left"></i>
+        Dashboard
+      </button>
+
+      <button type="button" (click)="loadCourses()" [disabled]="loading">
+        <i class="bi" [ngClass]="loading ? 'bi-arrow-repeat spin' : 'bi-arrow-clockwise'"></i>
+        {{ loading ? 'Refreshing...' : 'Refresh' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article>
+      <span>Total Assigned</span>
+      <strong>{{ stats.total }}</strong>
+    </article>
+
+    <article>
+      <span>Auto Monthly</span>
+      <strong>{{ stats.autoMonthly }}</strong>
+    </article>
+
+    <article>
+      <span>Manual Courses</span>
+      <strong>{{ stats.manual }}</strong>
+    </article>
+
+    <article>
+      <span>Visible Results</span>
+      <strong>{{ stats.filtered }}</strong>
+    </article>
+  </section>
+
+  <section class="filters-panel">
+    <label class="search">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        placeholder="Search course title, code, description..."
+      />
+    </label>
+
+    <select [(ngModel)]="levelFilter">
+      <option value="">All levels</option>
+      <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+    </select>
+
+    <select [(ngModel)]="autoFilter">
+      <option value="ALL">All batch modes</option>
+      <option value="AUTO">Auto Monthly</option>
+      <option value="MANUAL">Manual</option>
+    </select>
+  </section>
+
+  <section class="skeleton-grid" *ngIf="loading">
+    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4, 5, 6]"></div>
+  </section>
+
+  <section class="course-grid" *ngIf="!loading && filteredCourses.length">
+    <article class="course-card" *ngFor="let course of filteredCourses; trackBy: trackByCourse">
+      <div class="thumb">
+        <img *ngIf="course.thumbnailUrl" [src]="course.thumbnailUrl" alt="" />
+        <i *ngIf="!course.thumbnailUrl" class="bi bi-journal-code"></i>
+
+        <span class="status">
+          {{ course.autoMonthlyBatchEnabled ? 'Auto Monthly' : 'Manual' }}
+        </span>
+      </div>
+
+      <div class="course-body">
+        <div class="course-top">
+          <span>{{ course.code || 'COURSE' }}</span>
+          <small>{{ course.level || 'Level' }}</small>
+        </div>
+
+        <h2>{{ course.title }}</h2>
+        <p>{{ course.description || 'No description available for this course.' }}</p>
+
+        <div class="meta-grid">
+          <div>
+            <small>Duration</small>
+            <strong>{{ course.durationHours || 0 }} hrs</strong>
+          </div>
+
+          <div>
+            <small>Price</small>
+            <strong>Rs. {{ formatPrice(course.price) }}</strong>
+          </div>
+
+          <div>
+            <small>Status</small>
+            <strong>{{ course.status || '-' }}</strong>
+          </div>
+
+          <div>
+            <small>Assigned</small>
+            <strong>{{ course.assignedAt | date: 'mediumDate' }}</strong>
+          </div>
+        </div>
+
+        <div class="course-actions">
+          <button type="button" routerLink="/dashboard/trainer/batches">
+            <i class="bi bi-collection"></i>
+            View Batches
+          </button>
+
+          <button type="button" class="light" routerLink="/dashboard/trainer/create-assessment">
+            <i class="bi bi-plus-circle"></i>
+            Create Assessment
+          </button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="empty-state" *ngIf="!loading && !filteredCourses.length">
+    <i class="bi bi-journal-x"></i>
+    <h2>No assigned courses found</h2>
+    <p>
+      You do not have matching course assignments yet. Try changing filters or ask admin to assign
+      courses from Manage Trainers.
+    </p>
+  </section>
+</section>

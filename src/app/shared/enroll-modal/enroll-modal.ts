@@ -21,6 +21,7 @@ export class EnrollModal {
   liveCourses: any[] = [];
   selectedLiveCourse: any = null;
   requestedCourse = '';
+  requestedPayload: any = null;
   formData = {
     name: '',
     phone: '',
@@ -40,7 +41,7 @@ export class EnrollModal {
     private cd: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object,
     public timer: TimerService,
-  ) { }
+  ) {}
   ngOnInit() {
     this.resetForm();
     this.loadLiveCourses();
@@ -52,8 +53,10 @@ export class EnrollModal {
     if (!modalElement) return;
     this.modalInstance = new bootstrap.Modal(modalElement);
     this.subscription = this.modalService.modal$.subscribe((payload) => {
+      this.requestedPayload = payload || null;
       this.requestedCourse = payload?.course || '';
       this.pickDefaultCourse();
+
       setTimeout(() => {
         this.modalInstance.show();
       });
@@ -76,55 +79,83 @@ export class EnrollModal {
     this.subscription?.unsubscribe();
   }
   loadLiveCourses() {
-    this.http.get<any>(`${environment.apiUrl}/api/public/courses`)
-      .subscribe({
-        next: (res) => {
-          const list = res?.data || [];
-          if (!list.length) {
-            this.liveCourses = [];
-            this.pickDefaultCourse();
-            return;
-          }
-          const activeChecks: Observable<any | null>[] = list.map((course: any) =>
-            this.http.get<any>(`${environment.apiUrl}/api/lms/batches/course/${course.id}/active`)
-              .pipe(
-                map(batchRes => ({
-                  id: course.id,
-                  title: course.title,
-                  price: course.price,
-                  activeBatch: batchRes?.data || null
-                })),
-                catchError(() => of(null))
-              )
-          );
-          forkJoin(activeChecks).subscribe((courses: any[]) => {
-            this.liveCourses = courses.filter(course =>
-              course &&
-              course.activeBatch &&
-              course.activeBatch.status === 'ACTIVE'
-            );
-            this.pickDefaultCourse();
-          });
-        },
-        error: () => {
+    this.http.get<any>(`${environment.apiUrl}/api/public/courses`).subscribe({
+      next: (res) => {
+        const list = res?.data || [];
+        if (!list.length) {
           this.liveCourses = [];
           this.pickDefaultCourse();
+          return;
         }
-      });
+        const activeChecks: Observable<any | null>[] = list.map((course: any) =>
+          this.http
+            .get<any>(`${environment.apiUrl}/api/lms/batches/course/${course.id}/active`)
+            .pipe(
+              map((batchRes) => ({
+                id: course.id,
+                title: course.title,
+                price: course.price,
+                durationHours: course.durationHours,
+                level: course.level,
+                activeBatch: batchRes?.data || null,
+              })),
+              catchError(() => of(null)),
+            ),
+        );
+        forkJoin(activeChecks).subscribe((courses: any[]) => {
+          this.liveCourses = courses.filter((course) => course && course.activeBatch);
+          this.pickDefaultCourse();
+        });
+      },
+      error: () => {
+        this.liveCourses = [];
+        this.pickDefaultCourse();
+      },
+    });
   }
   pickDefaultCourse() {
     let match = null;
-    if (this.requestedCourse) {
-      match = this.liveCourses.find(course =>
-        course.title === this.requestedCourse ||
-        course.title.toLowerCase().includes(this.requestedCourse.toLowerCase()) ||
-        this.requestedCourse.toLowerCase().includes(course.title.toLowerCase())
+
+    if (this.requestedPayload?.courseId) {
+      match = this.liveCourses.find(
+        (course) => Number(course.id) === Number(this.requestedPayload.courseId),
       );
     }
+
+    if (!match && this.requestedCourse) {
+      match = this.liveCourses.find(
+        (course) =>
+          course.title === this.requestedCourse ||
+          course.title.toLowerCase().includes(this.requestedCourse.toLowerCase()) ||
+          this.requestedCourse.toLowerCase().includes(course.title.toLowerCase()),
+      );
+    }
+
+    if (!match && this.requestedPayload?.course) {
+      match = this.liveCourses.find((course) => course.title === this.requestedPayload.course);
+    }
+
+    if (!match && this.requestedPayload?.courseId) {
+      match = {
+        id: this.requestedPayload.courseId,
+        title: this.requestedPayload.course || '',
+        price: this.requestedPayload.price || 0,
+        activeBatch: {
+          id: this.requestedPayload.batchId,
+          name: this.requestedPayload.batch || '',
+        },
+      };
+    }
+
     this.selectedLiveCourse = match || this.liveCourses[0] || null;
     this.formData.course = this.selectedLiveCourse?.title || '';
     this.cd.detectChanges();
   }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('en-IN').format(Number(price || 0));
+  }
+
   resetForm(form?: any) {
     this.step = 1;
     this.formData = {

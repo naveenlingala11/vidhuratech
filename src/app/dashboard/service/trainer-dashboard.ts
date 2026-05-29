@@ -30,6 +30,10 @@ export class TrainerDashboardService {
     return this.http.get(`${this.API}/batches`);
   }
 
+  getAssignedCourses() {
+    return this.http.get(`${this.API}/courses`);
+  }
+
   getStudents() {
     return this.http.get(`${this.API}/students`);
   }

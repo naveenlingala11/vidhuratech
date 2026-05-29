@@ -11,16 +11,34 @@
       </a>
 
       <div class="hero-layout">
+        <div class="detail-course-image" *ngIf="backendCourse?.thumbnailUrl">
+          <img [src]="courseImage(backendCourse.thumbnailUrl)" [alt]="course.title" />
+        </div>
         <div class="hero-copy">
           <span class="hero-badge">{{ course.badge }}</span>
           <h1>{{ course.title }}</h1>
           <p>{{ course.subtitle }}</p>
 
           <div class="hero-actions">
-            <a routerLink="/courses" class="primary-cta">
+            <a
+              *ngIf="backendCourse?.id && activeBatch?.id"
+              [routerLink]="['/checkout']"
+              [queryParams]="{
+                courseId: backendCourse?.id,
+                course: backendCourse?.title || course.title,
+                amount: backendCourse?.price,
+                batchId: activeBatch?.id,
+                batch: activeBatch?.name,
+              }"
+              class="primary-cta"
+            >
               <i class="fa-solid fa-graduation-cap"></i>
-              Explore Batches
+              Enroll Now
             </a>
+
+            <span *ngIf="backendCourse?.id && !activeBatch?.id" class="batch-unavailable">
+              Enrollment opens when an active batch is available.
+            </span>
             <a href="#roadmap" class="ghost-cta">
               <i class="fa-solid fa-route"></i>
               View Roadmap
@@ -49,12 +67,12 @@
         <div>
           <i class="fa-solid fa-clock"></i>
           <span>Duration</span>
-          <b>{{ course.duration }}</b>
+          <b>{{ displayDuration }}</b>
         </div>
         <div>
           <i class="fa-solid fa-tag"></i>
           <span>Fee</span>
-          <b>{{ course.price }}</b>
+          <b>{{ displayPrice }}</b>
         </div>
       </div>
     </div>

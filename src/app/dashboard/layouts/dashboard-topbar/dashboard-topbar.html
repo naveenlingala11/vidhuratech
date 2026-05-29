@@ -91,7 +91,7 @@
         (click)="toggleNotifications($event)"
       >
         <i class="bi bi-bell"></i>
-        <span *ngIf="notifications.length > 0">{{ notifications.length }}</span>
+        <span *ngIf="unreadNotifications.length > 0">{{ unreadNotifications.length }}</span>
       </button>
 
       <div
@@ -104,7 +104,7 @@
             <h3>Activity Updates</h3>
             <p>Recent LMS notifications</p>
           </div>
-          <small>{{ notifications.length }} New</small>
+          <small>{{ unreadNotifications.length }} New</small>
         </div>
 
         <div class="empty-notification" *ngIf="notifications.length === 0">
@@ -113,7 +113,12 @@
         </div>
 
         <div class="notification-list" *ngIf="notifications.length > 0">
-          <div class="notification-item" *ngFor="let n of notifications.slice(0, 5)">
+          <div
+            class="notification-item"
+            *ngFor="let n of notifications.slice(0, 5)"
+            [class.unread]="!n.read"
+            (click)="openNotification(n)"
+          >
             <div class="notification-icon">
               <i class="bi bi-lightning-charge"></i>
             </div>
@@ -121,7 +126,7 @@
             <div class="notification-content">
               <strong>{{ n.title }}</strong>
               <p>{{ n.message }}</p>
-              <span>{{ n.timeAgo || 'Recently' }}</span>
+              <span>{{ n.createdAt | date: 'short' }}</span>
             </div>
           </div>
         </div>
