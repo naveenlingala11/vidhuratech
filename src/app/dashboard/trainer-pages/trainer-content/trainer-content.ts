@@ -22,6 +22,7 @@ export class TrainerContentComponent implements OnInit {
   toast = '';
 
   batchId = '';
+  batches: any[] = [];
   searchText = '';
   selectedType: ContentType = 'ALL';
 
@@ -49,11 +50,20 @@ export class TrainerContentComponent implements OnInit {
     description: '',
   };
 
+  formErrors = {
+    batchId: '',
+    title: '',
+    file: '',
+    json: '',
+    links: '',
+  };
+
   apiBase = `${environment.apiUrl}/api/trainer`;
 
   constructor(private service: TrainerDashboardService) {}
 
   ngOnInit(): void {
+    this.loadBatches();
     this.loadContent();
   }
 
@@ -69,6 +79,18 @@ export class TrainerContentComponent implements OnInit {
         this.contentItems = [];
         this.loading = false;
         this.showToast('Unable to load trainer content');
+      },
+    });
+  }
+
+  loadBatches(): void {
+    this.service.getBatches().subscribe({
+      next: (res: any) => {
+        this.batches = res?.data || [];
+      },
+      error: () => {
+        this.batches = [];
+        this.showToast('Unable to load assigned batches');
       },
     });
   }
@@ -119,9 +141,65 @@ export class TrainerContentComponent implements OnInit {
     }
   }
 
+  clearFormErrors(): void {
+    this.formErrors = {
+      batchId: '',
+      title: '',
+      file: '',
+      json: '',
+      links: '',
+    };
+  }
+
+  validateContentForm(): boolean {
+    this.clearFormErrors();
+
+    if (!this.contentForm.batchId) {
+      this.formErrors.batchId = 'Batch ID is required';
+    }
+
+    if (!this.contentForm.title.trim()) {
+      this.formErrors.title = 'Title is required';
+    }
+
+    if (this.contentMode === 'file' && !this.selectedContentFile) {
+      this.formErrors.file = 'Choose a file or switch to JSON/Links';
+    }
+
+    if (this.contentMode === 'json') {
+      if (!this.contentJsonText.trim()) {
+        this.formErrors.json = 'Paste JSON content';
+      } else {
+        try {
+          JSON.parse(this.contentJsonText);
+        } catch {
+          this.formErrors.json = 'Invalid JSON format';
+        }
+      }
+    }
+
+    if (this.contentMode === 'link') {
+      const links = this.cleanLinks;
+
+      if (!links.length) {
+        this.formErrors.links = 'Add at least one link';
+      } else if (links.some((link) => !this.isValidUrl(link))) {
+        this.formErrors.links = 'Use valid http or https links only';
+      }
+    }
+
+    const hasError = Object.values(this.formErrors).some(Boolean);
+
+    if (hasError) {
+      this.showToast('Please fix highlighted fields');
+      return false;
+    }
+
+    return true;
+  }
+
   uploadContent(): void {
-    if (!this.contentForm.batchId || !this.contentForm.type || !this.contentForm.title.trim()) {
-      this.showToast('Select batch, type, and title');
+    if (!this.validateContentForm()) {
       return;
     }
 
@@ -177,12 +255,23 @@ export class TrainerContentComponent implements OnInit {
       next: () => {
         this.uploading = false;
         this.showToast('Content uploaded successfully');
+        this.clearFormErrors();
         this.resetContentForm();
         this.loadContent();
       },
-      error: () => {
+      error: (err) => {
         this.uploading = false;
-        this.showToast('Unable to upload content');
+        console.error('Content upload failed:', err);
+
+        const message = err?.error?.message || err?.error || 'Unable to upload content';
+
+        if (String(message).toLowerCase().includes('access denied')) {
+          this.formErrors.batchId = 'Select a batch assigned to your trainer account';
+          this.showToast('This batch is not assigned to you');
+          return;
+        }
+
+        this.showToast(message);
       },
     });
   }

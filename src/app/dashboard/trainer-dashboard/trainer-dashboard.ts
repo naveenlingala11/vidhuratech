@@ -15,6 +15,7 @@ export class TrainerDashboard implements OnInit {
   saving = false;
   toast = '';
   stats = {
+    assignedCourses: 0,
     assignedBatches: 0,
     totalStudents: 0,
     pendingReviews: 0,
@@ -26,6 +27,7 @@ export class TrainerDashboard implements OnInit {
     completedMocks: 0,
     contentUploaded: 0,
   };
+  courses: any[] = [];
   upcomingSessions: any[] = [];
   studentActivities: any[] = [];
   batches: any[] = [];
@@ -75,6 +77,7 @@ export class TrainerDashboard implements OnInit {
           ...(data.stats || {}),
         };
         this.batches = data.sections?.batches || [];
+        this.courses = data.sections?.courses || [];
         this.upcomingSessions = data.sections?.upcomingSessions || [];
         this.studentActivities = data.sections?.studentActivities || [];
         this.loading = false;
@@ -131,6 +134,9 @@ export class TrainerDashboard implements OnInit {
   }
   get completedMockRequests() {
     return this.mockRequests.filter((item) => item.status === 'COMPLETED');
+  }
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('en-IN').format(Number(price || 0));
   }
   openCurriculumPopup() {
     this.showCurriculumPopup = true;

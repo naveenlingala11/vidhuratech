@@ -99,9 +99,19 @@
       </div>
 
       <div class="upload-form">
-        <label>
-          <span>Batch ID</span>
-          <input [(ngModel)]="contentForm.batchId" type="number" placeholder="Enter batch ID" />
+        <label [class.invalid]="formErrors.batchId">
+          <span>Assigned Batch</span>
+
+          <select [(ngModel)]="contentForm.batchId">
+            <option value="">Select assigned batch</option>
+            <option *ngFor="let batch of batches" [value]="batch.id">
+              #{{ batch.id }} - {{ batch.name }} / {{ batch.course }}
+            </option>
+          </select>
+
+          <small class="field-error" *ngIf="formErrors.batchId">
+            {{ formErrors.batchId }}
+          </small>
         </label>
 
         <div class="content-type-grid">
@@ -133,9 +143,10 @@
           </button>
         </div>
 
-        <label>
+        <label [class.invalid]="formErrors.title">
           <span>Title</span>
           <input [(ngModel)]="contentForm.title" placeholder="Example: Java OOP Practice Set" />
+          <small class="field-error" *ngIf="formErrors.title">{{ formErrors.title }}</small>
         </label>
 
         <label>
@@ -197,6 +208,9 @@
           </span>
 
           <input type="file" (change)="onContentFileSelected($event)" />
+          <small class="field-error source-error" *ngIf="formErrors.file">
+            {{ formErrors.file }}
+          </small>
         </div>
 
         <div class="json-editor-wrap" *ngIf="contentMode === 'json'">
@@ -211,6 +225,7 @@
             rows="10"
             placeholder='{"topic":"Java Basics","tasks":[{"title":"OOP Practice"}]}'
           ></textarea>
+          <small class="field-error" *ngIf="formErrors.json">{{ formErrors.json }}</small>
         </div>
 
         <div class="link-editor-wrap" *ngIf="contentMode === 'link'">
@@ -239,11 +254,12 @@
             <i class="bi bi-plus-lg"></i>
             Add another link
           </button>
+          <small class="field-error" *ngIf="formErrors.links">{{ formErrors.links }}</small>
         </div>
 
         <button class="upload-btn" type="button" [disabled]="uploading" (click)="uploadContent()">
           <i class="bi" [ngClass]="uploading ? 'bi-hourglass-split' : 'bi-cloud-arrow-up'"></i>
-          {{ uploading ? 'Uploading...' : 'Publish Content' }}
+          {{ uploading ? 'Publishing...' : 'Publish Content' }}
         </button>
       </div>
     </article>

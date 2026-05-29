@@ -1,87 +1,293 @@
-<div class="card shadow-sm">
-  <div class="card-header">
-    <h5>{{ isEditMode ? 'Edit Course' : 'Create Course' }}</h5>
-  </div>
-  <div class="card-body">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <!-- Title -->
-      <div class="mb-3">
-        <label>Title</label>
-        <input class="form-control" formControlName="title" />
-        <small class="text-danger" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
-          Title is required
-        </small>
-      </div>
-      <!-- Code -->
-      <div class="mb-3">
-        <label>Code</label>
-        <input class="form-control" formControlName="code" />
-        <small class="text-danger" *ngIf="form.get('code')?.touched && form.get('code')?.invalid">
-          Code is required
-        </small>
-      </div>
-      <!-- Description -->
-      <div class="mb-3">
-        <label>Description</label>
-        <textarea class="form-control" rows="4" formControlName="description"></textarea>
-      </div>
-      <!-- Thumbnail -->
-      <div class="mb-3">
-        <label>Thumbnail URL</label>
-        <input class="form-control" formControlName="thumbnailUrl" />
-      </div>
-      <!-- Level -->
-      <div class="mb-3">
-        <label>Level</label>
-        <select class="form-select" formControlName="level">
-          <option *ngFor="let level of levels" [value]="level">
-            {{ level }}
-          </option>
-        </select>
-      </div>
-      <!-- Duration -->
-      <div class="mb-3">
-        <label>Duration Hours</label>
-        <input type="number" class="form-control" formControlName="durationHours" />
-        <small
-          class="text-danger"
-          *ngIf="form.get('durationHours')?.touched && form.get('durationHours')?.invalid"
-        >
-          Duration must be at least 1 hour
-        </small>
-      </div>
-      <!-- Dates -->
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label>Start Date</label>
-          <input type="date" class="form-control" formControlName="startDate" />
-        </div>
-        <div class="col-md-6 mb-3">
-          <label>End Date</label>
-          <input type="date" class="form-control" formControlName="endDate" />
-        </div>
-      </div>
-      <!-- Price -->
-      <div class="mb-3">
-        <label>Price</label>
-        <input type="number" class="form-control" formControlName="price" />
-        <small class="text-danger" *ngIf="form.get('price')?.touched && form.get('price')?.invalid">
-          Price is required
-        </small>
-      </div>
-      <!-- Metadata -->
-      <div class="mb-3">
-        <label>Metadata JSON</label>
-        <textarea
-          class="form-control"
-          rows="5"
-          formControlName="metadataJson"
-          placeholder='{"highlights":[],"syllabus":[],"outcomes":[]}'
-        ></textarea>
-      </div>
-      <button class="btn btn-primary" type="submit">
-        {{ isEditMode ? 'Update Course' : 'Create Course' }}
+<section class="course-form-page">
+  <header class="form-hero">
+    <div>
+      <span class="eyebrow">Course Builder</span>
+      <h1>{{ isEditMode ? 'Edit Course' : 'Create Course' }}</h1>
+      <p>
+        Configure course content, pricing, home hero visibility, and automatic monthly batch rules.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="ghost" routerLink="/dashboard/lms/courses">Back</button>
+      <button type="button" class="primary" [disabled]="saving || loading" (click)="submit()">
+        {{ saving ? 'Saving...' : isEditMode ? 'Update Course' : 'Create Course' }}
       </button>
-    </form>
+    </div>
+  </header>
+
+  <div class="loading-card" *ngIf="loading">
+    <div class="spinner"></div>
+    <strong>Loading course...</strong>
   </div>
-</div>
+
+  <form class="form-layout" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
+    <section class="form-main">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span>01</span>
+            <h2>Basic Details</h2>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <label>
+            <span>Course Title</span>
+            <input formControlName="title" placeholder="Java Full Stack" />
+            <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+              Title is required
+            </small>
+          </label>
+
+          <label>
+            <span>Course Code</span>
+            <input formControlName="code" placeholder="JAVA_FS" />
+            <small *ngIf="form.get('code')?.touched && form.get('code')?.invalid">
+              Code is required
+            </small>
+          </label>
+
+          <label>
+            <span>Level</span>
+            <select formControlName="level">
+              <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Duration Hours</span>
+            <input type="number" min="1" formControlName="durationHours" />
+            <small *ngIf="form.get('durationHours')?.touched && form.get('durationHours')?.invalid">
+              Duration must be at least 1 hour
+            </small>
+          </label>
+        </div>
+
+        <label class="full-field">
+          <span>Description</span>
+          <textarea
+            rows="5"
+            formControlName="description"
+            placeholder="Explain what students will learn..."
+          ></textarea>
+        </label>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span>02</span>
+            <h2>Media & Pricing</h2>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="thumbnail-uploader">
+            <div class="upload-preview">
+              <img
+                *ngIf="thumbnailPreviewUrl || form.value.thumbnailUrl"
+                [src]="thumbnailPreviewUrl || resolveImageUrl(form.value.thumbnailUrl)"
+                alt="Course thumbnail"
+              />
+
+              <div *ngIf="!thumbnailPreviewUrl && !form.value.thumbnailUrl" class="empty-preview">
+                <span>Course Image</span>
+                <small>JPG, PNG, WEBP up to 4MB</small>
+              </div>
+            </div>
+
+            <div class="upload-controls">
+              <label>
+                <span>Thumbnail URL</span>
+                <input formControlName="thumbnailUrl" placeholder="https://... or /uploads/..." />
+              </label>
+
+              <label class="file-drop">
+                <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
+                <strong>{{
+                  selectedThumbnailFile ? selectedThumbnailFile.name : 'Upload thumbnail image'
+                }}</strong>
+                <small>This image becomes the course image everywhere.</small>
+              </label>
+
+              <button
+                type="button"
+                class="ghost"
+                *ngIf="selectedThumbnailFile"
+                (click)="clearSelectedThumbnail()"
+              >
+                Remove Selected Image
+              </button>
+            </div>
+          </div>
+
+          <label>
+            <span>Price</span>
+            <input type="number" min="0" formControlName="price" />
+            <small *ngIf="form.get('price')?.touched && form.get('price')?.invalid">
+              Price is required
+            </small>
+          </label>
+
+          <label>
+            <span>Start Date</span>
+            <input type="date" formControlName="startDate" />
+          </label>
+
+          <label>
+            <span>End Date</span>
+            <input type="date" formControlName="endDate" />
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span>03</span>
+            <h2>Public Display & Automation</h2>
+          </div>
+        </div>
+
+        <div class="switch-card">
+          <div>
+            <strong>Feature this course on Home Hero</strong>
+            <p>Only published and active courses will appear on the home hero.</p>
+          </div>
+
+          <label class="switch">
+            <input type="checkbox" formControlName="featuredOnHome" />
+            <i></i>
+          </label>
+        </div>
+
+        <div class="field-grid">
+          <label>
+            <span>Default Trainer</span>
+            <select formControlName="defaultTrainerId">
+              <option [ngValue]="null">Select default trainer</option>
+              <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">
+                {{ trainer.name || trainer.fullName || trainer.email }}
+              </option>
+            </select>
+            <em>This trainer will be assigned automatically to monthly batches.</em>
+          </label>
+          
+          <label>
+            <span>Featured Rank</span>
+            <input type="number" min="1" formControlName="featuredRank" />
+            <em>Rank 1 appears first on home.</em>
+          </label>
+
+          <label>
+            <span>Monthly Batch Duration</span>
+            <input type="number" min="1" formControlName="monthlyBatchDurationMonths" />
+            <em>Example: 3 means each batch runs for 3 months.</em>
+          </label>
+        </div>
+
+        <div class="switch-card">
+          <div>
+            <strong>Auto-create fresh batch every month</strong>
+            <p>Useful for recurring live batches without manual setup.</p>
+          </div>
+
+          <label class="switch">
+            <input type="checkbox" formControlName="autoMonthlyBatchEnabled" />
+            <i></i>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span>04</span>
+            <h2>Metadata JSON</h2>
+          </div>
+
+          <button type="button" class="ghost small" (click)="applyMetadataTemplate()">
+            Use Template
+          </button>
+        </div>
+
+        <label class="full-field">
+          <span>Metadata</span>
+          <textarea
+            rows="8"
+            formControlName="metadataJson"
+            placeholder='{"highlights":[],"outcomes":[],"oldPrice":4999,"discountLabel":"Offer"}'
+          ></textarea>
+          <small class="danger-text" *ngIf="metadataError">{{ metadataError }}</small>
+        </label>
+      </div>
+    </section>
+
+    <aside class="preview-panel">
+      <div class="preview-card">
+        <div
+          class="preview-thumb"
+          [style.backgroundImage]="
+            thumbnailPreviewUrl
+              ? 'url(' + thumbnailPreviewUrl + ')'
+              : form.value.thumbnailUrl
+                ? 'url(' + resolveImageUrl(form.value.thumbnailUrl) + ')'
+                : ''
+          "
+        >
+          <span>{{ form.value.level }}</span>
+        </div>
+
+        <div class="preview-body">
+          <small>{{ form.value.code || 'COURSE_CODE' }}</small>
+          <h2>{{ previewTitle }}</h2>
+          <p>{{ previewDescription }}</p>
+
+          <div class="preview-price">
+            <strong>Rs. {{ formatPrice(previewPrice) }}</strong>
+          </div>
+
+          <div class="preview-grid">
+            <div>
+              <span>Duration</span>
+              <b>{{ form.value.durationHours || 1 }} hrs</b>
+            </div>
+
+            <div>
+              <span>Home</span>
+              <b>{{
+                form.value.featuredOnHome ? 'Featured #' + form.value.featuredRank : 'Normal'
+              }}</b>
+            </div>
+
+            <div>
+              <span>Batches</span>
+              <b>{{ form.value.autoMonthlyBatchEnabled ? 'Monthly Auto' : 'Manual' }}</b>
+            </div>
+
+            <div>
+              <span>Duration</span>
+              <b>{{ form.value.monthlyBatchDurationMonths || 3 }} months</b>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-box">
+        <h3>Ready to save?</h3>
+        <p>After saving, publish the course and enable Home Hero to show it on homepage.</p>
+
+        <button type="submit" class="primary wide" [disabled]="saving">
+          {{
+            saving || uploadingThumbnail
+              ? 'Saving...'
+              : isEditMode
+                ? 'Update Course'
+                : 'Create Course'
+          }}
+        </button>
+      </div>
+    </aside>
+  </form>
+</section>

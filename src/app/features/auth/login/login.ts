@@ -5,10 +5,16 @@ import {
   ViewChild,
   ViewChildren,
   QueryList,
-  NgZone
+  NgZone,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../services/auth.service';
@@ -18,7 +24,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, FormsModule],
   templateUrl: './login.html',
-  styleUrls: ['./login.css']
+  styleUrls: ['./login.css'],
 })
 export class Login {
   loading = false;
@@ -32,6 +38,8 @@ export class Login {
   otpValues: string[] = ['', '', '', '', '', ''];
   otpError = false;
   otpVerifying = false;
+  alreadyLoggedIn = false;
+  currentUser: any = null;
   @ViewChild('otpInput') otpInputRef!: ElementRef;
   @ViewChildren('otpBox') otpBoxes!: QueryList<ElementRef>;
   loginError = '';
@@ -42,15 +50,17 @@ export class Login {
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
-    private ngZone: NgZone
+    private ngZone: NgZone,
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]]
+      password: ['', [Validators.required]],
     });
   }
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
+    this.checkExistingLogin();
+
+    this.route.queryParams.subscribe((params) => {
       if (params['email']) {
         this.form.patchValue({ email: params['email'] });
         this.otpEmail = params['email'];
@@ -83,6 +93,10 @@ export class Login {
     });
   }
   sendOtp() {
+    if (this.alreadyLoggedIn) {
+      this.toastr.warning('Please logout current user before requesting OTP.');
+      return;
+    }
     if (!this.otpEmail) {
       this.toastr.error('Enter email first');
       return;
@@ -90,7 +104,7 @@ export class Login {
     if (this.otpTimer > 0) return;
     this.otpLoading = true;
     fetch(`${environment.apiUrl}/api/auth/send-otp?email=${this.otpEmail}`, {
-      method: 'POST'
+      method: 'POST',
     })
       .then(() => {
         this.toastr.success('OTP sent to email');
@@ -107,8 +121,38 @@ export class Login {
         this.otpLoading = false;
       });
   }
+  checkExistingLogin(): void {
+    this.alreadyLoggedIn = this.authService.isLoggedIn();
+    this.currentUser = this.alreadyLoggedIn ? this.authService.getUser() : null;
+
+    if (this.alreadyLoggedIn) {
+      this.loginError =
+        'You are already logged in. Please logout current user before logging in again.';
+    }
+  }
+
+  logoutCurrentUser(): void {
+    this.authService.logout();
+
+    this.alreadyLoggedIn = false;
+    this.currentUser = null;
+    this.loginError = '';
+
+    this.form.reset();
+    this.otpEmail = '';
+    this.resetOtp();
+
+    this.toastr.success('Current user logged out. You can login now.');
+  }
   submit() {
     this.loginError = '';
+
+    if (this.alreadyLoggedIn) {
+      this.loginError = 'Please logout current user before logging in with another account.';
+      this.toastr.warning(this.loginError);
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -117,31 +161,22 @@ export class Login {
     this.authService.login(this.form.value).subscribe({
       next: () => {
         const user = this.authService.getUser();
-        const redirect =
-          this.route.snapshot.queryParamMap.get('redirect');
+        const redirect = this.route.snapshot.queryParamMap.get('redirect');
         this.toastr.success('Login successful');
-        this.router.navigateByUrl(
-          redirect || this.getDashboardRoute(user.role)
-        );
+        this.router.navigateByUrl(redirect || this.getDashboardRoute(user.role));
       },
       error: (err) => {
         console.log(err);
         if (err.status === 401) {
           this.loginError = 'Invalid email or password';
-        }
-        else if (err.status === 404) {
+        } else if (err.status === 404) {
           this.loginError = 'Account not found';
-        }
-        else if (err.status === 403) {
+        } else if (err.status === 403) {
           this.loginError = 'Account inactive';
-        }
-        else if (err.status === 500) {
+        } else if (err.status === 500) {
           this.loginError = 'Server error. Please try again';
-        }
-        else {
-          this.loginError =
-            err.error?.message ||
-            'Login failed';
+        } else {
+          this.loginError = err.error?.message || 'Login failed';
         }
         this.toastr.error(this.loginError);
         this.loading = false;
@@ -150,7 +185,7 @@ export class Login {
       complete: () => {
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
   getDashboardRoute(role: string): string {
@@ -161,7 +196,7 @@ export class Login {
       HR: '/dashboard/hr',
       MANAGER: '/dashboard/manager',
       SUPER_ADMIN: '/dashboard/super-admin',
-      MENTOR: '/dashboard/mentor'
+      MENTOR: '/dashboard/mentor',
     };
     return routes[role] || '/dashboard/student';
   }
@@ -174,7 +209,7 @@ export class Login {
   resetOtp() {
     this.otpValues = ['', '', '', '', '', ''];
     this.otpError = false;
-    this.otpBoxes?.toArray().forEach(box => {
+    this.otpBoxes?.toArray().forEach((box) => {
       box.nativeElement.value = '';
     });
   }
@@ -242,6 +277,11 @@ export class Login {
     return this.otpValues.join('');
   }
   verifyOtp() {
+    if (this.alreadyLoggedIn) {
+      this.toastr.warning('Please logout current user before logging in with OTP.');
+      return;
+    }
+
     const finalOtp = this.getOtpValue();
     if (finalOtp.length < 6) {
       this.triggerOtpError();
@@ -249,9 +289,9 @@ export class Login {
     }
     this.otpVerifying = true;
     fetch(`${environment.apiUrl}/api/auth/verify-otp?email=${this.otpEmail}&otp=${finalOtp}`, {
-      method: 'POST'
+      method: 'POST',
     })
-      .then(async res => {
+      .then(async (res) => {
         if (!res.ok) {
           throw new Error(await res.text());
         }
@@ -260,10 +300,13 @@ export class Login {
       .then((res: any) => {
         this.otpError = false;
         localStorage.setItem('vt_token', res.token);
-        localStorage.setItem('vt_user', JSON.stringify({
-          role: res.role,
-          name: res.name
-        }));
+        localStorage.setItem(
+          'vt_user',
+          JSON.stringify({
+            role: res.role,
+            name: res.name,
+          }),
+        );
         this.toastr.success('Login successful');
         this.router.navigate(['/dashboard/student']);
       })
@@ -277,7 +320,7 @@ export class Login {
   }
   triggerOtpError() {
     this.otpError = true;
-    this.otpBoxes.toArray().forEach(box => {
+    this.otpBoxes.toArray().forEach((box) => {
       box.nativeElement.classList.add('shake');
       setTimeout(() => {
         box.nativeElement.classList.remove('shake');
@@ -286,7 +329,7 @@ export class Login {
   }
   goToForgot() {
     this.router.navigate(['/set-password'], {
-      queryParams: { email: this.form.value.email || this.otpEmail || '' }
+      queryParams: { email: this.form.value.email || this.otpEmail || '' },
     });
   }
 }

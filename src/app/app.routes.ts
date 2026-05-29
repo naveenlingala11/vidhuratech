@@ -48,6 +48,7 @@ import { CertificateComponent } from './admin/certificate/certificate';
 import { Questions } from './admin/questions/questions';
 import { InvoiceComponent } from './admin/invoice/invoice';
 import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
+import { ManageTrainersComponent } from './admin/manage-trainers/manage-trainers';
 
 /* =========================
    DASHBOARD
@@ -89,6 +90,7 @@ import { BatchEnrollmentComponent } from './features/lms/batch/pages/batch-enrol
 import { AdminBatchManagementComponent } from './features/lms/batch/pages/admin-batch-management/admin-batch-management';
 import { StudentBatchesComponent } from './features/lms/batch/pages/student/student-batch/student-batch';
 import { StudentPlayerComponent } from './features/lms/batch/pages/student/student-player/student-player';
+import { TrainerAssignedCoursesComponent } from './dashboard/trainer-pages/trainer-assigned-courses/trainer-assigned-courses';
 
 /* =========================
    ADMIN DASHBOARD PAGES
@@ -99,6 +101,7 @@ import { AdminCreateUserComponent } from './admin/admin-create-users.component/a
 import { CourseBulkUploadComponent } from './pages/courses/course-bulk-upload/course-bulk-upload';
 import { BatchCommunicationComponent } from './admin/batches/batch-communication/batch-communication';
 import { AdminAdmissionsComponent } from './dashboard/admin/admin-admissions/admin-admissions';
+import { AdminPublicPracticePublishingComponent } from './admin/public-practice-publishing/public-practice-publishing';
 
 /* =========================
    ASSESSMENTS
@@ -335,6 +338,16 @@ export const routes: Routes = [
         component: BatchEnrollmentComponent,
         canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])],
       },
+      {
+        path: 'admin/public-practice',
+        component: AdminPublicPracticePublishingComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/manage-trainers',
+        component: ManageTrainersComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
 
       /* --- LMS COURSES --- */
       {
@@ -461,6 +474,11 @@ export const routes: Routes = [
         component: TrainerPseudoSubmissionsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
+      {
+        path: 'trainer/courses',
+        component: TrainerAssignedCoursesComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
     ],
   },
 
@@ -533,7 +551,21 @@ export const routes: Routes = [
     component: AssessmentResults,
     canActivate: [authGuard, roleGuard(['TRAINER'])],
   },
-
+  {
+    path: 'dashboard/admin/public-practice',
+    component: AdminPublicPracticePublishingComponent,
+    canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+  },
+  {
+    path: 'dashboard/admin/manage-trainers',
+    component: ManageTrainersComponent,
+    canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+  },
+  {
+    path: 'dashboard/trainer/courses',
+    component: TrainerAssignedCoursesComponent,
+    canActivate: [authGuard, roleGuard(['TRAINER'])],
+  },
   /* =========================
      FALLBACK
   ========================= */

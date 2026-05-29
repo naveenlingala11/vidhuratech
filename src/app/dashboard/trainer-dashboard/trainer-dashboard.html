@@ -32,6 +32,12 @@
   <div class="toast" *ngIf="toast">{{ toast }}</div>
 
   <div class="stats-grid">
+    <button type="button" class="stat-card blue" routerLink="/dashboard/trainer/courses">
+      <i class="bi bi-journal-bookmark"></i>
+      <h3>{{ stats.assignedCourses || courses.length }}</h3>
+      <p>Assigned Courses</p>
+    </button>
+
     <button type="button" class="stat-card blue" routerLink="/dashboard/trainer/batches">
       <i class="bi bi-collection"></i>
       <h3>{{ stats.assignedBatches }}</h3>
@@ -48,12 +54,6 @@
       <i class="bi bi-clipboard-data"></i>
       <h3><i class="bi bi-arrow-right-circle"></i></h3>
       <p>View Assessments</p>
-    </button>
-
-    <button type="button" class="stat-card orange" routerLink="/dashboard/trainer/assessments">
-      <i class="bi bi-hourglass-split"></i>
-      <h3>{{ stats.pendingReviews }}</h3>
-      <p>Pending Reviews</p>
     </button>
 
     <button type="button" class="stat-card purple" routerLink="/dashboard/trainer/mock-interviews">
@@ -83,6 +83,35 @@
 
   <div class="dashboard-grid">
     <div class="panel batches-panel">
+      <div class="panel courses-panel">
+        <div class="panel-head">
+          <div>
+            <span>Courses</span>
+            <h4>Assigned Courses</h4>
+          </div>
+          <strong>{{ courses.length }}</strong>
+        </div>
+
+        <div class="course-item" *ngFor="let course of courses">
+          <div class="course-icon">
+            <img *ngIf="course.thumbnailUrl" [src]="course.thumbnailUrl" alt="" />
+            <i *ngIf="!course.thumbnailUrl" class="bi bi-journal-code"></i>
+          </div>
+
+          <div class="course-info">
+            <strong>{{ course.title }}</strong>
+            <p>{{ course.code || 'COURSE' }} · {{ course.level || 'Level' }}</p>
+
+            <div class="course-meta">
+              <span>{{ course.durationHours || 0 }} hrs</span>
+              <span>Rs. {{ formatPrice(course.price) }}</span>
+              <span *ngIf="course.autoMonthlyBatchEnabled">Auto Monthly</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty" *ngIf="!courses.length && !loading">No assigned courses yet.</div>
+      </div>
       <div class="panel-head">
         <div>
           <span>Batches</span>

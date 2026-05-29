@@ -9,29 +9,51 @@
       <div class="hero-copy reveal">
         <div class="hero-badge">
           <span class="pulse-dot"></span>
-          Live Python + DS Batch Starts {{ activeBatch?.startDate | date: 'MMMM d, y' }}
+          {{ heroCourse?.title || 'Live Career Program' }} Batch Starts
+          <ng-container *ngIf="heroCourse?.activeBatch?.startDate; else noBatchDate">
+            {{ heroCourse.activeBatch.startDate | date: 'MMMM d, y' }}
+          </ng-container>
+          <ng-template #noBatchDate>soon</ng-template>
         </div>
+
+        <!-- ADD THIS HERE -->
+        <div class="hero-course-switcher" *ngIf="featuredCourses.length > 1">
+          <button
+            type="button"
+            *ngFor="let course of featuredCourses; let i = index"
+            [class.active]="heroCourseIndex === i"
+            (click)="setHeroCourse(course, i)"
+          >
+            <span>{{ course.title }}</span>
+            <small>Rs. {{ formatPrice(course.price) }}</small>
+          </button>
+        </div>
+
         <h1>
-          Learn Python.
+          Learn {{ heroCourse?.title || 'Software Skills' }}.
           <span>Build Projects.</span>
           Become Job Ready.
         </h1>
         <p class="hero-subtitle">
-          A complete live career program for beginners, freshers, non-IT students, and career
-          switchers. Master Python, data structures, APIs, portfolio projects, resume building, and
-          interview preparation with mentor-led practical training.
+          {{
+            heroCourse?.desc ||
+              'A complete live career program with mentor-led practical training, projects, resume support, and interview preparation.'
+          }}
         </p>
         <div class="hero-actions">
-          <button class="primary-action" (click)="openEnrollModal('Python + Data Structures')">
+          <button class="primary-action" (click)="openEnrollModal(heroCourse)">
             Join Free Demo
           </button>
           <a
             class="secondary-action"
+            *ngIf="heroCourse"
             [routerLink]="['/checkout']"
             [queryParams]="{
-              course: 'Python + Data Structures',
-              batch: activeBatch?.name,
-              batchId: activeBatch?.id,
+              courseId: heroCourse?.id,
+              course: heroCourse?.title,
+              amount: heroCourse?.price,
+              batch: heroCourse?.activeBatch?.name,
+              batchId: heroCourse?.activeBatch?.id,
             }"
           >
             Purchase Course
@@ -65,11 +87,25 @@
             <span class="file-name">career_track.py</span>
             <span class="live-indicator">Live</span>
           </div>
+          <div class="hero-course-image" *ngIf="heroCourse?.thumbnailUrl">
+            <img [src]="courseImage(heroCourse.thumbnailUrl)" [alt]="heroCourse.title" />
+            <div>
+              <span>{{ heroCourse.level || 'Live Program' }}</span>
+              <strong>{{ heroCourse.title }}</strong>
+            </div>
+          </div>
           <div class="premium-code">
-            <p><span>course</span> = "Python + Data Structures"</p>
-            <p><span>goal</span> = "Job Ready Developer"</p>
-            <p><span>projects</span> = ["APIs", "Dashboards", "Apps"]</p>
-            <p><span>support</span> = "Mentor + Resume + Interviews"</p>
+            <p><span>course</span> = "{{ heroCourse?.title || 'Live Career Program' }}"</p>
+            <p><span>level</span> = "{{ heroCourse?.level || 'Beginner Friendly' }}"</p>
+            <p><span>duration</span> = "{{ heroCourse?.duration || 'Live Track' }}"</p>
+            <p><span>price</span> = "Rs. {{ formatPrice(heroCourse?.price) }}"</p>
+            <p>
+              <span>focus</span> = "{{
+                heroCourse?.highlights?.[0] ||
+                  heroCourse?.outcomes?.[0] ||
+                  'Projects + Career Support'
+              }}"
+            </p>
             <p class="run"><span class="typing-text"></span><span class="cursor">|</span></p>
           </div>
           <div class="premium-offer">
@@ -77,43 +113,60 @@
               <span>Current live course</span>
               <span> only a few seats left</span>
             </div>
-            <h2>Python + Data Structures Career Track</h2>
-            <p>Live training, project building, mock interviews, and complete career support.</p>
+            <h2>{{ heroCourse?.title || 'Career Track' }}</h2>
+            <p>
+              {{
+                heroCourse?.desc ||
+                  'Live training, project building, mock interviews, and complete career support.'
+              }}
+            </p>
+
             <div class="price-box">
-              <span class="new">Rs. 2,999</span>
-              <span class="old">Rs. 4,999</span>
-              <span class="off">40% OFF</span>
+              <span class="new">Rs. {{ formatPrice(heroCourse?.price) }}</span>
+              <span class="old" *ngIf="heroCourse?.oldPrice"
+                >Rs. {{ formatPrice(heroCourse.oldPrice) }}</span
+              >
+              <span class="off" *ngIf="heroCourse?.discountLabel">{{
+                heroCourse.discountLabel
+              }}</span>
             </div>
-            <div class="timer-premium">
-              <div>
-                <b>{{ timer.days() }}</b
-                ><span>Days</span>
-              </div>
-              <div>
-                <b>{{ timer.hours() }}</b
-                ><span>Hrs</span>
-              </div>
-              <div>
-                <b>{{ timer.minutes() }}</b
-                ><span>Min</span>
-              </div>
-              <div>
-                <b>{{ timer.seconds() }}</b
-                ><span>Sec</span>
-              </div>
-            </div>
-            <a
-              class="cta-btn"
-              [routerLink]="['/checkout']"
-              [queryParams]="{
-                course: 'Python + Data Structures',
-                batch: activeBatch?.name,
-                batchId: activeBatch?.id,
-              }"
-            >
-              Reserve My Seat
-            </a>
+            <span class="offer-validity">Offer valid until batch starts</span>
+            <span class="enrollments" *ngIf="activeBatch?.enrollmentCount">
+              {{ activeBatch.enrollmentCount }} students enrolled
+            </span>
           </div>
+          <div class="timer-premium">
+            <div>
+              <b>{{ timer.days() }}</b
+              ><span>Days</span>
+            </div>
+            <div>
+              <b>{{ timer.hours() }}</b
+              ><span>Hrs</span>
+            </div>
+            <div>
+              <b>{{ timer.minutes() }}</b
+              ><span>Min</span>
+            </div>
+            <div>
+              <b>{{ timer.seconds() }}</b
+              ><span>Sec</span>
+            </div>
+          </div>
+          <a
+            class="cta-btn"
+            *ngIf="heroCourse"
+            [routerLink]="['/checkout']"
+            [queryParams]="{
+              courseId: heroCourse?.id,
+              course: heroCourse?.title,
+              amount: heroCourse?.price,
+              batch: heroCourse?.activeBatch?.name,
+              batchId: heroCourse?.activeBatch?.id,
+            }"
+          >
+            Reserve My Seat
+          </a>
         </div>
       </div>
     </div>
@@ -325,6 +378,9 @@
       <div class="featured-courses" *ngIf="featuredCourses.length">
         <article class="featured-course" *ngFor="let course of featuredCourses">
           <div class="course-shimmer"></div>
+          <div class="featured-course-image" *ngIf="course.thumbnailUrl">
+            <img [src]="courseImage(course.thumbnailUrl)" [alt]="course.title" />
+          </div>
           <div class="course-top">
             <span [class.live-chip]="course.isLive">{{
               course.isLive ? 'Current Live Batch' : course.level
@@ -337,7 +393,7 @@
             <span *ngFor="let item of course.highlights.slice(0, 3)">{{ item }}</span>
           </div>
           <div class="course-actions">
-            <button class="mini-action" (click)="openEnrollModal(course.title)">
+            <button class="mini-action" (click)="openEnrollModal(course)">
               <svg
                 width="14"
                 height="14"
@@ -356,9 +412,11 @@
               class="mini-link"
               [routerLink]="['/checkout']"
               [queryParams]="{
+                courseId: course.id,
                 course: course.title,
-                batch: course.batch?.name || activeBatch?.name,
-                batchId: course.batch?.id || activeBatch?.id,
+                amount: course.price,
+                batch: course.activeBatch?.name,
+                batchId: course.activeBatch?.id,
               }"
             >
               Enroll
@@ -1627,14 +1685,12 @@
         <span class="section-kicker">Start today</span>
         <h2>Explore our training programs and start with the current live batch.</h2>
         <p>
-          Python + Data Structures is highlighted now, and the institute supports broader software
-          career training.
+          {{ heroCourse?.title || 'Our featured career program' }} is highlighted now, and the
+          institute supports broader software career training.
         </p>
       </div>
       <div class="final-actions">
-        <button class="primary-action" (click)="openEnrollModal('Python + Data Structures')">
-          Join Free Demo
-        </button>
+        <button class="primary-action" (click)="openEnrollModal(heroCourse)">Join Free Demo</button>
         <a class="secondary-action" routerLink="/courses">Explore Programs</a>
       </div>
     </div>

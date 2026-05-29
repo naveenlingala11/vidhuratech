@@ -7,12 +7,16 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root',
 })
 export class PublicPracticeService {
-  private baseUrl = `${environment.apiUrl}/api/public/practice`;
+  private readonly baseUrl = `${environment.apiUrl}/api/public/practice`;
 
   constructor(private http: HttpClient) {}
 
   getLibrary(): Observable<any> {
     return this.http.get(this.baseUrl);
+  }
+
+  getLibraryByCompany(company: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}?company=${encodeURIComponent(company)}`);
   }
 
   getAssessment(id: number): Observable<any> {
@@ -33,5 +37,9 @@ export class PublicPracticeService {
 
   saveLead(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/lead`, payload);
+  }
+
+  registerAccess(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/access/register`, payload);
   }
 }

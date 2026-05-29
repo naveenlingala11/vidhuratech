@@ -7,16 +7,18 @@ import {
   signal,
   NgZone,
   OnDestroy,
-  OnInit
+  OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { interval } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ModalService } from '../../services/modal';
 import { TimerService } from '../../services/timer';
 import { BatchService } from '../../features/lms/batch/services/batch';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { PublicCourseService } from '../courses/service/public-course';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -44,6 +46,14 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   // =============== COURSES =================
   courses: any[] = [];
   featuredCourses: any[] = [];
+
+  heroCourse: any = null;
+  heroCourseIndex = 0;
+  heroRotation: any;
+
+  selectedEnrollCourse: any = null;
+  selectedEnrollBatch: any = null;
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private modalService: ModalService,
@@ -51,8 +61,8 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     public timer: TimerService,
     private batchService: BatchService,
     private authService: AuthService,
-    private courseService: PublicCourseService
-  ) { }
+    private courseService: PublicCourseService,
+  ) {}
   // ================= INIT =================
   ngOnInit() {
     this.loadCourses();
@@ -64,7 +74,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
         }
       }, 10000);
     });
-    this.loadBatch(2);
+    //this.loadBatch(2);
     this.timer.startCountdown();
     if (isPlatformBrowser(this.platformId)) {
       const saved = localStorage.getItem('popupBlockUntil');
@@ -77,7 +87,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
         }
       }
     }
-    this.authService.authState.subscribe(status => {
+    this.authService.authState.subscribe((status) => {
       console.log('🔐 Auth status changed:', status);
       this.isLoggedIn.set(status);
       this.authChecked.set(true);
@@ -104,8 +114,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       const y = e.clientY - rect.top;
       const rotateX = -(y / rect.height - 0.5) * 12;
       const rotateY = (x / rect.width - 0.5) * 12;
-      card.style.transform =
-        `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
+      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
     });
     card.addEventListener('mouseleave', () => {
       card.style.transform = `rotateX(0deg) rotateY(0deg)`;
@@ -121,24 +130,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       this.openEnrollModal();
     }, 1500);
   }
-  ngOnDestroy() {
-    if (this.popupInterval) {
-      clearInterval(this.popupInterval);
-    }
-  }
-  startTyping() {
-    const text = 'print("Job Ready 🚀")';
-    let i = 0;
-    const el = document.querySelector('.typing-text') as HTMLElement;
-    const typing = setInterval(() => {
-      if (i < text.length) {
-        el.innerHTML += text.charAt(i);
-        i++;
-      } else {
-        clearInterval(typing);
-      }
-    }, 60);
-  }
+
   isDark = true;
   toggleTheme() {
     this.isDark = !this.isDark;
@@ -149,96 +141,212 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     }
   }
   // ================= COURSE =================
-  loadCourses() {
-    this.courseService.getCourses(false).subscribe({
+  loading = false;
+
+  loadCourses(): void {
+    this.loading = true;
+
+    this.courseService.getFeaturedCourses().subscribe({
       next: (res: any) => {
         const list = res?.data || [];
-        // 🔥 CURRENT LIVE COURSE
-        const LIVE_COURSE_TITLE =
-          'Python + Data Structures';
-        this.courses = list.map((c: any) => {
-          let meta: any = {};
-          try {
-            meta = c.metadataJson
-              ? JSON.parse(c.metadataJson)
-              : {};
-          } catch { }
-          // ✅ LIVE CHECK
-          const isLive =
-            c.title?.trim()?.toLowerCase() ===
-            LIVE_COURSE_TITLE.toLowerCase();
-          // ✅ NEXT BATCH DATE
-          const today = new Date();
-          const cycleDays = 15;
-          const baseDate = new Date(2026, 4, 2);
-          const diff =
-            Math.floor(
-              (today.getTime() - baseDate.getTime()) /
-              (1000 * 60 * 60 * 24)
-            );
-          const cycles =
-            Math.floor(diff / cycleDays);
-          const nextBatchDate = new Date(baseDate);
-          nextBatchDate.setDate(
-            baseDate.getDate() +
-            ((cycles + 1) * cycleDays)
-          );
-          return {
-            id: c.id,
-            title: c.title,
-            desc: c.description,
-            duration:
-              (c.durationHours || 0) + ' hrs',
-            level: c.level,
-            highlights:
-              meta.highlights || [],
-            // ✅ NEW
-            isLive,
-            // ✅ ONLY LIVE COURSE GETS BATCH
-            batch: isLive
-              ? {
-                id: c.id,
-                startDate: nextBatchDate,
-                name: `${c.title} Live Batch`
-              }
-              : null
-          };
+
+        if (!list.length) {
+          this.featuredCourses = [];
+          this.heroCourse = null;
+          this.activeBatch = null;
+          this.loading = false;
+          return;
+        }
+
+        const requests: Observable<any>[] = list.map((course: any) =>
+          this.batchService.getActiveBatch(course.id).pipe(
+            map((batchRes: any) => ({
+              ...this.mapPublicCourse(course),
+              activeBatch: batchRes?.data || null,
+            })),
+            catchError(() =>
+              of({
+                ...this.mapPublicCourse(course),
+                activeBatch: null,
+              }),
+            ),
+          ),
+        );
+
+        forkJoin(requests).subscribe({
+          next: (courses: any[]) => {
+            this.featuredCourses = courses;
+
+            const firstWithBatch = this.featuredCourses.find((course) => course.activeBatch);
+            this.heroCourse = firstWithBatch || this.featuredCourses[0] || null;
+            this.heroCourseIndex = this.heroCourse
+              ? this.featuredCourses.findIndex((course) => course.id === this.heroCourse.id)
+              : 0;
+
+            this.activeBatch = this.heroCourse?.activeBatch || null;
+            this.selectedEnrollCourse = this.heroCourse;
+            this.selectedEnrollBatch = this.activeBatch;
+
+            this.loading = false;
+          },
+          error: () => {
+            this.featuredCourses = [];
+            this.heroCourse = null;
+            this.activeBatch = null;
+            this.loading = false;
+          },
         });
-        // ✅ LIVE FIRST
-        this.featuredCourses = [
-          ...this.courses.filter(c => c.isLive),
-          ...this.courses.filter(c => !c.isLive)
-        ].slice(0, 4);
-      }
+      },
+      error: () => {
+        this.featuredCourses = [];
+        this.heroCourse = null;
+        this.activeBatch = null;
+        this.loading = false;
+      },
     });
   }
+
+  setHeroCourse(course: any, index: number): void {
+    if (!course) return;
+
+    this.heroCourseIndex = index;
+    this.heroCourse = course;
+    this.activeBatch = course.activeBatch || null;
+    this.selectedEnrollCourse = course;
+    this.selectedEnrollBatch = course.activeBatch || null;
+  }
+
+  selectCourse(course: any): void {
+    if (!course) return;
+
+    const index = this.featuredCourses.findIndex((c) => c.id === course.id);
+    this.setHeroCourse(course, index >= 0 ? index : 0);
+  }
+
+  // startHeroRotation(): void {
+  //   if (this.heroRotation) {
+  //     clearInterval(this.heroRotation);
+  //   }
+
+  //   if (this.featuredCourses.length <= 1) return;
+
+  //   this.heroRotation = setInterval(() => {
+  //     const nextIndex = (this.heroCourseIndex + 1) % this.featuredCourses.length;
+  //     this.setHeroCourse(this.featuredCourses[nextIndex], nextIndex);
+  //   }, 4500);
+  // }
+
+  startHeroRotation(): void {
+    return;
+  }
+
+  openEnrollModal(course?: any) {
+    const selected =
+      course && typeof course === 'object' ? course : this.heroCourse || this.selectedEnrollCourse;
+
+    if (!selected) return;
+
+    this.selectedEnrollCourse = selected;
+    this.selectedEnrollBatch = selected.activeBatch || this.activeBatch || null;
+
+    this.modalService.open({
+      course: selected.title,
+      courseId: selected.id,
+      price: selected.price,
+      batchId: this.selectedEnrollBatch?.id,
+      batch: this.selectedEnrollBatch?.name,
+    });
+  }
+
+  startTyping() {
+    const text = 'print("Job Ready")';
+    let i = 0;
+    const el = document.querySelector('.typing-text') as HTMLElement | null;
+
+    if (!el) return;
+
+    el.innerHTML = '';
+
+    const typing = setInterval(() => {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i);
+        i++;
+      } else {
+        clearInterval(typing);
+      }
+    }, 60);
+  }
+
+  loadBatch(courseId: number) {
+    const matched = this.featuredCourses.find((course) => Number(course.id) === Number(courseId));
+
+    if (matched?.activeBatch) {
+      this.activeBatch = matched.activeBatch;
+      this.selectedEnrollBatch = matched.activeBatch;
+      return;
+    }
+
+    this.activeBatch = null;
+    this.selectedEnrollBatch = null;
+  }
+
+  courseImage(url: string | null | undefined): string {
+    if (!url) return '';
+
+    if (url.startsWith('http') || url.startsWith('data:')) {
+      return url;
+    }
+
+    return `${environment.apiUrl}${url}`;
+  }
+
+  ngOnDestroy() {
+    if (this.popupInterval) {
+      clearInterval(this.popupInterval);
+    }
+  }
+
+  mapPublicCourse(c: any) {
+    let meta: any = {};
+
+    try {
+      meta = c.metadataJson ? JSON.parse(c.metadataJson) : {};
+    } catch {
+      meta = {};
+    }
+
+    return {
+      id: c.id,
+      code: c.code,
+      title: c.title,
+      desc: c.description || '',
+      price: c.price || 0,
+      oldPrice: meta.oldPrice || Math.round(Number(c.price || 0) * 1.4),
+      discountLabel: meta.discountLabel || '',
+      duration: (c.durationHours || 0) + ' hrs',
+      durationHours: c.durationHours || 0,
+      level: c.level,
+      thumbnailUrl: c.thumbnailUrl,
+      highlights: meta.highlights || [],
+      outcomes: meta.outcomes || [],
+      featuredOnHome: !!c.featuredOnHome,
+      featuredRank: c.featuredRank || 100,
+      autoMonthlyBatchEnabled: !!c.autoMonthlyBatchEnabled,
+    };
+  }
+
   switchCourse(course: 'java' | 'python') {
     this.activeCourse.set(course);
     const courseMap: any = {
       java: 1,
-      python: 2
+      python: 2,
     };
     this.loadBatch(courseMap[course]);
   }
-  loadBatch(courseId: number) {
-    this.batchService
-      .getActiveBatch(courseId)
-      .subscribe({
-        next: (res: any) => {
-          this.activeBatch = res?.data || null;
-        },
-        error: () => {
-          this.activeBatch = null;
-        }
-      });
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('en-IN').format(Number(price || 0));
   }
-  // ================= MODAL =================
-  openEnrollModal(course?: string) {
-    this.modalService.open({
-      course: course || this.activeBatch?.courseTitle || ''
-    });
-  }
-  // ================= COUNTDOWN =================
   // ================= POPUP =================
   startPopupLoop() {
     if (this.popupInterval) return;
@@ -262,7 +370,8 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       }
       const name = this.names[Math.floor(Math.random() * this.names.length)];
       const city = this.cities[Math.floor(Math.random() * this.cities.length)];
-      const message = `🔥 ${name} from ${city} joined Python + DS just now`;
+      const courseName = this.heroCourse?.title || 'our live course';
+      const message = `🔥 ${name} from ${city} joined ${courseName} just now`;
       console.log('✅ Popup OPEN:', message);
       this.popupMessage.set(message);
       this.showPopup.set(true);
@@ -276,7 +385,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   closePopup() {
     console.log('❌ Popup MANUAL CLOSE');
     this.showPopup.set(false);
-    const nextTime = Date.now() + (10 * 60 * 1000);
+    const nextTime = Date.now() + 10 * 60 * 1000;
     console.log('⛔ Cooldown set till:', new Date(nextTime));
     this.popupClosedUntil.set(nextTime);
     if (isPlatformBrowser(this.platformId)) {

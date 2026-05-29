@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { PseudoChallengeService } from '../../services/pseudo-challenge';
 import { Router } from '@angular/router';
+import { TrainerBatchLookupService } from '../../services/trainer-batch-lookup.service';
 
 type RuleType = 'REQUIRED_KEYWORD' | 'FORBIDDEN_KEYWORD' | 'MIN_LINES';
 type ChallengeFilter = 'ALL' | 'ACTIVE' | 'DRAFT' | 'CLOSED';
@@ -37,6 +38,7 @@ interface ChallengeForm {
   passPercentage: number;
   rules: ChallengeRule[];
   testCases: ChallengeTestCase[];
+  skill: string;
 }
 
 interface ChallengeGroup {
@@ -91,6 +93,8 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   selectedGroup: ChallengeGroup | null = null;
   draftPreview: any = null;
   attempts: any[] = [];
+  trainerBatches: any[] = [];
+  batchLoading = false;
 
   page = 1;
   pageSize = 6;
@@ -104,8 +108,11 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   constructor(
     private service: PseudoChallengeService,
     private router: Router,
+    private trainerBatchLookupService: TrainerBatchLookupService,
   ) {}
+
   ngOnInit(): void {
+    this.loadTrainerBatches();
     this.loadChallenges();
   }
 
@@ -126,6 +133,25 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     });
   }
 
+  loadTrainerBatches(): void {
+    this.batchLoading = true;
+
+    this.trainerBatchLookupService.getMyBatches().subscribe({
+      next: (res: any) => {
+        this.trainerBatches = res?.data || [];
+        this.batchLoading = false;
+
+        if (this.trainerBatches.length && !this.form.batchId) {
+          this.form.batchId = String(this.trainerBatches[0].id);
+        }
+      },
+      error: () => {
+        this.batchLoading = false;
+        this.showToast('Unable to load your assigned batches');
+      },
+    });
+  }
+
   openSubmissionsPage(): void {
     this.router.navigate(['/dashboard/trainer/pseudo-submissions']);
   }
@@ -141,6 +167,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         item.batchId,
         item.challengeGroupTitle,
         item.companyName,
+        item.skill,
         status,
       ]
         .join(' ')
@@ -341,7 +368,9 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   get validationErrors(): string[] {
     const errors: string[] = [];
 
-    if (!this.form.batchId || Number(this.form.batchId) <= 0) errors.push('Batch ID is required');
+    if (!this.form.batchId || Number(this.form.batchId) <= 0) {
+      errors.push('Batch is required');
+    }
     if (!this.form.challengeGroupTitle.trim()) errors.push('Group title is required');
     if (!this.form.companyName.trim()) errors.push('Company name is required');
     if (!this.form.title.trim()) errors.push('Challenge title is required');
@@ -775,6 +804,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         { inputData: '4\n-8 -2 -11 -5', expectedOutput: '-2', marks: 35, hidden: true },
         { inputData: '1\n7', expectedOutput: '7', marks: 30, hidden: true },
       ],
+      skill: 'Coding',
     };
   }
 
@@ -897,6 +927,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         marks: Number(tc?.marks || 0),
         hidden: Boolean(tc?.hidden),
       })),
+      skill: String(payload?.skill || fallback.skill),
     };
   }
 
@@ -969,8 +1000,9 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
   private getEmptyForm(): ChallengeForm {
     return {
-      batchId: '',
+      batchId: this.trainerBatches?.length ? String(this.trainerBatches[0].id) : '',
       companyName: '',
+      skill: 'Coding',
       challengeGroupTitle: '',
       title: '',
       problemStatement: '',

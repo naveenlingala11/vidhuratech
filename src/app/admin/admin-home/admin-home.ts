@@ -21,7 +21,7 @@ interface DashboardStats {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './admin-home.html',
-  styleUrls: ['./admin-home.css']
+  styleUrls: ['./admin-home.css'],
 })
 export class AdminHomeComponent implements OnInit, OnDestroy {
   darkMode = false;
@@ -34,13 +34,13 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
     totalStudents: 0,
     trainers: 0,
     admins: 0,
-    mentors: 0
+    mentors: 0,
   });
   extraStats = signal({
     companies: 0,
     deletedLeads: 0,
     todayFollowups: 0,
-    conversionRate: 0
+    conversionRate: 0,
   });
   loading = signal(false);
   recentActivities = signal<string[]>([]);
@@ -52,14 +52,16 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
     { title: 'Certificates', icon: '🎓', route: '/admin/certificates' },
     { title: 'Interview Prep', icon: '🧠', route: '/admin/questions' },
     { title: 'Invoices', icon: '🧾', route: '/admin/invoice' },
-    { title: 'Analytics', icon: '📊', route: '/invoice-analytics' }
+    { title: 'Analytics', icon: '📊', route: '/invoice-analytics' },
+    { title: 'Public Practice', icon: 'PP', route: '/dashboard/admin/public-practice' },
+    { title: 'Manage Trainers', icon: 'MT', route: '/dashboard/admin/manage-trainers' },
   ];
   refreshInterval: any;
   constructor(
     private router: Router,
     private http: HttpClient,
-    private dashboardService: AdminDashboardService
-  ) { }
+    private dashboardService: AdminDashboardService,
+  ) {}
   ngOnInit(): void {
     this.loadDashboardData();
     this.refreshInterval = setInterval(() => {
@@ -88,75 +90,67 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
   loadRoleStats() {
     this.dashboardService.getDashboard().subscribe({
       next: (res) => {
-        this.stats.update(s => ({
+        this.stats.update((s) => ({
           ...s,
           totalUsers: res?.totalUsers || 0,
           totalStudents: res?.totalStudents || 0,
           trainers: res?.trainers || 0,
           admins: res?.admins || 0,
-          mentors: res?.mentors || 0
+          mentors: res?.mentors || 0,
         }));
-      }
+      },
     });
   }
   // ================= EXISTING =================
   loadLeadStats() {
-    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`)
-      .subscribe(res => {
-        this.stats.update(s => ({
-          ...s,
-          leads: res.total || 0
-        }));
-        this.extraStats.update(e => ({
-          ...e,
-          conversionRate: res.total > 0
-            ? Math.round((res.joined / res.total) * 100)
-            : 0,
-          todayFollowups: res.todayFollowups || 0
-        }));
-      });
+    this.http.get<any>(`${environment.apiUrl}/api/leads/analytics`).subscribe((res) => {
+      this.stats.update((s) => ({
+        ...s,
+        leads: res.total || 0,
+      }));
+      this.extraStats.update((e) => ({
+        ...e,
+        conversionRate: res.total > 0 ? Math.round((res.joined / res.total) * 100) : 0,
+        todayFollowups: res.todayFollowups || 0,
+      }));
+    });
   }
   loadRevenueStats(): void {
-    this.http.get<any>(`${environment.apiUrl}/invoices/analytics/summary`)
-      .subscribe(res => {
-        this.animateCounter('revenue', res.totalRevenue || 0);
-      });
+    this.http.get<any>(`${environment.apiUrl}/invoices/analytics/summary`).subscribe((res) => {
+      this.animateCounter('revenue', res.totalRevenue || 0);
+    });
   }
   loadJobStats() {
-    this.http.get<any>(`${environment.apiUrl}/jobs?page=0&size=100`)
-      .subscribe(res => {
-        this.stats.update(s => ({
-          ...s,
-          jobs: res?.content?.length || 0
-        }));
-      });
+    this.http.get<any>(`${environment.apiUrl}/jobs?page=0&size=100`).subscribe((res) => {
+      this.stats.update((s) => ({
+        ...s,
+        jobs: res?.content?.length || 0,
+      }));
+    });
   }
   loadCertificateStats() {
-    this.http.get<any[]>(`${environment.apiUrl}/certificates`)
-      .subscribe(res => {
-        this.stats.update(s => ({
-          ...s,
-          certificates: res.length || 0
-        }));
-      });
+    this.http.get<any[]>(`${environment.apiUrl}/certificates`).subscribe((res) => {
+      this.stats.update((s) => ({
+        ...s,
+        certificates: res.length || 0,
+      }));
+    });
   }
   loadCompanyStats() {
-    this.http.get<any>(`${environment.apiUrl}/admin/companies?page=0&size=1`)
-      .subscribe(res => {
-        this.extraStats.update(e => ({
-          ...e,
-          companies: res.totalElements || 0
-        }));
-      });
+    this.http.get<any>(`${environment.apiUrl}/admin/companies?page=0&size=1`).subscribe((res) => {
+      this.extraStats.update((e) => ({
+        ...e,
+        companies: res.totalElements || 0,
+      }));
+    });
   }
   loadBinStats() {
-    this.http.get<any>(`${environment.apiUrl}/api/leads/bin?page=0&size=1`)
-      .subscribe(res => {
-        this.extraStats.update(e => ({
-          ...e,
-          deletedLeads: res.totalElements || 0
-        }));
-      });
+    this.http.get<any>(`${environment.apiUrl}/api/leads/bin?page=0&size=1`).subscribe((res) => {
+      this.extraStats.update((e) => ({
+        ...e,
+        deletedLeads: res.totalElements || 0,
+      }));
+    });
   }
   loadRecentActivities() {
     this.recentActivities.set([
@@ -164,7 +158,7 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
       'Invoice Payment Received',
       'Certificate Generated',
       'Job Posted Successfully',
-      'Company Added To Portal'
+      'Company Added To Portal',
     ]);
   }
   // ================= ANIMATION (RESTORED) =================
@@ -175,20 +169,17 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
       current += step;
       const value = Math.floor(current);
       setTimeout(() => {
-        this.stats.update(s => ({
+        this.stats.update((s) => ({
           ...s,
-          [key]: value
+          [key]: value,
         }));
       });
-      if (
-        (step > 0 && current >= target) ||
-        (step < 0 && current <= target)
-      ) {
+      if ((step > 0 && current >= target) || (step < 0 && current <= target)) {
         clearInterval(interval);
         setTimeout(() => {
-          this.stats.update(s => ({
+          this.stats.update((s) => ({
             ...s,
-            [key]: target
+            [key]: target,
           }));
         });
       }

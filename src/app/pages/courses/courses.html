@@ -1,28 +1,27 @@
 <section class="courses-hero">
   <div class="hero-grid"></div>
+  <div class="hero-glow glow-left"></div>
+  <div class="hero-glow glow-right"></div>
+
   <div class="hero-inner">
     <span class="hero-badge">
       <span class="live-dot"></span>
       Career-Focused Live Training
     </span>
-    <h1>Choose a program that turns practice into career confidence.</h1>
+
+    <h1>Build job-ready skills with mentor-led career programs.</h1>
+
     <p>
-      Explore mentor-led courses built around live batches, production-style projects, interview
-      readiness, and role-focused learning paths.
+      Explore practical courses with live batches, projects, curriculum previews, checkout, and
+      learning paths designed for real software careers.
     </p>
+
     <div class="hero-stats">
       <div>
-        <strong>Live</strong>
-        <span>Mentor sessions</span>
+        <strong>{{ courses.length || 12 }}+</strong><span>Career programs</span>
       </div>
-      <div>
-        <strong>Real</strong>
-        <span>Project practice</span>
-      </div>
-      <div>
-        <strong>Career</strong>
-        <span>Role guidance</span>
-      </div>
+      <div><strong>Live</strong><span>Mentor batches</span></div>
+      <div><strong>Project</strong><span>Based learning</span></div>
     </div>
   </div>
 </section>
@@ -32,11 +31,12 @@
     <div class="search-box">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input
-        placeholder="Search Java, React, AWS..."
+        placeholder="Search Java, React, AWS, SQL..."
         [(ngModel)]="keyword"
         (input)="applyFilters()"
       />
     </div>
+
     <div class="select-box">
       <i class="fa-solid fa-layer-group"></i>
       <select [(ngModel)]="selectedLevel" (change)="applyFilters()">
@@ -44,67 +44,93 @@
         <option *ngFor="let l of levels" [value]="l">{{ l }}</option>
       </select>
     </div>
+
+    <div class="select-box">
+      <i class="fa-solid fa-signal"></i>
+      <select [(ngModel)]="selectedMode" (change)="applyFilters()">
+        <option value="">All Batches</option>
+        <option value="LIVE">Live Now</option>
+        <option value="UPCOMING">Upcoming</option>
+      </select>
+    </div>
   </div>
 </section>
 
 <div *ngIf="loading" class="loader">
   <span></span>
-  Loading courses, please wait...
+  Loading premium programs...
 </div>
 
 <div *ngIf="error" class="error-state">{{ error }}</div>
 
-<section *ngIf="activeCourse" class="active-section">
-  <div class="section-head">
-    <span class="section-badge">Live Now</span>
-    <h2>Currently Running Batch</h2>
-    <p>Join the active batch and start learning with structured mentor-led sessions.</p>
-  </div>
+<section *ngIf="activeCourse && !loading" class="spotlight-section">
+  <div class="spotlight-card">
+    <div class="spotlight-media" [class.empty]="!activeCourse.thumbnailUrl">
+      <img
+        *ngIf="activeCourse.thumbnailUrl"
+        [src]="courseImage(activeCourse.thumbnailUrl)"
+        [alt]="activeCourse.title"
+      />
 
-  <div class="active-card">
-    <div class="active-copy">
-      <div class="active-top">
-        <span class="live-chip">
-          <span class="live-dot"></span>
-          Batch Ongoing
+      <div class="media-overlay">
+        <span class="status-pill" [class.live]="activeCourse.batch?.status === 'ACTIVE'">
+          {{ activeCourse.batch?.status === 'ACTIVE' ? 'Live Batch' : 'Upcoming Program' }}
         </span>
-        <span class="level-chip">{{ activeCourse.level }}</span>
+        <h2>{{ activeCourse.title }}</h2>
+      </div>
+    </div>
+
+    <div class="spotlight-copy">
+      <div class="course-tags">
+        <span>{{ activeCourse.level }}</span>
+        <span>{{ activeCourse.duration }}</span>
+        <span *ngIf="activeCourse.batch?.startDate">
+          Starts {{ activeCourse.batch.startDate | date: 'MMM d, y' }}
+        </span>
       </div>
 
       <h3>{{ activeCourse.title }}</h3>
-      <p class="desc">{{ activeCourse.desc }}</p>
+      <p>
+        {{ activeCourse.desc || 'A practical program built around live learning and projects.' }}
+      </p>
 
-      <div class="active-meta">
+      <div class="price-row">
+        <strong>Rs. {{ formatPrice(activeCourse.price) }}</strong>
+        <span *ngIf="activeCourse.oldPrice">Rs. {{ formatPrice(activeCourse.oldPrice) }}</span>
+        <em *ngIf="activeCourse.discountLabel">{{ activeCourse.discountLabel }}</em>
+      </div>
+
+      <div class="spotlight-grid">
         <div>
-          <i class="fa-solid fa-clock"></i>
-          <span>Duration</span>
-          <b>{{ activeCourse.duration }}</b>
+          <small>Batch</small>
+          <b>{{ activeCourse.batch?.name || 'Upcoming batch' }}</b>
         </div>
         <div>
-          <i class="fa-solid fa-signal"></i>
-          <span>Level</span>
-          <b>{{ activeCourse.level }}</b>
+          <small>Curriculum</small>
+          <b>{{ activeCourse.syllabus?.length || activeCourse.highlights?.length || 0 }} modules</b>
         </div>
-        <div *ngIf="activeCourse.batch">
-          <i class="fa-solid fa-calendar-days"></i>
-          <span>Starts On</span>
-          <b>{{ activeCourse.batch.startDate }}</b>
+        <div>
+          <small>Outcome</small>
+          <b>{{ activeCourse.outcomes?.[0] || 'Job ready practice' }}</b>
         </div>
       </div>
 
+      <div class="highlight-list" *ngIf="activeCourse.highlights?.length">
+        <span *ngFor="let item of activeCourse.highlights.slice(0, 4)">
+          <i class="fa-solid fa-check"></i>
+          {{ item }}
+        </span>
+      </div>
+
       <div class="cta-row">
+        <button class="primary-btn" (click)="goToCheckout(activeCourse)">
+          {{ activeCourse.batch ? 'Reserve My Seat' : 'Enroll Now' }}
+        </button>
+
         <button class="outline-btn" (click)="viewDetails(activeCourse)">Course Details</button>
+
         <button class="outline-btn" (click)="viewCurriculum(activeCourse)">View Curriculum</button>
-        <button *ngIf="!isLoggedIn" class="primary-btn" (click)="goToCheckout(activeCourse)">
-          Enroll Now
-        </button>
-        <button
-          *ngIf="isLoggedIn && !activeCourse?.isEnrolled"
-          class="primary-btn"
-          (click)="goToCheckout(activeCourse)"
-        >
-          Join This Batch
-        </button>
+
         <button
           *ngIf="isLoggedIn && activeCourse?.isEnrolled"
           class="success-btn"
@@ -114,38 +140,14 @@
         </button>
       </div>
     </div>
-
-    <div class="active-visual">
-      <div class="code-window">
-        <div class="window-top">
-          <span></span><span></span><span></span>
-          <b>career.path</b>
-        </div>
-        <div class="code-body">
-          <p><em>course</em> = "{{ activeCourse.title }}"</p>
-          <p><em>batch</em> = "LIVE"</p>
-          <p><em>practice</em> = "projects + interviews"</p>
-          <p><em>goal</em> = "job ready"</p>
-          <p class="run-line">start_learning()</p>
-        </div>
-      </div>
-      <div class="floating-mini fm-one">
-        <strong>Live</strong>
-        <span>Batch Active</span>
-      </div>
-      <div class="floating-mini fm-two">
-        <strong>Project</strong>
-        <span>Based Training</span>
-      </div>
-    </div>
   </div>
 </section>
 
 <section *ngIf="showCurriculum" id="curriculum-section" class="curriculum-section">
   <div class="section-head">
-    <span class="section-badge">Curriculum</span>
-    <h2>{{ selectedCurriculum.name }} Curriculum</h2>
-    <p>Preview the module-wise learning path for this batch.</p>
+    <span class="section-badge">Curriculum Preview</span>
+    <h2>{{ selectedCurriculum.name || 'Course' }} Learning Path</h2>
+    <p>Module-wise structure designed for practical learning and interview confidence.</p>
   </div>
 
   <div class="curriculum-shell">
@@ -157,16 +159,20 @@
         </div>
         <i class="fa-solid" [ngClass]="module.open ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
       </div>
+
       <div class="module-body" *ngIf="module.open">
         <div class="topics-grid">
           <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
-            <span class="topic-number">{{ mIndex + 1 }}.{{ i + 1 }}</span>
-            <span class="topic-text">{{ topic }}</span>
+            <span>{{ mIndex + 1 }}.{{ i + 1 }}</span>
+            <p>{{ topic }}</p>
           </div>
         </div>
       </div>
     </div>
-    <div *ngIf="!isLoggedIn" class="unlock-cta">Login and enroll to unlock the full curriculum</div>
+
+    <div *ngIf="!isLoggedIn" class="unlock-cta">
+      Login and enroll to unlock the full curriculum.
+    </div>
   </div>
 </section>
 
@@ -174,39 +180,50 @@
   <div class="section-head">
     <span class="section-badge">Programs</span>
     <h2>Explore Career Tracks</h2>
-    <p>Open a course to see future scope, roles, packages, roadmap, tools, and project practice.</p>
+    <p>Compare programs, preview curriculum, check live batches, and choose your path.</p>
   </div>
 
   <div *ngIf="!filteredCourses.length && !loading" class="empty-state">
     <i class="fa-solid fa-folder-open"></i>
     <h3>No courses found</h3>
-    <p>Try changing your search or level filter.</p>
+    <p>Try changing search, level, or batch filter.</p>
   </div>
 
   <div class="course-grid">
-    <article class="course-card" *ngFor="let c of filteredCourses">
-      <div class="course-card-top">
-        <span class="upcoming-chip">Upcoming</span>
-        <span class="level-chip">{{ c.level }}</span>
-      </div>
-
-      <h3>{{ c.title }}</h3>
-      <p class="desc">{{ c.desc }}</p>
-
-      <div class="course-mini-meta">
-        <span><i class="fa-solid fa-clock"></i> {{ c.duration }}</span>
-        <span><i class="fa-solid fa-signal"></i> {{ c.level }}</span>
-        <span *ngIf="c.startDate || c.endDate">
-          <i class="fa-solid fa-calendar-days"></i>
-          {{ c.startDate || 'TBD' }} - {{ c.endDate || 'TBD' }}
+    <article class="course-card" *ngFor="let c of filteredCourses" (click)="setActiveCourse(c)">
+      <div class="course-image" [class.empty]="!c.thumbnailUrl">
+        <img *ngIf="c.thumbnailUrl" [src]="courseImage(c.thumbnailUrl)" [alt]="c.title" />
+        <span class="card-status" [class.live]="c.batch?.status === 'ACTIVE'">
+          {{ c.batch?.status === 'ACTIVE' ? 'Live Now' : 'Upcoming' }}
         </span>
-        <span *ngIf="c.price"><i class="fa-solid fa-tag"></i> ₹{{ c.price }}</span>
       </div>
 
-      <button class="details-btn" (click)="viewDetails(c)">
-        View Details
-        <i class="fa-solid fa-arrow-right"></i>
-      </button>
+      <div class="course-content">
+        <div class="course-card-top">
+          <span>{{ c.level }}</span>
+          <b>Rs. {{ formatPrice(c.price) }}</b>
+        </div>
+
+        <h3>{{ c.title }}</h3>
+        <p>{{ c.desc || 'Practical training with projects, roadmap, and mentor guidance.' }}</p>
+
+        <div class="course-mini-meta">
+          <span><i class="fa-solid fa-clock"></i>{{ c.duration }}</span>
+          <span *ngIf="c.batch?.startDate">
+            <i class="fa-solid fa-calendar-days"></i>{{ c.batch.startDate | date: 'MMM d' }}
+          </span>
+          <span><i class="fa-solid fa-signal"></i>{{ c.level }}</span>
+        </div>
+
+        <div class="card-highlights" *ngIf="c.highlights?.length">
+          <span *ngFor="let item of c.highlights.slice(0, 3)">{{ item }}</span>
+        </div>
+
+        <div class="card-actions" (click)="$event.stopPropagation()">
+          <button class="details-btn" (click)="viewDetails(c)">Details</button>
+          <button class="primary-mini" (click)="goToCheckout(c)">Enroll</button>
+        </div>
+      </div>
     </article>
   </div>
 </section>
