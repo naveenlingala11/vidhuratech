@@ -25,6 +25,7 @@ export class CourseFormComponent implements OnInit {
   selectedThumbnailFile: File | null = null;
   thumbnailPreviewUrl = '';
   uploadingThumbnail = false;
+  existingThumbnailUrl = '';
 
   levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 
@@ -54,7 +55,6 @@ export class CourseFormComponent implements OnInit {
       title: ['', Validators.required],
       code: ['', Validators.required],
       description: [''],
-      thumbnailUrl: [''],
       level: ['BEGINNER', Validators.required],
       durationHours: [1, [Validators.required, Validators.min(1)]],
       startDate: [''],
@@ -101,11 +101,12 @@ export class CourseFormComponent implements OnInit {
       next: (res: any) => {
         const course = res?.data || {};
 
+        this.existingThumbnailUrl = course.thumbnailUrl || '';
+
         this.form.patchValue({
           title: course.title || '',
           code: course.code || '',
           description: course.description || '',
-          thumbnailUrl: course.thumbnailUrl || '',
           level: course.level || 'BEGINNER',
           durationHours: course.durationHours || 1,
           startDate: course.startDate || '',
@@ -164,6 +165,8 @@ export class CourseFormComponent implements OnInit {
         : null,
     };
 
+    delete (payload as any).thumbnailUrl;
+
     const request = this.isEditMode
       ? this.courseService.updateCourse(this.courseId, payload)
       : this.courseService.createCourse(payload);
@@ -189,7 +192,9 @@ export class CourseFormComponent implements OnInit {
   }
 
   clearThumbnail(): void {
-    this.form.patchValue({ thumbnailUrl: '' });
+    this.selectedThumbnailFile = null;
+    this.thumbnailPreviewUrl = '';
+    this.existingThumbnailUrl = '';
   }
 
   formatPrice(price: number): string {
@@ -245,7 +250,11 @@ export class CourseFormComponent implements OnInit {
       return url;
     }
 
-    return `${environment.apiUrl}${url}`;
+    if (url.startsWith('/')) {
+      return `${environment.apiUrl}${url}`;
+    }
+
+    return `${environment.apiUrl}/course-thumbnails/${url}`;
   }
 
   private uploadThumbnailIfNeeded(courseId: number, done: () => void): void {
@@ -262,7 +271,7 @@ export class CourseFormComponent implements OnInit {
 
         const uploadedUrl = res?.data?.thumbnailUrl;
         if (uploadedUrl) {
-          this.form.patchValue({ thumbnailUrl: uploadedUrl });
+          this.existingThumbnailUrl = uploadedUrl;
         }
 
         done();
@@ -277,7 +286,7 @@ export class CourseFormComponent implements OnInit {
 
   get previewImage(): string {
     if (this.thumbnailPreviewUrl) return this.thumbnailPreviewUrl;
-    return this.resolveImageUrl(this.form?.value?.thumbnailUrl);
+    return this.resolveImageUrl(this.existingThumbnailUrl);
   }
 
   get metadataObject(): any {
