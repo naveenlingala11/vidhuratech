@@ -1,0 +1,116 @@
+<section class="notifications-page">
+  <div class="notifications-hero">
+    <div>
+      <span>Notifications</span>
+      <h1>Activity Center</h1>
+      <p>Track every LMS, assessment, batch, and account update related to your user role.</p>
+    </div>
+
+    <button class="power-btn" type="button" (click)="toggleNotifications()" [disabled]="saving">
+      <i class="bi" [ngClass]="notificationsEnabled ? 'bi-bell-fill' : 'bi-bell-slash-fill'"></i>
+      <span>{{ notificationsEnabled ? 'Notifications On' : 'Notifications Off' }}</span>
+    </button>
+  </div>
+
+  <div class="status-card" [class.paused]="!notificationsEnabled">
+    <i class="bi" [ngClass]="notificationsEnabled ? 'bi-broadcast-pin' : 'bi-pause-circle'"></i>
+    <div>
+      <strong>{{ notificationsEnabled ? 'Live updates enabled' : 'Notifications paused' }}</strong>
+      <span>
+        {{
+          notificationsEnabled
+            ? 'New account notifications will appear here and in the topbar.'
+            : 'No new notifications or notification emails will be created while this is off.'
+        }}
+      </span>
+    </div>
+  </div>
+
+  <div class="stats-grid" *ngIf="notificationsEnabled">
+    <article>
+      <span>Total</span>
+      <strong>{{ notifications.length }}</strong>
+    </article>
+    <article>
+      <span>Unread</span>
+      <strong>{{ unreadCount }}</strong>
+    </article>
+    <article>
+      <span>Read</span>
+      <strong>{{ readCount }}</strong>
+    </article>
+  </div>
+
+  <div class="notification-toolbar" *ngIf="notificationsEnabled">
+    <div class="tabs">
+      <button type="button" [class.active]="filter === 'all'" (click)="setFilter('all')">
+        All
+      </button>
+      <button type="button" [class.active]="filter === 'unread'" (click)="setFilter('unread')">
+        Unread
+      </button>
+      <button type="button" [class.active]="filter === 'read'" (click)="setFilter('read')">
+        Read
+      </button>
+    </div>
+
+    <button class="soft-btn" type="button" (click)="markAllRead()" [disabled]="unreadCount === 0">
+      <i class="bi bi-check2-all"></i>
+      Mark all read
+    </button>
+  </div>
+
+  <div class="loading-card" *ngIf="loading">
+    <div class="spinner"></div>
+    <h3>Loading Notifications</h3>
+    <p>Syncing your latest activity...</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !notificationsEnabled">
+    <i class="bi bi-bell-slash"></i>
+    <h3>Notifications are off</h3>
+    <p>Turn them on to receive new user-related updates again.</p>
+  </div>
+
+  <div
+    class="empty-state"
+    *ngIf="!loading && notificationsEnabled && filteredNotifications.length === 0"
+  >
+    <i class="bi bi-inbox"></i>
+    <h3>No notifications found</h3>
+    <p>Your selected view is clear.</p>
+  </div>
+
+  <div class="error-card" *ngIf="error">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span>{{ error }}</span>
+  </div>
+
+  <div
+    class="notification-feed"
+    *ngIf="!loading && notificationsEnabled && filteredNotifications.length"
+  >
+    <button
+      class="notification-card"
+      type="button"
+      *ngFor="let notification of filteredNotifications"
+      [class.unread]="!notification.read"
+      (click)="openNotification(notification)"
+    >
+      <div class="activity-icon">
+        <i class="bi bi-lightning-charge"></i>
+      </div>
+
+      <div class="activity-copy">
+        <div>
+          <strong>{{ notification.title }}</strong>
+          <span>{{ notification.createdAt | date: 'medium' }}</span>
+        </div>
+        <p>{{ notification.message }}</p>
+        <small>{{ notification.activityType || 'Activity' }}</small>
+      </div>
+
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</section>

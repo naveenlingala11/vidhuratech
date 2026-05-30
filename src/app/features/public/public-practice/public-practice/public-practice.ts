@@ -91,6 +91,13 @@ export class PublicPracticeComponent implements OnInit {
   currentGrant: PracticeGrant | null = null;
   redirectMessage = '';
   redirectSeconds = 0;
+
+  hintUnlocked = false;
+  showHintPanel = false;
+  hintUnlockSeconds = 30;
+  selectedChallenge: any = null;
+  private hintUnlockTimer: any;
+
   private redirectTimer?: ReturnType<typeof setInterval>;
 
   lead = {
@@ -510,6 +517,7 @@ export class PublicPracticeComponent implements OnInit {
           return;
         }
         this.sourceCode = this.getStarterCode(this.language);
+        this.startHintUnlockTimer();
         this.lastStarterCode = this.sourceCode;
         this.challengeResult = null;
         this.loading = false;
@@ -620,6 +628,43 @@ export class PublicPracticeComponent implements OnInit {
 
       this.redirectMessage = `${message} Redirecting to login in ${this.redirectSeconds} seconds...`;
     }, 1000);
+  }
+
+  get hintSteps(): string[] {
+    const text = String(this.selectedChallenge?.hintText || '').trim();
+    if (!text) return [];
+
+    return text
+      .split(/\r?\n/)
+      .map((step) => step.replace(/^\s*(?:step\s*)?\d+[\).:-]?\s*/i, '').trim())
+      .filter(Boolean);
+  }
+
+  get hintButtonLabel(): string {
+    if (this.hintUnlocked) return this.showHintPanel ? 'Hide Hint' : 'Show Hint';
+    return `Hint unlocks in ${this.hintUnlockSeconds}s`;
+  }
+
+  startHintUnlockTimer(): void {
+    clearInterval(this.hintUnlockTimer);
+    this.hintUnlocked = false;
+    this.showHintPanel = false;
+    this.hintUnlockSeconds = 30;
+
+    this.hintUnlockTimer = setInterval(() => {
+      this.hintUnlockSeconds--;
+
+      if (this.hintUnlockSeconds <= 0) {
+        clearInterval(this.hintUnlockTimer);
+        this.hintUnlockSeconds = 0;
+        this.hintUnlocked = true;
+      }
+    }, 1000);
+  }
+
+  toggleHintPanel(): void {
+    if (!this.hintUnlocked) return;
+    this.showHintPanel = !this.showHintPanel;
   }
 
   getStarterCode(language: string): string {

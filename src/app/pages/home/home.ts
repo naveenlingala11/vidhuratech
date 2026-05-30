@@ -159,23 +159,31 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
         }
 
         const requests: Observable<any>[] = list.map((course: any) =>
-          this.batchService.getActiveBatch(course.id).pipe(
-            map((batchRes: any) => ({
-              ...this.mapPublicCourse(course),
-              activeBatch: batchRes?.data || null,
-            })),
-            catchError(() =>
-              of({
-                ...this.mapPublicCourse(course),
-                activeBatch: null,
-              }),
+          forkJoin({
+            activeBatch: this.batchService.getActiveBatch(course.id).pipe(
+              map((res: any) => res?.data || null),
+              catchError(() => of(null)),
             ),
+            upcomingBatch: this.batchService.getUpcomingBatch(course.id).pipe(
+              map((res: any) => res?.data || null),
+              catchError(() => of(null)),
+            ),
+          }).pipe(
+            map(({ activeBatch, upcomingBatch }) => ({
+              ...this.mapPublicCourse(course),
+              activeBatch,
+              upcomingBatch,
+            })),
           ),
         );
 
         forkJoin(requests).subscribe({
           next: (courses: any[]) => {
-            this.featuredCourses = courses;
+            const topFourCourses = courses
+              .sort((a, b) => Number(a.featuredRank || 100) - Number(b.featuredRank || 100))
+              .slice(0, 4);
+
+            this.featuredCourses = topFourCourses;
 
             const firstWithBatch = this.featuredCourses.find((course) => course.activeBatch);
             this.heroCourse = firstWithBatch || this.featuredCourses[0] || null;

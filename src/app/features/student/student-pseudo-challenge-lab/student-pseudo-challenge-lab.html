@@ -132,7 +132,25 @@ solve()</code></pre>
 
         <pre>{{ selectedChallenge.constraintsText || 'No constraints added.' }}</pre>
       </section>
+      <section class="hint-panel">
+        <div class="hint-head">
+          <strong>Hint</strong>
 
+          <button type="button" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
+            {{ hintButtonLabel }}
+          </button>
+        </div>
+
+        <p *ngIf="!hintUnlocked">Hint unlocks 30 seconds after the test starts.</p>
+
+        <ol *ngIf="hintUnlocked && showHintPanel && hintSteps.length">
+          <li *ngFor="let step of hintSteps">{{ step }}</li>
+        </ol>
+
+        <p *ngIf="hintUnlocked && showHintPanel && !hintSteps.length">
+          No hint added for this challenge.
+        </p>
+      </section>
       <section class="format-grid">
         <div class="problem-section glass-panel premium-panel">
           <div class="section-headline">

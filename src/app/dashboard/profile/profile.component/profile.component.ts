@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { NotificationService } from '../../../services/notification.service';
 
 type ToastType = 'success' | 'error';
 
@@ -93,11 +94,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private notificationService: NotificationService,
     private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.restorePreferences();
+    this.loadNotificationPreferences();
     this.loadProfile();
   }
 
@@ -315,13 +318,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   togglePreference(pref: PreferenceItem): void {
     pref.enabled = !pref.enabled;
     this.savePreferences();
-    this.showMessage('Preference saved');
+    this.syncNotificationPreferences();
   }
 
   setPreference(pref: PreferenceItem, enabled: boolean): void {
     pref.enabled = enabled;
     this.savePreferences();
-    this.showMessage('Preference saved');
+    this.syncNotificationPreferences();
   }
 
   goToSettings(): void {
@@ -376,6 +379,48 @@ export class ProfileComponent implements OnInit, OnDestroy {
     );
 
     localStorage.setItem(this.prefsKey, JSON.stringify(payload));
+  }
+
+  private loadNotificationPreferences(): void {
+    this.notificationService.getPreferences().subscribe({
+      next: (res: any) => {
+        const enabled = res?.data?.notificationsEnabled !== false;
+        if (!enabled) {
+          this.setAllPreferences(false);
+        }
+        this.savePreferences();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private syncNotificationPreferences(): void {
+    const enabled = this.enabledPreferenceCount > 0;
+
+    this.notificationService.updatePreferences(enabled).subscribe({
+      next: (res: any) => {
+        const savedEnabled = res?.data?.notificationsEnabled !== false;
+        if (!savedEnabled) {
+          this.setAllPreferences(false);
+        }
+        this.savePreferences();
+        this.showMessage(savedEnabled ? 'Notifications turned on' : 'Notifications turned off');
+      },
+      error: () => {
+        this.showError('Notification preference sync failed');
+        this.loadNotificationPreferences();
+      },
+    });
+  }
+
+  private setAllPreferences(enabled: boolean): void {
+    this.preferences = this.preferences.map((pref) => ({
+      ...pref,
+      enabled,
+    }));
   }
 
   get roleActions(): ProfileAction[] {

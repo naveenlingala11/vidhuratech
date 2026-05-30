@@ -18,6 +18,7 @@ import { CertificateView } from './certificate-view/certificate-view';
 import { Checkout } from './pages/checkout/checkout';
 import { CoursesComponent } from './pages/courses/courses';
 import { PublicPracticeComponent } from './features/public/public-practice/public-practice/public-practice';
+import { NotificationsComponent } from './components/notifications/notifications';
 
 /* =========================
    POLICY PAGES
@@ -125,8 +126,10 @@ import { TrainerPseudoChallengesComponent } from './features/trainer/trainer-pse
 import { AssessmentResults } from './features/trainer/assessment-results/assessment-results';
 import { StudentPseudoChallengeLabComponent } from './features/student/student-pseudo-challenge-lab/student-pseudo-challenge-lab';
 import { CourseDetailsComponent } from './pages/courses/course-details/course-details';
-import { SettingsComponent } from './dashboard/shared/settings/settings';
+import { SettingsComponent } from './dashboard/profile/settings/settings';
 import { TrainerPseudoSubmissionsComponent } from './features/trainer/trainer-pseudo-submissions/trainer-pseudo-submissions';
+import { StudentInterviewQuestionsComponent } from './features/student/student-interview-questions/student-interview-questions/student-interview-questions';
+import { TrainerInterviewQuestionsComponent } from './features/trainer/trainer-interview-questions/trainer-interview-questions/trainer-interview-questions';
 
 export const routes: Routes = [
   /* =========================
@@ -227,8 +230,18 @@ export const routes: Routes = [
         canActivate: [roleGuard(['STUDENT'])],
       },
       {
+        path: 'student/notifications',
+        component: NotificationsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
         path: 'trainer/profile',
         component: ProfileComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'trainer/notifications',
+        component: NotificationsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
       {
@@ -237,8 +250,18 @@ export const routes: Routes = [
         canActivate: [roleGuard(['ADMIN'])],
       },
       {
+        path: 'admin/notifications',
+        component: NotificationsComponent,
+        canActivate: [roleGuard(['ADMIN'])],
+      },
+      {
         path: 'hr/profile',
         component: ProfileComponent,
+        canActivate: [roleGuard(['HR'])],
+      },
+      {
+        path: 'hr/notifications',
+        component: NotificationsComponent,
         canActivate: [roleGuard(['HR'])],
       },
       {
@@ -247,8 +270,18 @@ export const routes: Routes = [
         canActivate: [roleGuard(['MANAGER'])],
       },
       {
+        path: 'manager/notifications',
+        component: NotificationsComponent,
+        canActivate: [roleGuard(['MANAGER'])],
+      },
+      {
         path: 'mentor/profile',
         component: ProfileComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/notifications',
+        component: NotificationsComponent,
         canActivate: [roleGuard(['MENTOR'])],
       },
 
@@ -293,6 +326,7 @@ export const routes: Routes = [
           { path: '', component: SuperAdminDashboard },
           { path: 'users', component: SuperAdminDashboard },
           { path: 'profile', component: ProfileComponent },
+          { path: 'notifications', component: NotificationsComponent },
           { path: 'settings', component: SettingsComponent },
         ],
       },
@@ -427,6 +461,11 @@ export const routes: Routes = [
         component: StudentPseudoChallengeLabComponent,
         canActivate: [roleGuard(['STUDENT'])],
       },
+      {
+        path: 'student/interview-questions',
+        component: StudentInterviewQuestionsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
 
       /* --- TRAINER PAGES --- */
       {
@@ -477,6 +516,11 @@ export const routes: Routes = [
       {
         path: 'trainer/courses',
         component: TrainerAssignedCoursesComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'trainer/interview-questions',
+        component: TrainerInterviewQuestionsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
     ],

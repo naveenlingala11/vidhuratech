@@ -16,6 +16,7 @@ import { DashboardBreadcrumb } from '../dashboard-breadcrumb/dashboard-breadcrum
 export class DashboardTopbar {
   @Output() menuToggle = new EventEmitter<void>();
   @Input() notifications: any[] = [];
+  @Input() notificationsEnabled = true;
   @Output() markNotificationRead = new EventEmitter<number>();
 
   profileOpen = false;
@@ -67,6 +68,7 @@ export class DashboardTopbar {
       { label: 'Dashboard', icon: 'bi bi-grid', route: `/dashboard/${role}` },
       { label: 'Profile', icon: 'bi bi-person-circle', route: `/dashboard/${role}/profile` },
       { label: 'Settings', icon: 'bi bi-gear', route: `/dashboard/${role}/settings` },
+      { label: 'Notifications', icon: 'bi bi-bell', route: `/dashboard/${role}/notifications` },
     ];
 
     const student = [
@@ -251,6 +253,11 @@ export class DashboardTopbar {
   goToSettings(): void {
     this.router.navigate([`/dashboard/${this.rolePath}/settings`]);
     this.profileOpen = false;
+  }
+
+  goToNotifications(): void {
+    this.router.navigate([`/dashboard/${this.rolePath}/notifications`]);
+    this.notificationOpen = false;
   }
 
   getInitials(): string {

@@ -98,6 +98,7 @@ export class AuthService {
       role: res.role,
       active: res.active,
       firstLogin: res.firstLogin,
+      notificationsEnabled: res.notificationsEnabled,
     });
     this.authState.next(true);
   }

@@ -1,0 +1,280 @@
+<section class="iq-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="iq-hero">
+    <div>
+      <span>Trainer Workspace</span>
+      <h1>Interview Question Studio</h1>
+      <p>
+        Create batch-wise interview material, bulk upload JSON sets, preview answers, and prepare
+        questions for admin publishing.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="glass-btn" (click)="loadSampleJson()">
+        <i class="bi bi-filetype-json"></i>
+        JSON Upload
+      </button>
+      <button type="button" class="glass-btn" (click)="loadQuestions()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <section class="stat-grid">
+    <article>
+      <span>Total</span><strong>{{ stats.total }}</strong>
+    </article>
+    <article>
+      <span>Published</span><strong>{{ stats.public }}</strong>
+    </article>
+    <article>
+      <span>Private</span><strong>{{ stats.private }}</strong>
+    </article>
+    <article>
+      <span>Companies</span><strong>{{ stats.companies }}</strong>
+    </article>
+  </section>
+
+  <section class="builder premium-panel">
+    <div class="panel-heading split">
+      <div>
+        <span>{{ editingId ? 'Edit Question' : 'Create Question' }}</span>
+        <h2>{{ editingId ? 'Update interview question' : 'Add a new question' }}</h2>
+      </div>
+      <button type="button" class="soft-btn" (click)="reset()">Clear Form</button>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        <span>Batch</span>
+        <select [(ngModel)]="form.batchId">
+          <option value="">Select batch</option>
+          <option *ngFor="let batch of batches" [value]="batch.id">
+            {{ batch.name || batch.batchName || 'Batch #' + batch.id }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        <span>Company</span>
+        <input [(ngModel)]="form.company" placeholder="TCS, Infosys, Wipro..." />
+      </label>
+
+      <label>
+        <span>Role</span>
+        <select [(ngModel)]="form.role">
+          <option *ngFor="let role of roles">{{ role }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Type</span>
+        <select [(ngModel)]="form.type">
+          <option *ngFor="let type of types">{{ type }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Topic</span>
+        <input [(ngModel)]="form.topic" placeholder="OOP, Collections, SQL..." />
+      </label>
+
+      <label>
+        <span>Difficulty</span>
+        <select [(ngModel)]="form.difficulty">
+          <option *ngFor="let difficulty of difficulties">{{ difficulty }}</option>
+        </select>
+      </label>
+    </div>
+
+    <label class="full-field">
+      <span>Question</span>
+      <textarea
+        [(ngModel)]="form.question"
+        rows="3"
+        placeholder="Enter interview question"
+      ></textarea>
+    </label>
+
+    <label class="full-field">
+      <span>Structured Answer</span>
+      <textarea
+        [(ngModel)]="form.answer"
+        rows="8"
+        placeholder="Definition: ...&#10;Explanation: ...&#10;Example: ...&#10;Real-world Scenario: ...&#10;Interview Tip: ..."
+      ></textarea>
+    </label>
+
+    <div class="actions">
+      <button type="button" class="primary-btn" [disabled]="saving" (click)="save()">
+        <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check2-circle'"></i>
+        {{ saving ? 'Saving...' : editingId ? 'Update Question' : 'Create Question' }}
+      </button>
+      <button type="button" class="soft-btn" (click)="loadSampleJson()">
+        <i class="bi bi-upload"></i>
+        Bulk JSON
+      </button>
+    </div>
+  </section>
+
+  <section class="json-panel premium-panel" *ngIf="showJson">
+    <div class="panel-heading split">
+      <div>
+        <span>Bulk Upload</span>
+        <h2>Paste or upload interview questions</h2>
+        <p>Missing batchId will use the selected batch from the form.</p>
+      </div>
+      <button type="button" class="soft-btn" (click)="showJson = false">Close</button>
+    </div>
+
+    <div class="json-upload-row">
+      <label class="upload-drop">
+        <input type="file" accept=".json,application/json" (change)="onJsonFileSelected($event)" />
+        <i class="bi bi-cloud-arrow-up"></i>
+        <strong>Upload JSON</strong>
+        <span>Drop in a question bank file</span>
+      </label>
+
+      <div class="json-count">
+        <strong>{{ jsonPreviewCount }}</strong>
+        <span>Ready Questions</span>
+      </div>
+    </div>
+
+    <textarea [(ngModel)]="jsonText" rows="14" placeholder="Paste JSON array here"></textarea>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="primary-btn"
+        [disabled]="saving || !jsonPreviewCount"
+        (click)="uploadJson()"
+      >
+        {{ saving ? 'Posting...' : 'Post Questions' }}
+      </button>
+      <button type="button" class="soft-btn" (click)="clearJson()">Clear JSON</button>
+    </div>
+  </section>
+
+  <section class="library premium-panel">
+    <div class="panel-heading split">
+      <div>
+        <span>Question Library</span>
+        <h2>Manage your interview bank</h2>
+      </div>
+      <div class="view-toggle">
+        <button type="button" [class.active]="viewMode === 'GRID'" (click)="viewMode = 'GRID'">
+          Grid
+        </button>
+        <button type="button" [class.active]="viewMode === 'TABLE'" (click)="viewMode = 'TABLE'">
+          Table
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <input [(ngModel)]="search" placeholder="Search question, topic, company..." />
+      <input [(ngModel)]="companyFilter" placeholder="Company filter" />
+      <select [(ngModel)]="roleFilter">
+        <option value="">All Roles</option>
+        <option *ngFor="let role of roles">{{ role }}</option>
+      </select>
+      <select [(ngModel)]="difficultyFilter">
+        <option value="">All Levels</option>
+        <option *ngFor="let difficulty of difficulties">{{ difficulty }}</option>
+      </select>
+      <select [(ngModel)]="publishFilter">
+        <option value="ALL">All Status</option>
+        <option value="PUBLIC">Published</option>
+        <option value="PRIVATE">Private</option>
+      </select>
+      <button type="button" class="soft-btn" (click)="clearFilters()">Clear</button>
+    </div>
+
+    <div class="loading" *ngIf="loading">Loading interview questions...</div>
+
+    <div class="question-grid" *ngIf="!loading && viewMode === 'GRID' && filteredQuestions.length">
+      <article class="question-card" *ngFor="let q of filteredQuestions">
+        <div class="card-top">
+          <span>{{ q.company || 'General' }}</span>
+          <b [class.public]="q.publicVisible">{{ q.publicVisible ? 'Published' : 'Private' }}</b>
+        </div>
+
+        <h3>{{ q.question }}</h3>
+        <p>{{ q.topic }} · {{ q.role }} · {{ q.difficulty }}</p>
+
+        <div class="card-actions">
+          <button type="button" class="soft-btn" (click)="preview(q)">Preview</button>
+          <button type="button" class="soft-btn" (click)="edit(q)">Edit</button>
+          <button type="button" class="danger-btn" (click)="delete(q.id)">Delete</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="table-wrap" *ngIf="!loading && viewMode === 'TABLE' && filteredQuestions.length">
+      <table>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Question</th>
+            <th>Role</th>
+            <th>Topic</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let q of filteredQuestions">
+            <td>{{ q.company }}</td>
+            <td>{{ q.question }}</td>
+            <td>{{ q.role }}</td>
+            <td>{{ q.topic }}</td>
+            <td>{{ q.publicVisible ? 'Published' : 'Private' }}</td>
+            <td>
+              <button type="button" class="mini-btn" (click)="preview(q)">Open</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty" *ngIf="!loading && !filteredQuestions.length">
+      No interview questions found.
+    </div>
+  </section>
+
+  <aside class="preview-drawer" *ngIf="selected">
+    <div class="drawer-card">
+      <button type="button" class="close-btn" (click)="closePreview()">×</button>
+      <span class="drawer-kicker">{{ selected.company }} · {{ selected.role }}</span>
+      <h2>{{ selected.question }}</h2>
+      <p>{{ selected.topic }} · {{ selected.type }} · {{ selected.difficulty }}</p>
+
+      <section class="answer-panel">
+        <article>
+          <h4>Definition</h4>
+          <p>{{ getSection(selected.answer, 'Definition:', 'Explanation:') }}</p>
+        </article>
+        <article>
+          <h4>Explanation</h4>
+          <p>{{ getSection(selected.answer, 'Explanation:', 'Example:') }}</p>
+        </article>
+        <article>
+          <h4>Example</h4>
+          <pre>{{ getSection(selected.answer, 'Example:', 'Real-world Scenario:') }}</pre>
+        </article>
+        <article>
+          <h4>Real-world Scenario</h4>
+          <p>{{ getSection(selected.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
+        </article>
+        <article>
+          <h4>Interview Tip</h4>
+          <p>{{ getSection(selected.answer, 'Interview Tip:', '') }}</p>
+        </article>
+      </section>
+    </div>
+  </aside>
+</section>

@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
-import { DashboardThemeService } from '../dashboard-theme';
+import { DashboardThemeService } from '../../shared/dashboard-theme';
+import { NotificationService } from '../../../services/notification.service';
 
 interface SettingToggle {
   key: string;
@@ -119,10 +120,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private router: Router,
     public themeService: DashboardThemeService,
     private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService,
   ) {}
 
   ngOnInit(): void {
     this.restoreLocalSettings();
+    this.loadNotificationPreferences();
     this.loadProfile();
   }
 
@@ -200,13 +203,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   toggleNotification(item: SettingToggle): void {
     item.enabled = !item.enabled;
     this.saveNotifications();
-    this.showMessage('Notification preference saved');
+    this.syncNotificationPreferences();
   }
 
   setNotification(item: SettingToggle, enabled: boolean): void {
     item.enabled = enabled;
     this.saveNotifications();
-    this.showMessage('Notification preference saved');
+    this.syncNotificationPreferences();
   }
 
   toggleWorkspace(item: SettingToggle): void {
@@ -462,6 +465,48 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.notificationKey,
       JSON.stringify(this.toLocalPayload(this.notifications)),
     );
+  }
+
+  private loadNotificationPreferences(): void {
+    this.notificationService.getPreferences().subscribe({
+      next: (res: any) => {
+        const enabled = res?.data?.notificationsEnabled !== false;
+        if (!enabled) {
+          this.setAllNotificationToggles(false);
+        }
+        this.saveNotifications();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private syncNotificationPreferences(): void {
+    const enabled = this.enabledNotifications > 0;
+
+    this.notificationService.updatePreferences(enabled).subscribe({
+      next: (res: any) => {
+        const savedEnabled = res?.data?.notificationsEnabled !== false;
+        if (!savedEnabled) {
+          this.setAllNotificationToggles(false);
+        }
+        this.saveNotifications();
+        this.showMessage(savedEnabled ? 'Notifications turned on' : 'Notifications turned off');
+      },
+      error: () => {
+        this.showError('Notification preference sync failed');
+        this.loadNotificationPreferences();
+      },
+    });
+  }
+
+  private setAllNotificationToggles(enabled: boolean): void {
+    this.notifications = this.notifications.map((item) => ({
+      ...item,
+      enabled,
+    }));
   }
 
   private saveWorkspaceSettings(): void {
