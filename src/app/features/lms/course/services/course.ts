@@ -38,9 +38,10 @@ export class CourseService {
   unpublishCourse(id: number): Observable<any> {
     return this.http.patch(`${this.API}/${id}/unpublish`, {});
   }
-  uploadThumbnail(id: number, file: File): Observable<any> {
+  uploadThumbnail(courseId: number, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.API}/${id}/thumbnail`, formData);
+
+    return this.http.post(`${environment.apiUrl}/api/lms/courses/${courseId}/thumbnail`, formData);
   }
 }

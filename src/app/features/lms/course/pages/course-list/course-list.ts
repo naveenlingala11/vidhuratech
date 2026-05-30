@@ -241,7 +241,8 @@ export class CourseListComponent implements OnInit {
   courseImage(url: string | null | undefined): string {
     if (!url) return '';
     if (url.startsWith('http') || url.startsWith('data:')) return url;
-    return `${environment.apiUrl}${url}`;
+    if (url.startsWith('/')) return `${environment.apiUrl}${url}`;
+    return `${environment.apiUrl}/course-thumbnails/${url}`;
   }
 
   statusLabel(status: string): string {
@@ -281,7 +282,6 @@ export class CourseListComponent implements OnInit {
       title: next.title,
       code: next.code,
       description: next.description || '',
-      thumbnailUrl: next.thumbnailUrl || '',
       level: next.level,
       durationHours: Number(next.durationHours || 1),
       startDate: next.startDate || null,
