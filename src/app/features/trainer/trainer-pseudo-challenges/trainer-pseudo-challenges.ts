@@ -39,6 +39,7 @@ interface ChallengeForm {
   rules: ChallengeRule[];
   testCases: ChallengeTestCase[];
   skill: string;
+  hintText: string;
 }
 
 interface ChallengeGroup {
@@ -805,6 +806,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         { inputData: '1\n7', expectedOutput: '7', marks: 30, hidden: true },
       ],
       skill: 'Coding',
+      hintText: 'Think about how to compare numbers and keep track of the largest one.',
     };
   }
 
@@ -928,6 +930,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         hidden: Boolean(tc?.hidden),
       })),
       skill: String(payload?.skill || fallback.skill),
+      hintText: String(payload?.hintText || ''),
     };
   }
 
@@ -1014,6 +1017,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       passPercentage: 100,
       rules: [],
       testCases: [{ inputData: '', expectedOutput: '', marks: 100, hidden: true }],
+      hintText: '',
     };
   }
 }

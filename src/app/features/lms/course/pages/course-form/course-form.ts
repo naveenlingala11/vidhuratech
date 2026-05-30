@@ -188,21 +188,6 @@ export class CourseFormComponent implements OnInit {
     });
   }
 
-  applyMetadataTemplate(): void {
-    const template = {
-      oldPrice: 4999,
-      discountLabel: 'Limited time offer',
-      highlights: ['Live classes', 'Projects', 'Interview preparation'],
-      outcomes: ['Build real projects', 'Prepare for job roles'],
-    };
-
-    this.form.patchValue({
-      metadataJson: JSON.stringify(template, null, 2),
-    });
-
-    this.metadataError = '';
-  }
-
   clearThumbnail(): void {
     this.form.patchValue({ thumbnailUrl: '' });
   }
@@ -287,6 +272,141 @@ export class CourseFormComponent implements OnInit {
         this.saving = false;
         this.toastr.error(err?.error?.message || 'Thumbnail upload failed');
       },
+    });
+  }
+
+  get previewImage(): string {
+    if (this.thumbnailPreviewUrl) return this.thumbnailPreviewUrl;
+    return this.resolveImageUrl(this.form?.value?.thumbnailUrl);
+  }
+
+  get metadataObject(): any {
+    try {
+      return this.form?.value?.metadataJson ? JSON.parse(this.form.value.metadataJson) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  get previewHighlights(): string[] {
+    return Array.isArray(this.metadataObject?.highlights) ? this.metadataObject.highlights : [];
+  }
+
+  get previewOutcomes(): string[] {
+    return Array.isArray(this.metadataObject?.outcomes) ? this.metadataObject.outcomes : [];
+  }
+
+  get previewOldPrice(): number {
+    return Number(this.metadataObject?.oldPrice || 0);
+  }
+
+  get previewDiscountLabel(): string {
+    return String(this.metadataObject?.discountLabel || '');
+  }
+
+  generateCourseCode(): void {
+    const title = String(this.form.value.title || '').trim();
+
+    if (!title) {
+      this.toastr.warning('Enter course title first');
+      return;
+    }
+
+    const code = title
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 24);
+
+    this.form.patchValue({ code });
+  }
+
+  formatMetadata(): void {
+    const raw = String(this.form.value.metadataJson || '').trim();
+
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      this.form.patchValue({ metadataJson: JSON.stringify(parsed, null, 2) });
+      this.metadataError = '';
+      this.toastr.success('Metadata formatted');
+    } catch {
+      this.metadataError = 'Metadata JSON is invalid';
+      this.toastr.error('Invalid metadata JSON');
+    }
+  }
+
+  applyMetadataTemplate(): void {
+    const title = this.form.value.title || 'Career Program';
+
+    const template = {
+      oldPrice: 4999,
+      discountLabel: 'Limited time offer',
+      highlights: [
+        'Live mentor-led classes',
+        'Hands-on projects',
+        'Assignments and assessments',
+        'Interview preparation',
+      ],
+      outcomes: [
+        `Complete ${title} foundation`,
+        'Build portfolio-ready projects',
+        'Practice real interview questions',
+        'Become job-ready with confidence',
+      ],
+    };
+
+    this.form.patchValue({
+      metadataJson: JSON.stringify(template, null, 2),
+    });
+
+    this.metadataError = '';
+  }
+
+  setPricePreset(price: number, oldPrice: number, label: string): void {
+    this.form.patchValue({ price });
+
+    const meta = {
+      ...this.metadataObject,
+      oldPrice,
+      discountLabel: label,
+    };
+
+    this.form.patchValue({
+      metadataJson: JSON.stringify(meta, null, 2),
+    });
+  }
+
+  useHomeHeroPreset(): void {
+    this.form.patchValue({
+      featuredOnHome: true,
+      featuredRank: 1,
+      autoMonthlyBatchEnabled: true,
+      monthlyBatchDurationMonths: 3,
+    });
+
+    this.toastr.success('Home hero preset applied');
+  }
+
+  setDurationPreset(hours: number): void {
+    this.form.patchValue({ durationHours: hours });
+  }
+
+  syncEndDateFromStart(): void {
+    const startDate = this.form.value.startDate;
+    const months = Number(this.form.value.monthlyBatchDurationMonths || 3);
+
+    if (!startDate) {
+      this.toastr.warning('Select start date first');
+      return;
+    }
+
+    const date = new Date(startDate);
+    date.setMonth(date.getMonth() + months);
+
+    this.form.patchValue({
+      endDate: date.toISOString().slice(0, 10),
     });
   }
 }

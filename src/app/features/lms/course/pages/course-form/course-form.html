@@ -1,10 +1,12 @@
 <section class="course-form-page">
   <header class="form-hero">
+    <div class="hero-orb"></div>
+
     <div>
-      <span class="eyebrow">Course Builder</span>
+      <span class="eyebrow">Course Builder Studio</span>
       <h1>{{ isEditMode ? 'Edit Course' : 'Create Course' }}</h1>
       <p>
-        Configure course content, pricing, home hero visibility, and automatic monthly batch rules.
+        Build courses for homepage, checkout, monthly batches, pricing, media, and hero campaigns.
       </p>
     </div>
 
@@ -23,7 +25,17 @@
 
   <form class="form-layout" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
     <section class="form-main">
-      <div class="panel">
+      <div class="quick-actions">
+        <button type="button" (click)="generateCourseCode()">Generate Code</button>
+        <button type="button" (click)="useHomeHeroPreset()">Home Hero Preset</button>
+        <button type="button" (click)="setPricePreset(2999, 4999, 'Launch offer')">
+          Launch Price
+        </button>
+        <button type="button" (click)="setDurationPreset(45)">45 Hours</button>
+        <button type="button" (click)="syncEndDateFromStart()">Auto End Date</button>
+      </div>
+
+      <div class="panel premium-panel">
         <div class="panel-head">
           <div>
             <span>01</span>
@@ -34,7 +46,7 @@
         <div class="field-grid">
           <label>
             <span>Course Title</span>
-            <input formControlName="title" placeholder="Java Full Stack" />
+            <input formControlName="title" placeholder="Java Full Stack Development" />
             <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
               Title is required
             </small>
@@ -42,7 +54,10 @@
 
           <label>
             <span>Course Code</span>
-            <input formControlName="code" placeholder="JAVA_FS" />
+            <div class="input-action">
+              <input formControlName="code" placeholder="JAVA_FS" />
+              <button type="button" (click)="generateCourseCode()">Auto</button>
+            </div>
             <small *ngIf="form.get('code')?.touched && form.get('code')?.invalid">
               Code is required
             </small>
@@ -58,10 +73,14 @@
           <label>
             <span>Duration Hours</span>
             <input type="number" min="1" formControlName="durationHours" />
-            <small *ngIf="form.get('durationHours')?.touched && form.get('durationHours')?.invalid">
-              Duration must be at least 1 hour
-            </small>
           </label>
+        </div>
+
+        <div class="preset-row">
+          <button type="button" (click)="setDurationPreset(30)">30 hrs</button>
+          <button type="button" (click)="setDurationPreset(45)">45 hrs</button>
+          <button type="button" (click)="setDurationPreset(60)">60 hrs</button>
+          <button type="button" (click)="setDurationPreset(90)">90 hrs</button>
         </div>
 
         <label class="full-field">
@@ -69,7 +88,7 @@
           <textarea
             rows="5"
             formControlName="description"
-            placeholder="Explain what students will learn..."
+            placeholder="Explain what students will learn, what projects they build, and career outcomes..."
           ></textarea>
         </label>
       </div>
@@ -82,52 +101,45 @@
           </div>
         </div>
 
-        <div class="field-grid">
-          <div class="thumbnail-uploader">
-            <div class="upload-preview">
-              <img
-                *ngIf="thumbnailPreviewUrl || form.value.thumbnailUrl"
-                [src]="thumbnailPreviewUrl || resolveImageUrl(form.value.thumbnailUrl)"
-                alt="Course thumbnail"
-              />
+        <div class="thumbnail-uploader">
+          <div class="upload-preview">
+            <img *ngIf="previewImage" [src]="previewImage" alt="Course thumbnail" />
 
-              <div *ngIf="!thumbnailPreviewUrl && !form.value.thumbnailUrl" class="empty-preview">
-                <span>Course Image</span>
-                <small>JPG, PNG, WEBP up to 4MB</small>
-              </div>
-            </div>
-
-            <div class="upload-controls">
-              <label>
-                <span>Thumbnail URL</span>
-                <input formControlName="thumbnailUrl" placeholder="https://... or /uploads/..." />
-              </label>
-
-              <label class="file-drop">
-                <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
-                <strong>{{
-                  selectedThumbnailFile ? selectedThumbnailFile.name : 'Upload thumbnail image'
-                }}</strong>
-                <small>This image becomes the course image everywhere.</small>
-              </label>
-
-              <button
-                type="button"
-                class="ghost"
-                *ngIf="selectedThumbnailFile"
-                (click)="clearSelectedThumbnail()"
-              >
-                Remove Selected Image
-              </button>
+            <div *ngIf="!previewImage" class="empty-preview">
+              <span>Course Image</span>
+              <small>JPG, PNG, WEBP up to 4MB</small>
             </div>
           </div>
 
+          <div class="upload-controls">
+            <label>
+              <span>Thumbnail URL</span>
+              <input formControlName="thumbnailUrl" placeholder="https://... or /uploads/..." />
+            </label>
+
+            <label class="file-drop">
+              <input type="file" accept="image/*" (change)="onThumbnailSelected($event)" />
+              <strong>{{
+                selectedThumbnailFile ? selectedThumbnailFile.name : 'Upload thumbnail image'
+              }}</strong>
+              <small>This image appears on home, course cards, and checkout preview.</small>
+            </label>
+
+            <button
+              type="button"
+              class="ghost"
+              *ngIf="selectedThumbnailFile"
+              (click)="clearSelectedThumbnail()"
+            >
+              Remove Selected Image
+            </button>
+          </div>
+        </div>
+
+        <div class="field-grid pricing-grid">
           <label>
             <span>Price</span>
             <input type="number" min="0" formControlName="price" />
-            <small *ngIf="form.get('price')?.touched && form.get('price')?.invalid">
-              Price is required
-            </small>
           </label>
 
           <label>
@@ -140,6 +152,14 @@
             <input type="date" formControlName="endDate" />
           </label>
         </div>
+
+        <div class="preset-row">
+          <button type="button" (click)="setPricePreset(999, 1999, 'Starter offer')">₹999</button>
+          <button type="button" (click)="setPricePreset(2999, 4999, 'Launch offer')">₹2,999</button>
+          <button type="button" (click)="setPricePreset(4999, 7999, 'Premium track')">
+            ₹4,999
+          </button>
+        </div>
       </div>
 
       <div class="panel">
@@ -150,10 +170,10 @@
           </div>
         </div>
 
-        <div class="switch-card">
+        <div class="switch-card active-card">
           <div>
             <strong>Feature this course on Home Hero</strong>
-            <p>Only published and active courses will appear on the home hero.</p>
+            <p>Enable this to show the course in the homepage hero switcher.</p>
           </div>
 
           <label class="switch">
@@ -173,7 +193,7 @@
             </select>
             <em>This trainer will be assigned automatically to monthly batches.</em>
           </label>
-          
+
           <label>
             <span>Featured Rank</span>
             <input type="number" min="1" formControlName="featuredRank" />
@@ -207,15 +227,18 @@
             <h2>Metadata JSON</h2>
           </div>
 
-          <button type="button" class="ghost small" (click)="applyMetadataTemplate()">
-            Use Template
-          </button>
+          <div class="panel-actions">
+            <button type="button" class="ghost small" (click)="applyMetadataTemplate()">
+              Template
+            </button>
+            <button type="button" class="ghost small" (click)="formatMetadata()">Format</button>
+          </div>
         </div>
 
         <label class="full-field">
           <span>Metadata</span>
           <textarea
-            rows="8"
+            rows="9"
             formControlName="metadataJson"
             placeholder='{"highlights":[],"outcomes":[],"oldPrice":4999,"discountLabel":"Offer"}'
           ></textarea>
@@ -228,15 +251,10 @@
       <div class="preview-card">
         <div
           class="preview-thumb"
-          [style.backgroundImage]="
-            thumbnailPreviewUrl
-              ? 'url(' + thumbnailPreviewUrl + ')'
-              : form.value.thumbnailUrl
-                ? 'url(' + resolveImageUrl(form.value.thumbnailUrl) + ')'
-                : ''
-          "
+          [style.backgroundImage]="previewImage ? 'url(' + previewImage + ')' : ''"
         >
           <span>{{ form.value.level }}</span>
+          <b *ngIf="form.value.featuredOnHome">Home #{{ form.value.featuredRank }}</b>
         </div>
 
         <div class="preview-body">
@@ -246,6 +264,12 @@
 
           <div class="preview-price">
             <strong>Rs. {{ formatPrice(previewPrice) }}</strong>
+            <del *ngIf="previewOldPrice">Rs. {{ formatPrice(previewOldPrice) }}</del>
+            <span *ngIf="previewDiscountLabel">{{ previewDiscountLabel }}</span>
+          </div>
+
+          <div class="preview-chips" *ngIf="previewHighlights.length">
+            <i *ngFor="let item of previewHighlights.slice(0, 4)">{{ item }}</i>
           </div>
 
           <div class="preview-grid">
@@ -253,32 +277,32 @@
               <span>Duration</span>
               <b>{{ form.value.durationHours || 1 }} hrs</b>
             </div>
-
             <div>
               <span>Home</span>
-              <b>{{
-                form.value.featuredOnHome ? 'Featured #' + form.value.featuredRank : 'Normal'
-              }}</b>
+              <b>{{ form.value.featuredOnHome ? 'Featured' : 'Normal' }}</b>
             </div>
-
             <div>
               <span>Batches</span>
               <b>{{ form.value.autoMonthlyBatchEnabled ? 'Monthly Auto' : 'Manual' }}</b>
             </div>
-
             <div>
-              <span>Duration</span>
+              <span>Batch Duration</span>
               <b>{{ form.value.monthlyBatchDurationMonths || 3 }} months</b>
             </div>
           </div>
         </div>
       </div>
 
+      <div class="metadata-preview" *ngIf="previewOutcomes.length">
+        <h3>Outcome Preview</h3>
+        <p *ngFor="let item of previewOutcomes.slice(0, 4)">{{ item }}</p>
+      </div>
+
       <div class="save-box">
         <h3>Ready to save?</h3>
         <p>After saving, publish the course and enable Home Hero to show it on homepage.</p>
 
-        <button type="submit" class="primary wide" [disabled]="saving">
+        <button type="submit" class="primary wide" [disabled]="saving || uploadingThumbnail">
           {{
             saving || uploadingThumbnail
               ? 'Saving...'

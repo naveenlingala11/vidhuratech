@@ -391,7 +391,25 @@
             <span>Constraints</span>
             <p>{{ challenge.constraintsText || '-' }}</p>
           </div>
+          <section class="hint-panel">
+            <div class="hint-head">
+              <strong>Hint</strong>
 
+              <button type="button" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
+                {{ hintButtonLabel }}
+              </button>
+            </div>
+
+            <p *ngIf="!hintUnlocked">Hint unlocks 30 seconds after the test starts.</p>
+
+            <ol *ngIf="hintUnlocked && showHintPanel && hintSteps.length">
+              <li *ngFor="let step of hintSteps">{{ step }}</li>
+            </ol>
+
+            <p *ngIf="hintUnlocked && showHintPanel && !hintSteps.length">
+              No hint added for this challenge.
+            </p>
+          </section>
           <div>
             <span>Sample Test Cases</span>
             <article class="sample-case" *ngFor="let tc of challenge.sampleTestCases">

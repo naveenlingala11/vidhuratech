@@ -2,14 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../../environments/environment';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BatchService {
   private API = `${environment.apiUrl}/api/lms/batches`;
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
   getBatchById(id: number) {
     return this.http.get(`${this.API}/${id}`);
   }
@@ -23,25 +23,18 @@ export class BatchService {
     return this.http.post(`${this.API}/${batchId}/sessions`, payload);
   }
   publishSession(batchId: number, sessionId: number) {
-    return this.http.patch(
-      `${this.API}/${batchId}/sessions/${sessionId}/publish`,
-      {}
-    );
+    return this.http.patch(`${this.API}/${batchId}/sessions/${sessionId}/publish`, {});
   }
   unpublishSession(batchId: number, sessionId: number) {
-    return this.http.patch(
-      `${this.API}/${batchId}/sessions/${sessionId}/unpublish`,
-      {}
-    );
+    return this.http.patch(`${this.API}/${batchId}/sessions/${sessionId}/unpublish`, {});
   }
   deleteSession(batchId: number, sessionId: number) {
-    return this.http.delete(
-      `${this.API}/${batchId}/sessions/${sessionId}`
-    );
+    return this.http.delete(`${this.API}/${batchId}/sessions/${sessionId}`);
   }
   updateSession(batchId: number, sessionId: number, payload: any) {
-    return this.http.put(
-      `${this.API}/${batchId}/sessions/${sessionId}`, payload
-    );
+    return this.http.put(`${this.API}/${batchId}/sessions/${sessionId}`, payload);
+  }
+  getUpcomingBatch(courseId: number) {
+    return this.http.get(`${this.API}/course/${courseId}/upcoming`);
   }
 }

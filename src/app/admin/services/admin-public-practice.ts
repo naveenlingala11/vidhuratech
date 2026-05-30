@@ -45,4 +45,12 @@ export class AdminPublicPracticeService {
   getAccessPolicies() {
     return this.http.get(`${this.baseUrl}/access-policies`);
   }
+
+  publishInterviewQuestion(id: number, payload: any) {
+    return this.http.put(`${this.baseUrl}/interview-questions/${id}/publish`, payload);
+  }
+
+  unpublishInterviewQuestion(id: number) {
+    return this.http.put(`${this.baseUrl}/interview-questions/${id}/unpublish`, {});
+  }
 }

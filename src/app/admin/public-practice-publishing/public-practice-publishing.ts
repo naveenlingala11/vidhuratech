@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AdminPublicPracticeService } from '../services/admin-public-practice';
 
-type Tab = 'ASSESSMENT' | 'CHALLENGE' | 'ATTEMPTS' | 'POLICIES';
-type PublishType = 'ASSESSMENT' | 'CHALLENGE';
+type PublishType = 'ASSESSMENT' | 'CHALLENGE' | 'INTERVIEW';
+type Tab = PublishType | 'ATTEMPTS' | 'POLICIES';
+
 type StatusFilter = 'ALL' | 'PUBLISHED' | 'UNPUBLISHED';
 type ActiveFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type SortMode = 'LATEST' | 'TITLE' | 'COMPANY' | 'TRAINER' | 'ATTEMPTS';
 type ViewMode = 'GRID' | 'TABLE';
+type AttemptTypeFilter = 'ALL' | 'ASSESSMENT' | 'CHALLENGE';
 
 @Component({
   selector: 'app-admin-public-practice-publishing',
@@ -23,13 +25,13 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   saving = false;
   toast = '';
 
-  activeTab: Tab = 'ASSESSMENT';
   viewMode: ViewMode = 'GRID';
 
   assessments: any[] = [];
   challenges: any[] = [];
   assessmentAttempts: any[] = [];
   challengeAttempts: any[] = [];
+  interviewQuestions: any[] = [];
   accessPolicies: any[] = [];
 
   search = '';
@@ -40,13 +42,13 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   pageSize = 9;
 
   attemptSearch = '';
-  attemptTypeFilter: 'ALL' | PublishType = 'ALL';
   attemptStatusFilter: 'ALL' | 'PASS' | 'FAIL' = 'ALL';
   attemptPage = 1;
   attemptPageSize = 9;
-
   selectedItem: any = null;
+  activeTab: Tab = 'ASSESSMENT';
   selectedType: PublishType = 'ASSESSMENT';
+  attemptTypeFilter: AttemptTypeFilter = 'ALL';
   selectedAttempt: any = null;
 
   showPublishDrawer = false;
@@ -81,6 +83,7 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
         this.challenges = candidateData.challenges || [];
         this.assessmentAttempts = attemptData.assessmentAttempts || [];
         this.challengeAttempts = attemptData.challengeAttempts || [];
+        this.interviewQuestions = candidateData.interviewQuestions || [];
         this.accessPolicies = policies?.data || [];
 
         this.loading = false;
@@ -97,7 +100,78 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   get rawCandidates(): any[] {
     if (this.activeTab === 'ASSESSMENT') return this.assessments;
     if (this.activeTab === 'CHALLENGE') return this.challenges;
+    if (this.activeTab === 'INTERVIEW') return this.interviewQuestions;
     return [];
+  }
+
+  get activeItems(): any[] {
+    return this.rawCandidates;
+  }
+
+  setTab(tab: Tab): void {
+    this.activeTab = tab;
+    this.page = 1;
+    this.attemptPage = 1;
+    this.closeDetails();
+    this.closeAttempt();
+  }
+
+  quickFilter(tab: PublishType, status: StatusFilter): void {
+    this.activeTab = tab;
+    this.statusFilter = status;
+    this.page = 1;
+  }
+
+  get currentPublishType(): PublishType {
+    return this.activeTab === 'INTERVIEW'
+      ? 'INTERVIEW'
+      : this.activeTab === 'CHALLENGE'
+        ? 'CHALLENGE'
+        : 'ASSESSMENT';
+  }
+
+  displayTitle(item: any): string {
+    return item?.title || item?.question || `Interview Question #${item?.id || ''}`;
+  }
+
+  displayDescription(item: any): string {
+    return item?.description || item?.answer || 'No description added yet.';
+  }
+
+  displayCompany(item: any): string {
+    return item?.companyName || item?.company || 'General';
+  }
+
+  displaySkill(item: any): string {
+    return item?.skill || item?.role || item?.topic || '-';
+  }
+
+  openDetails(item: any, type: PublishType): void {
+    this.selectedItem = item;
+    this.selectedType = type;
+  }
+
+  openPublish(item: any, type: PublishType): void {
+    this.selectedItem = item;
+    this.selectedType = type;
+    this.publishErrors = [];
+
+    this.publishForm = {
+      companyName: item.companyName || item.company || 'General',
+      skill:
+        item.skill ||
+        item.role ||
+        item.topic ||
+        (type === 'ASSESSMENT'
+          ? 'Placement Readiness'
+          : type === 'CHALLENGE'
+            ? 'Coding'
+            : 'Interview Preparation'),
+      accessLevel: item.publicAccessLevel || 'LEAD_REQUIRED',
+      attemptLimit: Number(item.publicAttemptLimit || 1),
+    };
+
+    this.showPublishDrawer = true;
   }
 
   get filteredCandidates(): any[] {
@@ -200,42 +274,27 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     );
   }
 
-  setTab(tab: Tab): void {
-    this.activeTab = tab;
-    this.page = 1;
-    this.attemptPage = 1;
-  }
+  toPublishType(item?: any): PublishType {
+    const itemType = String(item?.type || '').toUpperCase();
 
-  quickFilter(tab: PublishType, status: StatusFilter): void {
-    this.activeTab = tab;
-    this.statusFilter = status;
-    this.page = 1;
-  }
+    if (itemType === 'ASSESSMENT') return 'ASSESSMENT';
+    if (itemType === 'CHALLENGE') return 'CHALLENGE';
+    if (itemType === 'INTERVIEW') return 'INTERVIEW';
 
-  openDetails(item: any, type: PublishType): void {
-    this.selectedItem = item;
-    this.selectedType = type;
+    if (this.activeTab === 'ASSESSMENT') return 'ASSESSMENT';
+    if (this.activeTab === 'CHALLENGE') return 'CHALLENGE';
+    if (this.activeTab === 'INTERVIEW') return 'INTERVIEW';
+
+    return 'ASSESSMENT';
   }
 
   closeDetails(): void {
     if (!this.showPublishDrawer) this.selectedItem = null;
   }
 
-  openPublish(item: any, type: PublishType): void {
-    this.selectedItem = item;
-    this.selectedType = type;
-    this.publishErrors = [];
-    this.publishForm = {
-      companyName: item.companyName || 'General',
-      skill: item.skill || (type === 'ASSESSMENT' ? 'Placement Readiness' : 'Coding'),
-      accessLevel: item.publicAccessLevel || 'LEAD_REQUIRED',
-      attemptLimit: Number(item.publicAttemptLimit || 1),
-    };
-    this.showPublishDrawer = true;
-  }
-
   closePublish(): void {
     if (this.saving) return;
+
     this.showPublishDrawer = false;
     this.publishErrors = [];
   }
@@ -246,27 +305,34 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     this.saving = true;
 
     const payload = {
-      companyName: this.publishForm.companyName.trim(),
-      skill: this.publishForm.skill.trim(),
-      accessLevel: this.publishForm.accessLevel,
-      attemptLimit: Number(this.publishForm.attemptLimit),
+      companyName: (this.publishForm.companyName || 'General').trim(),
+      skill: (this.publishForm.skill || 'Coding').trim(),
+      accessLevel: this.publishForm.accessLevel || 'LEAD_REQUIRED',
+      attemptLimit: Math.max(1, Number(this.publishForm.attemptLimit || 1)),
     };
 
+    const type = this.toPublishType(this.selectedItem);
+
     const request =
-      this.selectedType === 'ASSESSMENT'
+      type === 'ASSESSMENT'
         ? this.service.publishAssessment(this.selectedItem.id, payload)
-        : this.service.publishChallenge(this.selectedItem.id, payload);
+        : type === 'CHALLENGE'
+          ? this.service.publishChallenge(this.selectedItem.id, payload)
+          : this.service.publishInterviewQuestion(this.selectedItem.id, payload);
 
     request.subscribe({
       next: () => {
         this.saving = false;
-        this.closePublish();
-        this.showToast('Published settings saved successfully');
+        this.showPublishDrawer = false;
+        this.selectedItem = null;
+        this.publishErrors = [];
+
+        this.showToast('Published successfully');
         this.loadDashboard();
       },
       error: (err) => {
         this.saving = false;
-        this.showToast(err?.error?.message || 'Unable to publish item');
+        this.showToast(err?.error?.message || err?.error?.error || 'Unable to publish item');
       },
     });
   }
@@ -279,7 +345,9 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     const request =
       type === 'ASSESSMENT'
         ? this.service.unpublishAssessment(item.id)
-        : this.service.unpublishChallenge(item.id);
+        : type === 'CHALLENGE'
+          ? this.service.unpublishChallenge(item.id)
+          : this.service.unpublishInterviewQuestion(item.id);
 
     request.subscribe({
       next: () => {
@@ -366,18 +434,25 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   trackById(_: number, item: any): number {
     return item.id;
   }
-
   private sortCandidate(a: any, b: any): number {
-    if (this.sortMode === 'TITLE')
-      return String(a.title || '').localeCompare(String(b.title || ''));
-    if (this.sortMode === 'COMPANY')
-      return String(a.companyName || '').localeCompare(String(b.companyName || ''));
-    if (this.sortMode === 'TRAINER')
+    if (this.sortMode === 'TITLE') {
+      return this.displayTitle(a).localeCompare(this.displayTitle(b));
+    }
+
+    if (this.sortMode === 'COMPANY') {
+      return this.displayCompany(a).localeCompare(this.displayCompany(b));
+    }
+
+    if (this.sortMode === 'TRAINER') {
       return String(a.trainerName || a.trainerEmail || '').localeCompare(
         String(b.trainerName || b.trainerEmail || ''),
       );
-    if (this.sortMode === 'ATTEMPTS')
+    }
+
+    if (this.sortMode === 'ATTEMPTS') {
       return Number(b.publicAttemptCount || 0) - Number(a.publicAttemptCount || 0);
+    }
+
     return Number(b.id || 0) - Number(a.id || 0);
   }
 

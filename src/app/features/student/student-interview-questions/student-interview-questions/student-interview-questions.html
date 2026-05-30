@@ -1,0 +1,158 @@
+<section class="iq-page student-page">
+  <header class="iq-hero student-hero">
+    <div>
+      <span>Student Workspace</span>
+      <h1>Interview Practice Hub</h1>
+      <p>
+        Study trainer-assigned company questions from your enrolled batches and revise answers in a
+        structured format.
+      </p>
+    </div>
+  </header>
+
+  <section class="stat-grid">
+    <article>
+      <span>Loaded</span><strong>{{ stats.total }}</strong>
+    </article>
+    <article>
+      <span>Companies</span><strong>{{ stats.companies }}</strong>
+    </article>
+    <article>
+      <span>Medium</span><strong>{{ stats.medium }}</strong>
+    </article>
+  </section>
+
+  <section class="premium-panel">
+    <div class="panel-heading split">
+      <div>
+        <span>Filters</span>
+        <h2>Find the right question set</h2>
+      </div>
+      <button type="button" class="soft-btn" (click)="clear()">Clear</button>
+    </div>
+
+    <div class="role-pills">
+      <button
+        type="button"
+        *ngFor="let role of roles"
+        [class.active]="filters.role === role"
+        (click)="chooseRole(role)"
+      >
+        {{ role }}
+      </button>
+    </div>
+
+    <div class="filter-bar student-filter">
+      <input [(ngModel)]="filters.search" placeholder="Search questions..." />
+      <input [(ngModel)]="filters.company" placeholder="Company" />
+      <input [(ngModel)]="filters.topic" placeholder="Topic" />
+
+      <select [(ngModel)]="filters.type">
+        <option value="">All Types</option>
+        <option>CONCEPTUAL</option>
+        <option>SCENARIO</option>
+        <option>IMPLEMENTATION</option>
+        <option>HR</option>
+      </select>
+
+      <select [(ngModel)]="filters.difficulty">
+        <option value="">All Levels</option>
+        <option *ngFor="let difficulty of difficulties">{{ difficulty }}</option>
+      </select>
+
+      <button type="button" class="primary-btn" (click)="apply()">Apply</button>
+    </div>
+  </section>
+
+  <div class="loading" *ngIf="loading">Loading interview questions...</div>
+  <div class="empty error" *ngIf="!loading && error">{{ error }}</div>
+
+  <section class="question-list" *ngIf="!loading && !error && questions.length">
+    <article class="student-question-card" *ngFor="let q of questions; let i = index">
+      <div class="card-top">
+        <span>{{ q.company }}</span>
+        <div>
+          <b>{{ q.role }}</b>
+          <b>{{ q.difficulty }}</b>
+        </div>
+      </div>
+
+      <h3>Q{{ page * 10 + i + 1 }}. {{ q.question }}</h3>
+      <p>{{ q.topic }} · {{ q.type }}</p>
+
+      <div class="card-actions">
+        <button type="button" class="primary-btn" (click)="toggle(q)">
+          {{ q.show ? 'Hide Answer' : 'View Answer' }}
+        </button>
+        <button type="button" class="soft-btn" (click)="open(q)">Focus Mode</button>
+      </div>
+
+      <section class="answer-panel" *ngIf="q.show">
+        <article>
+          <h4>Definition</h4>
+          <p>{{ getSection(q.answer, 'Definition:', 'Explanation:') }}</p>
+        </article>
+        <article>
+          <h4>Explanation</h4>
+          <p>{{ getSection(q.answer, 'Explanation:', 'Example:') }}</p>
+        </article>
+        <article>
+          <h4>Example</h4>
+          <pre>{{ getSection(q.answer, 'Example:', 'Real-world Scenario:') }}</pre>
+        </article>
+        <article>
+          <h4>Real-world Scenario</h4>
+          <p>{{ getSection(q.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
+        </article>
+        <article>
+          <h4>Interview Tip</h4>
+          <p>{{ getSection(q.answer, 'Interview Tip:', '') }}</p>
+        </article>
+      </section>
+    </article>
+  </section>
+
+  <div class="empty" *ngIf="!loading && !error && !questions.length">
+    No interview questions assigned yet.
+  </div>
+
+  <nav class="pagination" *ngIf="totalPages > 1">
+    <button type="button" class="soft-btn" [disabled]="page === 0" (click)="prev()">
+      Previous
+    </button>
+    <span>Page {{ page + 1 }} of {{ totalPages }}</span>
+    <button type="button" class="soft-btn" [disabled]="page >= totalPages - 1" (click)="next()">
+      Next
+    </button>
+  </nav>
+
+  <aside class="preview-drawer" *ngIf="selected">
+    <div class="drawer-card">
+      <button type="button" class="close-btn" (click)="close()">×</button>
+      <span class="drawer-kicker">{{ selected.company }} · {{ selected.role }}</span>
+      <h2>{{ selected.question }}</h2>
+      <section class="answer-panel">
+        <article>
+          <h4>Definition</h4>
+          <p>{{ getSection(selected.answer, 'Definition:', 'Explanation:') }}</p>
+        </article>
+        <article>
+          <h4>Explanation</h4>
+          <p>{{ getSection(selected.answer, 'Explanation:', 'Example:') }}</p>
+        </article>
+        <article>
+          <h4>Example</h4>
+          <pre>{{ getSection(selected.answer, 'Example:', 'Real-world Scenario:') }}</pre>
+        </article>
+        <article>
+          <h4>Real-world Scenario</h4>
+          <p>{{ getSection(selected.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
+        </article>
+        <article>
+          <h4>Interview Tip</h4>
+          <p>{{ getSection(selected.answer, 'Interview Tip:', '') }}</p>
+        </article>
+      </section>
+    </div>
+  </aside>
+</section>

@@ -70,16 +70,38 @@
       <span>Access Policies</span>
       <b>{{ accessPolicies.length }}</b>
     </button>
+
+    <button type="button" [class.active]="activeTab === 'INTERVIEW'" (click)="setTab('INTERVIEW')">
+      <i class="bi bi-question-circle"></i>
+      <span>Interview Questions</span>
+      <small>{{ interviewQuestions.length }} items</small>
+    </button>
   </nav>
 
-  <section class="vpp-board" *ngIf="activeTab === 'ASSESSMENT' || activeTab === 'CHALLENGE'">
+  <section
+    class="vpp-board"
+    *ngIf="activeTab === 'ASSESSMENT' || activeTab === 'CHALLENGE' || activeTab === 'INTERVIEW'"
+  >
     <div class="board-head">
       <div>
-        <span>{{
-          activeTab === 'ASSESSMENT' ? 'Assessment Publishing' : 'Challenge Publishing'
-        }}</span>
+        <span>
+          {{
+            activeTab === 'ASSESSMENT'
+              ? 'Assessment Publishing'
+              : activeTab === 'CHALLENGE'
+                ? 'Challenge Publishing'
+                : 'Interview Question Publishing'
+          }}
+        </span>
+
         <h2>
-          {{ activeTab === 'ASSESSMENT' ? 'Assessment Candidates' : 'Coding Challenge Candidates' }}
+          {{
+            activeTab === 'ASSESSMENT'
+              ? 'Assessment Candidates'
+              : activeTab === 'CHALLENGE'
+                ? 'Coding Challenge Candidates'
+                : 'Interview Question Candidates'
+          }}
         </h2>
       </div>
 
@@ -154,7 +176,7 @@
       <article
         class="candidate-card"
         *ngFor="let item of pagedCandidates; trackBy: trackById"
-        (click)="openDetails(item, activeTab === 'ASSESSMENT' ? 'ASSESSMENT' : 'CHALLENGE')"
+        (click)="openDetails(item, toPublishType(item))"
       >
         <div class="card-glow"></div>
 
@@ -165,8 +187,8 @@
           }}</b>
         </div>
 
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.description || 'No description added yet.' }}</p>
+        <h3>{{ displayTitle(item) }}</h3>
+        <p>{{ displayDescription(item) }}</p>
 
         <div class="mini-metrics">
           <div>
@@ -199,7 +221,7 @@
               type="button"
               class="publish-btn"
               [disabled]="!item.active"
-              (click)="openPublish(item, activeTab === 'ASSESSMENT' ? 'ASSESSMENT' : 'CHALLENGE')"
+              (click)="openPublish(item, toPublishType(item))"
             >
               {{ item.publicVisible ? 'Edit' : 'Publish' }}
             </button>
@@ -208,7 +230,7 @@
               type="button"
               class="unpublish-btn"
               *ngIf="item.publicVisible"
-              (click)="unpublish(item, activeTab === 'ASSESSMENT' ? 'ASSESSMENT' : 'CHALLENGE')"
+              (click)="unpublish(item, toPublishType(item))"
             >
               Unpublish
             </button>
@@ -241,7 +263,7 @@
         <tbody>
           <tr
             *ngFor="let item of pagedCandidates; trackBy: trackById"
-            (click)="openDetails(item, activeTab === 'ASSESSMENT' ? 'ASSESSMENT' : 'CHALLENGE')"
+            (click)="openDetails(item, toPublishType(item))"
           >
             <td>
               <strong>{{ item.title }}</strong
@@ -269,7 +291,7 @@
                 type="button"
                 class="publish-btn compact"
                 [disabled]="!item.active"
-                (click)="openPublish(item, activeTab === 'ASSESSMENT' ? 'ASSESSMENT' : 'CHALLENGE')"
+                (click)="openPublish(item, toPublishType(item))"
               >
                 {{ item.publicVisible ? 'Edit' : 'Publish' }}
               </button>
@@ -426,8 +448,8 @@
     <button type="button" class="rail-close" (click)="closeDetails()">x</button>
 
     <span class="rail-kicker">{{ selectedType }}</span>
-    <h2>{{ selectedItem.title }}</h2>
-    <p>{{ selectedItem.description || 'No description available.' }}</p>
+    <h2>{{ displayTitle(selectedItem) }}</h2>
+    <p>{{ displayDescription(selectedItem) }}</p>
 
     <div class="rail-stats">
       <div>
@@ -465,11 +487,10 @@
   <div class="drawer-backdrop" *ngIf="showPublishDrawer">
     <aside class="publish-drawer">
       <button type="button" class="rail-close" (click)="closePublish()">x</button>
-
       <div class="drawer-hero">
         <span>{{ selectedType }}</span>
         <h2>{{ selectedItem?.publicVisible ? 'Edit Public Release' : 'Publish Publicly' }}</h2>
-        <p>{{ selectedItem?.title }}</p>
+        <p>{{ displayTitle(selectedItem) }}</p>
       </div>
 
       <div class="drawer-summary">

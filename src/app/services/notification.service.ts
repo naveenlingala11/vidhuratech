@@ -21,4 +21,12 @@ export class NotificationService {
   markRead(id: number) {
     return this.http.patch<any>(`${this.API}/${id}/read`, {});
   }
+
+  getPreferences() {
+    return this.http.get<any>(`${this.API}/preferences`);
+  }
+
+  updatePreferences(notificationsEnabled: boolean) {
+    return this.http.put<any>(`${this.API}/preferences`, { notificationsEnabled });
+  }
 }
