@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TrainerDashboardService } from '../service/trainer-dashboard';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-trainer-dashboard',
   standalone: true,
@@ -138,6 +139,23 @@ export class TrainerDashboard implements OnInit {
   formatPrice(price: number): string {
     return new Intl.NumberFormat('en-IN').format(Number(price || 0));
   }
+  courseImage(url: string | null | undefined): string {
+  if (!url) return '';
+
+  if (url.startsWith('data:')) {
+    return url;
+  }
+
+  if (url.startsWith('http')) {
+    return url;
+  }
+
+  if (url.startsWith('/')) {
+    return `${environment.apiUrl}${url}`;
+  }
+
+  return `${environment.apiUrl}/course-thumbnails/${url}`;
+}
   openCurriculumPopup() {
     this.showCurriculumPopup = true;
   }
