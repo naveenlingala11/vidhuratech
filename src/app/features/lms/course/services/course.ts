@@ -42,6 +42,6 @@ export class CourseService {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post(`${environment.apiUrl}/api/lms/courses/${courseId}/thumbnail`, formData);
+    return this.http.post(`${this.API}/${courseId}/thumbnail`, formData);
   }
 }

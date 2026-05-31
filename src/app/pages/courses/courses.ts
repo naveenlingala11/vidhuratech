@@ -283,8 +283,10 @@ export class CoursesComponent implements OnInit, OnDestroy {
 
   courseImage(url: string | null | undefined): string {
     if (!url) return '';
-    if (url.startsWith('http') || url.startsWith('data:')) return url;
-    return `${environment.apiUrl}${url}`;
+    if (url.startsWith('data:')) return url;
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/')) return `${environment.apiUrl}${url}`;
+    return `${environment.apiUrl}/course-thumbnails/${url}`;
   }
 
   getCourseSlug(course: any): string {

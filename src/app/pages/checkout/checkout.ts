@@ -136,7 +136,8 @@ export class Checkout implements OnInit {
   courseImage(url: string | null | undefined): string {
     if (!url) return '';
     if (url.startsWith('http') || url.startsWith('data:')) return url;
-    return `${environment.apiUrl}${url}`;
+    if (url.startsWith('/')) return `${environment.apiUrl}${url}`;
+    return `${environment.apiUrl}/course-thumbnails/${url}`;
   }
 
   formatPrice(price: number): string {
