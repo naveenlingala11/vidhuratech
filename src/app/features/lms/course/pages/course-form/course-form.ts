@@ -219,13 +219,17 @@ export class CourseFormComponent implements OnInit {
 
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      this.toastr.error('Only image files are allowed');
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.toastr.error('Only JPG, PNG, and WEBP images are allowed');
+      input.value = '';
       return;
     }
 
     if (file.size > 4 * 1024 * 1024) {
-      this.toastr.error('Image must be below 4MB');
+      this.toastr.error('Thumbnail image must be below 4MB');
+      input.value = '';
       return;
     }
 
