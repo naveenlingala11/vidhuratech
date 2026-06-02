@@ -10,6 +10,7 @@ type RuleType = 'REQUIRED_KEYWORD' | 'FORBIDDEN_KEYWORD' | 'MIN_LINES';
 type ChallengeFilter = 'ALL' | 'ACTIVE' | 'DRAFT' | 'CLOSED';
 type SortOption = 'LATEST' | 'TITLE' | 'ATTEMPTS' | 'MARKS';
 type LibraryView = 'GROUPS' | 'COMPANIES';
+type WorkspaceTab = 'BUILDER' | 'LIBRARY';
 
 interface ChallengeRule {
   type: RuleType;
@@ -106,6 +107,8 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   libraryView: LibraryView = 'GROUPS';
   expandedCompanies: Record<string, boolean> = {};
 
+  activeWorkspaceTab: WorkspaceTab = 'BUILDER';
+
   constructor(
     private service: PseudoChallengeService,
     private router: Router,
@@ -156,6 +159,10 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   openSubmissionsPage(): void {
     this.router.navigate(['/dashboard/trainer/pseudo-submissions']);
   }
+
+  setWorkspaceTab(tab: WorkspaceTab): void {
+    this.activeWorkspaceTab = tab;
+  } 
 
   get filteredChallenges(): any[] {
     const term = this.search.trim().toLowerCase();
@@ -277,8 +284,21 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       : this.groupedChallenges.length;
   }
 
-  get activeTotalPages(): number {
+  get totalPages(): number {
     return Math.max(1, Math.ceil(this.activeLibraryItemsCount / this.pageSize));
+  }
+
+  get pageNumbers(): number[] {
+    const total = this.totalPages;
+    const start = Math.max(1, this.page - 2);
+    const end = Math.min(total, this.page + 2);
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }
+
+  get pagedGroups(): ChallengeGroup[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.groupedChallenges.slice(start, start + this.pageSize);
   }
 
   get pagedCompanyGroups(): CompanyGroup[] {
@@ -286,13 +306,74 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     return this.companyGroups.slice(start, start + this.pageSize);
   }
 
-  get totalPages(): number {
-    return this.activeTotalPages;
+  get libraryStartRecord(): number {
+    if (!this.activeLibraryItemsCount) return 0;
+    return (this.page - 1) * this.pageSize + 1;
   }
 
-  get pagedGroups(): ChallengeGroup[] {
-    const start = (this.page - 1) * this.pageSize;
-    return this.groupedChallenges.slice(start, start + this.pageSize);
+  get libraryEndRecord(): number {
+    return Math.min(this.page * this.pageSize, this.activeLibraryItemsCount);
+  }
+
+  changePage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.page) return;
+    this.page = page;
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize = Number(size || 6);
+    this.page = 1;
+  }
+
+  applyStatusFilter(status: ChallengeFilter): void {
+    this.statusFilter = status;
+    this.page = 1;
+  }
+
+  setLibraryView(view: LibraryView): void {
+    this.libraryView = view;
+    this.page = 1;
+  }
+
+  openCompaniesView(): void {
+    this.libraryView = 'COMPANIES';
+    this.page = 1;
+  }
+
+  sortDirectionIcon(): string {
+    if (this.sortBy === 'TITLE') return 'bi bi-sort-alpha-down';
+    if (this.sortBy === 'ATTEMPTS') return 'bi bi-graph-up-arrow';
+    if (this.sortBy === 'MARKS') return 'bi bi-award';
+    return 'bi bi-clock-history';
+  }
+
+  setSort(sort: SortOption): void {
+    this.sortBy = sort;
+    this.page = 1;
+  }
+
+  formatConstraints(value: any): string[] {
+    const text = String(value || '').trim();
+
+    if (!text) return [];
+
+    return text
+      .split(/\r?\n|;|\.\s+/)
+      .map((item) =>
+        item
+          .replace(/^[-•*]\s*/, '')
+          .replace(/^\d+[.)]\s*/, '')
+          .trim(),
+      )
+      .filter(Boolean);
+  }
+
+  constraintsPreview(value: any, limit = 3): string[] {
+    return this.formatConstraints(value).slice(0, limit);
+  }
+
+  get activeTotalPages(): number {
+    return Math.max(1, Math.ceil(this.activeLibraryItemsCount / this.pageSize));
   }
 
   get totalAttempts(): number {
@@ -421,22 +502,6 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     return this.validationErrors.length > 0;
   }
 
-  applyStatusFilter(filter: ChallengeFilter): void {
-    this.statusFilter = filter;
-    this.page = 1;
-  }
-
-  changePage(nextPage: number): void {
-    this.page = Math.min(Math.max(nextPage, 1), this.totalPages);
-    this.expandedGroups = {};
-    this.expandedCompanies = {};
-  }
-
-  changePageSize(size: number): void {
-    this.pageSize = Number(size);
-    this.page = 1;
-  }
-
   toggleGroup(groupId: string): void {
     this.expandedGroups[groupId] = !this.expandedGroups[groupId];
   }
@@ -507,6 +572,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         );
         this.resetForm();
         this.loadChallenges();
+        this.activeWorkspaceTab = 'LIBRARY';
         if (id) this.previewChallenge(Number(id));
       },
       error: () => {
@@ -516,17 +582,6 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         );
       },
     });
-  }
-
-  setLibraryView(view: LibraryView): void {
-    this.libraryView = view;
-    this.page = 1;
-    this.expandedGroups = {};
-    this.expandedCompanies = {};
-  }
-
-  openCompaniesView(): void {
-    this.setLibraryView('COMPANIES');
   }
 
   toggleCompany(companyId: string): void {

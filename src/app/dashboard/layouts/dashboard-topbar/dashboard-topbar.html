@@ -139,7 +139,8 @@
 
         <div class="notification-footer" *ngIf="notificationsEnabled">
           <button type="button" (click)="goToNotifications()">
-            {{ notifications.length > 5 ? '+' + (notifications.length - 5) + ' more | ' : '' }}View all notifications
+            {{ notifications.length > 5 ? '+' + (notifications.length - 5) + ' more | ' : '' }}View
+            all notifications
           </button>
         </div>
       </div>
@@ -151,7 +152,15 @@
 
         <div class="profile-meta">
           <strong>{{ user?.name || 'User' }}</strong>
-          <span>{{ roleLabel }}</span>
+          <span
+            class="user-plan-badge compact"
+            *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+            [ngClass]="planBadge.className"
+            [title]="planBadge.helper"
+          >
+            <i [class]="planBadge.icon"></i>
+            {{ planBadge.label }}
+          </span>
         </div>
 
         <i class="bi bi-chevron-down caret"></i>
@@ -162,7 +171,16 @@
           <div class="avatar large">{{ getInitials() }}</div>
           <div>
             <strong>{{ user?.name || 'User' }}</strong>
-            <span>{{ roleLabel }}</span>
+            <small>{{ user?.email || 'Vidhura Tech' }}</small>
+            <span
+              class="user-plan-badge"
+              *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+              [ngClass]="planBadge.className"
+              [title]="planBadge.helper"
+            >
+              <i [class]="planBadge.icon"></i>
+              {{ planBadge.label }}
+            </span>
           </div>
         </div>
 

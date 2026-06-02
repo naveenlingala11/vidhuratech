@@ -26,6 +26,21 @@ export class TokenService {
   clearAll(): void {
     this.clearToken();
     this.clearUser();
+    this.clearPracticeSession();
+  }
+
+  private clearPracticeSession(): void {
+    const keysToRemove: string[] = [];
+
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+
+      if (key && (key.startsWith('practiceGrant_') || key === 'publicPracticeLead')) {
+        keysToRemove.push(key);
+      }
+    }
+
+    keysToRemove.forEach((key) => sessionStorage.removeItem(key));
   }
   isLoggedIn(): boolean {
     return !!this.getToken();

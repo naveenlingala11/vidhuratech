@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardThemeService } from '../../shared/dashboard-theme';
 import { DashboardBreadcrumb } from '../dashboard-breadcrumb/dashboard-breadcrumb';
+import { UserPlanBadgeService } from '../../../services/user-plan-badge.service';
 
 @Component({
   selector: 'app-dashboard-topbar',
@@ -29,7 +30,10 @@ export class DashboardTopbar {
     public authService: AuthService,
     private router: Router,
     public themeService: DashboardThemeService,
-  ) {}
+    public userPlanBadgeService: UserPlanBadgeService,
+  ) {
+    this.userPlanBadgeService.load();
+  }
 
   @HostListener('document:click')
   closeMenus(): void {

@@ -19,6 +19,7 @@ import { BatchService } from '../../features/lms/batch/services/batch';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { PublicCourseService } from '../courses/service/public-course';
 import { environment } from '../../../environments/environment';
+import { PublicPracticeService } from '../../features/services/public-practice.service';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -53,6 +54,17 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   selectedEnrollCourse: any = null;
   selectedEnrollBatch: any = null;
+  weeklyContestTopThree: any[] = [];
+
+  heroCountdown = signal({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    expired: false,
+  });
+
+  private heroCountdownInterval: any;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -62,6 +74,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     private batchService: BatchService,
     private authService: AuthService,
     private courseService: PublicCourseService,
+    private publicPracticeService: PublicPracticeService,
   ) {}
   // ================= INIT =================
   ngOnInit() {
@@ -75,7 +88,6 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       }, 10000);
     });
     //this.loadBatch(2);
-    this.timer.startCountdown();
     if (isPlatformBrowser(this.platformId)) {
       const saved = localStorage.getItem('popupBlockUntil');
       if (saved) {
@@ -103,6 +115,8 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       console.log('🟢 User not logged in → starting popup');
       this.startPopupLoop();
     });
+
+    this.loadWeeklyContestTopThree();
   }
   ngAfterViewInit() {
     this.startTyping();
@@ -129,6 +143,76 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       console.log('✅ Opening enroll modal');
       this.openEnrollModal();
     }, 1500);
+  }
+
+  private resolveCourseStartDate(course: any): string | null {
+    return (
+      course?.upcomingBatch?.startDate ||
+      course?.activeBatch?.startDate ||
+      course?.startDate ||
+      null
+    );
+  }
+
+  private startHeroCountdown(): void {
+    if (this.heroCountdownInterval) {
+      clearInterval(this.heroCountdownInterval);
+    }
+
+    this.updateHeroCountdown();
+
+    this.heroCountdownInterval = setInterval(() => {
+      this.updateHeroCountdown();
+    }, 1000);
+  }
+
+  private updateHeroCountdown(): void {
+    const startDate = this.resolveCourseStartDate(this.heroCourse);
+
+    if (!startDate) {
+      this.heroCountdown.set({
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        expired: false,
+      });
+      return;
+    }
+
+    const target = this.normalizeCourseStartDate(startDate).getTime();
+    const diff = target - Date.now();
+
+    if (!Number.isFinite(target) || diff <= 0) {
+      this.heroCountdown.set({
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        expired: true,
+      });
+      return;
+    }
+
+    const totalSeconds = Math.floor(diff / 1000);
+
+    this.heroCountdown.set({
+      days: Math.floor(totalSeconds / 86400),
+      hours: Math.floor((totalSeconds % 86400) / 3600),
+      minutes: Math.floor((totalSeconds % 3600) / 60),
+      seconds: totalSeconds % 60,
+      expired: false,
+    });
+  }
+
+  private normalizeCourseStartDate(value: string): Date {
+    const dateValue = String(value).trim();
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return new Date(`${dateValue}T09:00:00`);
+    }
+
+    return new Date(dateValue);
   }
 
   isDark = true;
@@ -185,15 +269,20 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
             this.featuredCourses = topFourCourses;
 
-            const firstWithBatch = this.featuredCourses.find((course) => course.activeBatch);
+            const firstWithBatch = this.featuredCourses.find(
+              (course) => course.upcomingBatch || course.activeBatch || course.startDate,
+            );
             this.heroCourse = firstWithBatch || this.featuredCourses[0] || null;
             this.heroCourseIndex = this.heroCourse
               ? this.featuredCourses.findIndex((course) => course.id === this.heroCourse.id)
               : 0;
 
-            this.activeBatch = this.heroCourse?.activeBatch || null;
+            this.activeBatch =
+              this.heroCourse?.activeBatch || this.heroCourse?.upcomingBatch || null;
             this.selectedEnrollCourse = this.heroCourse;
             this.selectedEnrollBatch = this.activeBatch;
+            console.log('Hero course date for timer:', this.heroCourse, this.heroStartDate);
+            this.timer.startCountdown(this.heroStartDate);
 
             this.loading = false;
           },
@@ -214,14 +303,68 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-  setHeroCourse(course: any, index: number): void {
-    if (!course) return;
+  get heroStartDate(): string | null {
+    return this.getBestFutureStartDate(this.heroCourse);
+  }
 
-    this.heroCourseIndex = index;
+  private getBestFutureStartDate(course: any): string | null {
+    const dates = [
+      course?.startDate,
+      course?.courseStartDate,
+      course?.batchStartDate,
+      course?.upcomingBatch?.startDate,
+      course?.upcomingBatch?.batchStartDate,
+      course?.activeBatch?.startDate,
+      course?.activeBatch?.batchStartDate,
+    ].filter(Boolean);
+
+    if (!dates.length) return null;
+
+    const parsedDates = dates
+      .map((value) => ({
+        raw: String(value),
+        time: this.toStartTime(value),
+      }))
+      .filter((item) => Number.isFinite(item.time));
+
+    if (!parsedDates.length) return null;
+
+    const now = Date.now();
+
+    const futureDates = parsedDates
+      .filter((item) => item.time > now)
+      .sort((a, b) => a.time - b.time);
+
+    if (futureDates.length) {
+      return futureDates[0].raw;
+    }
+
+    const latestPastDate = parsedDates.sort((a, b) => b.time - a.time)[0];
+    return latestPastDate.raw;
+  }
+
+  private toStartTime(value: any): number {
+    const text = String(value || '').trim();
+
+    if (!text) return Number.NaN;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      const [year, month, day] = text.split('-').map(Number);
+      return new Date(year, month - 1, day, 19, 30, 0, 0).getTime();
+    }
+
+    return new Date(text).getTime();
+  }
+
+  setHeroCourse(course: any, index: number): void {
     this.heroCourse = course;
-    this.activeBatch = course.activeBatch || null;
+    this.heroCourseIndex = index;
+    this.activeBatch = course?.activeBatch || course?.upcomingBatch || null;
     this.selectedEnrollCourse = course;
-    this.selectedEnrollBatch = course.activeBatch || null;
+    this.selectedEnrollBatch = this.activeBatch;
+
+    console.log('Selected course date for timer:', this.heroCourse, this.heroStartDate);
+    this.timer.startCountdown(this.heroStartDate);
   }
 
   selectCourse(course: any): void {
@@ -248,6 +391,24 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     return;
   }
 
+  loadWeeklyContestTopThree(): void {
+    this.publicPracticeService.getWeeklyLeaderboard().subscribe({
+      next: (res: any) => {
+        this.weeklyContestTopThree = res?.data?.topThree || [];
+      },
+      error: () => {
+        this.weeklyContestTopThree = [];
+      },
+    });
+  }
+
+  winnerBadge(rank: number): string {
+    if (rank === 1) return 'Gold';
+    if (rank === 2) return 'Silver';
+    if (rank === 3) return 'Bronze';
+    return 'Ranked';
+  }
+
   openEnrollModal(course?: any) {
     const selected =
       course && typeof course === 'object' ? course : this.heroCourse || this.selectedEnrollCourse;
@@ -255,7 +416,8 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     if (!selected) return;
 
     this.selectedEnrollCourse = selected;
-    this.selectedEnrollBatch = selected.activeBatch || this.activeBatch || null;
+    this.selectedEnrollBatch =
+      selected.activeBatch || selected.upcomingBatch || this.activeBatch || null;
 
     this.modalService.open({
       course: selected.title,
@@ -310,6 +472,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     if (this.popupInterval) {
       clearInterval(this.popupInterval);
     }
+    this.timer.stopCountdown();
   }
 
   mapPublicCourse(c: any) {
@@ -327,6 +490,10 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       title: c.title,
       desc: c.description || '',
       price: c.price || 0,
+
+      startDate: c.startDate || null,
+      endDate: c.endDate || null,
+
       oldPrice: meta.oldPrice || Math.round(Number(c.price || 0) * 1.4),
       discountLabel: meta.discountLabel || '',
       duration: (c.durationHours || 0) + ' hrs',

@@ -5,9 +5,8 @@ import { environment } from '../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-@Injectable({ providedIn: 'root' })
 export class StudentInterviewQuestionService {
-  private API = `${environment.apiUrl}/api/student/interview-questions`;
+  private readonly API = `${environment.apiUrl}/api/student/interview-questions`;
 
   constructor(private http: HttpClient) {}
 
@@ -15,8 +14,10 @@ export class StudentInterviewQuestionService {
     let params = new HttpParams();
 
     Object.keys(filters).forEach((key) => {
-      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
-        params = params.set(key, filters[key]);
+      const value = filters[key];
+
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        params = params.set(key, String(value).trim());
       }
     });
 

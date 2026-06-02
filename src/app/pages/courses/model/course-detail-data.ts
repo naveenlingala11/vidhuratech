@@ -452,9 +452,9 @@ export const COURSE_DETAILS: CourseDetail[] = [
     ],
   },
   {
-    slug: 'python-data-structures',
+    slug: 'python-data-structures + AI',
     codes: ['PYTHON_DS'],
-    title: 'Python + Data Structures',
+    title: 'Python + Data Structures + AI',
     subtitle:
       'Learn Python from basics and build strong problem-solving skills with arrays, strings, recursion, linked lists, stacks, queues, trees, and interview practice.',
     level: 'Beginner',

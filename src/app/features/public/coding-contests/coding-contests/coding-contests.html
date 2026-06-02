@@ -1,0 +1,318 @@
+<main class="contest-page">
+  <section class="contest-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Weekly Coding Arena</p>
+      <h1>Coding Challenges Contest</h1>
+      <p class="hero-text">
+        Practice real placement-style coding problems, submit your best solution, and compete for
+        daily, weekly, and monthly leaderboard ranks.
+      </p>
+
+      <div class="hero-actions">
+        <button type="button" class="primary-btn" (click)="scrollToLeaderboard()">
+          View Leaderboard
+        </button>
+        <a routerLink="/free-mock-tests" class="secondary-btn">Explore Practice</a>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <p class="panel-label">{{ leaderboardPeriod | titlecase }} Top 3</p>
+
+      <div class="winner-list" *ngIf="featuredTopThree.length; else noWinners">
+        <div class="winner-card" *ngFor="let winner of featuredTopThree">
+          <span class="rank">#{{ winner.rank }}</span>
+          <div>
+            <strong>{{ winner.name }}</strong>
+            <p>{{ winner.score }}/{{ winner.totalMarks }} marks</p>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noWinners>
+        <p class="empty-text">Leaderboard will appear after participants submit challenges.</p>
+      </ng-template>
+    </div>
+  </section>
+
+  <section class="contest-stats">
+    <article>
+      <span>Live Challenges</span>
+      <strong>{{ challenges.length }}</strong>
+    </article>
+    <article>
+      <span>Total Marks</span>
+      <strong>{{ totalMarksAvailable }}</strong>
+    </article>
+    <article>
+      <span>Avg Duration</span>
+      <strong>{{ averageDuration }} min</strong>
+    </article>
+    <article>
+      <span>Companies</span>
+      <strong>{{ companies.length }}</strong>
+    </article>
+  </section>
+
+  <section class="announcement-strip" *ngIf="announcements.length">
+    <article *ngFor="let item of announcements.slice(0, 2)">
+      <span>Announcement</span>
+      <strong>{{ item.title }}</strong>
+      <p>{{ item.message }}</p>
+    </article>
+  </section>
+
+  <section class="contest-toolbar">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="search"
+        placeholder="Search contests by title, company, or skill"
+      />
+    </div>
+
+    <select [(ngModel)]="selectedCompany">
+      <option value="ALL">All Companies</option>
+      <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+    </select>
+
+    <select [(ngModel)]="selectedSkill">
+      <option value="ALL">All Skills</option>
+      <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
+    </select>
+
+    <select [(ngModel)]="selectedSort">
+      <option value="latest">Latest</option>
+      <option value="marks">Highest Marks</option>
+      <option value="duration">Shortest Duration</option>
+    </select>
+
+    <button type="button" class="ghost-btn" (click)="resetFilters()">Reset</button>
+  </section>
+
+  <section class="contest-layout">
+    <div class="challenge-list">
+      <div class="section-heading">
+        <p>Live Challenges</p>
+        <strong>{{ filteredChallenges.length }} available</strong>
+      </div>
+
+      <button
+        type="button"
+        class="challenge-card"
+        *ngFor="let challenge of pagedChallenges; trackBy: trackById"
+        [class.active]="selectedChallenge?.id === challenge.id"
+        (click)="selectChallenge(challenge)"
+      >
+        <div>
+          <div class="card-badges">
+            <span class="badge">{{ challenge.company || 'General' }}</span>
+
+            <span
+              class="access-badge"
+              [class.locked]="isPremiumLocked(challenge)"
+              [class.active]="isPremiumContent(challenge) && !isPremiumLocked(challenge)"
+            >
+              <i
+                class="fa-solid"
+                [ngClass]="isPremiumLocked(challenge) ? 'fa-lock' : 'fa-unlock'"
+              ></i>
+              {{ accessLabel(challenge) }}
+            </span>
+          </div>
+          <h2>{{ challenge.title }}</h2>
+          <p>{{ challenge.description }}</p>
+        </div>
+
+        <div class="meta-grid">
+          <span>{{ challenge.skill || 'Coding' }}</span>
+          <span>{{ challenge.durationMinutes || 0 }} min</span>
+          <span>{{ challenge.totalMarks || 0 }} marks</span>
+        </div>
+      </button>
+
+      <div class="empty-state" *ngIf="!loading && !filteredChallenges.length">
+        No coding contests found for the selected filters.
+      </div>
+
+      <div class="empty-state" *ngIf="loading">Loading coding contests...</div>
+
+      <div class="pager" *ngIf="challengeTotalPages > 1">
+        <button type="button" (click)="setChallengePage(challengePage - 1)">Previous</button>
+        <span>Page {{ challengePage }} of {{ challengeTotalPages }}</span>
+        <button type="button" (click)="setChallengePage(challengePage + 1)">Next</button>
+      </div>
+    </div>
+
+    <aside class="challenge-detail" *ngIf="selectedChallenge">
+      <div class="card-badges">
+        <span class="badge">{{
+          isPremiumLocked(selectedChallenge) ? 'Unlock Premium' : 'Start Challenge'
+        }}</span>
+
+        <span class="access-badge" [class.locked]="isPremiumLocked(selectedChallenge)">
+          <i
+            class="fa-solid"
+            [ngClass]="isPremiumLocked(selectedChallenge) ? 'fa-lock' : 'fa-unlock'"
+          ></i>
+          {{ accessLabel(selectedChallenge) }}
+        </span>
+      </div>
+      <h2>{{ selectedChallenge.title }}</h2>
+      <p>{{ selectedChallenge.description }}</p>
+
+      <div class="detail-stats">
+        <div>
+          <span>Skill</span>
+          <strong>{{ selectedChallenge.skill || 'Coding' }}</strong>
+        </div>
+        <div>
+          <span>Duration</span>
+          <strong>{{ selectedChallenge.durationMinutes || 0 }} min</strong>
+        </div>
+        <div>
+          <span>Marks</span>
+          <strong>{{ selectedChallenge.totalMarks || 0 }}</strong>
+        </div>
+      </div>
+
+      <div class="premium-lock-panel" *ngIf="isPremiumLocked(selectedChallenge)">
+        <div class="lock-icon">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <strong>Premium challenge locked</strong>
+          <p>
+            Unlock a Pro or Elite plan to access premium coding challenges and leaderboard attempts.
+          </p>
+        </div>
+      </div>
+
+      <div class="flow-box">
+        <strong>Participation Flow</strong>
+        <p>
+          Logged-in users start directly. New users can register with basic details and attend as
+          guest participants.
+        </p>
+      </div>
+
+      <div class="detail-actions">
+        <button
+          type="button"
+          class="primary-btn wide"
+          [class.premium-unlock-btn]="isPremiumLocked(selectedChallenge)"
+          (click)="startChallenge(selectedChallenge)"
+        >
+          {{ challengeActionLabel(selectedChallenge) }}
+        </button>
+        <button
+          type="button"
+          class="ghost-btn wide"
+          (click)="selectChallenge(selectedChallenge, true); scrollToLeaderboard()"
+        >
+          Challenge Leaderboard
+        </button>
+      </div>
+    </aside>
+  </section>
+
+  <section class="leaderboard-section" id="contest-leaderboard">
+    <div class="leaderboard-topbar">
+      <div>
+        <p class="section-kicker">Rankings</p>
+        <h2>
+          {{
+            leaderboardScope === 'challenge'
+              ? selectedChallenge?.title
+              : (leaderboardPeriod | titlecase) + ' Leaderboard'
+          }}
+        </h2>
+      </div>
+
+      <button type="button" class="ghost-btn compact" (click)="showPeriodLeaderboard()">
+        Overall Rankings
+      </button>
+    </div>
+
+    <div class="leaderboard-tabs">
+      <button
+        type="button"
+        [class.active]="leaderboardScope === 'period' && leaderboardPeriod === 'daily'"
+        (click)="loadPeriodLeaderboard('daily')"
+      >
+        Daily
+      </button>
+
+      <button
+        type="button"
+        [class.active]="leaderboardScope === 'period' && leaderboardPeriod === 'weekly'"
+        (click)="loadPeriodLeaderboard('weekly')"
+      >
+        Weekly
+      </button>
+
+      <button
+        type="button"
+        [class.active]="leaderboardScope === 'period' && leaderboardPeriod === 'monthly'"
+        (click)="loadPeriodLeaderboard('monthly')"
+      >
+        Monthly
+      </button>
+
+      <button
+        type="button"
+        [class.active]="leaderboardScope === 'challenge'"
+        [disabled]="!selectedChallenge"
+        (click)="selectedChallenge && selectChallenge(selectedChallenge, true)"
+      >
+        Selected Challenge
+      </button>
+    </div>
+
+    <div class="leaderboard-scroll">
+      <div
+        class="leaderboard-table"
+        *ngIf="!leaderboardLoading && pagedLeaderboard.length; else leaderboardState"
+      >
+        <div class="leaderboard-row head">
+          <span>Rank</span>
+          <span>Name</span>
+          <span>Email</span>
+          <span>Mobile</span>
+          <span>Solved</span>
+          <span>Score</span>
+          <span>Language</span>
+          <span>Submitted</span>
+        </div>
+
+        <div class="leaderboard-row" *ngFor="let row of pagedLeaderboard; trackBy: trackById">
+          <span class="rank-cell">#{{ row.rank }}</span>
+          <span class="name-cell">{{ row.name }}</span>
+          <span>{{ row.email || '-' }}</span>
+          <span>{{ row.phone || '-' }}</span>
+          <span>{{
+            row.solvedSummary || (row.solvedChallenges || 0) + '/' + (row.attemptedChallenges || 0)
+          }}</span>
+          <span class="score-cell">{{ row.score }}/{{ row.totalMarks }}</span>
+          <span>{{ row.language || 'Multiple' }}</span>
+          <span>{{ row.submittedAt | date: 'medium' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #leaderboardState>
+      <div class="empty-state" *ngIf="leaderboardLoading">Loading leaderboard...</div>
+      <div class="empty-state" *ngIf="!leaderboardLoading">
+        No submissions yet. First valid submission will lead the board.
+      </div>
+    </ng-template>
+
+    <div class="pager" *ngIf="leaderboardTotalPages > 1">
+      <button type="button" (click)="setLeaderboardPage(leaderboardPage - 1)">Previous</button>
+      <span>Page {{ leaderboardPage }} of {{ leaderboardTotalPages }}</span>
+      <button type="button" (click)="setLeaderboardPage(leaderboardPage + 1)">Next</button>
+    </div>
+  </section>
+
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+</main>

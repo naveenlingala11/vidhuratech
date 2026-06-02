@@ -173,6 +173,131 @@
       </div>
     </div>
   </section>
+  <section class="coding-contest-section">
+    <div class="contest-glow contest-glow-one"></div>
+    <div class="contest-glow contest-glow-two"></div>
+    <div class="contest-glow contest-glow-three"></div>
+
+    <div class="container coding-contest-shell">
+      <div class="contest-copy">
+        <span class="section-kicker">Weekly Coding Contest</span>
+
+        <h2>
+          Compete in live coding challenges.
+          <span>Win gold, silver, and bronze leaderboard badges.</span>
+        </h2>
+
+        <p>
+          Solve placement-style coding challenges, pass difficulty-based criteria, and climb
+          rankings based on solved challenges, score, and speed.
+        </p>
+
+        <div class="contest-points">
+          <span>Daily + Weekly + Monthly Rankings</span>
+          <span>Easy 60%</span>
+          <span>Medium 75%</span>
+          <span>Hard 90%</span>
+        </div>
+
+        <div class="contest-actions">
+          <a routerLink="/coding-contests" class="contest-primary-action">Start Coding Contest</a>
+          <a routerLink="/free-mock-tests" class="contest-secondary-action">Practice First</a>
+        </div>
+
+        <div class="contest-mini-stats">
+          <article>
+            <strong>3</strong>
+            <span>Winner Badges</span>
+          </article>
+          <article>
+            <strong>24/7</strong>
+            <span>Practice Access</span>
+          </article>
+          <article>
+            <strong>Live</strong>
+            <span>Leaderboard</span>
+          </article>
+        </div>
+      </div>
+
+      <div class="contest-side">
+        <div class="contest-board">
+          <div class="board-header">
+            <div class="board-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <span>contest_week.py</span>
+            <strong>Live</strong>
+          </div>
+
+          <div class="board-code">
+            <p><b>challenge</b> = "Placement Coding"</p>
+            <p><b>pass_rule</b> = easy_60 + medium_75 + hard_90</p>
+            <p><b>rank</b> = sort(solved_count, score, speed)</p>
+            <p><b>winners</b> = weekly_top_3()</p>
+          </div>
+
+          <div class="rank-preview">
+            <article>
+              <strong>#1</strong>
+              <span>Most Solved</span>
+            </article>
+            <article>
+              <strong>#2</strong>
+              <span>High Score</span>
+            </article>
+            <article>
+              <strong>#3</strong>
+              <span>Fast Submit</span>
+            </article>
+          </div>
+        </div>
+
+        <div
+          class="contest-winners-panel"
+          *ngIf="weeklyContestTopThree.length; else noWeeklyWinners"
+        >
+          <div class="leaderboard-title">
+            <span>Weekly Coding Champions</span>
+            <strong>Top 3</strong>
+          </div>
+
+          <article
+            class="contest-winner-card"
+            *ngFor="let winner of weeklyContestTopThree"
+            [class.gold]="winner.rank === 1"
+            [class.silver]="winner.rank === 2"
+            [class.bronze]="winner.rank === 3"
+          >
+            <div class="winner-medal">
+              <strong>#{{ winner.rank }}</strong>
+              <span>{{ winnerBadge(winner.rank) }}</span>
+            </div>
+
+            <div class="winner-info">
+              <h3>{{ winner.name }}</h3>
+              <p>{{ winner.email || 'Contest participant' }}</p>
+
+              <div class="winner-stats">
+                <span>{{ winner.solvedChallenges || 0 }} solved</span>
+                <span>{{ winner.score || 0 }}/{{ winner.totalMarks || 0 }} marks</span>
+                <span>{{ winner.percentage || 0 }}%</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noWeeklyWinners>
+          <div class="contest-empty-panel">
+            <strong>Leaderboard opening soon</strong>
+            <p>Top 3 weekly winners will appear after participants submit coding challenges.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </section>
   <section class="public-practice-section">
     <div class="practice-sun"></div>
     <div class="practice-ocean practice-ocean-one"></div>
@@ -522,7 +647,7 @@
           <h3>{{ course.title }}</h3>
           <p>{{ course.desc }}</p>
           <div class="chips" *ngIf="course.highlights?.length">
-            <span *ngFor="let item of course.highlights.slice(0, 4)">{{ item }}</span>
+            <span *ngFor="let item of course.highlights.slice(0, 3)">{{ item }}</span>
           </div>
           <div class="course-actions">
             <button class="mini-action" (click)="openEnrollModal(course)">

@@ -127,4 +127,8 @@ export class AuthService {
       })
       .pipe(tap((res) => this.saveAuthUser(res)));
   }
+
+  completeLoginFromResponse(res: any): void {
+    this.saveAuthUser(res);
+  }
 }

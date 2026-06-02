@@ -1,0 +1,132 @@
+<main class="pricing-page">
+  <section class="pricing-hero">
+    <div class="hero-copy">
+      <span class="pricing-kicker">Unlock Premium Access</span>
+      <h1>Choose your preparation plan</h1>
+      <p>
+        Premium access for courses, mock tests, interviews, notes, materials, videos, live classes,
+        coding practice, company bundles, and challenge preparation.
+      </p>
+    </div>
+
+    <div class="hero-panel">
+      <span>Live pricing</span>
+      <strong>{{ plansLoading ? 'Syncing' : 'Updated' }}</strong>
+      <p>Prices are loaded from admin pricing controls.</p>
+    </div>
+  </section>
+
+  <div class="pricing-loader" *ngIf="plansLoading">
+    <span></span>
+  </div>
+
+  <section class="pricing-grid">
+    <article class="pricing-card" *ngFor="let plan of plans" [class.featured]="plan.highlight">
+      <div class="plan-top">
+        <span>{{ plan.tag }}</span>
+        <h2>{{ plan.name }}</h2>
+        <p>{{ plan.description }}</p>
+      </div>
+
+      <div class="price-box">
+        <div>
+          <small>Rs.</small>
+          <strong>{{ formatPrice(plan.price) }}</strong>
+          <span>/ {{ plan.period }}</span>
+        </div>
+        <del *ngIf="plan.compareAtPrice">Rs. {{ formatPrice(plan.compareAtPrice) }}</del>
+      </div>
+
+      <div class="plan-meta">
+        <span><i class="fa-solid fa-clock"></i>{{ planDurationLabel(plan) }}</span>
+        <span><i class="fa-solid fa-building"></i>{{ companyLimitLabel(plan) }}</span>
+      </div>
+
+      <ul>
+        <li *ngFor="let feature of plan.features.slice(0, 7)">
+          <i class="fa-solid fa-check"></i>
+          <span>{{ feature }}</span>
+        </li>
+      </ul>
+
+      <button type="button" class="plan-action" (click)="selectPlan(plan)">Get This Plan</button>
+    </article>
+  </section>
+
+  <section class="bundle-strip">
+    <div>
+      <span>Included in premium bundles</span>
+      <strong>Courses + Mock Tests + Interviews + Notes + Videos + Live Classes</strong>
+    </div>
+    <a routerLink="/coding-contests">Back to Coding Contest</a>
+  </section>
+
+  <div class="plan-modal-backdrop" *ngIf="selectedPlan">
+    <section class="plan-modal">
+      <button type="button" class="modal-close" (click)="closeCheckout()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="modal-layout">
+        <div class="modal-plan-summary">
+          <span class="pricing-kicker">Plan Details</span>
+          <h2>{{ selectedPlan.name }} Plan</h2>
+          <p>
+            Pay Rs. {{ formatPrice(selectedPlan.price) }} for {{ planDurationLabel(selectedPlan) }}.
+            Your plan activates immediately after successful payment and invoice confirmation.
+          </p>
+
+          <div class="modal-price">
+            <small>Rs.</small>
+            <strong>{{ formatPrice(selectedPlan.price) }}</strong>
+            <span>/ {{ selectedPlan.period }}</span>
+          </div>
+
+          <div class="modal-benefits">
+            <span *ngFor="let feature of selectedPlan.features">
+              <i class="fa-solid fa-check"></i>
+              {{ feature }}
+            </span>
+          </div>
+        </div>
+
+        <div class="checkout-panel">
+          <div class="next-steps">
+            <span class="pricing-kicker">Next Steps</span>
+            <ol>
+              <li *ngFor="let step of nextSteps()">{{ step }}</li>
+            </ol>
+          </div>
+
+          <div class="checkout-form">
+            <label>
+              Full Name
+              <input [(ngModel)]="buyer.name" placeholder="Enter full name" />
+            </label>
+
+            <label>
+              Email
+              <input [(ngModel)]="buyer.email" placeholder="you@example.com" />
+            </label>
+
+            <label>
+              Mobile
+              <input [(ngModel)]="buyer.phone" placeholder="10 digit mobile number" />
+            </label>
+
+            <label>
+              City
+              <input [(ngModel)]="buyer.city" placeholder="Your city" />
+            </label>
+          </div>
+
+          <button type="button" class="pay-btn" [disabled]="loading" (click)="paySelectedPlan()">
+            {{ loading ? 'Processing...' : 'Continue to Purchase' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+</main>

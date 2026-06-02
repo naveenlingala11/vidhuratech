@@ -10,6 +10,10 @@ import { AuthService } from '../../features/auth/services/auth.service';
 import { BatchService } from '../../features/lms/batch/services/batch';
 import { PublicCourseService } from './service/public-course';
 
+type ViewMode = 'GRID' | 'LIST';
+type SortMode = 'FEATURED' | 'PRICE_LOW' | 'PRICE_HIGH' | 'DURATION' | 'TITLE' | 'LIVE';
+type PriceFilter = '' | 'FREE' | 'LOW' | 'MID' | 'PREMIUM';
+
 @Component({
   selector: 'app-courses',
   standalone: true,
@@ -21,16 +25,37 @@ export class CoursesComponent implements OnInit, OnDestroy {
   courses: any[] = [];
   filteredCourses: any[] = [];
   activeCourse: any = null;
+
   loading = false;
   error = '';
+  toast = '';
+
   keyword = '';
   selectedLevel = '';
   selectedMode = '';
+  selectedPrice: PriceFilter = '';
+  sortMode: SortMode = 'FEATURED';
+  viewMode: ViewMode = 'GRID';
+
+  page = 1;
+  pageSize = 6;
+
   isLoggedIn = false;
   isAdmin = false;
+
   selectedCurriculum: any = null;
   showCurriculum = false;
+
+  savedCourseIds = new Set<number>();
+  compareCourseIds = new Set<number>();
+
   levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
+  priceFilters = [
+    { label: 'Free', value: 'FREE' },
+    { label: 'Under Rs. 5k', value: 'LOW' },
+    { label: 'Rs. 5k - 15k', value: 'MID' },
+    { label: 'Premium', value: 'PREMIUM' },
+  ];
 
   private authSub?: Subscription;
 
@@ -49,9 +74,7 @@ export class CoursesComponent implements OnInit, OnDestroy {
 
     this.authSub = this.auth.authState.subscribe((isLogged) => {
       this.isLoggedIn = isLogged;
-      if (this.courses.length) {
-        this.attachEnrollmentStatuses();
-      }
+      if (this.courses.length) this.attachEnrollmentStatuses();
     });
 
     this.loadCourses();
@@ -78,7 +101,7 @@ export class CoursesComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const requests: Observable<any>[] = list.map((course: any) =>
+        const requests: Observable<any>[] = mapped.map((course: any) =>
           this.batchService.getActiveBatch(course.id).pipe(
             map((batchRes: any) => ({
               ...course,
@@ -92,7 +115,7 @@ export class CoursesComponent implements OnInit, OnDestroy {
           next: (courses: any[]) => {
             this.courses = courses;
             this.activeCourse =
-              this.courses.find((c) => c.batch?.status === 'ACTIVE') || this.courses[0] || null;
+              courses.find((c) => c.batch?.status === 'ACTIVE') || courses[0] || null;
 
             this.attachEnrollmentStatuses();
             this.applyFilters();
@@ -127,8 +150,8 @@ export class CoursesComponent implements OnInit, OnDestroy {
       title: c.title,
       desc: c.description || '',
       duration: `${c.durationHours || 0} hrs`,
-      durationHours: c.durationHours || 0,
-      level: c.level,
+      durationHours: Number(c.durationHours || 0),
+      level: c.level || 'BEGINNER',
       status: c.status,
       price: Number(c.price || 0),
       oldPrice: meta.oldPrice || null,
@@ -149,9 +172,7 @@ export class CoursesComponent implements OnInit, OnDestroy {
   attachEnrollmentStatuses(): void {
     const role = localStorage.getItem('role');
 
-    if (!this.auth.isLoggedIn() || role !== 'STUDENT') {
-      return;
-    }
+    if (!this.auth.isLoggedIn() || role !== 'STUDENT') return;
 
     this.courses.forEach((course) => {
       if (!course.batch?.id) return;
@@ -161,41 +182,116 @@ export class CoursesComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (res: any) => {
             course.isEnrolled = !!res?.data;
+            this.applyFilters(false);
             this.cdr.detectChanges();
           },
         });
     });
   }
 
-  applyFilters(): void {
-    const keyword = this.keyword.trim().toLowerCase();
+  applyFilters(resetPage = true): void {
+    const term = this.keyword.trim().toLowerCase();
 
     let data = [...this.courses];
 
-    if (keyword) {
+    if (term) {
       data = data.filter((c) =>
-        `${c.title} ${c.code} ${c.desc} ${c.level}`.toLowerCase().includes(keyword),
+        [
+          c.title,
+          c.code,
+          c.desc,
+          c.level,
+          c.batch?.name,
+          ...(c.highlights || []),
+          ...(c.outcomes || []),
+          ...(c.tools || []),
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(term),
       );
     }
 
-    if (this.selectedLevel) {
-      data = data.filter((c) => c.level === this.selectedLevel);
+    if (this.selectedLevel) data = data.filter((c) => c.level === this.selectedLevel);
+
+    if (this.selectedMode === 'LIVE') data = data.filter((c) => c.batch?.status === 'ACTIVE');
+    if (this.selectedMode === 'UPCOMING') data = data.filter((c) => c.batch?.status !== 'ACTIVE');
+    if (this.selectedMode === 'ENROLLED') data = data.filter((c) => c.isEnrolled);
+
+    if (this.selectedPrice) {
+      data = data.filter((c) => {
+        if (this.selectedPrice === 'FREE') return c.price === 0;
+        if (this.selectedPrice === 'LOW') return c.price > 0 && c.price <= 5000;
+        if (this.selectedPrice === 'MID') return c.price > 5000 && c.price <= 15000;
+        return c.price > 15000;
+      });
     }
 
-    if (this.selectedMode === 'LIVE') {
-      data = data.filter((c) => c.batch?.status === 'ACTIVE');
-    }
-
-    if (this.selectedMode === 'UPCOMING') {
-      data = data.filter((c) => !c.batch || c.batch?.status !== 'ACTIVE');
-    }
+    data.sort((a, b) => this.sortCourses(a, b));
 
     this.filteredCourses = data;
+    if (resetPage) this.page = 1;
+    this.page = Math.min(this.page, this.totalPages);
+
+    if (!this.activeCourse && this.filteredCourses.length) {
+      this.activeCourse = this.filteredCourses[0];
+    }
+  }
+
+  resetFilters(): void {
+    this.keyword = '';
+    this.selectedLevel = '';
+    this.selectedMode = '';
+    this.selectedPrice = '';
+    this.sortMode = 'FEATURED';
+    this.pageSize = 6;
+    this.applyFilters();
+  }
+
+  setLevel(level: string): void {
+    this.selectedLevel = this.selectedLevel === level ? '' : level;
+    this.applyFilters();
   }
 
   setActiveCourse(course: any): void {
     this.activeCourse = course;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  toggleSaved(course: any, event?: Event): void {
+    event?.stopPropagation();
+    this.savedCourseIds.has(course.id)
+      ? this.savedCourseIds.delete(course.id)
+      : this.savedCourseIds.add(course.id);
+
+    this.showToast(
+      this.savedCourseIds.has(course.id) ? 'Saved to shortlist' : 'Removed from shortlist',
+    );
+  }
+
+  toggleCompare(course: any, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!this.compareCourseIds.has(course.id) && this.compareCourseIds.size >= 3) {
+      this.showToast('You can compare up to 3 courses');
+      return;
+    }
+
+    this.compareCourseIds.has(course.id)
+      ? this.compareCourseIds.delete(course.id)
+      : this.compareCourseIds.add(course.id);
+  }
+
+  isSaved(course: any): boolean {
+    return this.savedCourseIds.has(course.id);
+  }
+
+  isCompared(course: any): boolean {
+    return this.compareCourseIds.has(course.id);
+  }
+
+  clearCompare(): void {
+    this.compareCourseIds.clear();
   }
 
   viewDetails(course: any): void {
@@ -223,7 +319,7 @@ export class CoursesComponent implements OnInit, OnDestroy {
     const batchId = course?.batch?.id;
 
     if (!batchId) {
-      alert('Curriculum will be available when a batch is active');
+      this.showToast('Curriculum will be available when a batch is active');
       return;
     }
 
@@ -234,9 +330,8 @@ export class CoursesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           const raw = res?.data;
-
           if (!raw) {
-            alert('Curriculum not available');
+            this.showToast('Curriculum not available');
             return;
           }
 
@@ -245,24 +340,21 @@ export class CoursesComponent implements OnInit, OnDestroy {
           try {
             full = typeof raw === 'string' ? JSON.parse(raw) : raw;
           } catch {
-            alert('Curriculum data corrupted');
+            this.showToast('Curriculum data corrupted');
             return;
           }
 
           if (!full?.curriculum || !Array.isArray(full.curriculum)) {
-            alert('Curriculum not available');
+            this.showToast('Curriculum not available');
             return;
           }
 
           this.selectedCurriculum = this.auth.isLoggedIn()
             ? full
-            : {
-                ...full,
-                curriculum: full.curriculum.slice(0, 2),
-              };
+            : { ...full, curriculum: full.curriculum.slice(0, 2) };
 
-          this.selectedCurriculum.curriculum.forEach((m: any) => {
-            m.open = false;
+          this.selectedCurriculum.curriculum.forEach((m: any, index: number) => {
+            m.open = index === 0;
           });
 
           this.showCurriculum = true;
@@ -273,8 +365,12 @@ export class CoursesComponent implements OnInit, OnDestroy {
               ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
         },
-        error: () => alert('Failed to load curriculum'),
+        error: () => this.showToast('Failed to load curriculum'),
       });
+  }
+
+  closeCurriculum(): void {
+    this.showCurriculum = false;
   }
 
   formatPrice(price: number): string {
@@ -287,6 +383,51 @@ export class CoursesComponent implements OnInit, OnDestroy {
     if (url.startsWith('http')) return url;
     if (url.startsWith('/')) return `${environment.apiUrl}${url}`;
     return `${environment.apiUrl}/course-thumbnails/${url}`;
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredCourses.length / this.pageSize));
+  }
+
+  get pagedCourses(): any[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredCourses.slice(start, start + this.pageSize);
+  }
+
+  get comparedCourses(): any[] {
+    return this.courses.filter((c) => this.compareCourseIds.has(c.id));
+  }
+
+  get stats() {
+    return {
+      total: this.courses.length,
+      live: this.courses.filter((c) => c.batch?.status === 'ACTIVE').length,
+      saved: this.savedCourseIds.size,
+      enrolled: this.courses.filter((c) => c.isEnrolled).length,
+    };
+  }
+
+  get rangeLabel(): string {
+    if (!this.filteredCourses.length) return '0 of 0';
+    const start = (this.page - 1) * this.pageSize + 1;
+    const end = Math.min(this.page * this.pageSize, this.filteredCourses.length);
+    return `${start}-${end} of ${this.filteredCourses.length}`;
+  }
+
+  pages(): number[] {
+    const start = Math.max(1, Math.min(this.page - 2, this.totalPages - 4));
+    const safeStart = Math.max(1, start);
+    const end = Math.min(this.totalPages, safeStart + 4);
+    return Array.from({ length: end - safeStart + 1 }, (_, i) => safeStart + i);
+  }
+
+  setPage(page: number): void {
+    this.page = Math.min(Math.max(page, 1), this.totalPages);
+    window.scrollTo({ top: 520, behavior: 'smooth' });
+  }
+
+  trackById(_: number, item: any): number {
+    return item.id;
   }
 
   getCourseSlug(course: any): string {
@@ -319,5 +460,26 @@ export class CoursesComponent implements OnInit, OnDestroy {
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+  }
+
+  private sortCourses(a: any, b: any): number {
+    if (this.sortMode === 'PRICE_LOW') return a.price - b.price;
+    if (this.sortMode === 'PRICE_HIGH') return b.price - a.price;
+    if (this.sortMode === 'DURATION') return b.durationHours - a.durationHours;
+    if (this.sortMode === 'TITLE') return String(a.title).localeCompare(String(b.title));
+    if (this.sortMode === 'LIVE') {
+      return Number(b.batch?.status === 'ACTIVE') - Number(a.batch?.status === 'ACTIVE');
+    }
+
+    return (
+      Number(b.batch?.status === 'ACTIVE') - Number(a.batch?.status === 'ACTIVE') ||
+      Number(b.highlights?.length || 0) - Number(a.highlights?.length || 0) ||
+      Number(a.price || 0) - Number(b.price || 0)
+    );
+  }
+
+  private showToast(message: string): void {
+    this.toast = message;
+    setTimeout(() => (this.toast = ''), 2600);
   }
 }

@@ -9,6 +9,7 @@ import {
   OptionKey,
 } from '../../assessments/models/assessment.model';
 import { TrainerBatchLookupService } from '../../services/trainer-batch-lookup.service';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-create-assessment',
   standalone: true,
@@ -39,12 +40,23 @@ export class CreateAssessmentComponent implements OnInit {
   bulkAssessment: IAssessment | null = null;
   validationResult: IBulkAssessmentValidationResult | null = null;
   showPreview = false;
+  editingAssessmentId: number | null = null;
+
   constructor(
     private assessmentService: AssessmentService,
     private trainerBatchLookupService: TrainerBatchLookupService,
+    private route: ActivatedRoute,
   ) {}
+
   ngOnInit(): void {
     this.loadTrainerBatches();
+
+    const editId = Number(this.route.snapshot.queryParamMap.get('editId'));
+
+    if (editId) {
+      this.editingAssessmentId = editId;
+      this.loadAssessmentForEdit(editId);
+    }
   }
 
   loadTrainerBatches(): void {
@@ -65,9 +77,39 @@ export class CreateAssessmentComponent implements OnInit {
       },
     });
   }
+
+  loadAssessmentForEdit(id: number): void {
+    this.loading = true;
+
+    this.assessmentService.getTrainerAssessmentDetails(id).subscribe({
+      next: (res: any) => {
+        const data = res?.data || res;
+
+        this.assessment = {
+          batchId: Number(data.batchId || 0),
+          title: data.title || '',
+          description: data.description || '',
+          companyName: data.companyName || 'General',
+          skill: data.skill || 'Placement Readiness',
+          totalMarks: Number(data.totalMarks || 100),
+          durationMinutes: Number(data.durationMinutes || 60),
+          questions: data.questions || [],
+        };
+
+        this.mode = 'manual';
+        this.loading = false;
+      },
+      error: () => {
+        this.errorMessages = ['Unable to load assessment for edit'];
+        this.loading = false;
+      },
+    });
+  }
+
   switchMode(mode: 'manual' | 'bulk') {
     this.mode = mode;
   }
+
   addQuestion() {
     this.assessment.questions.push({
       question: '',
@@ -82,30 +124,48 @@ export class CreateAssessmentComponent implements OnInit {
       explanation: '',
     });
   }
+
   removeQuestion(index: number) {
     this.assessment.questions.splice(index, 1);
   }
+
   getOptionValue(options: any, key: OptionKey): string {
     return options?.[key] || '';
   }
+
   submitAssessment() {
     this.loading = true;
     this.errorMessages = [];
     this.successMessage = '';
+    if (!this.canSubmitManual) {
+      this.errorMessages = ['Please complete assessment details and at least one valid question'];
+      this.loading = false;
+      return;
+    }
     if (!this.assessment.batchId) {
       this.errorMessages = ['Please select one of your assigned batches'];
       this.loading = false;
       return;
     }
-    this.assessmentService.createAssessment(this.assessment).subscribe({
+    const request = this.editingAssessmentId
+      ? this.assessmentService.updateAssessment(this.editingAssessmentId, this.assessment)
+      : this.assessmentService.createAssessment(this.assessment);
+
+    request.subscribe({
       next: () => {
-        this.successMessage = 'Assessment Created Successfully';
+        this.successMessage = this.editingAssessmentId
+          ? 'Assessment Updated Successfully'
+          : 'Assessment Created Successfully';
+
         this.loading = false;
+        this.editingAssessmentId = null;
         this.resetManualForm();
       },
       error: (err) => {
         console.error(err);
-        this.errorMessages = ['Assessment Creation Failed'];
+        this.errorMessages = [
+          this.editingAssessmentId ? 'Assessment Update Failed' : 'Assessment Creation Failed',
+        ];
         this.loading = false;
       },
     });
@@ -195,5 +255,46 @@ export class CreateAssessmentComponent implements OnInit {
 }`;
     navigator.clipboard.writeText(template);
     alert('JSON template copied');
+  }
+
+  get questionCount(): number {
+    return this.assessment.questions.length;
+  }
+
+  get configuredMarks(): number {
+    return this.assessment.questions.reduce((sum, q) => sum + Number(q.marks || 0), 0);
+  }
+
+  get canSubmitManual(): boolean {
+    return (
+      !!this.assessment.batchId &&
+      !!this.assessment.title.trim() &&
+      this.assessment.questions.length > 0 &&
+      this.assessment.questions.every(
+        (q) =>
+          q.question.trim() &&
+          q.options.A.trim() &&
+          q.options.B.trim() &&
+          q.options.C.trim() &&
+          q.options.D.trim() &&
+          q.correctAnswer &&
+          Number(q.marks) > 0,
+      )
+    );
+  }
+
+  sampleQuestion(): void {
+    this.assessment.questions.push({
+      question: 'Which keyword is used to create a component in Angular?',
+      options: {
+        A: '@Component',
+        B: '@Injectable',
+        C: '@Module',
+        D: '@Service',
+      },
+      correctAnswer: 'A',
+      marks: 10,
+      explanation: '@Component decorator defines Angular components.',
+    });
   }
 }

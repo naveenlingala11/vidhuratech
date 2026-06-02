@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { DASHBOARD_MENUS } from '../../shared/dashboard-menu.config';
+import { UserPlanBadgeService } from '../../../services/user-plan-badge.service';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -25,11 +26,13 @@ export class DashboardSidebar implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
+    public userPlanBadgeService: UserPlanBadgeService,
   ) {}
 
   ngOnInit(): void {
     this.user = this.authService.getUser();
     this.menuItems = DASHBOARD_MENUS[this.user?.role] || [];
+    this.userPlanBadgeService.load();
   }
 
   get filteredMenuItems(): any[] {

@@ -1,0 +1,522 @@
+<main class="access-page">
+  <section class="access-shell">
+    <header class="access-header">
+      <div class="header-copy">
+        <span class="eyebrow">Admin Control Center</span>
+        <h1>Plan Access</h1>
+        <p>
+          Control paid access, plan pricing, coupons, users, and global feature availability from
+          one commercial operations workspace.
+        </p>
+      </div>
+
+      <div class="header-panel">
+        <div>
+          <span>Active Access</span>
+          <strong>{{ stats.active }}</strong>
+        </div>
+
+        <div>
+          <span>Premium Ready</span>
+          <strong>{{ stats.premium }}</strong>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="soft-btn" (click)="loadGrants()">
+            <i class="bi bi-arrow-clockwise"></i>
+            Refresh
+          </button>
+          <button type="button" class="dark-btn" (click)="resetForm()">
+            <i class="bi bi-plus-lg"></i>
+            New Grant
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="metric-row">
+      <article>
+        <span>Total records</span>
+        <strong>{{ stats.total }}</strong>
+        <small>All manual and invoice-linked grants</small>
+      </article>
+
+      <article class="success">
+        <span>Active</span>
+        <strong>{{ stats.active }}</strong>
+        <small>Currently usable</small>
+      </article>
+
+      <article class="premium">
+        <span>Premium</span>
+        <strong>{{ stats.premium }}</strong>
+        <small>Challenge access enabled</small>
+      </article>
+
+      <article class="danger">
+        <span>Blocked</span>
+        <strong>{{ stats.expired + stats.revoked }}</strong>
+        <small>Expired or revoked</small>
+      </article>
+    </section>
+
+    <nav class="control-tabs" aria-label="Commercial control tabs">
+      <button type="button" [class.active]="activeTab === 'ACCESS'" (click)="switchTab('ACCESS')">
+        <i class="bi bi-shield-check"></i>
+        Access Ledger
+      </button>
+      <button type="button" [class.active]="activeTab === 'PEOPLE'" (click)="switchTab('PEOPLE')">
+        <i class="bi bi-people"></i>
+        People
+      </button>
+      <button type="button" [class.active]="activeTab === 'PRICING'" (click)="switchTab('PRICING')">
+        <i class="bi bi-currency-rupee"></i>
+        Pricing
+      </button>
+      <button
+        type="button"
+        [class.active]="activeTab === 'DISCOUNTS'"
+        (click)="switchTab('DISCOUNTS')"
+      >
+        <i class="bi bi-percent"></i>
+        Discounts
+      </button>
+      <button
+        type="button"
+        [class.active]="activeTab === 'CONTROLS'"
+        (click)="switchTab('CONTROLS')"
+      >
+        <i class="bi bi-sliders"></i>
+        Controls
+      </button>
+    </nav>
+
+    <section class="access-workspace" *ngIf="activeTab === 'ACCESS'">
+      <aside class="composer">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">Access Builder</span>
+            <h2>{{ selectedGrant ? 'Edit Grant' : 'Create Grant' }}</h2>
+          </div>
+
+          <span class="mode-pill">{{ selectedGrant ? 'Editing' : 'New' }}</span>
+        </div>
+
+        <div class="selected-summary">
+          <div class="summary-count">
+            <strong>{{ selectedFeatureCount }}</strong>
+            <span>Enabled</span>
+          </div>
+          <p>{{ selectedFeatureNames }}</p>
+        </div>
+
+        <div class="form-stack">
+          <label class="field wide">
+            <span>User Email</span>
+            <input
+              type="email"
+              [(ngModel)]="form.email"
+              [disabled]="!!selectedGrant"
+              placeholder="student@example.com"
+            />
+          </label>
+
+          <div class="split">
+            <label class="field">
+              <span>Plan Code</span>
+              <input [(ngModel)]="form.planCode" placeholder="PRO" />
+            </label>
+
+            <label class="field">
+              <span>Status</span>
+              <select [(ngModel)]="form.status">
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="PAUSED">PAUSED</option>
+                <option value="REVOKED">REVOKED</option>
+                <option value="EXPIRED">EXPIRED</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="field wide">
+            <span>Plan Name</span>
+            <input [(ngModel)]="form.planName" placeholder="Pro Manual Access" />
+          </label>
+
+          <div class="split">
+            <label class="field">
+              <span>Duration Days</span>
+              <input type="number" min="1" [(ngModel)]="form.durationDays" placeholder="30" />
+            </label>
+
+            <label class="field">
+              <span>Company Limit</span>
+              <input type="number" min="1" [(ngModel)]="form.companyLimit" placeholder="999" />
+            </label>
+          </div>
+        </div>
+
+        <section class="panel-section">
+          <div class="mini-head">
+            <strong>Quick Presets</strong>
+            <span>Plan defaults</span>
+          </div>
+
+          <div class="preset-grid">
+            <button type="button" *ngFor="let preset of planPresets" (click)="preset.action()">
+              <i [class]="preset.icon"></i>
+              <span>
+                <strong>{{ preset.title }}</strong>
+                <small>{{ preset.subtitle }}</small>
+              </span>
+            </button>
+          </div>
+
+          <div class="quick-actions">
+            <button type="button" (click)="enableTrial()">Trial</button>
+            <button type="button" (click)="enableEverything()">Enable All</button>
+            <button type="button" class="danger-lite" (click)="clearFeatures()">Clear</button>
+          </div>
+
+          <div class="duration-grid">
+            <button type="button" (click)="setDuration(7)">7d</button>
+            <button type="button" (click)="setDuration(30)">30d</button>
+            <button type="button" (click)="setDuration(90)">90d</button>
+            <button type="button" (click)="setDuration(180)">180d</button>
+            <button type="button" (click)="setDuration(365)">365d</button>
+          </div>
+        </section>
+
+        <section class="feature-section" *ngFor="let group of featureGroups">
+          <div class="mini-head">
+            <strong>{{ group.title }}</strong>
+            <span>{{ group.items.length }} controls</span>
+          </div>
+
+          <div class="feature-list">
+            <label
+              class="feature-line"
+              *ngFor="let item of group.items; trackBy: trackById"
+              [class.enabled]="form[item.key]"
+            >
+              <span class="feature-icon" [ngClass]="item.tone">
+                <i [class]="item.icon"></i>
+              </span>
+
+              <span class="feature-copy">
+                <strong>{{ item.label }}</strong>
+                <small>{{ item.description }}</small>
+              </span>
+
+              <input type="checkbox" [(ngModel)]="form[item.key]" />
+            </label>
+          </div>
+        </section>
+
+        <div class="composer-actions">
+          <button type="button" class="save-btn" [disabled]="saving" (click)="save()">
+            <i class="bi bi-check2-circle"></i>
+            {{ saving ? 'Saving...' : selectedGrant ? 'Update Access' : 'Grant Access' }}
+          </button>
+
+          <button type="button" class="cancel-btn" *ngIf="selectedGrant" (click)="resetForm()">
+            Cancel Editing
+          </button>
+        </div>
+      </aside>
+
+      <section class="records">
+        <div class="records-toolbar">
+          <div>
+            <span class="eyebrow">Access Ledger</span>
+            <h2>{{ filteredGrants.length }} records</h2>
+          </div>
+
+          <div class="filters-bar">
+            <label>
+              <i class="bi bi-search"></i>
+              <input [(ngModel)]="search" placeholder="Search name, email, phone, plan..." />
+            </label>
+
+            <select [(ngModel)]="statusFilter">
+              <option *ngFor="let status of statusFilters" [value]="status">{{ status }}</option>
+            </select>
+
+            <select [(ngModel)]="planFilter">
+              <option value="ALL">ALL PLANS</option>
+              <option *ngFor="let plan of planOptions" [value]="plan">{{ plan }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="loading">
+          <span class="loader"></span>
+          Loading access grants...
+        </div>
+
+        <div class="record-list" *ngIf="!loading && filteredGrants.length">
+          <article
+            class="record-card"
+            *ngFor="let grant of filteredGrants; trackBy: trackById"
+            [class.is-expired]="displayStatus(grant) === 'EXPIRED'"
+            [class.is-revoked]="displayStatus(grant) === 'REVOKED'"
+          >
+            <div class="record-main">
+              <div class="avatar">
+                {{ (grant.buyerName || grant.buyerEmail || 'U').slice(0, 1) }}
+              </div>
+
+              <div class="identity">
+                <div class="identity-top">
+                  <h3>{{ grant.buyerName || 'User' }}</h3>
+                  <span
+                    class="status"
+                    [class.active]="displayStatus(grant) === 'ACTIVE'"
+                    [class.paused]="displayStatus(grant) === 'PAUSED'"
+                    [class.revoked]="displayStatus(grant) === 'REVOKED'"
+                  >
+                    {{ accessHealth(grant) }}
+                  </span>
+                </div>
+
+                <button type="button" class="email-link" (click)="copyEmail(grant.buyerEmail)">
+                  <i class="bi bi-copy"></i>
+                  {{ grant.buyerEmail || '-' }}
+                </button>
+              </div>
+
+              <div class="plan-badge">
+                <strong>{{ grant.planCode || 'PLAN' }}</strong>
+                <span>{{ grant.invoiceId || 'Manual' }}</span>
+              </div>
+            </div>
+
+            <div class="record-meta">
+              <span><i class="bi bi-phone"></i>{{ grant.buyerPhone || '-' }}</span>
+              <span
+                ><i class="bi bi-calendar-check"></i
+                >{{ grant.expiresAt | date: 'mediumDate' }}</span
+              >
+              <span><i class="bi bi-clock"></i>{{ daysLeft(grant) }} days left</span>
+              <span><i class="bi bi-buildings"></i>{{ grant.companyLimit || 0 }} companies</span>
+            </div>
+
+            <div class="enabled-strip">
+              <span *ngFor="let feature of enabledFeatures(grant)">{{ feature }}</span>
+              <span class="empty-feature" *ngIf="!enabledFeatures(grant).length">
+                No features enabled
+              </span>
+            </div>
+
+            <div class="record-actions">
+              <button type="button" (click)="selectGrant(grant)">
+                <i class="bi bi-pencil-square"></i>
+                Edit
+              </button>
+              <button type="button" (click)="duplicateGrant(grant)">
+                <i class="bi bi-files"></i>
+                Duplicate
+              </button>
+              <button type="button" (click)="quickExtend(grant, 30)">
+                <i class="bi bi-calendar-plus"></i>
+                +30
+              </button>
+              <button type="button" (click)="quickExtend(grant, 90)">
+                <i class="bi bi-calendar2-plus"></i>
+                +90
+              </button>
+              <button type="button" (click)="changeStatus(grant, 'PAUSED')">
+                <i class="bi bi-pause-circle"></i>
+                Pause
+              </button>
+              <button type="button" (click)="changeStatus(grant, 'ACTIVE')">
+                <i class="bi bi-play-circle"></i>
+                Activate
+              </button>
+              <button type="button" class="danger" (click)="revoke(grant)">
+                <i class="bi bi-slash-circle"></i>
+                Revoke
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && !filteredGrants.length">
+          No matching access grants found.
+        </div>
+      </section>
+    </section>
+
+    <section class="directory-panel" *ngIf="activeTab === 'PEOPLE'">
+      <div class="records-toolbar simple">
+        <div>
+          <span class="eyebrow">People Directory</span>
+          <h2>Users, students, and leads</h2>
+        </div>
+
+        <div class="filters-bar compact">
+          <label>
+            <i class="bi bi-search"></i>
+            <input [(ngModel)]="search" placeholder="Search people..." />
+          </label>
+          <button type="button" class="dark-btn" (click)="loadPeople()">Search</button>
+        </div>
+      </div>
+
+      <div class="people-grid">
+        <article class="person-card" *ngFor="let person of people">
+          <div class="card-top">
+            <span class="source-pill">{{ person.source || 'USER' }}</span>
+            <span>{{ person.role || 'Member' }}</span>
+          </div>
+          <h3>{{ person.name || 'Unnamed' }}</h3>
+          <p>{{ person.email || '-' }}</p>
+          <p>{{ person.phone || '-' }}</p>
+
+          <button type="button" (click)="grantFromPerson(person)" [disabled]="!person.email">
+            <i class="bi bi-plus-circle"></i>
+            Grant Plan Access
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <section class="directory-panel" *ngIf="activeTab === 'PRICING'">
+      <div class="records-toolbar simple">
+        <div>
+          <span class="eyebrow">Pricing Control</span>
+          <h2>Change plan prices, duration, limits, and visibility</h2>
+        </div>
+      </div>
+
+      <div class="pricing-admin-grid">
+        <article class="pricing-admin-card" *ngFor="let plan of pricingPlans">
+          <div class="card-top">
+            <span class="source-pill">{{ plan.planCode || 'PLAN' }}</span>
+            <span>{{ plan.active ? 'Active' : 'Hidden' }}</span>
+          </div>
+
+          <h3>{{ plan.planName }}</h3>
+
+          <div class="pricing-fields">
+            <label>
+              Price
+              <input type="number" [(ngModel)]="plan.price" />
+            </label>
+
+            <label>
+              Compare Price
+              <input type="number" [(ngModel)]="plan.compareAtPrice" />
+            </label>
+
+            <label>
+              Duration Days
+              <input type="number" [(ngModel)]="plan.durationDays" />
+            </label>
+
+            <label>
+              Company Limit
+              <input type="number" [(ngModel)]="plan.companyLimit" />
+            </label>
+          </div>
+
+          <label class="toggle-row">
+            Highlighted
+            <input type="checkbox" [(ngModel)]="plan.highlighted" />
+          </label>
+
+          <label class="toggle-row">
+            Active
+            <input type="checkbox" [(ngModel)]="plan.active" />
+          </label>
+
+          <button type="button" (click)="savePricing(plan)">
+            <i class="bi bi-save"></i>
+            Save Pricing
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <section class="directory-panel" *ngIf="activeTab === 'DISCOUNTS'">
+      <div class="records-toolbar simple">
+        <div>
+          <span class="eyebrow">Discount Control</span>
+          <h2>Create coupons and campaign discounts</h2>
+        </div>
+      </div>
+
+      <div class="discount-builder">
+        <input [(ngModel)]="discountForm.code" placeholder="Coupon Code: PRO50" />
+        <input [(ngModel)]="discountForm.title" placeholder="Campaign Title" />
+
+        <select [(ngModel)]="discountForm.discountType">
+          <option value="PERCENT">Percent</option>
+          <option value="FLAT">Flat</option>
+        </select>
+
+        <input
+          type="number"
+          [(ngModel)]="discountForm.discountValue"
+          placeholder="Discount Value"
+        />
+        <input [(ngModel)]="discountForm.planCode" placeholder="Plan Code optional" />
+        <input type="number" [(ngModel)]="discountForm.maxUses" placeholder="Max Uses" />
+
+        <label class="toggle-row">
+          Active
+          <input type="checkbox" [(ngModel)]="discountForm.active" />
+        </label>
+
+        <button type="button" (click)="saveDiscount()">
+          <i class="bi bi-save"></i>
+          Save Discount
+        </button>
+      </div>
+
+      <div class="people-grid">
+        <article class="person-card" *ngFor="let discount of discounts">
+          <div class="card-top">
+            <span class="source-pill">{{ discount.discountType }}</span>
+            <span>{{ discount.active === false ? 'Inactive' : 'Active' }}</span>
+          </div>
+          <h3>{{ discount.code }}</h3>
+          <p>{{ discount.title }}</p>
+          <p>{{ discount.discountValue }} {{ discount.discountType }}</p>
+          <small>{{ discount.usedCount || 0 }}/{{ discount.maxUses || 'Unlimited' }} used</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="directory-panel" *ngIf="activeTab === 'CONTROLS'">
+      <div class="records-toolbar simple">
+        <div>
+          <span class="eyebrow">Project Controls</span>
+          <h2>Turn major access features on or off globally</h2>
+        </div>
+      </div>
+
+      <div class="people-grid">
+        <article class="person-card control-card" *ngFor="let control of projectControls">
+          <div class="card-top">
+            <span class="source-pill">{{ control.enabled ? 'ENABLED' : 'DISABLED' }}</span>
+            <span>{{ control.controlKey }}</span>
+          </div>
+          <h3>{{ control.label }}</h3>
+          <p>{{ control.description }}</p>
+
+          <label class="toggle-row">
+            Enabled
+            <input
+              type="checkbox"
+              [(ngModel)]="control.enabled"
+              (change)="toggleProjectControl(control)"
+            />
+          </label>
+        </article>
+      </div>
+    </section>
+  </section>
+
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+</main>

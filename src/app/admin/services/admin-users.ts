@@ -22,6 +22,20 @@ export class AdminUserService {
     return this.http.get(`${this.API}/advanced`, { params: httpParams });
   }
 
+  getPeople360(keyword = '') {
+    let params = new HttpParams();
+
+    if (keyword.trim()) {
+      params = params.set('keyword', keyword.trim());
+    }
+
+    return this.http.get(`${this.API}/people-360`, { params });
+  }
+
+  getPersonHistory(key: string) {
+    return this.http.get(`${this.API}/people-360/${encodeURIComponent(key)}/history`);
+  }
+
   getUserStats() {
     return this.http.get(`${this.API}/stats`);
   }

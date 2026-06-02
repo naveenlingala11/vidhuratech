@@ -1,158 +1,396 @@
-<section class="iq-page student-page">
-  <header class="iq-hero student-hero">
-    <div>
-      <span>Student Workspace</span>
-      <h1>Interview Practice Hub</h1>
+<section class="student-interview-page">
+  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <header class="overview-panel">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
+    <div class="overview-copy">
+      <span class="eyebrow">
+        <i class="bi bi-lightning-charge-fill"></i>
+        Student Interview Practice
+      </span>
+
+      <h1>
+        Interview Questions
+        <span>LeetCode Style Revision</span>
+      </h1>
+
       <p>
-        Study trainer-assigned company questions from your enrolled batches and revise answers in a
-        structured format.
+        Practice company-wise interview questions in a single-column problem list. Open answers
+        inline, write notes, save questions, track confidence, and mark completed topics.
       </p>
+
+      <div class="quick-highlights">
+        <div>
+          <i class="bi bi-bookmark-star"></i>
+          <span>Mode</span>
+          <strong>Save & Revise</strong>
+        </div>
+
+        <div>
+          <i class="bi bi-check2-circle"></i>
+          <span>Progress</span>
+          <strong>{{ completionPercent }}% Complete</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="overview-stats">
+      <article class="stat-card primary">
+        <i class="bi bi-list-task"></i>
+        <span>Loaded</span>
+        <strong>{{ stats.loaded }}</strong>
+        <small>Current page</small>
+      </article>
+
+      <article class="stat-card success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Done</span>
+        <strong>{{ stats.done }}</strong>
+        <small>Completed</small>
+      </article>
+
+      <article class="stat-card warning">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Todo</span>
+        <strong>{{ stats.todo }}</strong>
+        <small>Need revision</small>
+      </article>
+
+      <article class="stat-card violet">
+        <i class="bi bi-bookmark-fill"></i>
+        <span>Saved</span>
+        <strong>{{ stats.saved }}</strong>
+        <small>Bookmarked</small>
+      </article>
+
+      <article class="stat-card slate">
+        <i class="bi bi-speedometer2"></i>
+        <span>Confidence</span>
+        <strong>{{ stats.avgConfidence }}%</strong>
+        <small>Average</small>
+      </article>
+
+      <article class="stat-card cyan">
+        <i class="bi bi-collection"></i>
+        <span>Total</span>
+        <strong>{{ stats.total }}</strong>
+        <small>Assigned</small>
+      </article>
     </div>
   </header>
 
-  <section class="stat-grid">
-    <article>
-      <span>Loaded</span><strong>{{ stats.total }}</strong>
-    </article>
-    <article>
-      <span>Companies</span><strong>{{ stats.companies }}</strong>
-    </article>
-    <article>
-      <span>Medium</span><strong>{{ stats.medium }}</strong>
-    </article>
-  </section>
-
-  <section class="premium-panel">
-    <div class="panel-heading split">
-      <div>
-        <span>Filters</span>
-        <h2>Find the right question set</h2>
-      </div>
-      <button type="button" class="soft-btn" (click)="clear()">Clear</button>
+  <section class="toolbar-panel">
+    <div class="toolbar-title">
+      <span>Problem Library</span>
+      <h2>Question Bank</h2>
     </div>
 
-    <div class="role-pills">
+    <label class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        [(ngModel)]="search"
+        (keyup.enter)="applyFilters()"
+        placeholder="Search question, topic, company..."
+      />
+    </label>
+
+    <div class="toolbar-controls">
+      <input [(ngModel)]="company" placeholder="Company" />
+      <input [(ngModel)]="topic" placeholder="Topic" />
+
+      <select [(ngModel)]="type">
+        <option value="">All Types</option>
+        <option *ngFor="let item of types">{{ item }}</option>
+      </select>
+
+      <select [(ngModel)]="difficulty">
+        <option value="">All Levels</option>
+        <option *ngFor="let item of difficulties">{{ item }}</option>
+      </select>
+
+      <select [(ngModel)]="sortBy">
+        <option value="LATEST">Latest</option>
+        <option value="COMPANY">Company</option>
+        <option value="ROLE">Role</option>
+        <option value="TOPIC">Topic</option>
+        <option value="DIFFICULTY">Difficulty</option>
+        <option value="CONFIDENCE">Low Confidence</option>
+      </select>
+
+      <button type="button" class="refresh-btn" (click)="applyFilters()">
+        <i class="bi bi-funnel"></i>
+        Apply
+      </button>
+
+      <button type="button" class="ghost-btn" (click)="resetFilters()">Reset</button>
+    </div>
+
+    <div class="view-chip">{{ visibleQuestions.length }} Showing</div>
+  </section>
+
+  <section class="chip-surface">
+    <div class="chip-block">
+      <span>Roles</span>
       <button
         type="button"
-        *ngFor="let role of roles"
-        [class.active]="filters.role === role"
-        (click)="chooseRole(role)"
+        *ngFor="let item of roles"
+        [class.active]="role === item"
+        (click)="chooseRole(item)"
       >
-        {{ role }}
+        {{ item }}
       </button>
     </div>
 
-    <div class="filter-bar student-filter">
-      <input [(ngModel)]="filters.search" placeholder="Search questions..." />
-      <input [(ngModel)]="filters.company" placeholder="Company" />
-      <input [(ngModel)]="filters.topic" placeholder="Topic" />
+    <div class="chip-block">
+      <span>Difficulty</span>
+      <button
+        type="button"
+        *ngFor="let item of difficulties"
+        [class.active]="difficulty === item"
+        (click)="chooseDifficulty(item)"
+      >
+        {{ item }}
+      </button>
+    </div>
 
-      <select [(ngModel)]="filters.type">
-        <option value="">All Types</option>
-        <option>CONCEPTUAL</option>
-        <option>SCENARIO</option>
-        <option>IMPLEMENTATION</option>
-        <option>HR</option>
-      </select>
-
-      <select [(ngModel)]="filters.difficulty">
-        <option value="">All Levels</option>
-        <option *ngFor="let difficulty of difficulties">{{ difficulty }}</option>
-      </select>
-
-      <button type="button" class="primary-btn" (click)="apply()">Apply</button>
+    <div class="chip-block status-block">
+      <span>Status</span>
+      <button type="button" [class.active]="statusFilter === 'ALL'" (click)="statusFilter = 'ALL'">
+        All
+      </button>
+      <button
+        type="button"
+        [class.active]="statusFilter === 'TODO'"
+        (click)="statusFilter = 'TODO'"
+      >
+        Todo
+      </button>
+      <button
+        type="button"
+        [class.active]="statusFilter === 'DONE'"
+        (click)="statusFilter = 'DONE'"
+      >
+        Done
+      </button>
+      <button
+        type="button"
+        [class.active]="statusFilter === 'SAVED'"
+        (click)="statusFilter = 'SAVED'"
+      >
+        Saved
+      </button>
     </div>
   </section>
 
-  <div class="loading" *ngIf="loading">Loading interview questions...</div>
-  <div class="empty error" *ngIf="!loading && error">{{ error }}</div>
+  <div class="validation" *ngIf="validation">{{ validation }}</div>
 
-  <section class="question-list" *ngIf="!loading && !error && questions.length">
-    <article class="student-question-card" *ngFor="let q of questions; let i = index">
-      <div class="card-top">
-        <span>{{ q.company }}</span>
-        <div>
-          <b>{{ q.role }}</b>
-          <b>{{ q.difficulty }}</b>
+  <section class="loading-state" *ngIf="loading">
+    <div class="loader"></div>
+    <h2>Loading interview questions</h2>
+    <p>Please wait while your assigned questions are being prepared.</p>
+  </section>
+
+  <section class="empty-state" *ngIf="!loading && error">
+    <div class="empty-icon danger">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <h2>Unable to load questions</h2>
+    <p>{{ error }}</p>
+  </section>
+
+  <section class="question-surface" *ngIf="!loading && !error">
+    <div class="question-header-row">
+      <span>#</span>
+      <span>Problem</span>
+      <span>Company</span>
+      <span>Role</span>
+      <span>Level</span>
+      <span>Status</span>
+      <span>Actions</span>
+    </div>
+
+    <article
+      class="question-row"
+      *ngFor="let q of visibleQuestions; let i = index; trackBy: trackById"
+      [class.expanded]="q.expanded"
+      [class.done]="q.done"
+    >
+      <button type="button" class="question-main-row" (click)="toggleExpand(q)">
+        <span class="question-number">{{ page * pageSize + i + 1 }}</span>
+
+        <span class="question-title">
+          <strong>{{ q.question }}</strong>
+          <small>{{ q.topic }} · {{ q.type }}</small>
+        </span>
+
+        <span class="table-text">{{ q.company }}</span>
+        <span class="table-text">{{ q.role }}</span>
+
+        <span
+          class="difficulty-pill"
+          [class.easy]="q.difficulty === 'EASY'"
+          [class.medium]="q.difficulty === 'MEDIUM'"
+          [class.hard]="q.difficulty === 'HARD'"
+        >
+          {{ q.difficulty }}
+        </span>
+
+        <span class="status-pill" [class.complete]="q.done">
+          <i class="bi" [ngClass]="q.done ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+          {{ q.done ? 'Done' : 'Todo' }}
+        </span>
+
+        <span class="row-actions" (click)="$event.stopPropagation()">
+          <button type="button" [class.active]="q.saved" (click)="toggleSave(q, $event)">
+            <i class="bi" [ngClass]="q.saved ? 'bi-bookmark-fill' : 'bi-bookmark'"></i>
+          </button>
+
+          <button type="button" [class.active]="q.done" (click)="toggleDone(q, $event)">
+            <i class="bi bi-check2"></i>
+          </button>
+
+          <button type="button" (click)="toggleExpand(q)">
+            <i class="bi" [ngClass]="q.expanded ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </button>
+        </span>
+      </button>
+
+      <section class="question-detail" *ngIf="q.expanded">
+        <div class="detail-toolbar">
+          <div class="answer-tabs">
+            <button
+              type="button"
+              [class.active]="q.activeTab === 'ANSWER'"
+              (click)="setTab(q, 'ANSWER')"
+            >
+              Answer
+            </button>
+            <button
+              type="button"
+              [class.active]="q.activeTab === 'NOTES'"
+              (click)="setTab(q, 'NOTES')"
+            >
+              Notes
+            </button>
+            <button
+              type="button"
+              [class.active]="q.activeTab === 'DISCUSSION'"
+              (click)="setTab(q, 'DISCUSSION')"
+            >
+              Discussion
+            </button>
+          </div>
+
+          <div class="confidence-control">
+            <span>Confidence</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              [ngModel]="q.confidence"
+              (ngModelChange)="setConfidence(q, $event)"
+            />
+            <strong>{{ q.confidence }}%</strong>
+          </div>
         </div>
-      </div>
 
-      <h3>Q{{ page * 10 + i + 1 }}. {{ q.question }}</h3>
-      <p>{{ q.topic }} · {{ q.type }}</p>
+        <div class="answer-layout" *ngIf="q.activeTab === 'ANSWER'">
+          <article class="answer-card">
+            <span>01</span>
+            <h3>Definition</h3>
+            <p>{{ section(q.answer, 'Definition:', 'Explanation:') }}</p>
+          </article>
 
-      <div class="card-actions">
-        <button type="button" class="primary-btn" (click)="toggle(q)">
-          {{ q.show ? 'Hide Answer' : 'View Answer' }}
-        </button>
-        <button type="button" class="soft-btn" (click)="open(q)">Focus Mode</button>
-      </div>
+          <article class="answer-card">
+            <span>02</span>
+            <h3>Explanation</h3>
+            <p>{{ section(q.answer, 'Explanation:', 'Example:') }}</p>
+          </article>
 
-      <section class="answer-panel" *ngIf="q.show">
-        <article>
-          <h4>Definition</h4>
-          <p>{{ getSection(q.answer, 'Definition:', 'Explanation:') }}</p>
-        </article>
-        <article>
-          <h4>Explanation</h4>
-          <p>{{ getSection(q.answer, 'Explanation:', 'Example:') }}</p>
-        </article>
-        <article>
-          <h4>Example</h4>
-          <pre>{{ getSection(q.answer, 'Example:', 'Real-world Scenario:') }}</pre>
-        </article>
-        <article>
-          <h4>Real-world Scenario</h4>
-          <p>{{ getSection(q.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
-        </article>
-        <article>
-          <h4>Interview Tip</h4>
-          <p>{{ getSection(q.answer, 'Interview Tip:', '') }}</p>
-        </article>
+          <article class="answer-card code-card">
+            <span>03</span>
+            <h3>Example</h3>
+            <pre>{{ section(q.answer, 'Example:', 'Real-world Scenario:') }}</pre>
+          </article>
+
+          <article class="answer-card">
+            <span>04</span>
+            <h3>Real-world Scenario</h3>
+            <p>{{ section(q.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
+          </article>
+
+          <article class="answer-card tip-card">
+            <span>05</span>
+            <h3>Interview Tip</h3>
+            <p>{{ section(q.answer, 'Interview Tip:', '') }}</p>
+          </article>
+        </div>
+
+        <div class="notes-panel" *ngIf="q.activeTab === 'NOTES'">
+          <div>
+            <h3>Your Notes</h3>
+            <p>Write your own short answer, key points, or mistakes to avoid.</p>
+          </div>
+
+          <textarea
+            [(ngModel)]="q.notes"
+            (ngModelChange)="setTab(q, 'NOTES')"
+            rows="8"
+            placeholder="Example: Explain polymorphism with one real-time project example..."
+          ></textarea>
+        </div>
+
+        <div class="notes-panel discussion" *ngIf="q.activeTab === 'DISCUSSION'">
+          <div>
+            <h3>Discussion Draft</h3>
+            <p>Prepare a doubt or discussion point about this question.</p>
+          </div>
+
+          <textarea
+            [(ngModel)]="q.discussionDraft"
+            (ngModelChange)="setTab(q, 'DISCUSSION')"
+            rows="8"
+            placeholder="Example: I understand the answer, but where exactly do we use this in real projects?"
+          ></textarea>
+
+          <button type="button" class="discussion-btn">
+            <i class="bi bi-chat-dots"></i>
+            Save Draft
+          </button>
+        </div>
       </section>
     </article>
+
+    <div class="empty-state inline-empty" *ngIf="!visibleQuestions.length">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h2>No questions found</h2>
+      <p>Try changing filters or search keywords.</p>
+    </div>
   </section>
 
-  <div class="empty" *ngIf="!loading && !error && !questions.length">
-    No interview questions assigned yet.
-  </div>
-
-  <nav class="pagination" *ngIf="totalPages > 1">
-    <button type="button" class="soft-btn" [disabled]="page === 0" (click)="prev()">
-      Previous
+  <nav class="pagination" *ngIf="!loading && !error && totalPages > 1">
+    <button type="button" (click)="prev()" [disabled]="page === 0">
+      <i class="bi bi-chevron-left"></i>
+      Prev
     </button>
-    <span>Page {{ page + 1 }} of {{ totalPages }}</span>
-    <button type="button" class="soft-btn" [disabled]="page >= totalPages - 1" (click)="next()">
+
+    <button
+      type="button"
+      *ngFor="let p of pages()"
+      [class.active]="p === page + 1"
+      (click)="goToPage(p)"
+    >
+      {{ p }}
+    </button>
+
+    <button type="button" (click)="next()" [disabled]="page >= totalPages - 1">
       Next
+      <i class="bi bi-chevron-right"></i>
     </button>
   </nav>
-
-  <aside class="preview-drawer" *ngIf="selected">
-    <div class="drawer-card">
-      <button type="button" class="close-btn" (click)="close()">×</button>
-      <span class="drawer-kicker">{{ selected.company }} · {{ selected.role }}</span>
-      <h2>{{ selected.question }}</h2>
-      <section class="answer-panel">
-        <article>
-          <h4>Definition</h4>
-          <p>{{ getSection(selected.answer, 'Definition:', 'Explanation:') }}</p>
-        </article>
-        <article>
-          <h4>Explanation</h4>
-          <p>{{ getSection(selected.answer, 'Explanation:', 'Example:') }}</p>
-        </article>
-        <article>
-          <h4>Example</h4>
-          <pre>{{ getSection(selected.answer, 'Example:', 'Real-world Scenario:') }}</pre>
-        </article>
-        <article>
-          <h4>Real-world Scenario</h4>
-          <p>{{ getSection(selected.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
-        </article>
-        <article>
-          <h4>Interview Tip</h4>
-          <p>{{ getSection(selected.answer, 'Interview Tip:', '') }}</p>
-        </article>
-      </section>
-    </div>
-  </aside>
 </section>

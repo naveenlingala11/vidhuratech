@@ -3,8 +3,9 @@ import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PublicPracticeService } from '../../../services/public-practice.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
-type PracticeType = 'ASSESSMENT' | 'CHALLENGE';
+type PracticeType = 'ASSESSMENT' | 'CHALLENGE' | 'INTERVIEW';
 type OptionKey = 'A' | 'B' | 'C' | 'D';
 
 interface PracticeGrant {
@@ -13,6 +14,9 @@ interface PracticeGrant {
   practiceId: number;
   expiresAt: string;
   maxAttempts: number;
+  authenticated?: boolean;
+  userId?: number;
+  ownerMode?: 'AUTH' | 'GUEST';
 }
 
 @Component({
@@ -119,6 +123,7 @@ export class PublicPracticeComponent implements OnInit {
     private publicPracticeService: PublicPracticeService,
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {}
 
@@ -206,6 +211,117 @@ export class PublicPracticeComponent implements OnInit {
     return Number.isFinite(expiresAt) && expiresAt > Date.now();
   }
 
+  private premiumAccessLevels(): string[] {
+    return ['PAID_STUDENT_ONLY', 'PREMIUM', 'PRO_ONLY', 'ELITE_ONLY'];
+  }
+
+  private accountAccessLevels(): string[] {
+    return ['ACCOUNT_REQUIRED', 'ENROLLED_STUDENT_ONLY'];
+  }
+
+  private itemAccessLevel(item: any): string {
+    return String(item?.accessLevel || item?.publicAccessLevel || 'LEAD_REQUIRED').toUpperCase();
+  }
+
+  private isPremiumItem(item: any): boolean {
+    return this.premiumAccessLevels().includes(this.itemAccessLevel(item));
+  }
+
+  private isAccountOnlyItem(item: any): boolean {
+    return this.accountAccessLevels().includes(this.itemAccessLevel(item));
+  }
+
+  private resolvePracticeType(item: any): PracticeType {
+    const type = String(item?.type || '').toUpperCase();
+
+    if (type.includes('CHALLENGE')) return 'CHALLENGE';
+    if (type.includes('INTERVIEW')) return 'INTERVIEW';
+
+    return 'ASSESSMENT';
+  }
+
+  private prepareChallengeWorkspace(): void {
+    this.sourceCode = this.getStarterCode(this.language);
+    this.startHintUnlockTimer();
+    this.lastStarterCode = this.sourceCode;
+    this.challengeResult = null;
+  }
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  unlockAuthenticatedAccess(item: any): void {
+    const type = this.resolvePracticeType(item);
+
+    if (type === 'INTERVIEW') {
+      this.showToast('Interview practice access will open from interview section');
+      return;
+    }
+
+    this.submitting = true;
+
+    this.publicPracticeService
+      .registerAuthenticatedAccess({
+        practiceType: type,
+        practiceId: Number(item.id),
+      })
+      .subscribe({
+        next: (res: any) => {
+          this.submitting = false;
+
+          const grant = res?.data as PracticeGrant;
+
+          this.currentGrant = grant;
+          this.workspaceUnlocked = true;
+          this.persistGrant(grant);
+
+          if (type === 'ASSESSMENT') {
+            if (this.mode === 'ASSESSMENT' && this.assessmentId === Number(item.id)) {
+              this.workspaceUnlocked = true;
+              this.loading = false;
+              return;
+            }
+
+            this.router.navigate(['/free-mock-tests', 'assessment', item.id]);
+            return;
+          }
+
+          if (type === 'CHALLENGE') {
+            if (this.mode === 'CHALLENGE' && this.challengeId === Number(item.id)) {
+              this.prepareChallengeWorkspace();
+              this.workspaceUnlocked = true;
+              this.loading = false;
+              return;
+            }
+
+            this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
+            return;
+          }
+        },
+        error: (err) => {
+          this.submitting = false;
+          this.loading = false;
+
+          const message =
+            err?.error?.message || err?.error?.error || 'Unable to unlock practice access';
+
+          if (this.isPremiumItem(item)) {
+            this.router.navigate(['/pricing-plans'], {
+              queryParams: {
+                redirect: this.router.url,
+                unlock: type.toLowerCase(),
+                practiceId: item.id,
+              },
+            });
+            return;
+          }
+
+          this.showToast(message);
+        },
+      });
+  }
+
   loadLibrary(): void {
     this.mode = 'LIBRARY';
     this.loading = true;
@@ -228,15 +344,44 @@ export class PublicPracticeComponent implements OnInit {
 
   requestWorkspaceAccess(message = 'Please register to continue with this practice item'): void {
     this.showToast(message);
+    this.rememberPublicPracticeRedirect();
     this.showLeadModal = true;
   }
-
   openLeadModal(item: any): void {
-    const type: PracticeType = String(item?.type || '')
-      .toUpperCase()
-      .includes('CHALLENGE')
-      ? 'CHALLENGE'
-      : 'ASSESSMENT';
+    const type = this.resolvePracticeType(item);
+    const access = this.itemAccessLevel(item);
+
+    this.rememberPublicPracticeRedirect();
+
+    if (this.isPremiumItem(item)) {
+      if (this.isLoggedIn) {
+        this.unlockAuthenticatedAccess({ ...item, type });
+        return;
+      }
+
+      this.router.navigate(['/pricing-plans'], {
+        queryParams: {
+          redirect: this.router.url,
+          unlock: type.toLowerCase(),
+          practiceId: item.id,
+        },
+      });
+      return;
+    }
+
+    if (this.isAccountOnlyItem(item)) {
+      if (this.isLoggedIn) {
+        this.unlockAuthenticatedAccess({ ...item, type });
+        return;
+      }
+
+      this.router.navigate(['/login'], {
+        queryParams: {
+          redirect: this.router.url,
+        },
+      });
+      return;
+    }
 
     if (!this.isLeadRequired(item)) {
       this.showToast(this.accessPolicyMessage(item));
@@ -245,12 +390,19 @@ export class PublicPracticeComponent implements OnInit {
 
     this.pendingItem = { ...item, type };
 
+    if (this.isLoggedIn) {
+      this.unlockAuthenticatedAccess(this.pendingItem);
+      return;
+    }
+
     this.lead.interest =
       type === 'ASSESSMENT'
         ? `${item.company || ''} ${item.title || ''} Mock Test`.trim()
-        : `${item.company || ''} ${item.title || ''} Coding Challenge`.trim();
+        : type === 'CHALLENGE'
+          ? `${item.company || ''} ${item.title || ''} Coding Challenge`.trim()
+          : `${item.company || ''} ${item.title || ''} Interview Practice`.trim();
 
-    const savedGrant = this.restoreGrant(type, Number(item.id));
+    const savedGrant = type === 'INTERVIEW' ? null : this.restoreGrant(type, Number(item.id));
 
     if (savedGrant) {
       this.currentGrant = savedGrant;
@@ -261,8 +413,10 @@ export class PublicPracticeComponent implements OnInit {
         return;
       }
 
-      this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
-      return;
+      if (type === 'CHALLENGE') {
+        this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
+        return;
+      }
     }
 
     this.workspaceUnlocked = false;
@@ -293,15 +447,31 @@ export class PublicPracticeComponent implements OnInit {
       return;
     }
 
-    const item = this.pendingItem;
+    if (!this.pendingItem && this.mode === 'CHALLENGE' && this.challenge) {
+      this.pendingItem = {
+        ...this.challenge,
+        id: this.challengeId,
+        type: 'CHALLENGE',
+      };
+    }
 
-    this.submitting = true;
+    if (!this.pendingItem && this.mode === 'ASSESSMENT' && this.assessment) {
+      this.pendingItem = {
+        ...this.assessment,
+        id: this.assessmentId,
+        type: 'ASSESSMENT',
+      };
+    }
+
+    const item = this.pendingItem;
 
     if (!item) {
       this.submitting = false;
       this.showToast('Please select a practice item');
       return;
     }
+
+    this.submitting = true;
 
     this.publicPracticeService
       .registerAccess({
@@ -371,6 +541,40 @@ export class PublicPracticeComponent implements OnInit {
     this.publicPracticeService.getAssessment(id).subscribe({
       next: (res: any) => {
         this.assessment = res?.data;
+        const access = this.itemAccessLevel(this.assessment);
+
+        if (this.canUseWorkspace) {
+          this.workspaceUnlocked = true;
+        } else if (this.isPremiumItem(this.assessment) || this.isAccountOnlyItem(this.assessment)) {
+          if (this.isLoggedIn) {
+            this.unlockAuthenticatedAccess({
+              ...this.assessment,
+              id,
+              type: 'ASSESSMENT',
+            });
+            return;
+          }
+
+          this.loading = false;
+
+          if (this.isPremiumItem(this.assessment)) {
+            this.router.navigate(['/pricing-plans'], {
+              queryParams: {
+                redirect: `/free-mock-tests/assessment/${id}`,
+                unlock: 'assessment',
+                practiceId: id,
+              },
+            });
+            return;
+          }
+
+          this.router.navigate(['/login'], {
+            queryParams: {
+              redirect: `/free-mock-tests/assessment/${id}`,
+            },
+          });
+          return;
+        }
         if (!this.isLeadRequired(this.assessment)) {
           this.workspaceUnlocked = false;
           this.showLeadModal = false;
@@ -389,10 +593,26 @@ export class PublicPracticeComponent implements OnInit {
 
         if (!this.canUseWorkspace) {
           this.workspaceUnlocked = false;
-          this.pendingItem = null;
+
+          if (this.isLoggedIn) {
+            this.unlockAuthenticatedAccess({
+              ...this.assessment,
+              id,
+              type: 'ASSESSMENT',
+            });
+            return;
+          }
+
+          this.pendingItem = {
+            ...this.assessment,
+            id,
+            type: 'ASSESSMENT',
+          };
+
           this.lead.interest =
             `${this.assessment?.company || ''} ${this.assessment?.title || ''} Mock Test`.trim();
 
+          this.rememberPublicPracticeRedirect();
           this.showLeadModal = true;
           return;
         }
@@ -504,35 +724,81 @@ export class PublicPracticeComponent implements OnInit {
     this.mode = 'CHALLENGE';
     this.challengeId = id;
     this.loading = true;
+
     this.currentGrant = this.restoreGrant('CHALLENGE', id);
     this.workspaceUnlocked = this.canUseWorkspace;
+
     this.publicPracticeService.getChallenge(id).subscribe({
       next: (res: any) => {
         this.challenge = res?.data;
+
+        const access = String(
+          this.challenge?.accessLevel || this.challenge?.publicAccessLevel || 'LEAD_REQUIRED',
+        ).toUpperCase();
+
+        const premiumLevels = ['PAID_STUDENT_ONLY', 'PREMIUM', 'PRO_ONLY', 'ELITE_ONLY'];
+
+        if (this.canUseWorkspace) {
+          this.prepareChallengeWorkspace();
+          this.workspaceUnlocked = true;
+          this.loading = false;
+          return;
+        }
+
+        if (premiumLevels.includes(access)) {
+          if (this.isLoggedIn) {
+            this.unlockAuthenticatedAccess({
+              ...this.challenge,
+              id,
+              type: 'CHALLENGE',
+            });
+            return;
+          }
+
+          this.loading = false;
+          this.router.navigate(['/pricing-plans'], {
+            queryParams: {
+              redirect: `/free-mock-tests/challenge/${id}`,
+              unlock: 'premium-challenge',
+              challengeId: id,
+            },
+          });
+          return;
+        }
+
         if (!this.isLeadRequired(this.challenge)) {
+          this.loading = false;
           this.workspaceUnlocked = false;
           this.showLeadModal = false;
           this.showToast(this.accessPolicyMessage(this.challenge));
           this.router.navigate(['/free-mock-tests']);
           return;
         }
-        this.sourceCode = this.getStarterCode(this.language);
-        this.startHintUnlockTimer();
-        this.lastStarterCode = this.sourceCode;
-        this.challengeResult = null;
-        this.loading = false;
 
-        if (!this.canUseWorkspace) {
-          this.workspaceUnlocked = false;
-          this.pendingItem = null;
-          this.lead.interest =
-            `${this.challenge?.company || ''} ${this.challenge?.title || ''} Coding Challenge`.trim();
-
-          this.showLeadModal = true;
+        if (this.isLoggedIn) {
+          this.unlockAuthenticatedAccess({
+            ...this.challenge,
+            id,
+            type: 'CHALLENGE',
+          });
           return;
         }
 
-        this.workspaceUnlocked = true;
+        this.prepareChallengeWorkspace();
+        this.workspaceUnlocked = false;
+        this.loading = false;
+
+        this.pendingItem = {
+          ...this.challenge,
+          id,
+          type: 'CHALLENGE',
+        };
+
+        this.lead.interest =
+          `${this.challenge?.company || ''} ${this.challenge?.title || ''} Coding Challenge`.trim();
+
+        this.rememberPublicPracticeRedirect();
+        this.showLeadModal = true;
       },
       error: () => {
         this.loading = false;
@@ -601,6 +867,7 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   startLoginRedirectCountdown(message: string): void {
+    this.rememberPublicPracticeRedirect();
     if (this.redirectTimer) {
       clearInterval(this.redirectTimer);
     }
@@ -618,11 +885,10 @@ export class PublicPracticeComponent implements OnInit {
 
         this.router.navigate(['/login'], {
           queryParams: {
-            redirect: '/free-mock-tests',
+            redirect: this.router.url,
             phone: this.lead.phone,
           },
         });
-
         return;
       }
 
@@ -827,16 +1093,26 @@ puts value`,
   private persistGrant(grant: PracticeGrant): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const user = this.authService.getUser();
+    const isAuthGrant = this.authService.isLoggedIn() && !!user?.id;
+
+    const ownedGrant: PracticeGrant = {
+      ...grant,
+      ownerMode: isAuthGrant ? 'AUTH' : 'GUEST',
+      userId: isAuthGrant ? Number(user.id) : undefined,
+    };
+
     sessionStorage.setItem(
       this.grantStorageKey(grant.practiceType, grant.practiceId),
-      JSON.stringify(grant),
+      JSON.stringify(ownedGrant),
     );
   }
 
   private restoreGrant(type: PracticeType, id: number): PracticeGrant | null {
     if (!isPlatformBrowser(this.platformId)) return null;
 
-    const saved = sessionStorage.getItem(this.grantStorageKey(type, id));
+    const key = this.grantStorageKey(type, id);
+    const saved = sessionStorage.getItem(key);
 
     if (!saved) return null;
 
@@ -845,14 +1121,39 @@ puts value`,
       const expiresAt = new Date(grant.expiresAt).getTime();
 
       if (!grant.accessToken || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-        sessionStorage.removeItem(this.grantStorageKey(type, id));
+        sessionStorage.removeItem(key);
+        return null;
+      }
+
+      const loggedIn = this.authService.isLoggedIn();
+      const currentUser = this.authService.getUser();
+
+      if (grant.ownerMode === 'AUTH') {
+        if (!loggedIn || Number(currentUser?.id) !== Number(grant.userId)) {
+          sessionStorage.removeItem(key);
+          return null;
+        }
+      }
+
+      if (grant.ownerMode === 'GUEST' && loggedIn) {
+        sessionStorage.removeItem(key);
         return null;
       }
 
       return grant;
     } catch {
-      sessionStorage.removeItem(this.grantStorageKey(type, id));
+      sessionStorage.removeItem(key);
       return null;
+    }
+  }
+
+  private rememberPublicPracticeRedirect(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const currentUrl = this.router.url;
+
+    if (currentUrl.startsWith('/free-mock-tests') || currentUrl.startsWith('/coding-contests')) {
+      sessionStorage.setItem('publicPracticeRedirect', currentUrl);
     }
   }
 

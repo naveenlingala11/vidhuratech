@@ -1,4 +1,21 @@
 <aside class="sidebar" [class.collapsed]="collapsed" [class.mobile]="mobile">
+  <div class="sidebar-user" *ngIf="!collapsed">
+    <div class="avatar">{{ userInitials }}</div>
+
+    <div class="sidebar-user-meta">
+      <strong>{{ user?.name || 'User' }}</strong>
+      <span>{{ user?.email || 'Vidhura Tech' }}</span>
+      <span
+        class="user-plan-badge"
+        *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+        [ngClass]="planBadge.className"
+        [title]="planBadge.helper"
+      >
+        <i [class]="planBadge.icon"></i>
+        {{ planBadge.label }}
+      </span>
+    </div>
+  </div>
   <label class="search-box" *ngIf="!collapsed">
     <i class="bi bi-search"></i>
     <input [(ngModel)]="searchText" type="text" placeholder="Search menu" />
