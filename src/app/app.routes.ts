@@ -130,6 +130,9 @@ import { SettingsComponent } from './dashboard/profile/settings/settings';
 import { TrainerPseudoSubmissionsComponent } from './features/trainer/trainer-pseudo-submissions/trainer-pseudo-submissions';
 import { StudentInterviewQuestionsComponent } from './features/student/student-interview-questions/student-interview-questions/student-interview-questions';
 import { TrainerInterviewQuestionsComponent } from './features/trainer/trainer-interview-questions/trainer-interview-questions/trainer-interview-questions';
+import { CodingContestsComponent } from './features/public/coding-contests/coding-contests/coding-contests';
+import { PricingPlansComponent } from './pages/pricing-plans/pricing-plans';
+import { AdminPlanAccessComponent } from './admin/plan-access/plan-access/plan-access';
 
 export const routes: Routes = [
   /* =========================
@@ -182,7 +185,8 @@ export const routes: Routes = [
   { path: 'admin/questions', component: Questions },
   { path: 'admin/invoice', component: InvoiceComponent },
   { path: 'invoice-analytics', component: InvoiceAnalytics },
-
+  { path: 'coding-contests', component: CodingContestsComponent },
+  { path: 'pricing-plans', component: PricingPlansComponent },
   /* =========================
      DASHBOARD ROUTES
   ========================= */
@@ -382,6 +386,11 @@ export const routes: Routes = [
         component: ManageTrainersComponent,
         canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
       },
+      {
+        path: 'admin/plan-access',
+        component: AdminPlanAccessComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
 
       /* --- LMS COURSES --- */
       {
@@ -523,6 +532,11 @@ export const routes: Routes = [
         component: TrainerInterviewQuestionsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
+      {
+        path: 'trainer/create-assessment',
+        component: CreateAssessmentComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      }
     ],
   },
 
@@ -564,6 +578,11 @@ export const routes: Routes = [
     path: 'dashboard/admin/batches',
     component: AdminBatchManagementComponent,
     canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN', 'HR'])],
+  },
+  {
+    path: 'dashboard/admin/plan-access',
+    component: AdminPlanAccessComponent,
+    canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN'])],
   },
   {
     path: 'dashboard/student/lms',

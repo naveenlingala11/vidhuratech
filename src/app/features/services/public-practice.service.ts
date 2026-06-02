@@ -42,4 +42,32 @@ export class PublicPracticeService {
   registerAccess(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/access/register`, payload);
   }
+
+  getChallengeLeaderboard(id: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/challenges/${id}/leaderboard`);
+  }
+
+  getDailyLeaderboard(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/leaderboard/daily`);
+  }
+
+  getWeeklyLeaderboard(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/leaderboard/weekly`);
+  }
+
+  getMonthlyLeaderboard(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/leaderboard/monthly`);
+  }
+
+  getContestAnnouncements(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/announcements`);
+  }
+
+  registerAuthenticatedAccess(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/access/session`, payload);
+  }
+
+  getMyPlanAccess(): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/api/public/plans/my-access`);
+  }
 }

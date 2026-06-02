@@ -22,8 +22,10 @@ export class TrainerAssessmentsComponent implements OnInit {
   search = '';
   filterMode: FilterMode = 'ALL';
   sortMode: SortMode = 'LATEST';
+  sortOptions: SortMode[] = ['LATEST', 'TITLE', 'ATTEMPTS_HIGH', 'QUESTIONS_HIGH', 'MARKS_HIGH'];
   viewMode: ViewMode = 'GRID';
-
+  page = 1;
+  pageSize = 6;
   selectedAssessment: any = null;
   previewLoading = false;
 
@@ -79,21 +81,36 @@ export class TrainerAssessmentsComponent implements OnInit {
           (this.filterMode === 'WITH_ATTEMPTS' && attemptCount > 0) ||
           (this.filterMode === 'NO_ATTEMPTS' && attemptCount === 0);
 
-        const searchable = [a.title, a.description, a.batchId, a.batchName, a.courseName]
+        const searchable = [
+          a.title,
+          a.description,
+          a.batchId,
+          a.batchName,
+          a.courseName,
+          a.companyName,
+          a.skill,
+        ]
           .join(' ')
           .toLowerCase();
 
         return matchesFilter && (!term || searchable.includes(term));
       })
       .sort((a, b) => {
-        if (this.sortMode === 'TITLE')
+        if (this.sortMode === 'TITLE') {
           return String(a.title || '').localeCompare(String(b.title || ''));
-        if (this.sortMode === 'ATTEMPTS_HIGH')
+        }
+
+        if (this.sortMode === 'ATTEMPTS_HIGH') {
           return Number(b.attemptCount || 0) - Number(a.attemptCount || 0);
-        if (this.sortMode === 'QUESTIONS_HIGH')
+        }
+
+        if (this.sortMode === 'QUESTIONS_HIGH') {
           return this.questionCount(b) - this.questionCount(a);
-        if (this.sortMode === 'MARKS_HIGH')
+        }
+
+        if (this.sortMode === 'MARKS_HIGH') {
           return Number(b.totalMarks || 0) - Number(a.totalMarks || 0);
+        }
 
         return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       });
@@ -128,12 +145,56 @@ export class TrainerAssessmentsComponent implements OnInit {
     return this.selectedIds.size;
   }
 
+  get pagedAssessments(): any[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredAssessments.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredAssessments.length / this.pageSize));
+  }
+
+  get pageNumbers(): number[] {
+    const start = Math.max(1, this.page - 2);
+    const end = Math.min(this.totalPages, this.page + 2);
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  get startRecord(): number {
+    if (!this.filteredAssessments.length) return 0;
+    return (this.page - 1) * this.pageSize + 1;
+  }
+
+  get endRecord(): number {
+    return Math.min(this.page * this.pageSize, this.filteredAssessments.length);
+  }
+
+  changePage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.page) return;
+    this.page = page;
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize = Number(size || 6);
+    this.page = 1;
+  }
+
+  resetPage(): void {
+    this.page = 1;
+  }
+
   setFilter(mode: FilterMode): void {
     this.filterMode = mode;
+    this.page = 1;
   }
 
   setView(mode: ViewMode): void {
     this.viewMode = mode;
+  }
+
+  selectVisible(): void {
+    this.pagedAssessments.forEach((a) => this.selectedIds.add(a.id));
   }
 
   trackById(_: number, item: any): number {
@@ -178,8 +239,28 @@ export class TrainerAssessmentsComponent implements OnInit {
     this.selectedIds.add(id);
   }
 
-  selectVisible(): void {
-    this.filteredAssessments.forEach((a) => this.selectedIds.add(a.id));
+  setSort(mode: SortMode): void {
+    this.sortMode = mode;
+    this.page = 1;
+  }
+
+  editAssessment(id: number): void {
+    if (!id) {
+      this.showToast('Invalid assessment');
+      return;
+    }
+
+    this.router.navigate(['/dashboard/trainer/create-assessment'], {
+      queryParams: { editId: id },
+    });
+  }
+
+  sortIcon(mode: SortMode): string {
+    if (mode === 'LATEST') return 'bi bi-clock-history';
+    if (mode === 'TITLE') return 'bi bi-sort-alpha-down';
+    if (mode === 'ATTEMPTS_HIGH') return 'bi bi-graph-up-arrow';
+    if (mode === 'QUESTIONS_HIGH') return 'bi bi-question-circle';
+    return 'bi bi-award';
   }
 
   clearSelection(): void {

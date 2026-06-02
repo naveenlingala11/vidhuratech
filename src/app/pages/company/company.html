@@ -1,43 +1,53 @@
-<main class="company-page">
-  <header class="company-header">
-    <div class="header-inner">
-      <button type="button" class="back-button" (click)="backToPreparation()">
-        <span aria-hidden="true">&larr;</span>
-        <span>All Companies</span>
-      </button>
+<main class="company-page" [class.reader-mode]="readerMode">
+  <header class="hero">
+    <button type="button" class="back-button" (click)="backToPreparation()">
+      <span aria-hidden="true">←</span>
+      <span>All Companies</span>
+    </button>
 
-      <div class="company-identity">
+    <section class="hero-grid">
+      <div class="brand-block">
         <div class="logo-shell">
           <img [src]="logo" [alt]="companyName + ' logo'" />
         </div>
 
-        <div class="identity-copy">
-          <span class="section-label">Placement Preparation Hub</span>
+        <div>
+          <span class="eyebrow">Premium Placement Workspace</span>
           <h1>{{ companyName }}</h1>
           <p>
-            Company-focused mock tests, coding challenges and interview preparation resources in one
-            workspace.
+            Mock tests, coding labs, interview answers, filters, hot picks and reader-first study
+            mode in one focused preparation dashboard.
           </p>
         </div>
       </div>
 
-      <div class="header-stats">
-        <article>
-          <strong>{{ assessments.length }}</strong>
-          <span>Mock Tests</span>
-        </article>
+      <aside class="score-panel">
+        <span>Readiness Score</span>
+        <strong>{{ completionScore }}%</strong>
+        <div class="score-track">
+          <i [style.width.%]="completionScore"></i>
+        </div>
+      </aside>
+    </section>
 
-        <article>
-          <strong>{{ challenges.length }}</strong>
-          <span>Code Labs</span>
-        </article>
-
-        <article class="access-stat">
-          <strong>Register</strong>
-          <span>Before Attempt</span>
-        </article>
-      </div>
-    </div>
+    <section class="hero-stats">
+      <article>
+        <strong>{{ assessments.length }}</strong>
+        <span>Mock Tests</span>
+      </article>
+      <article>
+        <strong>{{ challenges.length }}</strong>
+        <span>Coding Labs</span>
+      </article>
+      <article>
+        <strong>{{ totalInterviewItems }}</strong>
+        <span>Interview Qs</span>
+      </article>
+      <article>
+        <strong>{{ totalPracticeItems }}</strong>
+        <span>Total Items</span>
+      </article>
+    </section>
   </header>
 
   <nav class="workspace-tabs" aria-label="Company preparation sections">
@@ -48,16 +58,16 @@
       (click)="setTab(tab.key)"
     >
       <span>{{ tab.label }}</span>
-
       <small *ngIf="tab.key === 'ASSESSMENTS'">{{ assessments.length }}</small>
       <small *ngIf="tab.key === 'CHALLENGES'">{{ challenges.length }}</small>
+      <small *ngIf="tab.key === 'INTERVIEW'">{{ totalInterviewItems }}</small>
     </button>
   </nav>
 
   <section class="feedback-state" *ngIf="loadingPractice">
     <div class="loader"></div>
-    <strong>Loading {{ companyName }} practice library</strong>
-    <p>Fetching active assessments and coding challenges.</p>
+    <strong>Loading {{ companyName }} library</strong>
+    <p>Preparing practice items and hot recommendations.</p>
   </section>
 
   <section class="feedback-state error" *ngIf="!loadingPractice && practiceError">
@@ -67,78 +77,58 @@
 
   <ng-container *ngIf="!loadingPractice && !practiceError">
     <section class="overview-panel" *ngIf="activeTab === 'OVERVIEW'">
-      <div class="overview-title">
+      <div class="section-heading">
         <div>
-          <span class="section-label">Preparation Workspace</span>
-          <h2>{{ totalPracticeItems }} active practice items available</h2>
-          <p>
-            Select a learning path below. Registration is requested when a student begins a mock
-            test or coding challenge.
-          </p>
+          <span class="eyebrow">Live Workspace</span>
+          <h2>{{ totalPracticeItems }} active practice items</h2>
+          <p>Pick a path, review hot items, then continue into tests, labs or interviews.</p>
         </div>
       </div>
 
       <div class="path-grid">
         <button type="button" class="path-card assessment" (click)="setTab('ASSESSMENTS')">
-          <div class="path-icon">MT</div>
-          <span class="section-label">Assessments</span>
+          <span class="path-icon">MT</span>
+          <small>{{ assessments.length }} available</small>
           <h3>Mock Tests</h3>
-          <p>Attempt objective placement tests and receive immediate score analysis.</p>
-          <strong>{{ assessments.length }} Available</strong>
+          <p>Timed company-style assessments with marks, question counts and quick access.</p>
         </button>
 
         <button type="button" class="path-card challenge" (click)="setTab('CHALLENGES')">
-          <div class="path-icon">CL</div>
-          <span class="section-label">Coding</span>
-          <h3>Coding Challenges</h3>
-          <p>Solve programming problems with language selection and evaluated test cases.</p>
-          <strong>{{ challenges.length }} Available</strong>
+          <span class="path-icon">CL</span>
+          <small>{{ challenges.length }} available</small>
+          <h3>Coding Labs</h3>
+          <p>Programming challenges designed for technical screening preparation.</p>
         </button>
 
         <button type="button" class="path-card interview" (click)="setTab('INTERVIEW')">
-          <div class="path-icon">IQ</div>
-          <span class="section-label">Interview</span>
-          <h3>Question Bank</h3>
-          <p>Study role-specific concepts, examples and interview-ready explanations.</p>
-          <strong>Browse Questions</strong>
+          <span class="path-icon">IQ</span>
+          <small>{{ totalInterviewItems }} ready</small>
+          <h3>Interview Bank</h3>
+          <p>Role-wise answers with definition, explanation, examples and interview tips.</p>
         </button>
       </div>
 
-      <section class="recommended-panel" *ngIf="hasRecommendations">
-        <div class="panel-heading">
+      <section class="hot-panel" *ngIf="hotPracticeItems.length">
+        <div class="section-heading compact">
           <div>
-            <span class="section-label">Recommended</span>
-            <h2>Start with these {{ companyName }} practice items</h2>
+            <span class="eyebrow">Hot Right Now</span>
+            <h2>Best starting points for {{ companyName }}</h2>
           </div>
         </div>
 
-        <div class="recommended-grid">
+        <div class="hot-grid">
           <button
             type="button"
-            class="recommended-card"
-            *ngFor="let item of recommendedAssessments"
-            (click)="openRecommended(item)"
+            class="hot-card"
+            *ngFor="let item of hotPracticeItems; trackBy: trackByPractice"
+            (click)="openPractice(item)"
           >
-            <div class="recommended-type assessment">Mock Test</div>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.skill }}</p>
-            <div class="compact-meta">
-              <span>{{ item.questionCount }} questions</span>
+            <span class="hot-badge">Hot</span>
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.skill || item.type }}</p>
+            <div>
+              <span>{{ item.questionCount }} Qs</span>
               <span>{{ item.durationMinutes }} min</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            class="recommended-card"
-            *ngFor="let item of recommendedChallenges"
-            (click)="openRecommended(item)"
-          >
-            <div class="recommended-type challenge">Code Lab</div>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.skill }}</p>
-            <div class="compact-meta">
-              <span>{{ item.questionCount }} tests</span>
               <span>{{ item.totalMarks }} marks</span>
             </div>
           </button>
@@ -146,174 +136,193 @@
       </section>
 
       <section class="content-empty" *ngIf="!totalPracticeItems">
-        <h2>No active mock tests or challenges published yet</h2>
-        <p>Interview preparation resources may still be available for {{ companyName }}.</p>
+        <h2>No active practice items yet</h2>
+        <p>Interview resources may still be available for {{ companyName }}.</p>
         <button type="button" class="primary-button" (click)="setTab('INTERVIEW')">
-          Open Interview Questions
+          Open Interview Bank
         </button>
       </section>
     </section>
 
-    <section class="content-panel" *ngIf="activeTab === 'ASSESSMENTS'">
-      <div class="panel-heading">
+    <section
+      class="content-panel"
+      *ngIf="activeTab === 'ASSESSMENTS' || activeTab === 'CHALLENGES'"
+    >
+      <div class="section-heading">
         <div>
-          <span class="section-label">Mock Tests</span>
-          <h2>{{ companyName }} assessments</h2>
-          <p>Choose a test to begin. Student registration is completed before access.</p>
-        </div>
-      </div>
-
-      <div class="practice-grid" *ngIf="assessments.length">
-        <article class="practice-card" *ngFor="let item of assessments">
-          <div class="card-header">
-            <span class="card-badge assessment">{{ item.skill }}</span>
-            <span class="card-type">Mock Test</span>
-          </div>
-
-          <h3>{{ item.title }}</h3>
-
-          <p class="description">
+          <span class="eyebrow">
+            {{ activeTab === 'ASSESSMENTS' ? 'Mock Test Library' : 'Coding Practice Library' }}
+          </span>
+          <h2>
             {{
-              item.description || 'Placement readiness assessment designed for company preparation.'
+              activeTab === 'ASSESSMENTS' ? filteredAssessments.length : filteredChallenges.length
             }}
-          </p>
+            results for {{ companyName }}
+          </h2>
+          <p>Search, sort and filter by skill or duration before starting.</p>
+        </div>
 
-          <div class="metric-grid">
-            <div>
-              <strong>{{ item.questionCount }}</strong>
-              <span>Questions</span>
-            </div>
-
-            <div>
-              <strong>{{ item.durationMinutes }}</strong>
-              <span>Minutes</span>
-            </div>
-
-            <div>
-              <strong>{{ item.totalMarks }}</strong>
-              <span>Marks</span>
-            </div>
-          </div>
-
-          <button type="button" class="primary-button" (click)="startAssessment(item)">
-            Start Mock Test
+        <div class="view-toggle">
+          <button type="button" [class.active]="cardView === 'GRID'" (click)="cardView = 'GRID'">
+            Grid
           </button>
-        </article>
-      </div>
-
-      <section class="content-empty" *ngIf="!assessments.length">
-        <h2>No mock tests available</h2>
-        <p>Active {{ companyName }} assessments will appear here once published.</p>
-      </section>
-    </section>
-
-    <section class="content-panel" *ngIf="activeTab === 'CHALLENGES'">
-      <div class="panel-heading">
-        <div>
-          <span class="section-label">Coding Practice</span>
-          <h2>{{ companyName }} coding challenges</h2>
-          <p>Open a lab, register once and submit solutions against evaluated test cases.</p>
+          <button type="button" [class.active]="cardView === 'LIST'" (click)="cardView = 'LIST'">
+            List
+          </button>
         </div>
       </div>
 
-      <div class="practice-grid" *ngIf="challenges.length">
-        <article class="practice-card" *ngFor="let item of challenges">
+      <section class="filter-toolbar practice-toolbar">
+        <label class="search-field">
+          <span>Search</span>
+          <input [(ngModel)]="practiceSearch" placeholder="Search title, skill or description" />
+        </label>
+
+        <label>
+          <span>Skill</span>
+          <select [(ngModel)]="selectedSkill">
+            <option value="">All Skills</option>
+            <option *ngFor="let skill of allSkills" [value]="skill">{{ skill }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Duration</span>
+          <select [(ngModel)]="selectedDuration">
+            <option value="">Any Duration</option>
+            <option value="SHORT">Under 30 min</option>
+            <option value="MEDIUM">31 - 60 min</option>
+            <option value="LONG">Above 60 min</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Sort</span>
+          <select [(ngModel)]="practiceSort">
+            <option value="POPULAR">Popular</option>
+            <option value="NEWEST">Newest</option>
+            <option value="MARKS">Highest Marks</option>
+            <option value="DURATION">Shortest First</option>
+            <option value="QUESTIONS">Most Questions</option>
+          </select>
+        </label>
+
+        <button type="button" class="secondary-button" (click)="clearPracticeFilters()">
+          Clear
+        </button>
+      </section>
+
+      <div
+        class="practice-grid"
+        [class.list-view]="cardView === 'LIST'"
+        *ngIf="activePracticeItems.length"
+      >
+        <article
+          class="practice-card"
+          *ngFor="let item of activePracticeItems; trackBy: trackByPractice"
+          [class.hot]="isHotItem(item)"
+        >
           <div class="card-header">
-            <span class="card-badge challenge">Coding</span>
-            <span class="card-type">Code Lab</span>
+            <span class="card-badge" [class.challenge]="item.type === 'CHALLENGE'">
+              {{ item.skill || (item.type === 'ASSESSMENT' ? 'Assessment' : 'Coding') }}
+            </span>
+            <span class="hot-label" *ngIf="isHotItem(item)">Live Hot</span>
           </div>
 
           <h3>{{ item.title }}</h3>
-
           <p class="description">
             {{
               item.description ||
-                'Programming challenge prepared for technical placement screening.'
+                'Premium company preparation item designed for placement readiness.'
             }}
           </p>
 
           <div class="metric-grid">
             <div>
               <strong>{{ item.questionCount }}</strong>
-              <span>Tests</span>
+              <span>{{ item.type === 'ASSESSMENT' ? 'Questions' : 'Tests' }}</span>
             </div>
-
             <div>
               <strong>{{ item.durationMinutes }}</strong>
               <span>Minutes</span>
             </div>
-
             <div>
               <strong>{{ item.totalMarks }}</strong>
               <span>Marks</span>
             </div>
           </div>
 
-          <button type="button" class="primary-button" (click)="startChallenge(item)">
-            Open Coding Lab
+          <button type="button" class="primary-button" (click)="openPractice(item)">
+            {{ item.type === 'ASSESSMENT' ? 'Start Mock Test' : 'Open Coding Lab' }}
           </button>
         </article>
       </div>
 
-      <section class="content-empty" *ngIf="!challenges.length">
-        <h2>No coding challenges available</h2>
-        <p>Active {{ companyName }} coding challenges will appear here once published.</p>
+      <section class="content-empty" *ngIf="!activePracticeItems.length">
+        <h2>No matching items found</h2>
+        <p>Try clearing filters or changing the sort option.</p>
+        <button type="button" class="secondary-button" (click)="clearPracticeFilters()">
+          Reset Filters
+        </button>
       </section>
     </section>
   </ng-container>
 
-  <section class="content-panel interview-panel" *ngIf="activeTab === 'INTERVIEW'">
-    <div class="panel-heading">
+  <section class="leetcode-panel" *ngIf="activeTab === 'INTERVIEW'">
+    <div class="leetcode-header">
       <div>
-        <span class="section-label">Interview Preparation</span>
-        <h2>{{ companyName }} interview question bank</h2>
-        <p>Search technical questions and expand each answer for structured review.</p>
+        <span class="eyebrow">Interview Problems</span>
+        <h2>{{ companyName }} Question Bank</h2>
+        <p>Practice like a coding platform: filter, scan, open, read, revise.</p>
+      </div>
+
+      <div class="difficulty-strip">
+        <span class="easy">Easy {{ difficultySummary.easy }}</span>
+        <span class="medium">Medium {{ difficultySummary.medium }}</span>
+        <span class="hard">Hard {{ difficultySummary.hard }}</span>
       </div>
     </div>
 
-    <section class="filter-toolbar">
-      <label class="search-field">
-        <span>Search</span>
-        <input
-          [(ngModel)]="questionSearch"
-          placeholder="Search questions or concepts"
-          (keyup.enter)="applyQuestionFilters()"
-        />
-      </label>
+    <section class="leetcode-filters">
+      <input
+        [(ngModel)]="questionSearch"
+        placeholder="Search questions, concepts, topics"
+        (keyup.enter)="applyQuestionFilters()"
+      />
 
-      <label>
-        <span>Type</span>
-        <select [(ngModel)]="selectedType">
-          <option value="">All Types</option>
-          <option value="SCENARIO">Scenario</option>
-          <option value="CONCEPTUAL">Conceptual</option>
-          <option value="IMPLEMENTATION">Implementation</option>
-        </select>
-      </label>
+      <select [(ngModel)]="selectedType">
+        <option value="">All Types</option>
+        <option value="SCENARIO">Scenario</option>
+        <option value="CONCEPTUAL">Conceptual</option>
+        <option value="IMPLEMENTATION">Implementation</option>
+      </select>
 
-      <label>
-        <span>Difficulty</span>
-        <select [(ngModel)]="selectedDifficulty">
-          <option value="">All Levels</option>
-          <option value="EASY">Easy</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HARD">Hard</option>
-        </select>
-      </label>
+      <select [(ngModel)]="selectedDifficulty">
+        <option value="">All Difficulty</option>
+        <option value="EASY">Easy</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="HARD">Hard</option>
+      </select>
 
-      <div class="filter-actions">
-        <button type="button" class="secondary-button" (click)="clearQuestionFilters()">
-          Clear
-        </button>
+      <select [(ngModel)]="questionSort">
+        <option value="DEFAULT">Default</option>
+        <option value="EASY_FIRST">Easy First</option>
+        <option value="HARD_FIRST">Hard First</option>
+        <option value="TOPIC">Topic A-Z</option>
+      </select>
 
-        <button type="button" class="primary-button" (click)="applyQuestionFilters()">Apply</button>
-      </div>
+      <button type="button" class="ghost-btn" (click)="clearQuestionFilters()">Clear</button>
+      <button type="button" class="solid-btn" (click)="applyQuestionFilters()">Apply</button>
     </section>
 
-    <nav class="role-tabs" aria-label="Interview technology categories">
+    <nav class="leetcode-roles">
+      <button type="button" [class.active]="selectedRole === ''" (click)="changeRole('')">
+        All
+      </button>
+
       <button
         type="button"
-        *ngFor="let role of interviewRoles"
+        *ngFor="let role of availableInterviewRoles"
         [class.active]="selectedRole === role"
         (click)="changeRole(role)"
       >
@@ -323,97 +332,114 @@
 
     <section class="feedback-state compact" *ngIf="loadingQuestions">
       <div class="loader"></div>
-      <strong>Loading interview questions</strong>
+      <strong>Loading questions</strong>
     </section>
 
     <section class="feedback-state compact error" *ngIf="!loadingQuestions && questionError">
       <strong>{{ questionError }}</strong>
-      <button type="button" class="secondary-button" (click)="loadInterviewQuestions()">
-        Retry
-      </button>
+      <button type="button" class="ghost-btn" (click)="loadInterviewQuestions()">Retry</button>
     </section>
 
-    <ng-container *ngIf="!loadingQuestions && !questionError">
-      <article class="question-card" *ngFor="let question of questions; let i = index">
-        <div class="question-top">
-          <span class="question-number">Q{{ questionPage * questionSize + i + 1 }}</span>
-
-          <div class="question-tags">
-            <span>{{ question.type }}</span>
-            <span
-              [class.easy]="question.difficulty === 'EASY'"
-              [class.medium]="question.difficulty === 'MEDIUM'"
-              [class.hard]="question.difficulty === 'HARD'"
-            >
-              {{ question.difficulty }}
-            </span>
-          </div>
+    <div class="leetcode-shell" *ngIf="!loadingQuestions && !questionError">
+      <section class="problem-list">
+        <div class="problem-head">
+          <span>#</span>
+          <span>Title</span>
+          <span>Topic</span>
+          <span>Difficulty</span>
         </div>
 
-        <h3>{{ question.question }}</h3>
+        <button
+          type="button"
+          class="problem-row"
+          *ngFor="let question of sortedQuestions; let i = index; trackBy: trackByQuestion"
+          [class.active]="selectedQuestion?.id === question.id"
+          (click)="selectQuestion(question)"
+        >
+          <span class="problem-index">{{ questionPage * questionSize + i + 1 }}</span>
 
-        <div class="question-footer">
-          <span class="topic">{{ question.topic }}</span>
+          <span class="problem-title">
+            <strong>{{ question.question }}</strong>
+            <small>{{ question.type }}</small>
+          </span>
 
-          <button type="button" class="secondary-button" (click)="toggleAnswer(question)">
-            {{ question.show ? 'Hide Answer' : 'View Answer' }}
-          </button>
-        </div>
+          <span class="problem-topic">{{ question.topic }}</span>
 
-        <section class="answer-panel" *ngIf="question.show">
-          <article>
-            <h4>Definition</h4>
-            <p>{{ getSection(question.answer, 'Definition:', 'Explanation:') }}</p>
-          </article>
+          <span
+            class="difficulty-pill"
+            [class.easy]="question.difficulty === 'EASY'"
+            [class.medium]="question.difficulty === 'MEDIUM'"
+            [class.hard]="question.difficulty === 'HARD'"
+          >
+            {{ question.difficulty }}
+          </span>
+        </button>
 
-          <article>
-            <h4>Explanation</h4>
-            <p>{{ getSection(question.answer, 'Explanation:', 'Example:') }}</p>
-          </article>
-
-          <article class="code-example">
-            <h4>Example</h4>
-            <pre>{{ getSection(question.answer, 'Example:', 'Real-world Scenario:') }}</pre>
-          </article>
-
-          <article>
-            <h4>Real-world Scenario</h4>
-            <p>{{ getSection(question.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
-          </article>
-
-          <article class="interview-tip">
-            <h4>Interview Tip</h4>
-            <p>{{ getSection(question.answer, 'Interview Tip:', '') }}</p>
-          </article>
+        <section class="content-empty" *ngIf="!questions.length">
+          <h2>No questions found</h2>
+          <p>Try another role or clear filters.</p>
         </section>
-      </article>
 
-      <section class="content-empty" *ngIf="!questions.length">
-        <h2>No interview questions found</h2>
-        <p>Try another role or clear the current filters.</p>
+        <nav class="leetcode-pagination" *ngIf="questionTotalPages > 1">
+          <button type="button" [disabled]="questionPage === 0" (click)="previousQuestionPage()">
+            Previous
+          </button>
+          <span>{{ pageLabel }}</span>
+          <button
+            type="button"
+            [disabled]="questionPage >= questionTotalPages - 1"
+            (click)="nextQuestionPage()"
+          >
+            Next
+          </button>
+        </nav>
       </section>
 
-      <nav class="pagination" *ngIf="questionTotalPages > 1">
-        <button
-          type="button"
-          class="secondary-button"
-          [disabled]="questionPage === 0"
-          (click)="previousQuestionPage()"
-        >
-          Previous
-        </button>
+      <aside class="answer-reader" *ngIf="selectedQuestion">
+        <div class="reader-top">
+          <span>Question {{ selectedQuestionIndex + 1 }}</span>
+          <button type="button" (click)="closeQuestionReader()">Close</button>
+        </div>
 
-        <span>Page {{ questionPage + 1 }} of {{ questionTotalPages }}</span>
+        <h3>{{ selectedQuestion.question }}</h3>
 
-        <button
-          type="button"
-          class="secondary-button"
-          [disabled]="questionPage >= questionTotalPages - 1"
-          (click)="nextQuestionPage()"
-        >
-          Next
-        </button>
-      </nav>
-    </ng-container>
+        <div class="reader-tags">
+          <span>{{ selectedQuestion.type }}</span>
+          <span>{{ selectedQuestion.topic }}</span>
+          <span
+            [class.easy]="selectedQuestion.difficulty === 'EASY'"
+            [class.medium]="selectedQuestion.difficulty === 'MEDIUM'"
+            [class.hard]="selectedQuestion.difficulty === 'HARD'"
+          >
+            {{ selectedQuestion.difficulty }}
+          </span>
+        </div>
+
+        <article>
+          <h4>Definition</h4>
+          <p>{{ getSection(selectedQuestion.answer, 'Definition:', 'Explanation:') }}</p>
+        </article>
+
+        <article>
+          <h4>Explanation</h4>
+          <p>{{ getSection(selectedQuestion.answer, 'Explanation:', 'Example:') }}</p>
+        </article>
+
+        <article class="code-block">
+          <h4>Example</h4>
+          <pre>{{ getSection(selectedQuestion.answer, 'Example:', 'Real-world Scenario:') }}</pre>
+        </article>
+
+        <article>
+          <h4>Real-world Scenario</h4>
+          <p>{{ getSection(selectedQuestion.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
+        </article>
+
+        <article class="tip-block">
+          <h4>Interview Tip</h4>
+          <p>{{ getSection(selectedQuestion.answer, 'Interview Tip:', '') }}</p>
+        </article>
+      </aside>
+    </div>
   </section>
 </main>

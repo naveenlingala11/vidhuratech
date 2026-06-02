@@ -6,10 +6,13 @@ import { QuestionService } from '../../services/question';
 import { PublicPracticeService } from '../../features/services/public-practice.service';
 
 type CompanyTab = 'OVERVIEW' | 'ASSESSMENTS' | 'CHALLENGES' | 'INTERVIEW';
+type PracticeSort = 'POPULAR' | 'NEWEST' | 'MARKS' | 'DURATION' | 'QUESTIONS';
+type CardView = 'GRID' | 'LIST';
+type QuestionSort = 'DEFAULT' | 'EASY_FIRST' | 'HARD_FIRST' | 'TOPIC';
 
 interface PracticeItem {
   id: number;
-  type: 'ASSESSMENT' | 'CHALLENGE';
+  type: 'ASSESSMENT' | 'CHALLENGE' | 'INTERVIEW';
   title: string;
   description: string;
   company: string;
@@ -21,6 +24,7 @@ interface PracticeItem {
 
 interface InterviewQuestion {
   id: number;
+  role: string;
   question: string;
   answer: string;
   type: string;
@@ -40,11 +44,18 @@ export class Company implements OnInit {
   readonly tabs: { key: CompanyTab; label: string }[] = [
     { key: 'OVERVIEW', label: 'Overview' },
     { key: 'ASSESSMENTS', label: 'Mock Tests' },
-    { key: 'CHALLENGES', label: 'Coding Challenges' },
-    { key: 'INTERVIEW', label: 'Interview Questions' },
+    { key: 'CHALLENGES', label: 'Coding Labs' },
+    { key: 'INTERVIEW', label: 'Interview Bank' },
   ];
 
-  readonly interviewRoles = ['JAVA', 'PYTHON'];
+  readonly fallbackInterviewRoles = [
+    'JAVA',
+    'PYTHON',
+    'SQL',
+    'APTITUDE',
+    'HR',
+    'Interview Preparation',
+  ];
 
   readonly companyLogos: Record<string, string> = {
     TCS: 'logos/tcs.svg',
@@ -75,13 +86,22 @@ export class Company implements OnInit {
 
   assessments: PracticeItem[] = [];
   challenges: PracticeItem[] = [];
+  interviewPracticeItems: PracticeItem[] = [];
   questions: InterviewQuestion[] = [];
 
+  practiceSearch = '';
+  selectedSkill = '';
+  selectedDuration = '';
+  practiceSort: PracticeSort = 'POPULAR';
+  cardView: CardView = 'GRID';
+
   questionSearch = '';
-  selectedRole = 'JAVA';
+  selectedRole = '';
   selectedType = '';
   selectedDifficulty = '';
   selectedTopic = '';
+  questionSort: QuestionSort = 'DEFAULT';
+  readerMode = false;
 
   questionPage = 0;
   questionSize = 10;
@@ -108,19 +128,91 @@ export class Company implements OnInit {
   }
 
   get totalPracticeItems(): number {
-    return this.assessments.length + this.challenges.length;
+    return this.assessments.length + this.challenges.length + this.interviewPracticeItems.length;
+  }
+
+  get totalInterviewItems(): number {
+    return this.questions.length || this.interviewPracticeItems.length;
+  }
+
+  get completionScore(): number {
+    const score =
+      this.assessments.length * 18 + this.challenges.length * 22 + this.totalInterviewItems * 4;
+    return Math.min(score, 100);
+  }
+
+  get allSkills(): string[] {
+    const values = [...this.assessments, ...this.challenges]
+      .map((item) => item.skill)
+      .filter(Boolean);
+    return Array.from(new Set(values));
   }
 
   get recommendedAssessments(): PracticeItem[] {
-    return this.assessments.slice(0, 2);
+    return this.sortPractice([...this.assessments]).slice(0, 3);
   }
 
   get recommendedChallenges(): PracticeItem[] {
-    return this.challenges.slice(0, 2);
+    return this.sortPractice([...this.challenges]).slice(0, 3);
   }
 
-  get hasRecommendations(): boolean {
-    return this.recommendedAssessments.length > 0 || this.recommendedChallenges.length > 0;
+  get hotPracticeItems(): PracticeItem[] {
+    return this.sortPractice([...this.assessments, ...this.challenges]).slice(0, 4);
+  }
+
+  get availableInterviewRoles(): string[] {
+    const roles = new Set<string>();
+
+    this.interviewPracticeItems.forEach((item) => item.skill && roles.add(item.skill));
+    this.questions.forEach((item) => item.role && roles.add(item.role));
+    this.fallbackInterviewRoles.forEach((role) => roles.add(role));
+
+    return Array.from(roles).filter(Boolean);
+  }
+
+  get availableTopics(): string[] {
+    const topics = this.questions.map((item) => item.topic).filter(Boolean);
+    return Array.from(new Set(topics));
+  }
+
+  get filteredAssessments(): PracticeItem[] {
+    return this.filterPractice(this.assessments);
+  }
+
+  get filteredChallenges(): PracticeItem[] {
+    return this.filterPractice(this.challenges);
+  }
+
+  get activePracticeItems(): PracticeItem[] {
+    return this.activeTab === 'ASSESSMENTS' ? this.filteredAssessments : this.filteredChallenges;
+  }
+
+  get sortedQuestions(): InterviewQuestion[] {
+    const list = [...this.questions];
+
+    if (this.questionSort === 'EASY_FIRST') {
+      return list.sort(
+        (a, b) => this.difficultyRank(a.difficulty) - this.difficultyRank(b.difficulty),
+      );
+    }
+
+    if (this.questionSort === 'HARD_FIRST') {
+      return list.sort(
+        (a, b) => this.difficultyRank(b.difficulty) - this.difficultyRank(a.difficulty),
+      );
+    }
+
+    if (this.questionSort === 'TOPIC') {
+      return list.sort((a, b) => a.topic.localeCompare(b.topic));
+    }
+
+    return list;
+  }
+
+  get pageLabel(): string {
+    return this.questionTotalPages
+      ? `Page ${this.questionPage + 1} of ${this.questionTotalPages}`
+      : 'Page 1';
   }
 
   setTab(tab: CompanyTab): void {
@@ -143,10 +235,13 @@ export class Company implements OnInit {
           ...item,
           type: 'ASSESSMENT',
         }));
-
         this.challenges = (data.challenges || []).map((item: any) => ({
           ...item,
           type: 'CHALLENGE',
+        }));
+        this.interviewPracticeItems = (data.interviewQuestions || []).map((item: any) => ({
+          ...item,
+          type: 'INTERVIEW',
         }));
 
         this.loadingPractice = false;
@@ -154,6 +249,7 @@ export class Company implements OnInit {
       error: () => {
         this.assessments = [];
         this.challenges = [];
+        this.interviewPracticeItems = [];
         this.practiceError = 'Unable to load available practice items.';
         this.loadingPractice = false;
       },
@@ -172,13 +268,8 @@ export class Company implements OnInit {
     });
   }
 
-  openRecommended(item: PracticeItem): void {
-    if (item.type === 'ASSESSMENT') {
-      this.startAssessment(item);
-      return;
-    }
-
-    this.startChallenge(item);
+  openPractice(item: PracticeItem): void {
+    item.type === 'ASSESSMENT' ? this.startAssessment(item) : this.startChallenge(item);
   }
 
   loadInterviewQuestions(): void {
@@ -199,6 +290,7 @@ export class Company implements OnInit {
         next: (response: any) => {
           this.questions = (response?.content || []).map((question: any) => ({
             id: question.id,
+            role: question.role || question.skill || '',
             question: question.question || '',
             answer: question.answer || '',
             type: question.type || 'GENERAL',
@@ -208,6 +300,7 @@ export class Company implements OnInit {
           }));
 
           this.questionTotalPages = response?.totalPages || 0;
+          this.selectedQuestion = this.questions[0] || null;
           this.loadingQuestions = false;
         },
         error: () => {
@@ -225,18 +318,26 @@ export class Company implements OnInit {
   }
 
   clearQuestionFilters(): void {
+    this.selectedQuestion = null;
     this.questionSearch = '';
+    this.selectedRole = '';
     this.selectedType = '';
     this.selectedDifficulty = '';
     this.selectedTopic = '';
+    this.questionSort = 'DEFAULT';
     this.questionPage = 0;
     this.loadInterviewQuestions();
   }
 
+  clearPracticeFilters(): void {
+    this.practiceSearch = '';
+    this.selectedSkill = '';
+    this.selectedDuration = '';
+    this.practiceSort = 'POPULAR';
+  }
+
   changeRole(role: string): void {
-    if (this.selectedRole === role) {
-      return;
-    }
+    if (this.selectedRole === role) return;
 
     this.selectedRole = role;
     this.questionPage = 0;
@@ -248,27 +349,21 @@ export class Company implements OnInit {
   }
 
   previousQuestionPage(): void {
-    if (this.questionPage === 0) {
-      return;
-    }
+    if (this.questionPage === 0) return;
 
     this.questionPage--;
     this.loadInterviewQuestions();
   }
 
   nextQuestionPage(): void {
-    if (this.questionPage >= this.questionTotalPages - 1) {
-      return;
-    }
+    if (this.questionPage >= this.questionTotalPages - 1) return;
 
     this.questionPage++;
     this.loadInterviewQuestions();
   }
 
   getSection(answer: string, start: string, end: string): string {
-    if (!answer) {
-      return 'Content not available.';
-    }
+    if (!answer) return 'Content not available.';
 
     const startIndex = answer.indexOf(start);
 
@@ -282,13 +377,100 @@ export class Company implements OnInit {
     return endIndex === -1 ? remaining.trim() : remaining.substring(0, endIndex).trim();
   }
 
+  isHotItem(item: PracticeItem): boolean {
+    return this.hotPracticeItems.some((hot) => hot.id === item.id && hot.type === item.type);
+  }
+
+  trackByPractice(_: number, item: PracticeItem): string {
+    return `${item.type}-${item.id}`;
+  }
+
+  trackByQuestion(_: number, item: InterviewQuestion): number {
+    return item.id;
+  }
+
+  private filterPractice(items: PracticeItem[]): PracticeItem[] {
+    const search = this.practiceSearch.trim().toLowerCase();
+
+    const filtered = items.filter((item) => {
+      const matchesSearch =
+        !search ||
+        item.title?.toLowerCase().includes(search) ||
+        item.description?.toLowerCase().includes(search) ||
+        item.skill?.toLowerCase().includes(search);
+
+      const matchesSkill = !this.selectedSkill || item.skill === this.selectedSkill;
+
+      const matchesDuration =
+        !this.selectedDuration ||
+        (this.selectedDuration === 'SHORT' && item.durationMinutes <= 30) ||
+        (this.selectedDuration === 'MEDIUM' &&
+          item.durationMinutes > 30 &&
+          item.durationMinutes <= 60) ||
+        (this.selectedDuration === 'LONG' && item.durationMinutes > 60);
+
+      return matchesSearch && matchesSkill && matchesDuration;
+    });
+
+    return this.sortPractice(filtered);
+  }
+
+  private sortPractice(items: PracticeItem[]): PracticeItem[] {
+    return items.sort((a, b) => {
+      if (this.practiceSort === 'MARKS') return b.totalMarks - a.totalMarks;
+      if (this.practiceSort === 'DURATION') return a.durationMinutes - b.durationMinutes;
+      if (this.practiceSort === 'QUESTIONS') return b.questionCount - a.questionCount;
+      if (this.practiceSort === 'NEWEST') return b.id - a.id;
+
+      const aScore = a.totalMarks + a.questionCount * 3 + a.durationMinutes;
+      const bScore = b.totalMarks + b.questionCount * 3 + b.durationMinutes;
+      return bScore - aScore;
+    });
+  }
+
+  private difficultyRank(value: string): number {
+    if (value === 'EASY') return 1;
+    if (value === 'MEDIUM') return 2;
+    if (value === 'HARD') return 3;
+    return 2;
+  }
+
   private resetCompanyState(): void {
     this.activeTab = 'OVERVIEW';
+    this.interviewPracticeItems = [];
     this.assessments = [];
     this.challenges = [];
     this.questions = [];
     this.practiceError = '';
     this.questionError = '';
     this.questionPage = 0;
+    this.clearPracticeFilters();
+  }
+
+  selectedQuestion: InterviewQuestion | null = null;
+
+  get selectedQuestionIndex(): number {
+    if (!this.selectedQuestion) return -1;
+    return this.sortedQuestions.findIndex((item) => item.id === this.selectedQuestion?.id);
+  }
+
+  get difficultySummary(): { easy: number; medium: number; hard: number } {
+    return this.questions.reduce(
+      (count, item) => {
+        if (item.difficulty === 'EASY') count.easy++;
+        else if (item.difficulty === 'HARD') count.hard++;
+        else count.medium++;
+        return count;
+      },
+      { easy: 0, medium: 0, hard: 0 },
+    );
+  }
+
+  selectQuestion(question: InterviewQuestion): void {
+    this.selectedQuestion = question;
+  }
+
+  closeQuestionReader(): void {
+    this.selectedQuestion = null;
   }
 }

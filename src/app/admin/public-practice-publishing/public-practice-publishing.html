@@ -8,10 +8,10 @@
   <header class="vpp-hero">
     <div>
       <span class="vpp-kicker">Public Practice Studio</span>
-      <h1>Publish, govern, and track guest practice content</h1>
+      <h1>Premium publishing control for guest practice</h1>
       <p>
-        Trainer content stays private until admin approval. Review candidates, tune access settings,
-        publish premium practice cards, and monitor every public attempt.
+        Review trainer content, publish many interview questions at once, group by company or skill,
+        preview cards, control access rules, and track public attempts from one workspace.
       </p>
     </div>
 
@@ -33,6 +33,12 @@
       <small>{{ publishedChallenges }} published</small>
     </button>
 
+    <button type="button" class="metric-card rose" (click)="quickFilter('INTERVIEW', 'ALL')">
+      <span>Interviews</span>
+      <strong>{{ interviewQuestions.length }}</strong>
+      <small>{{ publishedInterviewQuestions }} published</small>
+    </button>
+
     <button type="button" class="metric-card amber" (click)="setTab('ATTEMPTS')">
       <span>Attempts</span>
       <strong>{{ totalAttempts }}</strong>
@@ -40,9 +46,9 @@
     </button>
 
     <button type="button" class="metric-card violet" (click)="setTab('POLICIES')">
-      <span>Policies</span>
-      <strong>{{ accessPolicies.length }}</strong>
-      <small>Access rules</small>
+      <span>Published</span>
+      <strong>{{ totalPublished }}</strong>
+      <small>{{ totalCandidates }} total items</small>
     </button>
   </section>
 
@@ -61,6 +67,11 @@
       <b>{{ challenges.length }}</b>
     </button>
 
+    <button type="button" [class.active]="activeTab === 'INTERVIEW'" (click)="setTab('INTERVIEW')">
+      <span>Interview Questions</span>
+      <b>{{ interviewQuestions.length }}</b>
+    </button>
+
     <button type="button" [class.active]="activeTab === 'ATTEMPTS'" (click)="setTab('ATTEMPTS')">
       <span>Public Attempts</span>
       <b>{{ totalAttempts }}</b>
@@ -69,12 +80,6 @@
     <button type="button" [class.active]="activeTab === 'POLICIES'" (click)="setTab('POLICIES')">
       <span>Access Policies</span>
       <b>{{ accessPolicies.length }}</b>
-    </button>
-
-    <button type="button" [class.active]="activeTab === 'INTERVIEW'" (click)="setTab('INTERVIEW')">
-      <i class="bi bi-question-circle"></i>
-      <span>Interview Questions</span>
-      <small>{{ interviewQuestions.length }} items</small>
     </button>
   </nav>
 
@@ -115,6 +120,91 @@
       </div>
     </div>
 
+    <section class="bulk-studio">
+      <div class="bulk-command">
+        <div>
+          <span>Bulk Publishing</span>
+          <h3>Publish selected, filtered, company-wise, or skill-wise batches.</h3>
+        </div>
+
+        <div class="bulk-actions">
+          <button type="button" class="ghost-action" (click)="togglePageSelection()">
+            {{ pageAllSelected ? 'Clear Page' : 'Select Page' }}
+          </button>
+
+          <button
+            type="button"
+            class="ghost-action"
+            [disabled]="!selectedCount"
+            (click)="clearSelection()"
+          >
+            Clear Selected
+          </button>
+
+          <button
+            type="button"
+            class="publish-btn"
+            [disabled]="!selectedCount"
+            (click)="openBulkPublish('SELECTED', selectedCurrentItems, 'Selected items')"
+          >
+            Publish Selected ({{ selectedCount }})
+          </button>
+
+          <button
+            type="button"
+            class="unpublish-btn"
+            [disabled]="!selectedPublishedCount"
+            (click)="bulkUnpublishSelected()"
+          >
+            Unpublish Selected ({{ selectedPublishedCount }})
+          </button>
+
+          <button
+            type="button"
+            class="publish-btn"
+            [disabled]="!unpublishedFilteredItems.length"
+            (click)="openBulkPublish('FILTERED', unpublishedFilteredItems, 'Current filtered list')"
+          >
+            Publish Filtered ({{ unpublishedFilteredItems.length }})
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-group-grid">
+        <div class="bulk-group-column">
+          <div class="bulk-group-title">Company wise</div>
+
+          <button
+            type="button"
+            class="bulk-chip"
+            *ngFor="let group of bulkGroupsByCompany; trackBy: trackByGroup"
+            [disabled]="!group.unpublished"
+            (click)="openBulkPublish('COMPANY', group.items, 'Company: ' + group.name)"
+          >
+            <span>{{ group.name }}</span>
+            <b>{{ group.unpublished }} ready</b>
+            <small>{{ group.published }}/{{ group.total }} live</small>
+          </button>
+        </div>
+
+        <div class="bulk-group-column">
+          <div class="bulk-group-title">Skill wise</div>
+
+          <button
+            type="button"
+            class="bulk-chip"
+            *ngFor="let group of bulkGroupsBySkill; trackBy: trackByGroup"
+            [disabled]="!group.unpublished"
+            (click)="openBulkPublish('SKILL', group.items, 'Skill: ' + group.name)"
+          >
+            <span>{{ group.name }}</span>
+            <b>{{ group.unpublished }} ready</b>
+            <small>{{ group.published }}/{{ group.total }} live</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <div class="vpp-filters">
       <label class="search-field">
         <span>Search candidates</span>
@@ -144,11 +234,28 @@
       </label>
 
       <label>
+        <span>Company</span>
+        <select [(ngModel)]="companyFilter" (ngModelChange)="page = 1">
+          <option value="ALL">All Companies</option>
+          <option *ngFor="let company of companyOptions" [value]="company">{{ company }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Skill</span>
+        <select [(ngModel)]="skillFilter" (ngModelChange)="page = 1">
+          <option value="ALL">All Skills</option>
+          <option *ngFor="let skill of skillOptions" [value]="skill">{{ skill }}</option>
+        </select>
+      </label>
+
+      <label>
         <span>Sort</span>
         <select [(ngModel)]="sortMode">
           <option value="LATEST">Latest</option>
           <option value="TITLE">Title</option>
           <option value="COMPANY">Company</option>
+          <option value="SKILL">Skill</option>
           <option value="TRAINER">Trainer</option>
           <option value="ATTEMPTS">Guest Attempts</option>
         </select>
@@ -181,10 +288,27 @@
         <div class="card-glow"></div>
 
         <div class="candidate-top">
+          <label class="select-box" (click)="$event.stopPropagation()">
+            <input
+              type="checkbox"
+              [checked]="isSelected(item)"
+              (change)="toggleCandidate(item, $event)"
+            />
+            <span>Select</span>
+          </label>
+
           <span>{{ item.type }}</span>
-          <b [class.live]="item.publicVisible">{{
-            item.publicVisible ? 'Published' : 'Private'
-          }}</b>
+
+          <span>Policy</span>
+          <strong>
+            <span class="policy-badge" [ngClass]="policyClass(item.publicAccessLevel)">
+              {{ policyLabel(item.publicAccessLevel) }}
+            </span>
+          </strong>
+
+          <b [class.live]="item.publicVisible">
+            {{ item.publicVisible ? 'Published' : 'Private' }}
+          </b>
         </div>
 
         <h3>{{ displayTitle(item) }}</h3>
@@ -192,31 +316,45 @@
 
         <div class="mini-metrics">
           <div>
-            <span>Company</span><strong>{{ item.companyName || 'General' }}</strong>
+            <span>Company</span>
+            <strong>{{ displayCompany(item) }}</strong>
           </div>
           <div>
-            <span>Skill</span><strong>{{ item.skill || '-' }}</strong>
+            <span>Skill</span>
+            <strong>{{ displaySkill(item) }}</strong>
           </div>
           <div>
-            <span>Trainer</span><strong>{{ item.trainerName || item.trainerEmail || '-' }}</strong>
+            <span>Trainer</span>
+            <strong>{{ item.trainerName || item.trainerEmail || '-' }}</strong>
           </div>
           <div>
-            <span>Batch</span><strong>{{ item.batchName || item.batchId || '-' }}</strong>
+            <span>Batch</span>
+            <strong>{{ item.batchName || item.batchId || '-' }}</strong>
           </div>
           <div>
-            <span>Policy</span><strong>{{ item.publicAccessLevel || 'LEAD_REQUIRED' }}</strong>
+            <span>Policy</span>
+            <strong>{{ item.publicAccessLevel || 'LEAD_REQUIRED' }}</strong>
           </div>
           <div>
-            <span>Attempts</span><strong>{{ item.publicAttemptCount || 0 }}</strong>
+            <span>Attempts</span>
+            <strong>{{ item.publicAttemptCount || 0 }}</strong>
           </div>
         </div>
 
         <div class="candidate-actions" (click)="$event.stopPropagation()">
-          <span class="active-pill" [class.off]="!item.active">{{
-            item.active ? 'Active' : 'Inactive'
-          }}</span>
+          <span class="active-pill" [class.off]="!item.active">
+            {{ item.active ? 'Active' : 'Inactive' }}
+          </span>
 
           <div>
+            <button
+              type="button"
+              class="preview-btn"
+              (click)="openDetails(item, toPublishType(item))"
+            >
+              Preview
+            </button>
+
             <button
               type="button"
               class="publish-btn"
@@ -248,6 +386,7 @@
       <table>
         <thead>
           <tr>
+            <th>Select</th>
             <th>Title</th>
             <th>Trainer</th>
             <th>Batch</th>
@@ -265,26 +404,37 @@
             *ngFor="let item of pagedCandidates; trackBy: trackById"
             (click)="openDetails(item, toPublishType(item))"
           >
-            <td>
-              <strong>{{ item.title }}</strong
-              ><small>{{ item.type }}</small>
+            <td (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                [checked]="isSelected(item)"
+                (change)="toggleCandidate(item, $event)"
+              />
             </td>
             <td>
-              <strong>{{ item.trainerName || '-' }}</strong
-              ><small>{{ item.trainerEmail || '' }}</small>
+              <strong>{{ displayTitle(item) }}</strong>
+              <small>{{ item.type }}</small>
             </td>
             <td>
-              <strong>{{ item.batchName || '-' }}</strong
-              ><small>{{ item.batchId || '' }}</small>
+              <strong>{{ item.trainerName || '-' }}</strong>
+              <small>{{ item.trainerEmail || '' }}</small>
             </td>
-            <td>{{ item.companyName || 'General' }}</td>
-            <td>{{ item.skill || '-' }}</td>
             <td>
-              <span class="status-pill" [class.live]="item.publicVisible">{{
-                item.publicVisible ? 'Published' : 'Private'
-              }}</span>
+              <strong>{{ item.batchName || '-' }}</strong>
+              <small>{{ item.batchId || '' }}</small>
             </td>
-            <td>{{ item.publicAccessLevel || 'LEAD_REQUIRED' }}</td>
+            <td>{{ displayCompany(item) }}</td>
+            <td>{{ displaySkill(item) }}</td>
+            <td>
+              <span class="status-pill" [class.live]="item.publicVisible">
+                {{ item.publicVisible ? 'Published' : 'Private' }}
+              </span>
+            </td>
+            <td>
+              <span class="policy-badge" [ngClass]="policyClass(item.publicAccessLevel)">
+                {{ policyLabel(item.publicAccessLevel) }}
+              </span>
+            </td>
             <td>{{ item.publicAttemptCount || 0 }}</td>
             <td (click)="$event.stopPropagation()">
               <button
@@ -303,6 +453,7 @@
 
     <div class="vpp-pagination" *ngIf="filteredCandidates.length">
       <button type="button" (click)="setPage(page - 1)" [disabled]="page === 1">Previous</button>
+
       <button
         type="button"
         *ngFor="let p of pages()"
@@ -311,6 +462,7 @@
       >
         {{ p }}
       </button>
+
       <button type="button" (click)="setPage(page + 1)" [disabled]="page === totalPages">
         Next
       </button>
@@ -387,10 +539,12 @@
 
         <div class="lead-row">
           <div>
-            <span>Lead</span><strong>{{ attempt.leadName || '-' }}</strong>
+            <span>Lead</span>
+            <strong>{{ attempt.leadName || '-' }}</strong>
           </div>
           <div>
-            <span>Phone</span><strong>{{ attempt.leadPhone || '-' }}</strong>
+            <span>Phone</span>
+            <strong>{{ attempt.leadPhone || '-' }}</strong>
           </div>
         </div>
       </article>
@@ -409,6 +563,7 @@
       >
         Previous
       </button>
+
       <button
         type="button"
         *ngFor="let p of attemptPages()"
@@ -417,6 +572,7 @@
       >
         {{ p }}
       </button>
+
       <button
         type="button"
         (click)="setAttemptPage(attemptPage + 1)"
@@ -428,23 +584,49 @@
   </section>
 
   <section class="vpp-board" *ngIf="activeTab === 'POLICIES'">
-    <div class="board-head">
+    <div class="board-heading">
       <div>
-        <span>Access Governance</span>
-        <h2>Access Policies</h2>
+        <span>Access Matrix</span>
+        <h2>Public Practice Access Policies</h2>
+        <p>Basic, Pro, and Elite plans are now mapped directly to publishing access rules.</p>
       </div>
     </div>
 
-    <div class="policy-grid">
-      <article *ngFor="let policy of accessPolicies">
-        <span>Policy</span>
-        <h3>{{ policy.value }}</h3>
+    <div class="policy-grid plan-policy-grid">
+      <article
+        class="policy-card"
+        *ngFor="let policy of resolvedPolicyCatalog"
+        [ngClass]="policyClass(policy.value)"
+      >
+        <div class="policy-card-top">
+          <div class="policy-icon">
+            <i class="bi bi-shield-lock"></i>
+          </div>
+
+          <span class="policy-badge" [ngClass]="policyClass(policy.value)">
+            {{ policy.tier }}
+          </span>
+        </div>
+
+        <h3>{{ policy.label }}</h3>
         <p>{{ policy.description }}</p>
+
+        <ul class="policy-feature-list">
+          <li *ngFor="let feature of policy.features">
+            <i class="bi bi-check2-circle"></i>
+            <span>{{ feature }}</span>
+          </li>
+        </ul>
+
+        <div class="policy-limit">
+          <span>Recommended attempts</span>
+          <strong>{{ policy.recommendedAttemptLimit }}</strong>
+        </div>
       </article>
     </div>
   </section>
 
-  <aside class="details-rail" *ngIf="selectedItem && !showPublishDrawer">
+  <aside class="details-rail" *ngIf="selectedItem && !showPublishDrawer && !showBulkDrawer">
     <button type="button" class="rail-close" (click)="closeDetails()">x</button>
 
     <span class="rail-kicker">{{ selectedType }}</span>
@@ -453,24 +635,30 @@
 
     <div class="rail-stats">
       <div>
-        <span>Company</span><strong>{{ selectedItem.companyName || 'General' }}</strong>
+        <span>Company</span>
+        <strong>{{ displayCompany(selectedItem) }}</strong>
       </div>
       <div>
-        <span>Skill</span><strong>{{ selectedItem.skill || '-' }}</strong>
+        <span>Skill</span>
+        <strong>{{ displaySkill(selectedItem) }}</strong>
       </div>
       <div>
-        <span>Trainer</span
-        ><strong>{{ selectedItem.trainerName || selectedItem.trainerEmail || '-' }}</strong>
+        <span>Trainer</span>
+        <strong>{{ selectedItem.trainerName || selectedItem.trainerEmail || '-' }}</strong>
       </div>
       <div>
-        <span>Batch</span
-        ><strong>{{ selectedItem.batchName || selectedItem.batchId || '-' }}</strong>
+        <span>Batch</span>
+        <strong>{{ selectedItem.batchName || selectedItem.batchId || '-' }}</strong>
       </div>
+      <span>Access</span>
+      <strong>
+        <span class="policy-badge" [ngClass]="policyClass(selectedItem.publicAccessLevel)">
+          {{ policyLabel(selectedItem.publicAccessLevel) }}
+        </span>
+      </strong>
       <div>
-        <span>Access</span><strong>{{ selectedItem.publicAccessLevel || 'LEAD_REQUIRED' }}</strong>
-      </div>
-      <div>
-        <span>Guest Attempts</span><strong>{{ selectedItem.publicAttemptCount || 0 }}</strong>
+        <span>Guest Attempts</span>
+        <strong>{{ selectedItem.publicAttemptCount || 0 }}</strong>
       </div>
     </div>
 
@@ -487,6 +675,7 @@
   <div class="drawer-backdrop" *ngIf="showPublishDrawer">
     <aside class="publish-drawer">
       <button type="button" class="rail-close" (click)="closePublish()">x</button>
+
       <div class="drawer-hero">
         <span>{{ selectedType }}</span>
         <h2>{{ selectedItem?.publicVisible ? 'Edit Public Release' : 'Publish Publicly' }}</h2>
@@ -495,15 +684,16 @@
 
       <div class="drawer-summary">
         <div>
-          <span>Trainer</span
-          ><strong>{{ selectedItem?.trainerName || selectedItem?.trainerEmail || '-' }}</strong>
+          <span>Trainer</span>
+          <strong>{{ selectedItem?.trainerName || selectedItem?.trainerEmail || '-' }}</strong>
         </div>
         <div>
-          <span>Batch</span
-          ><strong>{{ selectedItem?.batchName || selectedItem?.batchId || '-' }}</strong>
+          <span>Batch</span>
+          <strong>{{ selectedItem?.batchName || selectedItem?.batchId || '-' }}</strong>
         </div>
         <div>
-          <span>Status</span><strong>{{ selectedItem?.active ? 'Active' : 'Inactive' }}</strong>
+          <span>Status</span>
+          <strong>{{ selectedItem?.active ? 'Active' : 'Inactive' }}</strong>
         </div>
       </div>
 
@@ -512,8 +702,15 @@
       </div>
 
       <div class="drawer-form">
-        <label><span>Company</span><input [(ngModel)]="publishForm.companyName" /></label>
-        <label><span>Skill</span><input [(ngModel)]="publishForm.skill" /></label>
+        <label>
+          <span>Company</span>
+          <input [(ngModel)]="publishForm.companyName" />
+        </label>
+
+        <label>
+          <span>Skill</span>
+          <input [(ngModel)]="publishForm.skill" />
+        </label>
 
         <label>
           <span>Access Policy</span>
@@ -526,18 +723,88 @@
           </select>
         </label>
 
-        <label
-          ><span>Attempt Limit</span
-          ><input type="number" min="1" [(ngModel)]="publishForm.attemptLimit"
-        /></label>
+        <label>
+          <span>Attempt Limit</span>
+          <input type="number" min="1" [(ngModel)]="publishForm.attemptLimit" />
+        </label>
       </div>
 
-      <div class="drawer-note">Recommended for Phase 1: LEAD_REQUIRED, attempt limit 1.</div>
+      <div class="drawer-note">
+        Recommended for public practice: LEAD_REQUIRED with attempt limit 1.
+      </div>
 
       <button type="button" class="drawer-publish" [disabled]="saving" (click)="publish()">
         {{
           saving ? 'Saving...' : selectedItem?.publicVisible ? 'Save Settings' : 'Publish Publicly'
         }}
+      </button>
+    </aside>
+  </div>
+
+  <div class="drawer-backdrop" *ngIf="showBulkDrawer">
+    <aside class="publish-drawer">
+      <button type="button" class="rail-close" (click)="closeBulk()">x</button>
+
+      <div class="drawer-hero">
+        <span>{{ currentPublishType }} BULK</span>
+        <h2>Publish {{ bulkIds.length }} items</h2>
+        <p>{{ bulkTitle }}</p>
+      </div>
+
+      <div class="drawer-summary">
+        <div>
+          <span>Mode</span>
+          <strong>{{ bulkMode }}</strong>
+        </div>
+        <div>
+          <span>Items</span>
+          <strong>{{ bulkIds.length }}</strong>
+        </div>
+        <div>
+          <span>Type</span>
+          <strong>{{ currentPublishType }}</strong>
+        </div>
+      </div>
+
+      <div class="drawer-errors" *ngIf="publishErrors.length">
+        <div *ngFor="let error of publishErrors">{{ error }}</div>
+      </div>
+
+      <div class="drawer-form">
+        <label>
+          <span>Company</span>
+          <input [(ngModel)]="publishForm.companyName" />
+        </label>
+
+        <label>
+          <span>Skill</span>
+          <input [(ngModel)]="publishForm.skill" />
+        </label>
+
+        <label class="policy-select-field">
+          <span>Access Policy</span>
+
+          <select [(ngModel)]="publishForm.accessLevel" (ngModelChange)="onAccessPolicyChange()">
+            <option *ngFor="let policy of accessPolicyOptions" [value]="policy.value">
+              {{ policy.label }}
+            </option>
+          </select>
+
+          <small>{{ policyDescription(publishForm.accessLevel) }}</small>
+        </label>
+
+        <label>
+          <span>Attempt Limit</span>
+          <input type="number" min="1" [(ngModel)]="publishForm.attemptLimit" />
+        </label>
+      </div>
+
+      <div class="drawer-note">
+        These settings apply to every selected item in this bulk publish batch.
+      </div>
+
+      <button type="button" class="drawer-publish" [disabled]="saving" (click)="bulkPublish()">
+        {{ saving ? 'Publishing...' : 'Publish Bulk Batch' }}
       </button>
     </aside>
   </div>
@@ -554,26 +821,39 @@
 
       <div class="drawer-summary">
         <div>
-          <span>Lead</span><strong>{{ selectedAttempt.leadName || '-' }}</strong>
+          <span>Lead</span>
+          <strong>{{ selectedAttempt.leadName || '-' }}</strong>
         </div>
         <div>
-          <span>Phone</span><strong>{{ selectedAttempt.leadPhone || '-' }}</strong>
+          <span>Phone</span>
+          <strong>{{ selectedAttempt.leadPhone || '-' }}</strong>
         </div>
         <div>
-          <span>Email</span><strong>{{ selectedAttempt.leadEmail || '-' }}</strong>
+          <span>Email</span>
+          <strong>{{ selectedAttempt.leadEmail || '-' }}</strong>
         </div>
         <div>
-          <span>Score</span
-          ><strong>{{ selectedAttempt.score }}/{{ selectedAttempt.totalMarks }}</strong>
+          <span>Score</span>
+          <strong>{{ selectedAttempt.score }}/{{ selectedAttempt.totalMarks }}</strong>
         </div>
         <div>
-          <span>Percentage</span><strong>{{ selectedAttempt.percentage }}%</strong>
+          <span>Percentage</span>
+          <strong>{{ selectedAttempt.percentage }}%</strong>
         </div>
         <div>
-          <span>Status</span><strong>{{ selectedAttempt.status }}</strong>
+          <span>Status</span>
+          <strong>{{ selectedAttempt.status }}</strong>
         </div>
       </div>
+      <div class="policy-live-card" [ngClass]="policyClass(publishForm.accessLevel)">
+        <div>
+          <span>{{ policyTier(publishForm.accessLevel) }} Access</span>
+          <strong>{{ policyLabel(publishForm.accessLevel) }}</strong>
+          <p>{{ policyDescription(publishForm.accessLevel) }}</p>
+        </div>
 
+        <i class="bi bi-shield-check"></i>
+      </div>
       <pre *ngIf="selectedAttempt.sourceCode">{{ selectedAttempt.sourceCode }}</pre>
     </aside>
   </div>

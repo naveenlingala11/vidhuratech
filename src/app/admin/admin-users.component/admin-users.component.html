@@ -3,7 +3,7 @@
     <div>
       <p class="eyebrow">Admin Console</p>
       <h2>Users Management</h2>
-      <span>Manage active, inactive, and deleted users.</span>
+      <span>Users, leads, students, course enrollments, attempts, and activity history.</span>
     </div>
 
     <button class="primary-btn" routerLink="/dashboard/admin/create-user">
@@ -41,7 +41,7 @@
         class="form-control"
         [(ngModel)]="filters.keyword"
         (input)="search()"
-        placeholder="Search by name..."
+        placeholder="Search name, email, phone..."
       />
     </div>
 
@@ -83,6 +83,145 @@
       Export
     </button>
   </div>
+
+  <section class="people360-panel">
+    <div class="people360-head">
+      <div>
+        <p class="eyebrow">People 360</p>
+        <h3>Users, leads, students and all activity</h3>
+      </div>
+
+      <button class="secondary-btn" (click)="loadPeople360()">
+        <i class="bi bi-arrow-repeat"></i>
+        Refresh People
+      </button>
+    </div>
+
+    <div class="loading-state compact" *ngIf="peopleLoading">
+      <span>Loading people activity...</span>
+    </div>
+
+    <div class="people360-controls" *ngIf="!peopleLoading">
+      <div class="sort-group">
+        <button
+          class="sort-chip"
+          [class.active]="peopleSortBy === 'activity'"
+          (click)="sortPeople('activity')"
+        >
+          Activity <i [class]="peopleSortIcon('activity')"></i>
+        </button>
+        <button
+          class="sort-chip"
+          [class.active]="peopleSortBy === 'name'"
+          (click)="sortPeople('name')"
+        >
+          Name <i [class]="peopleSortIcon('name')"></i>
+        </button>
+        <button
+          class="sort-chip"
+          [class.active]="peopleSortBy === 'plans'"
+          (click)="sortPeople('plans')"
+        >
+          Plans <i [class]="peopleSortIcon('plans')"></i>
+        </button>
+        <button
+          class="sort-chip"
+          [class.active]="peopleSortBy === 'courses'"
+          (click)="sortPeople('courses')"
+        >
+          Courses <i [class]="peopleSortIcon('courses')"></i>
+        </button>
+      </div>
+
+      <select class="mini-select" [(ngModel)]="peopleSize" (change)="changePeopleSize()">
+        <option [ngValue]="6">6 / page</option>
+        <option [ngValue]="9">9 / page</option>
+        <option [ngValue]="12">12 / page</option>
+      </select>
+    </div>
+
+    <div class="people360-grid" *ngIf="!peopleLoading">
+      <article class="person360-card" *ngFor="let p of pagedPeople360">
+        <div class="person360-top">
+          <div class="avatar">{{ getInitials(p.name) }}</div>
+          <div>
+            <strong>{{ p.name || 'Unnamed' }}</strong>
+            <small>{{ p.email || p.phone || '-' }}</small>
+          </div>
+        </div>
+
+        <div class="source-row">
+          <span *ngFor="let source of p.sources">{{ source }}</span>
+        </div>
+
+        <div class="activity-grid">
+          <span
+            >Plans <b>{{ p.planAccessCount || 0 }}</b></span
+          >
+          <span
+            >Mock Tests <b>{{ p.mockTests || 0 }}</b></span
+          >
+          <span
+            >Assessments <b>{{ p.assessments || 0 }}</b></span
+          >
+          <span
+            >Coding <b>{{ p.codingChallenges || 0 }}</b></span
+          >
+          <span
+            >Interviews <b>{{ p.mockInterviews || 0 }}</b></span
+          >
+          <span
+            >Courses <b>{{ p.courseEnrollments || 0 }}</b></span
+          >
+        </div>
+
+        <button class="primary-btn w-100" (click)="openHistory(p)">
+          <i class="bi bi-clock-history"></i>
+          History
+        </button>
+      </article>
+
+      <div class="empty-state" *ngIf="people360.length === 0">
+        <i class="bi bi-people"></i>
+        <strong>No people found</strong>
+        <span>Try changing your search keyword.</span>
+      </div>
+    </div>
+
+    <div class="premium-pagination" *ngIf="!peopleLoading && people360.length">
+      <span
+        >Showing {{ peopleStartRecord }}-{{ peopleEndRecord }} of
+        {{ people360.length }} people</span
+      >
+
+      <div class="page-actions">
+        <button
+          class="page-btn"
+          [disabled]="peoplePage === 0"
+          (click)="goToPeoplePage(peoplePage - 1)"
+        >
+          <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <button
+          class="page-number"
+          *ngFor="let page of [].constructor(peopleTotalPages); let i = index"
+          [class.active]="peoplePage === i"
+          (click)="goToPeoplePage(i)"
+        >
+          {{ i + 1 }}
+        </button>
+
+        <button
+          class="page-btn"
+          [disabled]="peoplePage + 1 >= peopleTotalPages"
+          (click)="goToPeoplePage(peoplePage + 1)"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
 
   <div class="role-chips">
     <button class="chip" [class.active]="filters.role === ''" (click)="setRole('')">All</button>
@@ -152,6 +291,10 @@
 
           <td>
             <div class="actions">
+              <button class="icon-btn history" title="History" (click)="openUserHistory(u)">
+                <i class="bi bi-clock-history"></i>
+              </button>
+
               <button class="icon-btn view" title="Preview" (click)="openPreview(u)">
                 <i class="bi bi-eye"></i>
               </button>
@@ -199,20 +342,37 @@
     </table>
   </div>
 
-  <div class="pagination-bar">
-    <button class="secondary-btn" [disabled]="filters.page === 0" (click)="prevPage()">
-      <i class="bi bi-chevron-left"></i>
-      Prev
-    </button>
-
+  <div class="premium-pagination" *ngIf="!loading">
     <span>
-      Page {{ filters.page + 1 }} of {{ totalPages || 1 }} · {{ totalElements }} records
+      Showing {{ usersStartRecord }}-{{ usersEndRecord }} of {{ totalElements }} users
+      <b>Sorted by {{ sortLabel() }}</b>
     </span>
 
-    <button class="secondary-btn" [disabled]="filters.page + 1 >= totalPages" (click)="nextPage()">
-      Next
-      <i class="bi bi-chevron-right"></i>
-    </button>
+    <div class="page-actions">
+      <button class="page-btn" [disabled]="filters.page === 0" (click)="prevPage()">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <button
+        class="page-number"
+        *ngFor="let page of pageNumbers"
+        [class.active]="filters.page === page"
+        (click)="goToPage(page)"
+      >
+        {{ page + 1 }}
+      </button>
+
+      <button class="page-btn" [disabled]="filters.page + 1 >= totalPages" (click)="nextPage()">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <select class="mini-select" [(ngModel)]="filters.size" (change)="changePageSize()">
+        <option [ngValue]="10">10 / page</option>
+        <option [ngValue]="20">20 / page</option>
+        <option [ngValue]="50">50 / page</option>
+        <option [ngValue]="100">100 / page</option>
+      </select>
+    </div>
   </div>
 </section>
 
@@ -288,6 +448,65 @@
       <button class="danger-btn" [disabled]="saving" (click)="confirmDelete()">
         {{ saving ? 'Deleting...' : 'Delete User' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop-custom" *ngIf="historyModal">
+  <div class="custom-modal history-modal">
+    <div class="modal-head">
+      <h5>Complete Activity History</h5>
+      <button class="close-btn" (click)="closeHistory()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="history-profile">
+      <div class="avatar large">{{ getInitials(historyModal.person?.name) }}</div>
+      <div>
+        <h4>{{ historyModal.person?.name || 'Unnamed' }}</h4>
+        <p>{{ historyModal.person?.email || '-' }} · {{ historyModal.person?.phone || '-' }}</p>
+      </div>
+    </div>
+
+    <div class="activity-grid summary">
+      <span
+        >Plans <b>{{ historyModal.summary?.planAccessCount || 0 }}</b></span
+      >
+      <span
+        >Mock Tests <b>{{ historyModal.summary?.mockTests || 0 }}</b></span
+      >
+      <span
+        >Assessments <b>{{ historyModal.summary?.assessments || 0 }}</b></span
+      >
+      <span
+        >Coding <b>{{ historyModal.summary?.codingChallenges || 0 }}</b></span
+      >
+      <span
+        >Interviews <b>{{ historyModal.summary?.mockInterviews || 0 }}</b></span
+      >
+      <span
+        >Courses <b>{{ historyModal.summary?.courseEnrollments || 0 }}</b></span
+      >
+    </div>
+
+    <div class="loading-state compact" *ngIf="historyLoading">
+      <span>Loading history...</span>
+    </div>
+
+    <div class="timeline" *ngIf="!historyLoading">
+      <article class="timeline-item" *ngFor="let item of historyModal.timeline">
+        <div>
+          <strong>{{ item.title }}</strong>
+          <span>{{ item.type }} · {{ item.status }}</span>
+        </div>
+        <small>{{ item.timestamp | date: 'medium' }}</small>
+      </article>
+
+      <div class="empty-state" *ngIf="!historyModal.timeline?.length">
+        <strong>No history found</strong>
+        <span>This person has no tracked activity yet.</span>
+      </div>
     </div>
   </div>
 </div>

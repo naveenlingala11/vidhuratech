@@ -161,9 +161,8 @@ export class Login {
     this.authService.login(this.form.value).subscribe({
       next: () => {
         const user = this.authService.getUser();
-        const redirect = this.route.snapshot.queryParamMap.get('redirect');
         this.toastr.success('Login successful');
-        this.router.navigateByUrl(redirect || this.getDashboardRoute(user.role));
+        this.router.navigateByUrl(this.getPostLoginRoute(user));
       },
       error: (err) => {
         console.log(err);
@@ -299,16 +298,12 @@ export class Login {
       })
       .then((res: any) => {
         this.otpError = false;
-        localStorage.setItem('vt_token', res.token);
-        localStorage.setItem(
-          'vt_user',
-          JSON.stringify({
-            role: res.role,
-            name: res.name,
-          }),
-        );
+
+        this.authService.completeLoginFromResponse(res);
+
+        const user = this.authService.getUser();
         this.toastr.success('Login successful');
-        this.router.navigate(['/dashboard/student']);
+        this.router.navigateByUrl(this.getPostLoginRoute(user));
       })
       .catch(() => {
         this.triggerOtpError();
@@ -331,5 +326,33 @@ export class Login {
     this.router.navigate(['/set-password'], {
       queryParams: { email: this.form.value.email || this.otpEmail || '' },
     });
+  }
+
+  private getPostLoginRoute(user: any): string {
+    const savedPublicRedirect = sessionStorage.getItem('publicPracticeRedirect');
+
+    if (
+      savedPublicRedirect &&
+      savedPublicRedirect.startsWith('/') &&
+      !savedPublicRedirect.startsWith('//') &&
+      (savedPublicRedirect.startsWith('/free-mock-tests') ||
+        savedPublicRedirect.startsWith('/coding-contests'))
+    ) {
+      sessionStorage.removeItem('publicPracticeRedirect');
+      return savedPublicRedirect;
+    }
+
+    const redirect = this.route.snapshot.queryParamMap.get('redirect');
+
+    if (
+      redirect &&
+      redirect.startsWith('/') &&
+      !redirect.startsWith('//') &&
+      (redirect.startsWith('/free-mock-tests') || redirect.startsWith('/coding-contests'))
+    ) {
+      return redirect;
+    }
+
+    return this.getDashboardRoute(user?.role);
   }
 }

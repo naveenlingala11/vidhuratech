@@ -102,17 +102,38 @@
   <section class="toolbar">
     <label class="search-box">
       <i class="bi bi-search"></i>
-      <input [(ngModel)]="search" placeholder="Search title, batch, course, description..." />
+      <input
+        [(ngModel)]="search"
+        (ngModelChange)="resetPage()"
+        placeholder="Search title, batch, course, description..."
+      />
+      <button *ngIf="search" type="button" (click)="search = ''">
+        <i class="bi bi-x"></i>
+      </button>
     </label>
 
     <div class="toolbar-controls">
-      <select [(ngModel)]="sortMode">
-        <option value="LATEST">Latest Created</option>
-        <option value="TITLE">Title A-Z</option>
-        <option value="ATTEMPTS_HIGH">Most Attempts</option>
-        <option value="QUESTIONS_HIGH">Most Questions</option>
-        <option value="MARKS_HIGH">Highest Marks</option>
-      </select>
+      <div class="sort-pills">
+        <button
+          type="button"
+          *ngFor="let sort of sortOptions"
+          [class.active]="sortMode === sort"
+          (click)="setSort(sort)"
+        >
+          <i [class]="sortIcon(sort)"></i>
+          {{
+            sort === 'LATEST'
+              ? 'Latest'
+              : sort === 'TITLE'
+                ? 'Title'
+                : sort === 'ATTEMPTS_HIGH'
+                  ? 'Attempts'
+                  : sort === 'QUESTIONS_HIGH'
+                    ? 'Questions'
+                    : 'Marks'
+          }}
+        </button>
+      </div>
 
       <div class="filter-tabs">
         <button type="button" [class.active]="filterMode === 'ALL'" (click)="setFilter('ALL')">
@@ -150,8 +171,8 @@
 
   <section class="selection-bar" *ngIf="filteredAssessments.length">
     <div>
-      <strong>{{ filteredAssessments.length }}</strong>
-      <span>assessments showing</span>
+      <strong>{{ startRecord }}-{{ endRecord }}</strong>
+      <span>of {{ filteredAssessments.length }} assessments</span>
       <b *ngIf="selectedCount">{{ selectedCount }} selected</b>
     </div>
 
@@ -193,7 +214,7 @@
   >
     <article
       class="assessment-card"
-      *ngFor="let a of filteredAssessments; trackBy: trackById"
+      *ngFor="let a of pagedAssessments; trackBy: trackById"
       [class.selected]="isSelected(a.id)"
     >
       <div class="card-top">
@@ -285,6 +306,11 @@
           Preview
         </button>
 
+        <button type="button" class="edit-action" (click)="editAssessment(a.id)">
+          <i class="bi bi-pencil-square"></i>
+          Edit
+        </button>
+
         <button type="button" (click)="downloadAssessment(a)">
           <i class="bi bi-download"></i>
           Download
@@ -301,6 +327,44 @@
         </button>
       </div>
     </article>
+  </section>
+  <section class="premium-pagination" *ngIf="!loading && filteredAssessments.length">
+    <div>
+      <strong>Showing {{ startRecord }}-{{ endRecord }}</strong>
+      <span>of {{ filteredAssessments.length }} assessments</span>
+    </div>
+
+    <div class="page-actions">
+      <button type="button" class="page-btn" [disabled]="page === 1" (click)="changePage(page - 1)">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <button
+        type="button"
+        class="page-number"
+        *ngFor="let p of pageNumbers"
+        [class.active]="page === p"
+        (click)="changePage(p)"
+      >
+        {{ p }}
+      </button>
+
+      <button
+        type="button"
+        class="page-btn"
+        [disabled]="page === totalPages"
+        (click)="changePage(page + 1)"
+      >
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
+        <option [ngValue]="6">6 / page</option>
+        <option [ngValue]="9">9 / page</option>
+        <option [ngValue]="12">12 / page</option>
+        <option [ngValue]="18">18 / page</option>
+      </select>
+    </div>
   </section>
 </section>
 
@@ -374,10 +438,25 @@
         </article>
       </div>
 
-      <button type="button" class="download-full" (click)="downloadAssessment(selectedAssessment)">
-        <i class="bi bi-download"></i>
-        Download Assessment JSON
-      </button>
+      <div class="preview-footer-actions">
+        <button
+          type="button"
+          class="download-full edit-full"
+          (click)="editAssessment(selectedAssessment.id)"
+        >
+          <i class="bi bi-pencil-square"></i>
+          Edit Assessment
+        </button>
+
+        <button
+          type="button"
+          class="download-full"
+          (click)="downloadAssessment(selectedAssessment)"
+        >
+          <i class="bi bi-download"></i>
+          Download Assessment JSON
+        </button>
+      </div>
     </ng-container>
   </div>
 </div>

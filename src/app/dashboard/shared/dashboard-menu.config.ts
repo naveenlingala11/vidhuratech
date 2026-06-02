@@ -92,6 +92,11 @@ export const DASHBOARD_MENUS: Record<string, DashboardMenuItem[]> = {
     { label: 'Create User', icon: 'bi bi-person-plus', route: '/dashboard/admin/create-user' },
     { label: 'Actions', icon: 'bi bi-lightning-charge', route: '/dashboard/admin/actions' },
     {
+      label: 'Plan Access',
+      icon: 'bi bi-shield-lock',
+      route: '/dashboard/admin/plan-access',
+    },
+    {
       label: 'Public Practice',
       icon: 'bi bi-globe-central-south-asia',
       route: '/dashboard/admin/public-practice',
@@ -156,6 +161,11 @@ export const DASHBOARD_MENUS: Record<string, DashboardMenuItem[]> = {
     { label: 'Profile', icon: 'bi bi-person-circle', route: '/dashboard/super-admin/profile' },
     { label: 'Users', icon: 'bi bi-people-fill', route: '/dashboard/super-admin/users' },
     { label: 'Admin Actions', icon: 'bi bi-lightning-charge', route: '/dashboard/admin/actions' },
+    {
+      label: 'Plan Access',
+      icon: 'bi bi-shield-lock',
+      route: '/dashboard/admin/plan-access',
+    },
     {
       label: 'Batch Communication',
       icon: 'bi bi-chat-dots',

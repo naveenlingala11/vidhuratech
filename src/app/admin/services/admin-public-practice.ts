@@ -53,4 +53,12 @@ export class AdminPublicPracticeService {
   unpublishInterviewQuestion(id: number) {
     return this.http.put(`${this.baseUrl}/interview-questions/${id}/unpublish`, {});
   }
+
+  bulkPublish(payload: any) {
+    return this.http.put(`${this.baseUrl}/bulk/publish`, payload);
+  }
+
+  bulkUnpublish(payload: any) {
+    return this.http.put(`${this.baseUrl}/bulk/unpublish`, payload);
+  }
 }

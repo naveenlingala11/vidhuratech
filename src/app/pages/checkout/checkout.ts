@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { UserPlanBadgeService } from '../../services/user-plan-badge.service';
 
 @Component({
   selector: 'app-checkout',
@@ -51,6 +52,7 @@ export class Checkout implements OnInit {
     private route: ActivatedRoute,
     private zone: NgZone,
     private cd: ChangeDetectorRef,
+    private userPlanBadgeService: UserPlanBadgeService,
   ) {}
 
   ngOnInit(): void {
@@ -343,6 +345,7 @@ export class Checkout implements OnInit {
       if (!confirmRes.ok) {
         throw new Error('Payment confirmation failed');
       }
+      this.userPlanBadgeService.load();
     } catch (err) {
       console.error(err);
       alert('Payment processed but confirmation failed. Contact support.');

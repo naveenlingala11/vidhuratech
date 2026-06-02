@@ -1,206 +1,281 @@
-<div class="assessment-container">
-  <div class="header">
-    <h2>Create Assessment</h2>
-    <div class="mode-tabs">
-      <button class="tab-btn" [class.active]="mode === 'manual'" (click)="switchMode('manual')">
-        Manual Entry
-      </button>
-      <button class="tab-btn" [class.active]="mode === 'bulk'" (click)="switchMode('bulk')">
-        Bulk Upload (JSON)
-      </button>
+<main class="assessment-page">
+  <section class="assessment-hero">
+    <div>
+      <span class="eyebrow"><i class="bi bi-ui-checks-grid"></i> Trainer Assessment Studio</span>
+      <h1>Create assessments with clarity</h1>
+      <p>Build manual tests or upload JSON assessments for assigned batches.</p>
     </div>
-  </div>
-  <!-- Success Message -->
-  <div class="alert alert-success" *ngIf="successMessage">
+
+    <div class="hero-stats">
+      <div>
+        <strong>{{ questionCount }}</strong
+        ><span>Questions</span>
+      </div>
+      <div>
+        <strong>{{ configuredMarks }}</strong
+        ><span>Marks Set</span>
+      </div>
+      <div>
+        <strong>{{ assessment.durationMinutes }}</strong
+        ><span>Minutes</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="mode-switch">
+    <button type="button" [class.active]="mode === 'manual'" (click)="switchMode('manual')">
+      <i class="bi bi-pencil-square"></i>
+      Manual Builder
+      <span>Create question by question</span>
+    </button>
+
+    <button type="button" [class.active]="mode === 'bulk'" (click)="switchMode('bulk')">
+      <i class="bi bi-braces"></i>
+      JSON Upload
+      <span>Paste structured assessment</span>
+    </button>
+  </section>
+
+  <div class="alert success" *ngIf="successMessage">
+    <i class="bi bi-check-circle"></i>
     {{ successMessage }}
   </div>
-  <!-- Error Messages -->
-  <div class="alert alert-error" *ngIf="errorMessages.length > 0">
-    <ul>
-      <li *ngFor="let error of errorMessages">{{ error }}</li>
-    </ul>
+
+  <div class="alert error" *ngIf="errorMessages.length">
+    <i class="bi bi-exclamation-triangle"></i>
+    <div>
+      <strong>Review required</strong>
+      <p *ngFor="let error of errorMessages">{{ error }}</p>
+    </div>
   </div>
-  <!-- MANUAL MODE -->
-  <div *ngIf="mode === 'manual'" class="manual-mode">
-    <div class="form-group">
-      <label>Batch</label>
 
-      <select [(ngModel)]="assessment.batchId" [disabled]="batchLoading || !trainerBatches.length">
-        <option [ngValue]="0">
-          {{ batchLoading ? 'Loading batches...' : 'Select your batch' }}
-        </option>
+  <section class="studio-panel" *ngIf="mode === 'manual'">
+    <div class="panel-head">
+      <div>
+        <span>Manual Mode</span>
+        <h2>Assessment Details</h2>
+      </div>
 
-        <option *ngFor="let batch of trainerBatches" [ngValue]="batch.id">
-          {{ batch.name }} - {{ batch.courseName }} ({{ batch.status }})
-        </option>
-      </select>
+      <button type="button" class="secondary-btn" (click)="sampleQuestion()">
+        <i class="bi bi-magic"></i>
+        Add Sample
+      </button>
+    </div>
 
-      <small *ngIf="!batchLoading && !trainerBatches.length">
-        No assigned batches found. Please contact admin.
-      </small>
-    </div>
-    <div class="form-group">
-      <label>Title</label>
-      <input type="text" [(ngModel)]="assessment.title" placeholder="Enter assessment title" />
-    </div>
-    <div class="form-group">
-      <label>Description</label>
-      <textarea
-        rows="4"
-        [(ngModel)]="assessment.description"
-        placeholder="Enter assessment description"
-      >
-      </textarea>
-    </div>
     <div class="form-grid">
-      <div class="form-group">
-        <label>Company</label>
+      <label>
+        <span>Batch</span>
+        <select
+          [(ngModel)]="assessment.batchId"
+          [disabled]="batchLoading || !trainerBatches.length"
+        >
+          <option [ngValue]="0">
+            {{ batchLoading ? 'Loading batches...' : 'Select assigned batch' }}
+          </option>
+          <option *ngFor="let batch of trainerBatches" [ngValue]="batch.id">
+            {{ batch.name }} - {{ batch.courseName }} ({{ batch.status }})
+          </option>
+        </select>
+        <small *ngIf="!batchLoading && !trainerBatches.length">No assigned batches found.</small>
+      </label>
+
+      <label>
+        <span>Company</span>
+        <input [(ngModel)]="assessment.companyName" placeholder="General / TCS / Infosys" />
+      </label>
+
+      <label>
+        <span>Skill</span>
+        <input [(ngModel)]="assessment.skill" placeholder="Aptitude / Angular / Java" />
+      </label>
+
+      <label class="wide">
+        <span>Title</span>
         <input
-          type="text"
-          [(ngModel)]="assessment.companyName"
-          placeholder="General / Infosys / TCS"
+          [(ngModel)]="assessment.title"
+          placeholder="Example: Angular Fundamentals Assessment"
         />
+      </label>
+
+      <label>
+        <span>Total Marks</span>
+        <input type="number" [(ngModel)]="assessment.totalMarks" />
+      </label>
+
+      <label>
+        <span>Duration</span>
+        <input type="number" [(ngModel)]="assessment.durationMinutes" />
+      </label>
+
+      <label class="full">
+        <span>Description</span>
+        <textarea
+          rows="4"
+          [(ngModel)]="assessment.description"
+          placeholder="Short context for students..."
+        ></textarea>
+      </label>
+    </div>
+
+    <div class="questions-head">
+      <div>
+        <span>Question Bank</span>
+        <h3>{{ questionCount }} Questions</h3>
       </div>
 
-      <div class="form-group">
-        <label>Skill</label>
-        <input
-          type="text"
-          [(ngModel)]="assessment.skill"
-          placeholder="Aptitude / Coding / Placement Readiness"
-        />
-      </div>
+      <button type="button" class="primary-btn" (click)="addQuestion()">
+        <i class="bi bi-plus-lg"></i>
+        Add Question
+      </button>
     </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Total Marks</label>
-        <input type="number" [(ngModel)]="assessment.totalMarks" placeholder="100" />
+
+    <article class="question-card" *ngFor="let q of assessment.questions; let i = index">
+      <div class="question-top">
+        <div>
+          <span>Question {{ i + 1 }}</span>
+          <strong>{{ q.marks || 0 }} marks</strong>
+        </div>
+
+        <button type="button" class="icon-danger" (click)="removeQuestion(i)">
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
-      <div class="form-group">
-        <label>Duration (Minutes)</label>
-        <input type="number" [(ngModel)]="assessment.durationMinutes" placeholder="60" />
-      </div>
-    </div>
-    <button class="add-btn" (click)="addQuestion()">+ Add Question</button>
-    <div class="question-card" *ngFor="let q of assessment.questions; let i = index">
-      <div class="question-header">
-        <h3>Question {{ i + 1 }}</h3>
-        <button class="remove-btn" (click)="removeQuestion(i)">Remove</button>
-      </div>
-      <input placeholder="Question text" [(ngModel)]="q.question" class="question-input" />
+
+      <label class="full">
+        <span>Question</span>
+        <textarea
+          rows="3"
+          [(ngModel)]="q.question"
+          placeholder="Write the question clearly"
+        ></textarea>
+      </label>
+
       <div class="options-grid">
-        <div class="option">
-          <label>Option A</label>
-          <input placeholder="Option A" [(ngModel)]="q.options.A" />
-        </div>
-        <div class="option">
-          <label>Option B</label>
-          <input placeholder="Option B" [(ngModel)]="q.options.B" />
-        </div>
-        <div class="option">
-          <label>Option C</label>
-          <input placeholder="Option C" [(ngModel)]="q.options.C" />
-        </div>
-        <div class="option">
-          <label>Option D</label>
-          <input placeholder="Option D" [(ngModel)]="q.options.D" />
-        </div>
+        <label
+          *ngFor="let opt of optionKeys"
+          class="option-field"
+          [class.correct]="q.correctAnswer === opt"
+        >
+          <span>Option {{ opt }}</span>
+          <input [(ngModel)]="q.options[opt]" [placeholder]="'Option ' + opt" />
+        </label>
       </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Correct Answer (A/B/C/D)</label>
-          <input placeholder="A/B/C/D" [(ngModel)]="q.correctAnswer" />
-        </div>
-        <div class="form-group">
-          <label>Marks</label>
-          <input type="number" [(ngModel)]="q.marks" placeholder="10" />
-        </div>
+
+      <div class="form-grid compact">
+        <label>
+          <span>Correct Answer</span>
+          <select [(ngModel)]="q.correctAnswer">
+            <option *ngFor="let opt of optionKeys" [ngValue]="opt">{{ opt }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Marks</span>
+          <input type="number" [(ngModel)]="q.marks" />
+        </label>
       </div>
-      <div class="form-group">
-        <label>Explanation</label>
-        <textarea rows="2" [(ngModel)]="q.explanation" placeholder="Explanation for correct answer">
-        </textarea>
+
+      <label class="full">
+        <span>Explanation</span>
+        <textarea
+          rows="2"
+          [(ngModel)]="q.explanation"
+          placeholder="Why this answer is correct"
+        ></textarea>
+      </label>
+    </article>
+
+    <div class="sticky-submit">
+      <div>
+        <strong>{{ configuredMarks }}/{{ assessment.totalMarks }} marks configured</strong>
+        <span>{{ questionCount }} questions ready for selected batch</span>
       </div>
-    </div>
-    <button
-      class="submit-btn"
-      [disabled]="loading || !assessment.batchId"
-      (click)="submitAssessment()"
-    >
-      {{ loading ? 'Creating...' : 'Create Assessment' }}
-    </button>
-  </div>
-  <!-- BULK MODE -->
-  <div *ngIf="mode === 'bulk'" class="bulk-mode">
-    <div class="bulk-instructions">
-      <h3>JSON Format Instructions</h3>
-      <p>Paste your assessment JSON below. Each question must have:</p>
-      <ul>
-        <li><code>question</code> - Question text</li>
-        <li><code>options</code> - Object with A, B, C, D keys</li>
-        <li><code>correctAnswer</code> - One of A, B, C, or D</li>
-        <li><code>marks</code> - Positive number</li>
-        <li><code>explanation</code> - (Optional) Explanation for the answer</li>
-      </ul>
-      <button class="template-btn" (click)="copyJsonTemplate()">📋 Copy JSON Template</button>
-    </div>
-    <div class="form-group">
-      <label>Assessment JSON</label>
-      <textarea
-        rows="10"
-        [(ngModel)]="bulkJsonInput"
-        placeholder="Paste your JSON here..."
-        class="json-input"
+
+      <button
+        class="primary-btn"
+        [disabled]="loading || !canSubmitManual"
+        (click)="submitAssessment()"
       >
-      </textarea>
-    </div>
-    <div class="button-group">
-      <button class="parse-btn" [disabled]="!bulkJsonInput.trim()" (click)="parseBulkJSON()">
-        📊 Parse & Validate JSON
+        <i class="bi bi-cloud-arrow-up"></i>
+        {{ loading ? 'Creating...' : 'Create Assessment' }}
       </button>
     </div>
-    <!-- Validation Errors -->
-    <div *ngIf="validationErrors.length > 0" class="validation-errors">
-      <h4>⚠️ Validation Errors:</h4>
-      <ul>
-        <li *ngFor="let error of errorMessages" class="error-item">{{ error }}</li>
-      </ul>
-    </div>
-    <!-- Preview -->
-    <div *ngIf="showPreview && bulkAssessment" class="preview-section">
-      <h3>📋 Assessment Preview</h3>
-      <div class="preview-info">
-        <p><strong>Title:</strong> {{ bulkAssessment.title }}</p>
-        <p><strong>Batch ID:</strong> {{ bulkAssessment.batchId }}</p>
-        <p><strong>Total Questions:</strong> {{ bulkAssessment.questions.length }}</p>
-        <p><strong>Total Marks:</strong> {{ bulkAssessment.totalMarks }}</p>
-        <p><strong>Duration:</strong> {{ bulkAssessment.durationMinutes }} minutes</p>
+  </section>
+
+  <section class="studio-panel" *ngIf="mode === 'bulk'">
+    <div class="panel-head">
+      <div>
+        <span>Bulk Mode</span>
+        <h2>Upload JSON Assessment</h2>
       </div>
-      <div class="questions-preview">
-        <h4>Questions Preview:</h4>
-        <div class="question-preview" *ngFor="let q of bulkAssessment.questions; let i = index">
-          <div class="preview-q-header">
-            <span class="q-number">Q{{ i + 1 }}</span>
-            <span class="q-marks">({{ q.marks }} marks)</span>
-          </div>
-          <p class="preview-q-text">{{ q.question }}</p>
-          <div class="preview-options">
-            <div class="option" *ngFor="let opt of optionKeys">
-              <span class="opt-label"> {{ opt }}. </span>
-              <span class="opt-text">
-                {{ getOptionValue(q.options, opt) }}
-              </span>
-              <span *ngIf="q.correctAnswer === opt" class="correct-badge"> ✓ Correct </span>
-            </div>
-          </div>
-          <div *ngIf="q.explanation" class="explanation">
-            <strong>Explanation:</strong> {{ q.explanation }}
-          </div>
+
+      <button type="button" class="secondary-btn" (click)="copyJsonTemplate()">
+        <i class="bi bi-clipboard"></i>
+        Copy Template
+      </button>
+    </div>
+
+    <div class="json-layout">
+      <div class="json-help">
+        <strong>Required structure</strong>
+        <span><code>question</code> Question text</span>
+        <span><code>options</code> A, B, C, D values</span>
+        <span><code>correctAnswer</code> A/B/C/D</span>
+        <span><code>marks</code> Positive number</span>
+      </div>
+
+      <label class="json-editor">
+        <span>Assessment JSON</span>
+        <textarea rows="18" [(ngModel)]="bulkJsonInput" placeholder="Paste JSON here..."></textarea>
+      </label>
+    </div>
+
+    <div class="bulk-actions">
+      <button class="secondary-btn" [disabled]="!bulkJsonInput.trim()" (click)="parseBulkJSON()">
+        <i class="bi bi-search"></i>
+        Parse & Validate
+      </button>
+    </div>
+
+    <div class="validation-errors" *ngIf="validationErrors.length">
+      <strong>Validation Errors</strong>
+      <p *ngFor="let error of validationErrors">{{ error.message || error }}</p>
+    </div>
+
+    <div class="preview-section" *ngIf="showPreview && bulkAssessment">
+      <div class="preview-head">
+        <div>
+          <span>Preview</span>
+          <h3>{{ bulkAssessment.title }}</h3>
+        </div>
+        <button class="primary-btn" [disabled]="loading" (click)="submitBulkAssessment()">
+          {{ loading ? 'Uploading...' : 'Create Assessment' }}
+        </button>
+      </div>
+
+      <div class="preview-grid">
+        <div>
+          <span>Batch</span><strong>{{ bulkAssessment.batchId }}</strong>
+        </div>
+        <div>
+          <span>Questions</span><strong>{{ bulkAssessment.questions.length }}</strong>
+        </div>
+        <div>
+          <span>Marks</span><strong>{{ bulkAssessment.totalMarks }}</strong>
+        </div>
+        <div>
+          <span>Duration</span><strong>{{ bulkAssessment.durationMinutes }} min</strong>
         </div>
       </div>
-      <button class="submit-btn" [disabled]="loading" (click)="submitBulkAssessment()">
-        {{ loading ? 'Uploading...' : 'Create Assessment' }}
-      </button>
+
+      <article class="question-preview" *ngFor="let q of bulkAssessment.questions; let i = index">
+        <strong>Q{{ i + 1 }}. {{ q.question }}</strong>
+        <div class="preview-options">
+          <span *ngFor="let opt of optionKeys" [class.correct]="q.correctAnswer === opt">
+            {{ opt }}. {{ getOptionValue(q.options, opt) }}
+          </span>
+        </div>
+      </article>
     </div>
-  </div>
-</div>
+  </section>
+</main>

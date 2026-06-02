@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
+import { UserPlanBadgeService } from '../../../services/user-plan-badge.service';
 
 type ToastType = 'success' | 'error';
 
@@ -95,6 +96,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private notificationService: NotificationService,
+    public userPlanBadgeService: UserPlanBadgeService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -102,6 +104,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.restorePreferences();
     this.loadNotificationPreferences();
     this.loadProfile();
+    this.userPlanBadgeService.load();
   }
 
   ngOnDestroy(): void {

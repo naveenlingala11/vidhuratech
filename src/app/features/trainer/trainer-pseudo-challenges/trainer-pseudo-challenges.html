@@ -59,8 +59,30 @@
     </button>
   </div>
 
-  <div class="workspace-grid">
-    <article class="panel create-panel">
+  <div class="workspace-tabs">
+    <button
+      type="button"
+      [class.active]="activeWorkspaceTab === 'BUILDER'"
+      (click)="setWorkspaceTab('BUILDER')"
+    >
+      <i class="bi bi-pencil-square"></i>
+      Builder
+      <span>{{ editingChallengeId ? 'Editing' : 'Create' }}</span>
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeWorkspaceTab === 'LIBRARY'"
+      (click)="setWorkspaceTab('LIBRARY')"
+    >
+      <i class="bi bi-folder2-open"></i>
+      Library
+      <span>{{ activeLibraryItemsCount }} items</span>
+    </button>
+  </div>
+
+  <div class="workspace-single">
+    <article class="panel create-panel" *ngIf="activeWorkspaceTab === 'BUILDER'">
       <div class="panel-head">
         <div>
           <span>{{ editingChallengeId ? 'Editing' : 'Builder' }}</span>
@@ -197,13 +219,25 @@
           ></textarea>
         </label>
 
-        <label class="full">
+        <label class="full constraints-field">
           <span>Constraints</span>
+
           <textarea
-            rows="3"
+            rows="4"
             [(ngModel)]="form.constraintsText"
-            placeholder="Mention rules, edge cases, input limits..."
+            placeholder="One point per line. Example:
+              1 <= N <= 10^5
+              Use only loops
+              Handle negative values"
           ></textarea>
+          <div class="constraints-preview" *ngIf="formatConstraints(form.constraintsText).length">
+            <strong>Preview</strong>
+            <ol>
+              <li *ngFor="let item of formatConstraints(form.constraintsText)">
+                {{ item }}
+              </li>
+            </ol>
+          </div>
         </label>
 
         <label class="full">
@@ -313,28 +347,45 @@
         </div>
       </div>
 
-      <button
-        class="submit-btn"
-        type="button"
-        [disabled]="saving || isFormInvalid"
-        (click)="saveChallenge()"
-      >
-        <i class="bi bi-cloud-arrow-up"></i>
-        {{ saving ? 'Saving...' : editingChallengeId ? 'Update Challenge' : 'Create Challenge' }}
-      </button>
+      <div class="builder-footer">
+        <div>
+          <strong>{{ editingChallengeId ? 'Ready to update?' : 'Ready to publish?' }}</strong>
+          <span>
+            {{ builderMarks }}/{{ form.totalMarks }} marks configured ·
+            {{ form.testCases.length }} test cases · {{ form.rules.length }} rules
+          </span>
+        </div>
 
-      <button
-        class="preview-draft-btn"
-        type="button"
-        [disabled]="isFormInvalid"
-        (click)="previewBuilder()"
-      >
-        <i class="bi bi-window-sidebar"></i>
-        Preview Before Posting
-      </button>
+        <div class="builder-footer-actions">
+          <button
+            type="button"
+            class="subtle-btn"
+            [disabled]="isFormInvalid"
+            (click)="previewBuilder()"
+          >
+            <i class="bi bi-eye"></i>
+            Preview
+          </button>
+
+          <button type="button" class="subtle-btn" (click)="setWorkspaceTab('LIBRARY')">
+            <i class="bi bi-folder2-open"></i>
+            View Library
+          </button>
+
+          <button
+            type="button"
+            class="submit-btn"
+            [disabled]="saving || isFormInvalid"
+            (click)="saveChallenge()"
+          >
+            <i class="bi bi-cloud-arrow-up"></i>
+            {{ saving ? 'Saving...' : editingChallengeId ? 'Update Challenge' : 'Post Challenge' }}
+          </button>
+        </div>
+      </div>
     </article>
 
-    <article class="panel list-panel">
+    <article class="panel list-panel" *ngIf="activeWorkspaceTab === 'LIBRARY'">
       <div class="panel-head upgraded-list-head">
         <div>
           <span>Library</span>
@@ -375,13 +426,13 @@
         </button>
       </div>
 
-      <div class="toolbar responsive-toolbar">
-        <label class="search-box toolbar-search">
+      <div class="responsive-toolbar premium-library-toolbar">
+        <label class="toolbar-search">
           <i class="bi bi-search"></i>
           <input
             [(ngModel)]="search"
             (ngModelChange)="page = 1"
-            placeholder="Search company, group, title, batch..."
+            placeholder="Search company, group, challenge, batch..."
           />
         </label>
 
@@ -396,23 +447,36 @@
         </label>
 
         <label class="filter-field">
-          <span>Sort</span>
-          <select [(ngModel)]="sortBy" (ngModelChange)="page = 1">
-            <option value="LATEST">Latest</option>
-            <option value="TITLE">Title</option>
-            <option value="ATTEMPTS">Attempts</option>
-            <option value="MARKS">Marks</option>
-          </select>
-        </label>
-
-        <label class="filter-field">
-          <span>Page</span>
+          <span>Page Size</span>
           <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
             <option [ngValue]="4">4 items</option>
             <option [ngValue]="6">6 items</option>
+            <option [ngValue]="8">8 items</option>
             <option [ngValue]="10">10 items</option>
           </select>
         </label>
+      </div>
+
+      <div class="sort-strip">
+        <button type="button" [class.active]="sortBy === 'LATEST'" (click)="setSort('LATEST')">
+          <i class="bi bi-clock-history"></i>
+          Latest
+        </button>
+
+        <button type="button" [class.active]="sortBy === 'TITLE'" (click)="setSort('TITLE')">
+          <i class="bi bi-sort-alpha-down"></i>
+          Title
+        </button>
+
+        <button type="button" [class.active]="sortBy === 'ATTEMPTS'" (click)="setSort('ATTEMPTS')">
+          <i class="bi bi-graph-up-arrow"></i>
+          Attempts
+        </button>
+
+        <button type="button" [class.active]="sortBy === 'MARKS'" (click)="setSort('MARKS')">
+          <i class="bi bi-award"></i>
+          Marks
+        </button>
       </div>
 
       <div class="quick-actions">
@@ -474,7 +538,7 @@
             </div>
           </div>
 
-          <div>
+          <div class="publish-status">
             <span>Public Status</span>
             <strong>
               {{ group.challenges[0]?.publicVisible ? 'Published by Admin' : 'Not Published' }}
@@ -511,30 +575,44 @@
               class="group-trainer-item"
               *ngFor="let item of group.challenges; trackBy: trackById"
             >
-              <div>
+              <div class="challenge-mini-info">
                 <strong>{{ item.title }}</strong>
                 <small>{{ item.totalMarks }} marks · {{ item.attemptCount || 0 }} attempts</small>
+
+                <div
+                  class="constraint-points compact"
+                  *ngIf="constraintsPreview(item.constraintsText).length"
+                >
+                  <strong>Constraints</strong>
+                  <ol>
+                    <li *ngFor="let point of constraintsPreview(item.constraintsText)">
+                      {{ point }}
+                    </li>
+                  </ol>
+                </div>
               </div>
 
-              <button type="button" (click)="previewChallenge(item.id)">
-                <i class="bi bi-eye"></i>
-                Preview
-              </button>
+              <div class="mini-actions">
+                <button type="button" (click)="previewChallenge(item.id)">
+                  <i class="bi bi-eye"></i>
+                  Preview
+                </button>
 
-              <button type="button" (click)="editChallenge(item.id)">
-                <i class="bi bi-pencil-square"></i>
-                Edit
-              </button>
+                <button type="button" (click)="editChallenge(item.id)">
+                  <i class="bi bi-pencil-square"></i>
+                  Edit
+                </button>
 
-              <button type="button" (click)="duplicateChallenge(item)">
-                <i class="bi bi-copy"></i>
-                Reuse
-              </button>
+                <button type="button" (click)="duplicateChallenge(item)">
+                  <i class="bi bi-copy"></i>
+                  Reuse
+                </button>
 
-              <button type="button" class="danger" (click)="deleteChallenge(item.id)">
-                <i class="bi bi-trash"></i>
-                Delete
-              </button>
+                <button type="button" class="danger" (click)="deleteChallenge(item.id)">
+                  <i class="bi bi-trash"></i>
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </article>
@@ -672,18 +750,43 @@
         </article>
       </div>
 
-      <div class="pagination" *ngIf="!loading && activeLibraryItemsCount > pageSize">
-        <button type="button" (click)="changePage(page - 1)" [disabled]="page === 1">
-          <i class="bi bi-chevron-left"></i>
-          Prev
-        </button>
+      <div class="premium-pagination" *ngIf="!loading && activeLibraryItemsCount > pageSize">
+        <div>
+          <strong>{{ libraryView === 'COMPANIES' ? 'Companies' : 'Groups' }}</strong>
+          <span>
+            Showing {{ libraryStartRecord }}-{{ libraryEndRecord }} of {{ activeLibraryItemsCount }}
+          </span>
+        </div>
 
-        <span>Page {{ page }} / {{ totalPages }}</span>
+        <div class="page-actions">
+          <button
+            type="button"
+            class="page-btn"
+            (click)="changePage(page - 1)"
+            [disabled]="page === 1"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
 
-        <button type="button" (click)="changePage(page + 1)" [disabled]="page === totalPages">
-          Next
-          <i class="bi bi-chevron-right"></i>
-        </button>
+          <button
+            type="button"
+            class="page-number"
+            *ngFor="let p of pageNumbers"
+            [class.active]="page === p"
+            (click)="changePage(p)"
+          >
+            {{ p }}
+          </button>
+
+          <button
+            type="button"
+            class="page-btn"
+            (click)="changePage(page + 1)"
+            [disabled]="page === totalPages"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
       </div>
 
       <div class="empty" *ngIf="!loading && !activeLibraryItemsCount">
@@ -757,8 +860,26 @@
       <div class="attempts-box">
         <h3>Challenges</h3>
 
-        <div class="attempt-row" *ngFor="let item of selectedGroup.challenges">
-          <strong>{{ item.title }}</strong>
+        <div
+          class="attempt-row challenge-preview-row"
+          *ngFor="let item of selectedGroup.challenges"
+        >
+          <div>
+            <strong>{{ item.title }}</strong>
+
+            <div
+              class="constraint-points compact"
+              *ngIf="constraintsPreview(item.constraintsText).length"
+            >
+              <strong>Constraints</strong>
+              <ol>
+                <li *ngFor="let point of constraintsPreview(item.constraintsText)">
+                  {{ point }}
+                </li>
+              </ol>
+            </div>
+          </div>
+
           <span>{{ item.totalMarks }} marks</span>
           <b>{{ item.attemptCount || 0 }} attempts</b>
         </div>

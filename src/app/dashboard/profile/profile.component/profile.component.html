@@ -33,7 +33,16 @@
 
         <div class="identity-copy">
           <span class="eyebrow">Vidhura Tech Account</span>
-          <h1>{{ user?.name || 'User Profile' }}</h1>
+          <h1>
+            {{ user?.name || 'User Profile' }}
+            <span
+              class="user-plan-badge"
+              *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+              [ngClass]="planBadge.className"
+            >
+              {{ planBadge.label }}
+            </span>
+          </h1>
           <p>{{ roleLabel }} Workspace | {{ accountStatus }}</p>
 
           <div class="identity-tags">
@@ -98,7 +107,29 @@
                 [(ngModel)]="form.name"
                 placeholder="Enter full name"
               />
-              <strong *ngIf="!editMode">{{ user?.name || '-' }}</strong>
+              <strong *ngIf="!editMode" class="name-with-plan">
+                {{ user?.name || '-' }}
+                <ng-container *ngIf="userPlanBadgeService.badge$ | async as planBadge">
+                  <h1>
+                    {{ user?.name || 'User Profile' }}
+                    <span
+                      class="user-plan-badge"
+                      [ngClass]="planBadge.className"
+                      [title]="planBadge.helper"
+                    >
+                      <i [class]="planBadge.icon"></i>
+                      {{ planBadge.label }}
+                    </span>
+                  </h1>
+
+                  <p>{{ roleLabel }} Workspace | {{ accountStatus }}</p>
+
+                  <div class="plan-context" [ngClass]="planBadge.className">
+                    <i [class]="planBadge.icon"></i>
+                    <span>{{ planBadge.helper }}</span>
+                  </div>
+                </ng-container>
+              </strong>
             </div>
 
             <div class="info-field featured">

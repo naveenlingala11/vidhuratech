@@ -65,4 +65,8 @@ export class AssessmentService {
   getTrainerAssessmentDetails(id: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/trainer/assessments/${id}`);
   }
+
+  updateAssessment(id: number, payload: any) {
+    return this.http.put<any>(`${this.baseUrl}/trainer/assessments/${id}`, payload);
+  }
 }
