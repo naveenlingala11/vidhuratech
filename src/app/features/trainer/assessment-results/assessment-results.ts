@@ -113,7 +113,13 @@ export class AssessmentResults implements OnInit {
   }
 
   formatDate(date: any): string {
-    return date ? new Date(date).toLocaleString() : '-';
+    return date
+      ? new Date(date).toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        })
+      : '-';
   }
 
   showToast(message: string): void {

@@ -209,6 +209,14 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     );
   }
 
+  get hintButtonLabel(): string {
+    if (!this.hintUnlocked) {
+      return `Unlocks in ${this.hintUnlockSeconds}s`;
+    }
+
+    return this.showHintPanel ? 'Hide Hint' : 'Show Hint';
+  }
+
   openChallenge(id: number): void {
     this.opening = true;
     this.selectedChallenge = null;
@@ -223,13 +231,23 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     this.service.getStudentChallenge(id).subscribe({
       next: (res: any) => {
         this.selectedChallenge = res?.data || res;
+
         this.language = 'PYTHON';
         this.languageDrafts = this.selectedChallenge?.savedDrafts || {};
+
         this.sourceCode = this.languageDrafts[this.language] || this.starterCode(this.language);
+
         this.lastSavedCode = this.sourceCode;
         this.lastSavedLanguage = this.language;
+
         this.opening = false;
-        this.editorOptions = { ...this.editorOptions, language: this.editorLanguage };
+
+        this.editorOptions = {
+          ...this.editorOptions,
+          language: this.editorLanguage,
+        };
+
+        this.startHintTimer();
 
         setTimeout(() => {
           this.syncEditorValue();
@@ -1156,22 +1174,21 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   }
 
   get hintSteps(): string[] {
-    const text = String(this.selectedChallenge?.hintText || '').trim();
-    if (!text) return [];
+    const hintText = this.selectedChallenge?.hintText || '';
 
-    return text
-      .split(/\r?\n/)
-      .map((step) => step.replace(/^\s*(?:step\s*)?\d+[\).:-]?\s*/i, '').trim())
+    if (!hintText.trim()) {
+      return [];
+    }
+
+    return hintText
+      .split(/\r?\n|\. /)
+      .map((x: string) => x.trim())
       .filter(Boolean);
   }
 
-  get hintButtonLabel(): string {
-    if (this.hintUnlocked) return this.showHintPanel ? 'Hide Hint' : 'Show Hint';
-    return `Hint unlocks in ${this.hintUnlockSeconds}s`;
-  }
-
-  startHintUnlockTimer(): void {
+  private startHintTimer(): void {
     clearInterval(this.hintUnlockTimer);
+
     this.hintUnlocked = false;
     this.showHintPanel = false;
     this.hintUnlockSeconds = 30;
@@ -1181,15 +1198,24 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
       if (this.hintUnlockSeconds <= 0) {
         clearInterval(this.hintUnlockTimer);
+
         this.hintUnlockSeconds = 0;
         this.hintUnlocked = true;
+
+        this.showToast('💡 Hint unlocked');
       }
     }, 1000);
   }
-
   toggleHintPanel(): void {
-    if (!this.hintUnlocked) return;
+    if (!this.hintUnlocked) {
+      return;
+    }
+
     this.showHintPanel = !this.showHintPanel;
+  }
+
+  get hintProgress(): number {
+    return ((30 - this.hintUnlockSeconds) / 30) * 100;
   }
 
   private snippets(language: CodeLanguage): Record<'input' | 'loop' | 'print', string> {

@@ -13,7 +13,8 @@ import QRCode from 'qrcode';
   styleUrl: './admin.css',
 })
 export class Admin implements OnInit {
-  activeTab: 'leads' | 'jobs' | 'companies' | 'bin' | 'questions' | 'certificate' = 'leads'; leads: any[] = [];
+  activeTab: 'leads' | 'jobs' | 'companies' | 'bin' | 'questions' | 'certificate' = 'leads';
+  leads: any[] = [];
   filteredLeads: any[] = [];
   searchText = '';
   selectedStatus = '';
@@ -42,7 +43,7 @@ export class Admin implements OnInit {
   isLoggedIn = false;
   loginData = {
     username: '',
-    password: ''
+    password: '',
   };
   errorMsg = '';
   idleTimer: any;
@@ -51,13 +52,13 @@ export class Admin implements OnInit {
   processMessage = '';
   progress = 0;
   showSuccess = false;
-  leadSortBy = 'date';          // default sort by date
-  leadSortDirection = 'desc';   // latest first
+  leadSortBy = 'date'; // default sort by date
+  leadSortDirection = 'desc'; // latest first
   constructor(
     private cd: ChangeDetectorRef,
     private http: HttpClient,
-    private router: Router
-  ) { }
+    private router: Router,
+  ) {}
   // ================= INIT =================
   ngOnInit() {
     const saved = localStorage.getItem('adminLogin');
@@ -80,10 +81,7 @@ export class Admin implements OnInit {
     });
   }
   login() {
-    if (
-      this.loginData.username === 'admin' &&
-      this.loginData.password === 'admin123'
-    ) {
+    if (this.loginData.username === 'admin' && this.loginData.password === 'admin123') {
       this.isProcessing = true;
       this.processMessage = 'Logging in...';
       this.progress = 30;
@@ -170,10 +168,10 @@ export class Admin implements OnInit {
   startLeadPolling() {
     setInterval(() => {
       fetch(`${environment.apiUrl}/api/leads/analytics`)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (this.previousTotal && data.total > this.previousTotal) {
-            this.newLeadsCount += (data.total - this.previousTotal);
+            this.newLeadsCount += data.total - this.previousTotal;
           }
           this.previousTotal = data.total;
         });
@@ -181,9 +179,11 @@ export class Admin implements OnInit {
   }
   // ================= LEADS =================
   loadLeads() {
-    fetch(`${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}&sortBy=${this.mapLeadSortField()}&direction=${this.leadSortDirection}`)
-      .then(res => res.json())
-      .then(data => {
+    fetch(
+      `${environment.apiUrl}/api/leads?search=${this.searchText}&page=${this.page}&size=${this.size}&sortBy=${this.mapLeadSortField()}&direction=${this.leadSortDirection}`,
+    )
+      .then((res) => res.json())
+      .then((data) => {
         this.leads = data.content.map((item: any) => ({
           id: item.id,
           Date: item.createdAt,
@@ -223,9 +223,12 @@ export class Admin implements OnInit {
     lead.isFollowUpChanged = true;
   }
   saveFollowUp(lead: any) {
-    fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
-      method: 'POST'
-    })
+    fetch(
+      `${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`,
+      {
+        method: 'POST',
+      },
+    )
       .then(() => {
         lead.FollowUp = lead.tempFollowUp;
         lead.isFollowUpChanged = false;
@@ -262,26 +265,25 @@ export class Admin implements OnInit {
       data.sort((a, b) =>
         this.leadSortDirection === 'asc'
           ? a.Name.localeCompare(b.Name)
-          : b.Name.localeCompare(a.Name)
+          : b.Name.localeCompare(a.Name),
       );
     } else {
       // default = date
       data.sort((a, b) =>
         this.leadSortDirection === 'asc'
           ? new Date(a.Date).getTime() - new Date(b.Date).getTime()
-          : new Date(b.Date).getTime() - new Date(a.Date).getTime()
+          : new Date(b.Date).getTime() - new Date(a.Date).getTime(),
       );
     }
     this.filteredLeads = data;
   }
   saveStatus(lead: any) {
     fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
-      method: 'POST'
-    })
-      .then(() => {
-        lead.Status = lead.tempStatus;
-        lead.isChanged = false;
-      });
+      method: 'POST',
+    }).then(() => {
+      lead.Status = lead.tempStatus;
+      lead.isChanged = false;
+    });
   }
   cancelStatus(lead: any) {
     lead.tempStatus = lead.Status;
@@ -295,7 +297,7 @@ export class Admin implements OnInit {
   }
   updateLead(lead: any) {
     fetch(`${environment.apiUrl}/api/leads/status?phone=${lead.Phone}&status=${lead.tempStatus}`, {
-      method: 'POST'
+      method: 'POST',
     })
       .then(() => {
         // 🔥 update UI immediately
@@ -307,9 +309,12 @@ export class Admin implements OnInit {
       });
     // FOLLOWUP
     if (lead.isFollowUpChanged) {
-      fetch(`${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`, {
-        method: 'POST'
-      }).then(() => {
+      fetch(
+        `${environment.apiUrl}/api/leads/followup?phone=${lead.Phone}&date=${lead.tempFollowUp}`,
+        {
+          method: 'POST',
+        },
+      ).then(() => {
         lead.FollowUp = lead.tempFollowUp;
         lead.isFollowUpChanged = false;
       });
@@ -334,7 +339,7 @@ export class Admin implements OnInit {
   confirmDelete() {
     if (!this.selectedLeadToDelete?.id) return;
     fetch(`${environment.apiUrl}/api/leads/${this.selectedLeadToDelete.id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
       .then(() => {
         this.loadLeads();
@@ -348,8 +353,8 @@ export class Admin implements OnInit {
   todayDate = new Date().toISOString().split('T')[0];
   exportCSV() {
     const headers = ['NAME', 'PHONE', 'COURSE', 'STATUS', 'CITY', 'REMARKS'];
-    const rows = this.leads.map(l =>
-      [l.Name, l.Phone, l.Course, l.Status, l.City, l.Message].join(',')
+    const rows = this.leads.map((l) =>
+      [l.Name, l.Phone, l.Course, l.Status, l.City, l.Message].join(','),
     );
     const csvContent = [headers.join(','), ...rows].join('\n');
     const today = new Date().toISOString().split('T')[0];
@@ -375,7 +380,7 @@ export class Admin implements OnInit {
   }
   @HostListener('window:beforeunload', ['$event'])
   confirmExit(event: any) {
-    const hasChanges = this.leads.some(l => l.isChanged);
+    const hasChanges = this.leads.some((l) => l.isChanged);
     if (hasChanges) {
       event.returnValue = true;
     }
@@ -432,7 +437,7 @@ Thanks for reaching out to Vidhura Tech!
     return `https://api.whatsapp.com/send?phone=91${lead.Phone}&text=${encodeURIComponent(message)}`;
   }
   canDeactivate() {
-    return !this.leads.some(l => l.isChanged) || confirm("Save changes?");
+    return !this.leads.some((l) => l.isChanged) || confirm('Save changes?');
   }
   get binCount() {
     return this.binTotal;
@@ -440,8 +445,8 @@ Thanks for reaching out to Vidhura Tech!
   loadBin() {
     this.isBinLoading = true;
     fetch(`${environment.apiUrl}/api/leads/bin?page=0&size=10`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         this.binLeads = data.content;
         this.binTotal = data.totalElements;
         this.isBinLoading = false;
@@ -451,13 +456,13 @@ Thanks for reaching out to Vidhura Tech!
   }
   restoreLead(lead: any) {
     fetch(`${environment.apiUrl}/api/leads/restore/${lead.id}`, {
-      method: 'PUT'
+      method: 'PUT',
     }).then(() => this.loadBin());
   }
   deletePermanent(lead: any) {
     if (!confirm('Delete permanently?')) return;
     fetch(`${environment.apiUrl}/api/leads/permanent/${lead.id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     }).then(() => this.loadBin());
   }
   openBin() {
@@ -634,7 +639,7 @@ Thanks for reaching out to Vidhura Tech!
     fetch(`${environment.apiUrl}/api/questions/bulk`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(this.parsedQuestions)
+      body: JSON.stringify(this.parsedQuestions),
     }).then(() => {
       this.uploadSuccess = true;
       this.previewMode = false;
@@ -648,22 +653,23 @@ Thanks for reaching out to Vidhura Tech!
     name: '',
     course: '',
     email: '',
-    mobile: ''
+    mobile: '',
   };
   certificateId = '';
   qrCodeUrl = '';
-  today = new Date().toLocaleDateString();
+  today = new Date().toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+  });
   mobileSuggestions: any[] = [];
   showSuggestions = false;
   showCertPopup = false;
   generateQRCode(id: string) {
     const url = `${window.location.origin}/certificate/${id}`;
-    QRCode.toDataURL(url)
-      .then(qr => {
-        this.qrCodeUrl = qr;
-        // 🔥 FORCE SYNC WITH ANGULAR
-        this.cd.detectChanges();
-      });
+    QRCode.toDataURL(url).then((qr) => {
+      this.qrCodeUrl = qr;
+      // 🔥 FORCE SYNC WITH ANGULAR
+      this.cd.detectChanges();
+    });
   }
   // 🔥 Save to backend
   saveCertificate() {
@@ -674,25 +680,27 @@ Thanks for reaching out to Vidhura Tech!
         id: this.certificateId,
         name: this.certificateData.name,
         course: this.certificateData.course,
-        email: this.certificateData.email
-      })
+        email: this.certificateData.email,
+      }),
     });
   }
   async generateAndDownload() {
     this.showCertPopup = false;
-    this.http.post(`${environment.apiUrl}/certificates`, {
-      name: this.certificateData.name,
-      course: this.certificateData.course,
-      email: this.certificateData.email
-    }).subscribe(async (res: any) => {
-      this.certificateId = res.id;
-      this.generateQRCode(res.id);
-      this.cd.detectChanges();
-    });
+    this.http
+      .post(`${environment.apiUrl}/certificates`, {
+        name: this.certificateData.name,
+        course: this.certificateData.course,
+        email: this.certificateData.email,
+      })
+      .subscribe(async (res: any) => {
+        this.certificateId = res.id;
+        this.generateQRCode(res.id);
+        this.cd.detectChanges();
+      });
   }
   downloadCertificate() {
     if (!this.certificateId) {
-      alert("Generate certificate first");
+      alert('Generate certificate first');
       return;
     }
     setTimeout(async () => {
@@ -709,28 +717,26 @@ Thanks for reaching out to Vidhura Tech!
   fetchUserByMobile() {
     const mobile = this.certificateData.mobile;
     if (!mobile || mobile.length < 5) return; // avoid unnecessary calls
-    this.http.get<any>(`${environment.apiUrl}/api/leads/by-phone?phone=${mobile}`)
-      .subscribe({
-        next: (user) => {
-          if (user) {
-            this.certificateData.name = this.certificateData.name || user.name;
-            this.certificateData.email = this.certificateData.email || user.email;
-            this.certificateData.course = this.certificateData.course || user.course;
-          }
-        },
-        error: () => {
-          console.log('User not found');
+    this.http.get<any>(`${environment.apiUrl}/api/leads/by-phone?phone=${mobile}`).subscribe({
+      next: (user) => {
+        if (user) {
+          this.certificateData.name = this.certificateData.name || user.name;
+          this.certificateData.email = this.certificateData.email || user.email;
+          this.certificateData.course = this.certificateData.course || user.course;
         }
-      });
+      },
+      error: () => {
+        console.log('User not found');
+      },
+    });
   }
   shareLinkedIn() {
     if (!this.certificateId) {
-      alert("Generate certificate first");
+      alert('Generate certificate first');
       return;
     }
     const url = `${window.location.origin}/certificate/${this.certificateId}`;
-    const linkedInUrl =
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
     window.open(linkedInUrl, '_blank');
   }
   searchTimeout: any;
@@ -739,8 +745,9 @@ Thanks for reaching out to Vidhura Tech!
     this.searchTimeout = setTimeout(() => {
       const mobile = this.certificateData.mobile;
       if (!mobile || mobile.length < 3) return;
-      this.http.get<any[]>(`${environment.apiUrl}/api/leads/search?phone=${mobile}`)
-        .subscribe(data => {
+      this.http
+        .get<any[]>(`${environment.apiUrl}/api/leads/search?phone=${mobile}`)
+        .subscribe((data) => {
           this.mobileSuggestions = data;
           this.showSuggestions = data.length > 0;
         });

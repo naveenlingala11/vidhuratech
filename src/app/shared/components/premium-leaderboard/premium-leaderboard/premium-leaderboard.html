@@ -1,0 +1,199 @@
+<section class="premium-leaderboard">
+  <div class="leaderboard-bg-grid"></div>
+  <div class="leaderboard-glow glow-one"></div>
+  <div class="leaderboard-glow glow-two"></div>
+  <div class="leaderboard-glow glow-three"></div>
+
+  <div class="leaderboard-hero">
+    <div>
+      <p class="leaderboard-kicker">Competitive Rankings</p>
+      <h2>{{ displayTitle }}</h2>
+      <span>{{ subtitle }}</span>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" (click)="showOverall()">Overall</button>
+      <button type="button" class="soft" (click)="resetTable()">Reset</button>
+    </div>
+  </div>
+
+  <div class="leaderboard-tabs">
+    <button
+      type="button"
+      [class.active]="scope === 'period' && period === 'daily'"
+      (click)="changePeriod('daily')"
+    >
+      <b>D</b>
+      Daily
+    </button>
+
+    <button
+      type="button"
+      [class.active]="scope === 'period' && period === 'weekly'"
+      (click)="changePeriod('weekly')"
+    >
+      <b>W</b>
+      Weekly
+    </button>
+
+    <button
+      type="button"
+      [class.active]="scope === 'period' && period === 'monthly'"
+      (click)="changePeriod('monthly')"
+    >
+      <b>M</b>
+      Monthly
+    </button>
+
+    <button
+      type="button"
+      *ngIf="showChallengeTab"
+      [class.active]="scope === 'challenge'"
+      [disabled]="!selectedChallenge"
+      (click)="showChallenge()"
+    >
+      <b>C</b>
+      Challenge
+    </button>
+  </div>
+
+  <div class="podium-grid" *ngIf="podiumEntries.length">
+    <article
+      class="podium-card"
+      *ngFor="let winner of podiumEntries; trackBy: trackByEntry"
+      [ngClass]="rankClass(winner)"
+    >
+      <div class="podium-line"></div>
+
+      <div class="podium-rank">#{{ rankValue(winner) }}</div>
+
+      <div class="podium-avatar">
+        {{ nameValue(winner).charAt(0) }}
+      </div>
+
+      <div class="podium-info">
+        <span>{{ rankBadge(winner) }}</span>
+        <strong>{{ nameValue(winner) }}</strong>
+        <p>{{ scoreValue(winner) }}/{{ totalValue(winner) }} marks</p>
+      </div>
+    </article>
+  </div>
+
+  <section class="leaderboard-board">
+    <div class="board-toolbar">
+      <label class="leaderboard-search">
+        <input
+          type="text"
+          [(ngModel)]="search"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Search participant, email, phone, language..."
+        />
+      </label>
+
+      <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()">
+        <option value="rank">Rank</option>
+        <option value="score">Score</option>
+        <option value="latest">Latest</option>
+        <option value="name">Name A-Z</option>
+      </select>
+
+      <select [(ngModel)]="pageSize" (ngModelChange)="onFilterChange()">
+        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }} rows</option>
+      </select>
+    </div>
+
+    <div class="board-summary">
+      <article>
+        <span>Total</span>
+        <strong>{{ filteredEntries.length }}</strong>
+      </article>
+
+      <article>
+        <span>Scope</span>
+        <strong>{{ scope === 'challenge' ? 'Challenge' : periodLabel }}</strong>
+      </article>
+
+      <article>
+        <span>Page</span>
+        <strong>{{ page }}/{{ totalPages }}</strong>
+      </article>
+    </div>
+
+    <div class="leaderboard-loading" *ngIf="isLoading">Loading leaderboard...</div>
+
+    <div class="rank-table" *ngIf="!isLoading && pagedEntries.length; else emptyState">
+      <div class="rank-row rank-head">
+        <span>Rank</span>
+        <span>Participant</span>
+        <span>Badge</span>
+        <span>Solved</span>
+        <span>Score</span>
+        <span>Language</span>
+        <span>Submitted</span>
+      </div>
+
+      <div
+        class="rank-row"
+        *ngFor="let row of pagedEntries; trackBy: trackByEntry"
+        [ngClass]="rankClass(row)"
+      >
+        <div class="rank-pill">#{{ rankValue(row) }}</div>
+
+        <div class="rank-user">
+          <div class="rank-avatar">{{ nameValue(row).charAt(0) }}</div>
+
+          <div>
+            <strong>{{ nameValue(row) }}</strong>
+            <small>{{ row.email || row.phone || 'Contest participant' }}</small>
+          </div>
+        </div>
+
+        <div class="rank-badge">{{ rankBadge(row) }}</div>
+
+        <div class="rank-solved">
+          {{
+            row.solvedSummary || (row.solvedChallenges || 0) + '/' + (row.attemptedChallenges || 0)
+          }}
+        </div>
+
+        <div class="rank-score">
+          <strong>{{ scoreValue(row) }}</strong>
+          <span>/{{ totalValue(row) }}</span>
+        </div>
+
+        <div class="rank-language">{{ row.language || 'Multiple' }}</div>
+
+        <div class="rank-time">
+          <ng-container *ngIf="submittedAt(row); else noDate">
+            {{ submittedAt(row) | date: 'medium' : 'Asia/Kolkata' }}
+          </ng-container>
+          <ng-template #noDate>-</ng-template>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="leaderboard-empty" *ngIf="!isLoading">
+        <strong>No leaderboard entries found</strong>
+        <span>Submissions will appear here after participants complete challenges.</span>
+      </div>
+    </ng-template>
+
+    <div class="leaderboard-pagination" *ngIf="totalPages > 1">
+      <button type="button" [disabled]="page === 1" (click)="setPage(page - 1)">Previous</button>
+
+      <button
+        type="button"
+        *ngFor="let item of pages"
+        [class.active]="item === page"
+        (click)="setPage(item)"
+      >
+        {{ item }}
+      </button>
+
+      <button type="button" [disabled]="page === totalPages" (click)="setPage(page + 1)">
+        Next
+      </button>
+    </div>
+  </section>
+</section>

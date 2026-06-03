@@ -452,14 +452,14 @@ export const COURSE_DETAILS: CourseDetail[] = [
     ],
   },
   {
-    slug: 'python-data-structures + AI',
+    slug: 'python-data-structures',
     codes: ['PYTHON_DS'],
-    title: 'Python + Data Structures + AI',
+    title: 'Python + Data Structures',
     subtitle:
       'Learn Python from basics and build strong problem-solving skills with arrays, strings, recursion, linked lists, stacks, queues, trees, and interview practice.',
     level: 'Beginner',
     duration: '120 hrs',
-    price: '₹2,999',
+    price: '₹4,999',
     badge: 'Programming Foundation Track',
     heroStats: [
       { label: 'Language', value: 'Python' },

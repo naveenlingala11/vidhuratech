@@ -132,24 +132,39 @@ solve()</code></pre>
 
         <pre>{{ selectedChallenge.constraintsText || 'No constraints added.' }}</pre>
       </section>
-      <section class="hint-panel">
+      <section class="hint-panel premium-hint-panel">
         <div class="hint-head">
-          <strong>Hint</strong>
+          <div>
+            <span class="hint-label">AI Guide</span>
+            <h3>Problem Hint</h3>
+          </div>
 
           <button type="button" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
             {{ hintButtonLabel }}
           </button>
         </div>
 
-        <p *ngIf="!hintUnlocked">Hint unlocks 30 seconds after the test starts.</p>
+        <div *ngIf="!hintUnlocked" class="hint-lock-state">
+          <i class="bi bi-lock-fill"></i>
 
-        <ol *ngIf="hintUnlocked && showHintPanel && hintSteps.length">
-          <li *ngFor="let step of hintSteps">{{ step }}</li>
-        </ol>
+          <strong> Hint Available In </strong>
 
-        <p *ngIf="hintUnlocked && showHintPanel && !hintSteps.length">
-          No hint added for this challenge.
-        </p>
+          <div class="hint-timer">{{ hintUnlockSeconds }}s</div>
+        </div>
+
+        <div *ngIf="hintUnlocked && showHintPanel" class="hint-content">
+          <div class="hint-step" *ngFor="let step of hintSteps; let i = index">
+            <div class="step-index">
+              {{ i + 1 }}
+            </div>
+
+            <div class="step-content">
+              {{ step }}
+            </div>
+          </div>
+
+          <div *ngIf="!hintSteps.length" class="no-hint">No hint available for this challenge.</div>
+        </div>
       </section>
       <section class="format-grid">
         <div class="problem-section glass-panel premium-panel">
