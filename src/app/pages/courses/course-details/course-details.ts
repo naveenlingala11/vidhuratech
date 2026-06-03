@@ -354,6 +354,16 @@ export class CourseDetailsComponent implements OnInit {
       });
   }
 
+  scrollToRoadmap(): void {
+    const element = document.getElementById('course_roadmap');
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }
+
   get displayPrice(): string {
     if (this.backendCourse?.price !== undefined && this.backendCourse?.price !== null) {
       return `Rs. ${this.formatPrice(this.backendCourse.price)}`;

@@ -133,6 +133,7 @@ import { TrainerInterviewQuestionsComponent } from './features/trainer/trainer-i
 import { CodingContestsComponent } from './features/public/coding-contests/coding-contests/coding-contests';
 import { PricingPlansComponent } from './pages/pricing-plans/pricing-plans';
 import { AdminPlanAccessComponent } from './admin/plan-access/plan-access/plan-access';
+import { PremiumLeaderboardComponent } from './shared/components/premium-leaderboard/premium-leaderboard/premium-leaderboard';
 
 export const routes: Routes = [
   /* =========================
@@ -156,6 +157,7 @@ export const routes: Routes = [
   { path: 'courses/:slug', component: CourseDetailsComponent },
   { path: 'free-mock-tests', component: PublicPracticeComponent },
   { path: 'free-mock-tests/:type/:id', component: PublicPracticeComponent },
+  { path: 'leaderboard', component: PremiumLeaderboardComponent },
   /* =========================
      POLICY ROUTES
   ========================= */

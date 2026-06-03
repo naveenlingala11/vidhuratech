@@ -3,6 +3,7 @@ import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PublicPracticeService } from '../../../services/public-practice.service';
+import { PremiumLeaderboardComponent } from '../../../../shared/components/premium-leaderboard/premium-leaderboard/premium-leaderboard';
 
 type Period = 'daily' | 'weekly' | 'monthly';
 type LeaderboardScope = 'period' | 'challenge';
@@ -22,7 +23,7 @@ interface PracticeGrant {
 @Component({
   selector: 'app-coding-contests',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, PremiumLeaderboardComponent],
   templateUrl: './coding-contests.html',
   styleUrls: ['./coding-contests.css'],
 })
@@ -41,18 +42,22 @@ export class CodingContestsComponent implements OnInit {
   search = '';
   selectedCompany = 'ALL';
   selectedSkill = 'ALL';
-  selectedSort: 'latest' | 'marks' | 'duration' = 'latest';
+  selectedSort: 'latest' | 'marks' | 'duration' | 'company' = 'latest';
 
   challengePage = 1;
-  challengePageSize = 5;
+  challengePageSize = 6;
+  challengePageSizeOptions = [4, 6, 9, 12];
 
   leaderboardScope: LeaderboardScope = 'period';
   leaderboardPeriod: Period = 'weekly';
   periodLeaderboard: any[] = [];
   challengeLeaderboard: any[] = [];
 
+  leaderboardSearch = '';
+  leaderboardSort: 'rank' | 'score' | 'latest' | 'name' = 'rank';
   leaderboardPage = 1;
   leaderboardPageSize = 10;
+  leaderboardPageSizeOptions = [5, 10, 15, 25];
 
   dailyTopThree: any[] = [];
   weeklyTopThree: any[] = [];
@@ -115,6 +120,10 @@ export class CodingContestsComponent implements OnInit {
         return Number(a.durationMinutes || 0) - Number(b.durationMinutes || 0);
       }
 
+      if (this.selectedSort === 'company') {
+        return String(a.company || '').localeCompare(String(b.company || ''));
+      }
+
       return Number(b.id || 0) - Number(a.id || 0);
     });
   }
@@ -128,25 +137,88 @@ export class CodingContestsComponent implements OnInit {
     return this.filteredChallenges.slice(start, start + this.challengePageSize);
   }
 
+  get challengePages(): number[] {
+    const total = this.challengeTotalPages;
+    const current = this.challengePage;
+    const start = Math.max(1, current - 2);
+    const end = Math.min(total, current + 2);
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }
+
   get activeLeaderboard(): any[] {
     return this.leaderboardScope === 'challenge'
       ? this.challengeLeaderboard
       : this.periodLeaderboard;
   }
 
+  get filteredLeaderboard(): any[] {
+    const term = this.leaderboardSearch.trim().toLowerCase();
+
+    const filtered = this.activeLeaderboard.filter((row) => {
+      const text = [
+        row.name,
+        row.email,
+        row.phone,
+        row.language,
+        row.company,
+        row.challengeTitle,
+        row.solvedSummary,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return !term || text.includes(term);
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (this.leaderboardSort === 'score') {
+        return Number(b.score || 0) - Number(a.score || 0);
+      }
+
+      if (this.leaderboardSort === 'latest') {
+        return new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime();
+      }
+
+      if (this.leaderboardSort === 'name') {
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      }
+
+      return Number(a.rank || 999999) - Number(b.rank || 999999);
+    });
+  }
+
   get leaderboardTotalPages(): number {
-    return Math.max(Math.ceil(this.activeLeaderboard.length / this.leaderboardPageSize), 1);
+    return Math.max(Math.ceil(this.filteredLeaderboard.length / this.leaderboardPageSize), 1);
   }
 
   get pagedLeaderboard(): any[] {
     const start = (this.leaderboardPage - 1) * this.leaderboardPageSize;
-    return this.activeLeaderboard.slice(start, start + this.leaderboardPageSize);
+    return this.filteredLeaderboard.slice(start, start + this.leaderboardPageSize);
+  }
+
+  get leaderboardPages(): number[] {
+    const total = this.leaderboardTotalPages;
+    const current = this.leaderboardPage;
+    const start = Math.max(1, current - 2);
+    const end = Math.min(total, current + 2);
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
   }
 
   get featuredTopThree(): any[] {
-    if (this.leaderboardPeriod === 'daily') return this.dailyTopThree;
-    if (this.leaderboardPeriod === 'monthly') return this.monthlyTopThree;
-    return this.weeklyTopThree;
+    const source =
+      this.leaderboardScope === 'challenge'
+        ? this.challengeLeaderboard
+        : this.leaderboardPeriod === 'daily'
+          ? this.dailyTopThree
+          : this.leaderboardPeriod === 'monthly'
+            ? this.monthlyTopThree
+            : this.weeklyTopThree;
+
+    return [...(source || [])]
+      .sort((a, b) => Number(a.rank || 999999) - Number(b.rank || 999999))
+      .slice(0, 3);
   }
 
   get totalMarksAvailable(): number {
@@ -157,6 +229,14 @@ export class CodingContestsComponent implements OnInit {
     if (!this.challenges.length) return 0;
     const total = this.challenges.reduce((sum, item) => sum + Number(item.durationMinutes || 0), 0);
     return Math.round(total / this.challenges.length);
+  }
+
+  get premiumChallengeCount(): number {
+    return this.challenges.filter((challenge) => this.isPremiumContent(challenge)).length;
+  }
+
+  get freeChallengeCount(): number {
+    return this.challenges.length - this.premiumChallengeCount;
   }
 
   loadContestData(): void {
@@ -187,17 +267,26 @@ export class CodingContestsComponent implements OnInit {
 
   preloadTopThree(): void {
     this.publicPracticeService.getDailyLeaderboard().subscribe({
-      next: (res: any) => (this.dailyTopThree = res?.data?.topThree || []),
+      next: (res: any) => {
+        const entries = this.extractEntries(res);
+        this.dailyTopThree = this.extractTopThree(res, entries);
+      },
       error: () => (this.dailyTopThree = []),
     });
 
     this.publicPracticeService.getWeeklyLeaderboard().subscribe({
-      next: (res: any) => (this.weeklyTopThree = res?.data?.topThree || []),
+      next: (res: any) => {
+        const entries = this.extractEntries(res);
+        this.weeklyTopThree = this.extractTopThree(res, entries);
+      },
       error: () => (this.weeklyTopThree = []),
     });
 
     this.publicPracticeService.getMonthlyLeaderboard().subscribe({
-      next: (res: any) => (this.monthlyTopThree = res?.data?.topThree || []),
+      next: (res: any) => {
+        const entries = this.extractEntries(res);
+        this.monthlyTopThree = this.extractTopThree(res, entries);
+      },
       error: () => (this.monthlyTopThree = []),
     });
   }
@@ -207,6 +296,57 @@ export class CodingContestsComponent implements OnInit {
       next: (res: any) => (this.announcements = res?.data || []),
       error: () => (this.announcements = []),
     });
+  }
+
+  private extractLeaderboardPayload(res: any): any {
+    return res?.data || res || {};
+  }
+
+  private extractEntries(res: any): any[] {
+    const payload = this.extractLeaderboardPayload(res);
+
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.entries)) return payload.entries;
+    if (Array.isArray(payload.leaderboard)) return payload.leaderboard;
+    if (Array.isArray(payload.results)) return payload.results;
+    if (Array.isArray(payload.data?.entries)) return payload.data.entries;
+    if (Array.isArray(payload.data?.leaderboard)) return payload.data.leaderboard;
+
+    return [];
+  }
+
+  private extractTopThree(res: any, entries: any[] = []): any[] {
+    const payload = this.extractLeaderboardPayload(res);
+
+    if (Array.isArray(payload.topThree)) return payload.topThree;
+    if (Array.isArray(payload.winners)) return payload.winners;
+    if (Array.isArray(payload.data?.topThree)) return payload.data.topThree;
+
+    return entries.slice(0, 3);
+  }
+
+  get currentLeaderboardEntries(): any[] {
+    if (this.leaderboardScope === 'challenge') {
+      return this.challengeLeaderboard;
+    }
+
+    if (this.periodLeaderboard.length) {
+      return this.periodLeaderboard;
+    }
+
+    return this.challengeLeaderboard;
+  }
+
+  get currentLeaderboardTopThree(): any[] {
+    if (this.leaderboardScope === 'challenge') {
+      return this.challengeLeaderboard.slice(0, 3);
+    }
+
+    if (this.featuredTopThree.length) {
+      return this.featuredTopThree;
+    }
+
+    return this.challengeLeaderboard.slice(0, 3);
   }
 
   loadPeriodLeaderboard(period: Period): void {
@@ -224,23 +364,35 @@ export class CodingContestsComponent implements OnInit {
 
     request.subscribe({
       next: (res: any) => {
-        this.periodLeaderboard = res?.data?.entries || [];
-        const topThree = res?.data?.topThree || [];
+        const entries = this.extractEntries(res);
+        const topThree = this.extractTopThree(res, entries);
+
+        this.periodLeaderboard = entries;
 
         if (period === 'daily') this.dailyTopThree = topThree;
         if (period === 'weekly') this.weeklyTopThree = topThree;
         if (period === 'monthly') this.monthlyTopThree = topThree;
 
         this.leaderboardLoading = false;
+
+        if (!entries.length && this.selectedChallenge?.id) {
+          this.selectChallenge(this.selectedChallenge, true);
+        }
       },
       error: () => {
         this.periodLeaderboard = [];
         this.leaderboardLoading = false;
+
+        if (this.selectedChallenge?.id) {
+          this.selectChallenge(this.selectedChallenge, true);
+        }
       },
     });
   }
 
   selectChallenge(challenge: any, switchLeaderboard = true): void {
+    if (!challenge?.id) return;
+
     this.selectedChallenge = challenge;
     this.challengeLeaderboard = [];
     this.leaderboardLoading = true;
@@ -252,8 +404,14 @@ export class CodingContestsComponent implements OnInit {
 
     this.publicPracticeService.getChallengeLeaderboard(Number(challenge.id)).subscribe({
       next: (res: any) => {
-        this.challengeLeaderboard = res?.data?.entries || [];
+        const entries = this.extractEntries(res);
+
+        this.challengeLeaderboard = entries;
         this.leaderboardLoading = false;
+
+        if (!this.periodLeaderboard.length && entries.length) {
+          this.leaderboardScope = 'challenge';
+        }
       },
       error: () => {
         this.challengeLeaderboard = [];
@@ -272,7 +430,23 @@ export class CodingContestsComponent implements OnInit {
     this.selectedCompany = 'ALL';
     this.selectedSkill = 'ALL';
     this.selectedSort = 'latest';
+    this.challengePageSize = 6;
     this.challengePage = 1;
+  }
+
+  resetLeaderboardFilters(): void {
+    this.leaderboardSearch = '';
+    this.leaderboardSort = 'rank';
+    this.leaderboardPageSize = 10;
+    this.leaderboardPage = 1;
+  }
+
+  onChallengeFilterChange(): void {
+    this.challengePage = 1;
+  }
+
+  onLeaderboardFilterChange(): void {
+    this.leaderboardPage = 1;
   }
 
   setChallengePage(page: number): void {
@@ -353,27 +527,37 @@ export class CodingContestsComponent implements OnInit {
   }
 
   accessLabel(challenge: any): string {
-    if (!this.isPremiumContent(challenge)) {
-      return 'Free Challenge';
-    }
-
-    if (this.hasPremiumChallengeAccess()) {
-      return 'Premium Unlocked';
-    }
-
-    return 'Unlock Premium to Access';
+    if (!this.isPremiumContent(challenge)) return 'Free Challenge';
+    if (this.hasPremiumChallengeAccess()) return 'Premium Unlocked';
+    return 'Premium Locked';
   }
 
   challengeActionLabel(challenge: any): string {
-    if (!this.isPremiumContent(challenge)) {
-      return 'Start Challenge';
-    }
-
-    if (this.hasPremiumChallengeAccess()) {
-      return 'Start Challenge';
-    }
-
+    if (!this.isPremiumContent(challenge)) return 'Start Challenge';
+    if (this.hasPremiumChallengeAccess()) return 'Start Challenge';
     return 'Unlock Premium';
+  }
+
+  rankBadge(row: any): string {
+    const rank = Number(row?.rank || 0);
+
+    if (rank === 1) return 'Champion';
+    if (rank === 2) return 'Runner Up';
+    if (rank === 3) return 'Top Three';
+    if (rank <= 10) return 'Top 10';
+
+    return 'Ranked';
+  }
+
+  rankClass(row: any): string {
+    const rank = Number(row?.rank || 0);
+
+    if (rank === 1) return 'rank-gold';
+    if (rank === 2) return 'rank-silver';
+    if (rank === 3) return 'rank-bronze';
+    if (rank <= 10) return 'rank-blue';
+
+    return '';
   }
 
   startChallenge(challenge: any): void {
@@ -381,21 +565,16 @@ export class CodingContestsComponent implements OnInit {
 
     const challengeId = Number(challenge.id);
 
-    // 1. Free challenge: logged-in or guest both can go to challenge page.
-    // Guest registration modal will be handled inside PublicPracticeComponent.
     if (!this.isPremiumContent(challenge)) {
       this.router.navigate(['/free-mock-tests', 'challenge', challengeId]);
       return;
     }
 
-    // 2. Premium challenge + active premium plan: create access grant and open challenge.
     if (this.hasPremiumChallengeAccess()) {
       this.unlockPremiumChallengeAndOpen(challenge);
       return;
     }
 
-    // 3. Premium challenge + no premium access:
-    // logged-in or not logged-in both should go to pricing.
     this.router.navigate(['/pricing-plans'], {
       queryParams: {
         redirect: '/coding-contests',
@@ -466,7 +645,7 @@ export class CodingContestsComponent implements OnInit {
   }
 
   trackById(_: number, item: any): any {
-    return item?.id || item?.attemptId;
+    return item?.id || item?.attemptId || item?.rank;
   }
 
   showToast(message: string): void {

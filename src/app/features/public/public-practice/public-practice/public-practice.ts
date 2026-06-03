@@ -88,6 +88,11 @@ export class PublicPracticeComponent implements OnInit {
   lastStarterCode = '';
   challengeResult: any = null;
 
+  editorError = '';
+  hasUnsavedChanges = false;
+  draftSavedAt = '';
+  private draftSaveTimer?: ReturnType<typeof setTimeout>;
+
   showLeadModal = false;
   pendingItem: any = null;
   leadSaved = false;
@@ -242,9 +247,14 @@ export class PublicPracticeComponent implements OnInit {
 
   private prepareChallengeWorkspace(): void {
     this.sourceCode = this.getStarterCode(this.language);
-    this.startHintUnlockTimer();
     this.lastStarterCode = this.sourceCode;
     this.challengeResult = null;
+    this.editorError = '';
+    this.hasUnsavedChanges = false;
+    this.draftSavedAt = '';
+
+    this.restoreDraftLocally();
+    this.startHintUnlockTimer();
   }
 
   get isLoggedIn(): boolean {
@@ -816,9 +826,65 @@ export class PublicPracticeComponent implements OnInit {
     }
   }
 
+  get draftKey(): string {
+    return `publicChallengeDraft_${this.challengeId}_${this.language}`;
+  }
+
+  get visibleSampleTestCases(): any[] {
+    return this.challenge?.sampleTestCases || [];
+  }
+
+  get resultTestCases(): any[] {
+    return this.challengeResult?.testResults || [];
+  }
+
+  onCodeChange(): void {
+    this.hasUnsavedChanges = true;
+    this.editorError = '';
+
+    if (this.draftSaveTimer) {
+      clearTimeout(this.draftSaveTimer);
+    }
+
+    this.draftSaveTimer = setTimeout(() => this.saveDraftLocally(), 500);
+  }
+
+  saveDraftLocally(): void {
+    if (!this.challengeId || !this.sourceCode) return;
+
+    localStorage.setItem(this.draftKey, this.sourceCode);
+    this.hasUnsavedChanges = false;
+    this.draftSavedAt = new Date().toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  restoreDraftLocally(): boolean {
+    const saved = localStorage.getItem(this.draftKey);
+
+    if (!saved) return false;
+
+    this.sourceCode = saved;
+    this.hasUnsavedChanges = false;
+    return true;
+  }
+
+  clearCode(): void {
+    this.sourceCode = '';
+    this.challengeResult = null;
+    this.editorError = '';
+    this.hasUnsavedChanges = true;
+    localStorage.removeItem(this.draftKey);
+  }
+
   resetCode(): void {
     this.sourceCode = this.getStarterCode(this.language);
     this.lastStarterCode = this.sourceCode;
+    this.challengeResult = null;
+    this.editorError = '';
+    this.hasUnsavedChanges = false;
+    localStorage.removeItem(this.draftKey);
   }
 
   runChallenge(): void {
@@ -845,14 +911,16 @@ export class PublicPracticeComponent implements OnInit {
       .subscribe({
         next: (res: any) => {
           this.challengeResult = res?.data;
+          this.editorError = this.challengeResult?.compileError || '';
           this.submitting = false;
+          this.hasUnsavedChanges = false;
           this.showToast('Challenge evaluated');
         },
         error: (err) => {
           this.submitting = false;
 
           const message = err?.error?.message || err?.error?.error || 'Challenge run failed';
-
+          this.editorError = message;
           if (err?.status === 403) {
             this.clearGrant('CHALLENGE', this.challengeId);
             this.currentGrant = null;
@@ -897,7 +965,7 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   get hintSteps(): string[] {
-    const text = String(this.selectedChallenge?.hintText || '').trim();
+    const text = String(this.challenge?.hintText || this.selectedChallenge?.hintText || '').trim();
     if (!text) return [];
 
     return text
@@ -935,31 +1003,43 @@ export class PublicPracticeComponent implements OnInit {
 
   getStarterCode(language: string): string {
     const starters: Record<string, string> = {
-      PYTHON: `# Read input from STDIN and print output to STDOUT
+      PYTHON: `import sys
 
-value = input().strip()
-print(value)`,
+def solve():
+    data = sys.stdin.read().strip().split()
+    # Write your logic here
+    print(" ".join(data))
 
-      JAVA: `import java.util.*;
+if __name__ == "__main__":
+    solve()`,
+
+      JAVA: `import java.io.*;
+import java.util.*;
 
 public class Main {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringBuilder input = new StringBuilder();
+        String line;
 
-        String value = sc.hasNextLine() ? sc.nextLine() : "";
-        System.out.println(value);
+        while ((line = br.readLine()) != null) {
+            input.append(line).append("\\n");
+        }
 
-        sc.close();
+        // Write your logic here
+        System.out.print(input.toString().trim());
     }
 }`,
 
       C: `#include <stdio.h>
+#include <string.h>
 
-int main() {
-    char value[1000];
+int main(void) {
+    char input[10000];
 
-    if (fgets(value, sizeof(value), stdin) != NULL) {
-        printf("%s", value);
+    while (fgets(input, sizeof(input), stdin) != NULL) {
+        // Write your logic here
+        printf("%s", input);
     }
 
     return 0;
@@ -969,18 +1049,32 @@ int main() {
 using namespace std;
 
 int main() {
-    string value;
-    getline(cin, value);
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    cout << value;
+    vector<string> tokens;
+    string value;
+
+    while (cin >> value) {
+        tokens.push_back(value);
+    }
+
+    // Write your logic here
+    for (int i = 0; i < (int)tokens.size(); i++) {
+        if (i) cout << ' ';
+        cout << tokens[i];
+    }
 
     return 0;
 }`,
 
-      TYPESCRIPT: `const fs = require("fs");
+      TYPESCRIPT: `import * as fs from "fs";
 
 const input = fs.readFileSync(0, "utf8").trim();
-console.log(input);`,
+const tokens = input.length ? input.split(/\\s+/) : [];
+
+// Write your logic here
+console.log(tokens.join(" "));`,
 
       GO: `package main
 
@@ -992,13 +1086,21 @@ import (
 
 func main() {
     scanner := bufio.NewScanner(os.Stdin)
-    value := ""
+    scanner.Buffer(make([]byte, 1024), 1024*1024)
 
-    if scanner.Scan() {
-        value = scanner.Text()
+    values := []string{}
+
+    for scanner.Scan() {
+        values = append(values, scanner.Text())
     }
 
-    fmt.Print(value)
+    // Write your logic here
+    for i, value := range values {
+        if i > 0 {
+            fmt.Println()
+        }
+        fmt.Print(value)
+    }
 }`,
 
       RUST: `use std::io::{self, Read};
@@ -1007,25 +1109,38 @@ fn main() {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input).unwrap();
 
-    println!("{}", input.trim());
+    let tokens: Vec<&str> = input.split_whitespace().collect();
+
+    // Write your logic here
+    println!("{}", tokens.join(" "));
 }`,
 
       CSHARP: `using System;
+using System.Collections.Generic;
 
 public class Program {
-    public static void Main(string[] args) {
-        string value = Console.ReadLine() ?? "";
-        Console.WriteLine(value);
+    public static void Main() {
+        string input = Console.In.ReadToEnd();
+        string[] tokens = input.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+
+        // Write your logic here
+        Console.WriteLine(string.Join(" ", tokens));
     }
 }`,
 
       PHP: `<?php
 $input = trim(stream_get_contents(STDIN));
-echo $input;
+$tokens = $input === "" ? [] : preg_split('/\\s+/', $input);
+
+// Write your logic here
+echo implode(" ", $tokens);
 ?>`,
 
-      RUBY: `value = STDIN.read.strip
-puts value`,
+      RUBY: `input = STDIN.read.strip
+tokens = input.empty? ? [] : input.split
+
+# Write your logic here
+puts tokens.join(" ")`,
     };
 
     return starters[language] || starters['PYTHON'];
