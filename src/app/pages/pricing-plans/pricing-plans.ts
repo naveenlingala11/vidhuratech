@@ -23,9 +23,9 @@ export class PricingPlansComponent implements OnInit {
   plans: any[] = [
     {
       code: 'STARTER',
-      name: 'Starter',
+      name: 'Basic',
       tag: 'Practice Access',
-      price: 499,
+      price: 49,
       period: 'month',
       highlight: false,
       compareAtPrice: null,
@@ -45,7 +45,7 @@ export class PricingPlansComponent implements OnInit {
       code: 'PRO',
       name: 'Pro',
       tag: 'Most Popular',
-      price: 1499,
+      price: 149,
       period: 'month',
       highlight: true,
       compareAtPrice: null,
@@ -67,7 +67,7 @@ export class PricingPlansComponent implements OnInit {
       code: 'ELITE',
       name: 'Elite',
       tag: 'Complete Bundle',
-      price: 4999,
+      price: 499,
       period: 'bundle',
       highlight: false,
       compareAtPrice: null,
@@ -167,7 +167,7 @@ export class PricingPlansComponent implements OnInit {
 
   descriptionFromPlan(code: string, validityDays: number): string {
     if (code === 'STARTER')
-      return `A focused ${validityDays}-day practice plan for mock tests and company preparation.`;
+      return `A focused ${validityDays}-day basic plan for mock tests and company preparation.`;
     if (code === 'ELITE')
       return `Complete ${validityDays}-day access with premium learning, practice, and placement support.`;
     return `A premium ${validityDays}-day bundle for challenges, lessons, materials, and live support.`;
@@ -335,6 +335,90 @@ export class PricingPlansComponent implements OnInit {
           );
         },
       });
+  }
+
+  planTagline(plan: any): string {
+    return plan.tagline || plan.tag || `${plan.name} access plan`;
+  }
+
+  planBestFor(plan: any): string[] {
+    if (Array.isArray(plan.bestFor) && plan.bestFor.length) return plan.bestFor;
+
+    if (plan.code === 'STARTER') {
+      return ['Best Answers unlock', 'Mock tests', 'Basic practice'];
+    }
+
+    if (plan.code === 'PRO') {
+      return ['Premium challenges', 'Videos and live classes', 'Serious placement prep'];
+    }
+
+    return ['Complete access', 'Long-term preparation', 'Unlimited company practice'];
+  }
+
+  planLimitations(plan: any): string[] {
+    if (Array.isArray(plan.limitations) && plan.limitations.length) return plan.limitations;
+
+    if (plan.code === 'STARTER') {
+      return ['No premium videos', 'No live classes', 'Limited company bundles'];
+    }
+
+    if (plan.code === 'PRO') {
+      return ['30-day validity', 'Limited company bundles'];
+    }
+
+    return ['No major access limitations during validity'];
+  }
+
+  accessRows(plan: any): any[] {
+    return [
+      { icon: 'fa-code', label: 'Best Answers source code', enabled: true },
+      {
+        icon: 'fa-trophy',
+        label: 'Coding contests access',
+        enabled: !!plan.accessPremiumChallenges || plan.code !== 'STARTER',
+      },
+      { icon: 'fa-file-lines', label: 'Mock tests', enabled: !!plan.accessMockTests },
+      { icon: 'fa-comments', label: 'Interview practice', enabled: !!plan.accessInterviews },
+      {
+        icon: 'fa-book-open',
+        label: 'Notes and materials',
+        enabled: !!plan.accessNotes || !!plan.accessMaterials,
+      },
+      { icon: 'fa-video', label: 'Recorded videos', enabled: !!plan.accessVideos },
+      { icon: 'fa-chalkboard-user', label: 'Live classes', enabled: !!plan.accessLiveClasses },
+      {
+        icon: 'fa-layer-group',
+        label: this.companyLimitLabel(plan),
+        enabled: !!plan.accessPracticeCompanies,
+      },
+    ];
+  }
+
+  comparisonRows(): any[] {
+    return [
+      { label: 'Best Answers source code', basic: true, pro: true, elite: true },
+      { label: '80%+ submitted solutions', basic: true, pro: true, elite: true },
+      { label: 'Mock tests', basic: true, pro: true, elite: true },
+      { label: 'Interview question bank', basic: true, pro: true, elite: true },
+      { label: 'Premium coding challenges', basic: false, pro: true, elite: true },
+      { label: 'Recorded videos', basic: false, pro: true, elite: true },
+      { label: 'Live classes', basic: false, pro: true, elite: true },
+      { label: 'Premium courses', basic: false, pro: true, elite: true },
+      { label: 'Company practice bundles', basic: '5', pro: '15', elite: 'Unlimited' },
+      { label: 'Validity', basic: '30 days', pro: '30 days', elite: '180 days' },
+    ];
+  }
+
+  comparisonValue(value: any): string {
+    if (value === true) return 'Yes';
+    if (value === false) return 'No';
+    return String(value);
+  }
+
+  comparisonClass(value: any): string {
+    if (value === true) return 'yes';
+    if (value === false) return 'no';
+    return 'text';
   }
 
   showToast(message: string): void {

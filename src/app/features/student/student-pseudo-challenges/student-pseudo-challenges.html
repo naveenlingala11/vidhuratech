@@ -1,18 +1,25 @@
 <section class="student-shell">
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <div class="toast" *ngIf="toast">
+    <i class="bi bi-check-circle-fill"></i>
+    {{ toast }}
+  </div>
 
   <header class="hero-section">
+    <div class="hero-glow glow-one"></div>
+    <div class="hero-glow glow-two"></div>
+    <div class="hero-grid"></div>
+
     <div class="hero-content">
       <span class="hero-tag">
         <i class="bi bi-stars"></i>
         Student Coding Arena
       </span>
 
-      <h1>Challenge Groups</h1>
+      <h1>Pseudo Challenges</h1>
 
       <p>
-        Company-wise and batch-wise coding practice in one clean workspace. Open a group, start
-        pending challenges, retry failed ones, and track your progress instantly.
+        Solve assigned coding logic tasks in a premium challenge table with filters, sorting,
+        progress tracking, result view, and quick re-attempt actions.
       </p>
 
       <div class="hero-actions">
@@ -20,71 +27,116 @@
           <i class="bi bi-arrow-clockwise"></i>
           Refresh
         </button>
+
+        <button type="button" class="ghost-btn" (click)="resetFilters()">
+          <i class="bi bi-sliders"></i>
+          Reset Filters
+        </button>
       </div>
     </div>
 
-    <div class="hero-pattern"></div>
+    <div class="hero-score">
+      <span>Completion</span>
+      <strong>{{ completionPercent }}%</strong>
+
+      <div class="score-ring">
+        <div class="score-bar">
+          <i [style.width.%]="completionPercent"></i>
+        </div>
+      </div>
+
+      <small>{{ completedCount }} of {{ challenges.length }} completed</small>
+    </div>
   </header>
 
   <section class="metrics-grid">
-    <button type="button" class="metric-card blue-card" (click)="applyMetricFilter('ALL')">
-      <div class="metric-icon">
+    <button
+      type="button"
+      class="metric-card blue-card"
+      [class.active]="statusFilter === 'ALL'"
+      (click)="applyMetricFilter('ALL')"
+    >
+      <span class="metric-icon">
         <i class="bi bi-grid-1x2-fill"></i>
-      </div>
+      </span>
 
-      <div>
-        <span>Total Challenges</span>
+      <span class="metric-copy">
+        <small>Total Challenges</small>
         <strong>{{ challenges.length }}</strong>
-      </div>
+      </span>
+
+      <i class="bi bi-arrow-up-right metric-arrow"></i>
     </button>
 
-    <button type="button" class="metric-card green-card" (click)="applyMetricFilter('PASS')">
-      <div class="metric-icon">
+    <button
+      type="button"
+      class="metric-card green-card"
+      [class.active]="statusFilter === 'PASS'"
+      (click)="applyMetricFilter('PASS')"
+    >
+      <span class="metric-icon">
         <i class="bi bi-check-circle-fill"></i>
-      </div>
+      </span>
 
-      <div>
-        <span>Passed</span>
+      <span class="metric-copy">
+        <small>Passed</small>
         <strong>{{ passedCount }}</strong>
-      </div>
+      </span>
+
+      <i class="bi bi-arrow-up-right metric-arrow"></i>
     </button>
 
     <button
       type="button"
       class="metric-card amber-card"
+      [class.active]="statusFilter === 'NOT_ATTEMPTED'"
       (click)="applyMetricFilter('NOT_ATTEMPTED')"
     >
-      <div class="metric-icon">
+      <span class="metric-icon">
         <i class="bi bi-hourglass-split"></i>
-      </div>
+      </span>
 
-      <div>
-        <span>Pending</span>
+      <span class="metric-copy">
+        <small>Pending</small>
         <strong>{{ pendingCount }}</strong>
-      </div>
+      </span>
+
+      <i class="bi bi-arrow-up-right metric-arrow"></i>
     </button>
 
-    <button type="button" class="metric-card rose-card" (click)="applyMetricFilter('FAIL')">
-      <div class="metric-icon">
+    <button
+      type="button"
+      class="metric-card rose-card"
+      [class.active]="statusFilter === 'FAIL'"
+      (click)="applyMetricFilter('FAIL')"
+    >
+      <span class="metric-icon">
         <i class="bi bi-arrow-repeat"></i>
-      </div>
+      </span>
 
-      <div>
-        <span>Re-attempt</span>
+      <span class="metric-copy">
+        <small>Re Attempt</small>
         <strong>{{ failedCount }}</strong>
-      </div>
+      </span>
+
+      <i class="bi bi-arrow-up-right metric-arrow"></i>
     </button>
   </section>
 
   <section class="challenge-surface">
     <div class="surface-head">
       <div>
-        <span class="surface-tag">Challenge Library</span>
-        <h2>Available Groups</h2>
+        <span class="surface-tag">
+          <i class="bi bi-command"></i>
+          Challenge Library
+        </span>
+
+        <h2>Assigned Problems</h2>
       </div>
 
       <div class="surface-actions">
-        <span class="challenge-count">{{ groupedChallenges.length }}</span>
+        <span class="challenge-count">{{ sortedChallenges.length }}</span>
+        <small>Showing {{ fromItem }}-{{ toItem }} of {{ sortedChallenges.length }}</small>
       </div>
     </div>
 
@@ -93,19 +145,84 @@
         <i class="bi bi-search"></i>
         <input
           [(ngModel)]="search"
-          (ngModelChange)="page = 1"
-          placeholder="Search title, company, batch, status..."
+          (ngModelChange)="onFilterChange()"
+          placeholder="Search challenge, company, skill, status..."
         />
       </label>
 
-      <div class="toolbar-right">
-        <select [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
-          <option value="ALL">All Challenges</option>
-          <option value="NOT_ATTEMPTED">Not Attempted</option>
-          <option value="PASS">Passed</option>
-          <option value="FAIL">Failed</option>
-        </select>
+      <div class="toolbar-grid">
+        <label>
+          <i class="bi bi-funnel"></i>
+          <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+            <option value="ALL">All Status</option>
+            <option value="NOT_ATTEMPTED">Pending</option>
+            <option value="PASS">Passed</option>
+            <option value="FAIL">Failed</option>
+          </select>
+        </label>
+
+        <label>
+          <i class="bi bi-building"></i>
+          <select [(ngModel)]="companyFilter" (ngModelChange)="onFilterChange()">
+            <option value="">All Companies</option>
+            <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+          </select>
+        </label>
+
+        <label>
+          <i class="bi bi-bar-chart-steps"></i>
+          <select [(ngModel)]="difficultyFilter" (ngModelChange)="onFilterChange()">
+            <option value="">All Levels</option>
+            <option *ngFor="let difficulty of difficulties" [value]="difficulty">
+              {{ difficulty }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <i class="bi bi-sort-down"></i>
+          <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()">
+            <option value="LATEST">Latest</option>
+            <option value="TITLE">Title A-Z</option>
+            <option value="COMPANY">Company</option>
+            <option value="DIFFICULTY">Difficulty</option>
+            <option value="MARKS">Highest Marks</option>
+            <option value="SCORE">Best Score</option>
+            <option value="ATTEMPTS">Most Attempts</option>
+          </select>
+        </label>
+
+        <label>
+          <i class="bi bi-layout-three-columns"></i>
+          <select [(ngModel)]="pageSize" (ngModelChange)="onFilterChange()">
+            <option *ngFor="let size of pageSizes" [ngValue]="size">{{ size }} / page</option>
+          </select>
+        </label>
       </div>
+    </div>
+
+    <div class="status-tabs">
+      <button
+        type="button"
+        *ngFor="let status of statuses"
+        [class.active]="statusFilter === status"
+        (click)="applyMetricFilter(status)"
+      >
+        <i
+          class="bi"
+          [ngClass]="
+            status === 'ALL'
+              ? 'bi-grid-fill'
+              : status === 'PASS'
+                ? 'bi-check-circle-fill'
+                : status === 'FAIL'
+                  ? 'bi-arrow-repeat'
+                  : 'bi-clock-history'
+          "
+        ></i>
+
+        {{ status === 'ALL' ? 'All' : status === 'NOT_ATTEMPTED' ? 'Pending' : status }}
+      </button>
     </div>
 
     <div class="state-card" *ngIf="loading">
@@ -114,119 +231,130 @@
       <p>Preparing your coding workspace</p>
     </div>
 
-    <div class="state-card" *ngIf="!loading && !filteredChallenges.length">
-      <i class="bi bi-code-square empty-icon"></i>
-      <h3>No challenges found</h3>
-      <p>Your trainer has not assigned matching coding challenges yet.</p>
+    <div class="state-card danger" *ngIf="!loading && error">
+      <i class="bi bi-exclamation-triangle empty-icon"></i>
+      <h3>{{ error }}</h3>
+      <p>Please refresh or try again after a moment.</p>
+      <button type="button" class="primary-btn compact" (click)="loadChallenges()">Retry</button>
     </div>
 
-    <div class="challenge-grid" *ngIf="!loading && pagedGroups.length">
-      <article class="challenge-card" *ngFor="let group of pagedGroups; trackBy: trackByGroup">
-        <div class="card-top">
-          <span class="batch-chip">
-            <i class="bi bi-collection-fill"></i>
-            Batch #{{ group.batchId }}
-          </span>
+    <div class="state-card" *ngIf="!loading && !error && !sortedChallenges.length">
+      <i class="bi bi-code-square empty-icon"></i>
+      <h3>No challenges found</h3>
+      <p>Try changing filters or search keywords.</p>
+    </div>
 
-          <span class="status-chip" [ngClass]="getGroupStatusClass(group)">
-            <i class="bi bi-activity"></i>
-            {{ getGroupStatusLabel(group) }}
-          </span>
-        </div>
+    <div class="challenge-table" *ngIf="!loading && !error && pagedChallenges.length">
+      <div class="table-head">
+        <span>#</span>
+        <span>Challenge</span>
+        <span>Company</span>
+        <span>Level</span>
+        <span>Score</span>
+        <span>Status</span>
+        <span>Action</span>
+      </div>
 
-        <div class="card-body">
-          <div class="company-row">
-            <span>
-              <i class="bi bi-building"></i>
-              {{ group.companyName }}
-            </span>
-          </div>
+      <article
+        class="challenge-row"
+        *ngFor="let item of pagedChallenges; let i = index; trackBy: trackById"
+        [style.animation-delay.ms]="i * 55"
+      >
+        <span class="row-number">
+          {{ (page - 1) * pageSize + i + 1 }}
+        </span>
 
-          <h3>{{ group.title }}</h3>
-
-          <p>
-            {{ group.challenges.length }} challenges grouped together. Complete pending tasks and
-            retry failed attempts from one place.
-          </p>
-        </div>
-
-        <div class="challenge-meta">
-          <div class="meta-box">
-            <span>Challenges</span>
-            <strong>{{ group.challenges.length }}</strong>
-          </div>
-
-          <div class="meta-box">
-            <span>Passed</span>
-            <strong>{{ group.passedCount }}</strong>
-          </div>
-
-          <div class="meta-box">
-            <span>Pending</span>
-            <strong>{{ group.pendingCount }}</strong>
-          </div>
-
-          <div class="meta-box">
-            <span>Marks</span>
-            <strong>{{ group.totalMarks }}</strong>
-          </div>
-        </div>
-
-        <div class="card-footer dual-actions">
-          <button type="button" class="open-btn" (click)="openGroupPrimary(group)">
+        <div class="challenge-title">
+          <strong>
             <i class="bi bi-terminal-fill"></i>
-            Continue
-          </button>
+            {{ item.title }}
+          </strong>
 
-          <button type="button" class="outline-btn" (click)="toggleGroup(group.id)">
-            <i
-              class="bi"
-              [ngClass]="expandedGroups[group.id] ? 'bi-chevron-up' : 'bi-chevron-down'"
-            ></i>
-            {{ expandedGroups[group.id] ? 'Hide' : 'View' }}
-          </button>
+          <small>
+            <i class="bi bi-lightning-charge-fill"></i>
+            {{ resolveSkill(item) }}
+            <span></span>
+            {{ item.totalMarks || 0 }} marks
+            <span></span>
+            {{ item.testCasesCount || 0 }} tests
+          </small>
         </div>
 
-        <div class="group-items" *ngIf="expandedGroups[group.id]">
+        <span class="table-text company">
+          <i class="bi bi-building"></i>
+          {{ resolveCompany(item) }}
+        </span>
+
+        <span class="difficulty-pill" [ngClass]="getDifficultyClass(item)">
+          <i class="bi bi-reception-4"></i>
+          {{ resolveDifficulty(item) }}
+        </span>
+
+        <span class="score-cell">
+          <strong>{{ item.percentage || 0 }}%</strong>
+          <small>{{ item.lastScore || 0 }}/{{ item.totalMarks || 0 }}</small>
+        </span>
+
+        <span class="status-chip" [ngClass]="getStatusClass(item)">
+          <i class="bi" [ngClass]="getStatusIcon(item)"></i>
+          {{ getStatusLabel(item) }}
+        </span>
+
+        <div class="action-cell">
           <button
+            *ngIf="resolveStatus(item) === 'NOT_ATTEMPTED'"
             type="button"
-            class="group-item"
-            *ngFor="let item of group.challenges; trackBy: trackById"
-            (click)="openChallenge(item.id)"
+            class="row-action action-start"
+            (click)="startChallenge(item)"
           >
-            <div class="challenge-title">
-              <span>{{ item.title }}</span>
-              <small
-                >{{ item.totalMarks || 0 }} marks · {{ item.attemptCount || 0 }} attempts</small
-              >
-            </div>
-
-            <span class="mini-status" [ngClass]="getStatusClass(resolveStatus(item))">
-              <i class="bi" [ngClass]="getStatusIcon(resolveStatus(item))"></i>
-              {{ resolveStatus(item) }}
-            </span>
-
-            <span class="mini-action" [ngClass]="getActionClass(item)">
-              <i class="bi" [ngClass]="getActionIcon(item)"></i>
-              {{ getActionLabel(item) }}
-            </span>
+            <i class="bi bi-play-fill"></i>
+            Start
           </button>
+
+          <button
+            *ngIf="resolveStatus(item) === 'FAIL'"
+            type="button"
+            class="row-action action-retry"
+            (click)="reAttempt(item)"
+          >
+            <i class="bi bi-arrow-repeat"></i>
+            Re Attempt
+          </button>
+
+          <ng-container *ngIf="resolveStatus(item) === 'PASS'">
+            <button type="button" class="icon-action action-view" (click)="viewResult(item)">
+              <i class="bi bi-eye-fill"></i>
+              <span>View</span>
+            </button>
+
+            <button type="button" class="icon-action action-retry" (click)="reAttempt(item)">
+              <i class="bi bi-arrow-repeat"></i>
+              <span>Retry</span>
+            </button>
+          </ng-container>
         </div>
       </article>
     </div>
 
-    <div class="pagination" *ngIf="!loading && groupedChallenges.length > pageSize">
+    <nav class="pagination" *ngIf="!loading && !error && sortedChallenges.length > pageSize">
       <button type="button" (click)="changePage(page - 1)" [disabled]="page === 1">
         <i class="bi bi-chevron-left"></i>
         Prev
       </button>
 
-      <span>Page {{ page }} / {{ totalPages }}</span>
+      <button
+        type="button"
+        *ngFor="let p of pages()"
+        [class.active]="p === page"
+        (click)="changePage(p)"
+      >
+        {{ p }}
+      </button>
 
       <button type="button" (click)="changePage(page + 1)" [disabled]="page === totalPages">
         Next
         <i class="bi bi-chevron-right"></i>
       </button>
-    </div>
+    </nav>
   </section>
 </section>

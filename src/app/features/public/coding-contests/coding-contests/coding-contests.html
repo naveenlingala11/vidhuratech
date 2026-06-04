@@ -1,38 +1,81 @@
 <main class="contest-page">
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <div class="toast" *ngIf="toast">
+    <span class="icon icon-bell"></span>
+    {{ toast }}
+  </div>
 
   <section class="contest-hero">
     <div class="hero-copy">
-      <p class="eyebrow">Weekly Coding Arena</p>
+      <div class="hero-orbit hero-orbit-one"></div>
+      <div class="hero-orbit hero-orbit-two"></div>
+
+      <p class="eyebrow">
+        <span class="icon icon-code"></span>
+        Weekly Coding Arena
+      </p>
+
       <h1>Coding Challenges Contest</h1>
+
       <p class="hero-text">
-        Practice placement-style coding problems, submit your best solution, and compete across
-        daily, weekly, monthly, and challenge-wise leaderboards.
+        Practice placement-style coding problems, unlock premium contests, submit your best
+        solution, and compete across daily, weekly, monthly, and challenge-wise leaderboards.
       </p>
 
       <div class="hero-actions">
-        <button type="button" class="primary-btn" (click)="scrollToLeaderboard()">
+        <button type="button" class="primary-btn hero-btn" (click)="scrollToLeaderboard()">
+          <span class="icon icon-trophy"></span>
           View Leaderboard
         </button>
-        <a routerLink="/free-mock-tests" class="secondary-btn">Explore Practice</a>
+
+        <a routerLink="/practice" class="secondary-btn hero-btn">
+          <span class="icon icon-grid"></span>
+          Explore Practice
+        </a>
+      </div>
+
+      <div class="hero-metrics">
+        <article>
+          <span>Challenges</span>
+          <strong>{{ challenges.length }}</strong>
+        </article>
+
+        <article>
+          <span>Premium</span>
+          <strong>{{ premiumChallengeCount }}</strong>
+        </article>
+
+        <article>
+          <span>Avg Time</span>
+          <strong>{{ averageDuration }}m</strong>
+        </article>
       </div>
     </div>
 
-    <div class="hero-panel">
+    <aside class="hero-panel">
       <div class="panel-head">
-        <p class="panel-label">{{ leaderboardPeriod | titlecase }} Top 3</p>
-        <button type="button" (click)="scrollToLeaderboard()">Rankings</button>
+        <div>
+          <p class="panel-label">{{ leaderboardPeriod | titlecase }} Top 3</p>
+          <strong>Contest Standings</strong>
+        </div>
+
+        <button type="button" class="panel-link" (click)="scrollToLeaderboard()">
+          <span class="icon icon-arrow"></span>
+        </button>
       </div>
 
       <div class="winner-list" *ngIf="featuredTopThree.length; else noWinners">
         <article
           class="winner-card"
-          *ngFor="let winner of featuredTopThree"
+          *ngFor="let winner of featuredTopThree; trackBy: trackById"
           [ngClass]="rankClass(winner)"
         >
           <span class="rank">#{{ winner.rank }}</span>
-          <div class="winner-avatar">{{ (winner.name || 'U').charAt(0) }}</div>
-          <div>
+
+          <div class="winner-avatar">
+            {{ (winner.name || 'U').charAt(0) }}
+          </div>
+
+          <div class="winner-info">
             <strong>{{ winner.name || 'Participant' }}</strong>
             <p>{{ winner.score || 0 }}/{{ winner.totalMarks || 0 }} marks</p>
           </div>
@@ -40,43 +83,63 @@
       </div>
 
       <ng-template #noWinners>
-        <p class="empty-text">Leaderboard will appear after participants submit challenges.</p>
+        <div class="empty-mini">
+          <span class="icon icon-trophy"></span>
+          <strong>No rankings yet</strong>
+          <p>Leaderboard appears after participants submit challenges.</p>
+        </div>
       </ng-template>
-    </div>
+    </aside>
   </section>
 
   <section class="contest-stats">
     <article>
-      <span>Live Challenges</span>
-      <strong>{{ challenges.length }}</strong>
+      <span class="stat-icon icon-grid"></span>
+      <div>
+        <small>Live Challenges</small>
+        <strong>{{ challenges.length }}</strong>
+      </div>
     </article>
 
     <article>
-      <span>Free Challenges</span>
-      <strong>{{ freeChallengeCount }}</strong>
+      <span class="stat-icon icon-unlock"></span>
+      <div>
+        <small>Free Challenges</small>
+        <strong>{{ freeChallengeCount }}</strong>
+      </div>
     </article>
 
     <article>
-      <span>Premium</span>
-      <strong>{{ premiumChallengeCount }}</strong>
+      <span class="stat-icon icon-lock"></span>
+      <div>
+        <small>Premium</small>
+        <strong>{{ premiumChallengeCount }}</strong>
+      </div>
     </article>
 
     <article>
-      <span>Avg Duration</span>
-      <strong>{{ averageDuration }} min</strong>
+      <span class="stat-icon icon-clock"></span>
+      <div>
+        <small>Avg Duration</small>
+        <strong>{{ averageDuration }} min</strong>
+      </div>
     </article>
   </section>
 
   <section class="announcement-strip" *ngIf="announcements.length">
-    <article *ngFor="let item of announcements.slice(0, 2)">
-      <span>Announcement</span>
-      <strong>{{ item.title }}</strong>
-      <p>{{ item.message }}</p>
+    <article *ngFor="let item of announcements.slice(0, 2); trackBy: trackById">
+      <span class="announcement-icon icon-bell"></span>
+      <div>
+        <small>Announcement</small>
+        <strong>{{ item.title }}</strong>
+        <p>{{ item.message }}</p>
+      </div>
     </article>
   </section>
 
   <section class="contest-toolbar">
     <label class="search-box">
+      <span class="icon icon-search"></span>
       <input
         type="text"
         [(ngModel)]="search"
@@ -85,30 +148,45 @@
       />
     </label>
 
-    <select [(ngModel)]="selectedCompany" (ngModelChange)="onChallengeFilterChange()">
-      <option value="ALL">All Companies</option>
-      <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
-    </select>
+    <label class="select-box">
+      <span class="icon icon-building"></span>
+      <select [(ngModel)]="selectedCompany" (ngModelChange)="onChallengeFilterChange()">
+        <option value="ALL">All Companies</option>
+        <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+      </select>
+    </label>
 
-    <select [(ngModel)]="selectedSkill" (ngModelChange)="onChallengeFilterChange()">
-      <option value="ALL">All Skills</option>
-      <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
-    </select>
+    <label class="select-box">
+      <span class="icon icon-code"></span>
+      <select [(ngModel)]="selectedSkill" (ngModelChange)="onChallengeFilterChange()">
+        <option value="ALL">All Skills</option>
+        <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
+      </select>
+    </label>
 
-    <select [(ngModel)]="selectedSort" (ngModelChange)="onChallengeFilterChange()">
-      <option value="latest">Latest</option>
-      <option value="marks">Highest Marks</option>
-      <option value="duration">Shortest Duration</option>
-      <option value="company">Company A-Z</option>
-    </select>
+    <label class="select-box">
+      <span class="icon icon-sort"></span>
+      <select [(ngModel)]="selectedSort" (ngModelChange)="onChallengeFilterChange()">
+        <option value="latest">Latest</option>
+        <option value="marks">Highest Marks</option>
+        <option value="duration">Shortest Duration</option>
+        <option value="company">Company A-Z</option>
+      </select>
+    </label>
 
-    <select [(ngModel)]="challengePageSize" (ngModelChange)="onChallengeFilterChange()">
-      <option *ngFor="let size of challengePageSizeOptions" [ngValue]="size">
-        {{ size }} cards
-      </option>
-    </select>
+    <label class="select-box compact">
+      <span class="icon icon-list"></span>
+      <select [(ngModel)]="challengePageSize" (ngModelChange)="onChallengeFilterChange()">
+        <option *ngFor="let size of challengePageSizeOptions" [ngValue]="size">
+          {{ size }} cards
+        </option>
+      </select>
+    </label>
 
-    <button type="button" class="ghost-btn" (click)="resetFilters()">Reset</button>
+    <button type="button" class="ghost-btn reset-btn" (click)="resetFilters()">
+      <span class="icon icon-reset"></span>
+      Reset
+    </button>
   </section>
 
   <section class="contest-layout">
@@ -127,37 +205,64 @@
         class="challenge-card"
         *ngFor="let challenge of pagedChallenges; trackBy: trackById"
         [class.active]="selectedChallenge?.id === challenge.id"
+        [class.locked-card]="isPremiumLocked(challenge)"
         (click)="selectChallenge(challenge)"
       >
-        <div>
+        <div class="card-top">
           <div class="card-badges">
-            <span class="badge">{{ challenge.company || 'General' }}</span>
+            <span class="badge company-badge">
+              <span class="icon icon-building"></span>
+              {{ challenge.company || 'General' }}
+            </span>
 
             <span
               class="access-badge"
               [class.locked]="isPremiumLocked(challenge)"
               [class.active]="isPremiumContent(challenge) && !isPremiumLocked(challenge)"
             >
+              <span
+                class="icon"
+                [class.icon-lock]="isPremiumLocked(challenge)"
+                [class.icon-unlock]="!isPremiumLocked(challenge)"
+              ></span>
               {{ accessLabel(challenge) }}
             </span>
           </div>
 
-          <h2>{{ challenge.title }}</h2>
-          <p>{{ challenge.description || 'Coding challenge prepared for placement practice.' }}</p>
+          <span class="card-arrow icon-arrow"></span>
         </div>
 
+        <h2>{{ challenge.title }}</h2>
+
         <div class="meta-grid">
-          <span>{{ challenge.skill || 'Coding' }}</span>
-          <span>{{ challenge.durationMinutes || 0 }} min</span>
-          <span>{{ challenge.totalMarks || 0 }} marks</span>
+          <span>
+            <span class="icon icon-code"></span>
+            {{ challenge.skill || 'Coding' }}
+          </span>
+
+          <span>
+            <span class="icon icon-clock"></span>
+            {{ challenge.durationMinutes || 0 }} min
+          </span>
+
+          <span>
+            <span class="icon icon-star"></span>
+            {{ challenge.totalMarks || 0 }} marks
+          </span>
         </div>
       </button>
 
       <div class="empty-state" *ngIf="!loading && !filteredChallenges.length">
-        No coding contests found for the selected filters.
+        <span class="icon icon-search"></span>
+        <strong>No contests found</strong>
+        <p>Try changing filters or search keywords.</p>
       </div>
 
-      <div class="empty-state" *ngIf="loading">Loading coding contests...</div>
+      <div class="empty-state loading-state" *ngIf="loading">
+        <span class="loader"></span>
+        <strong>Loading coding contests</strong>
+        <p>Please wait while contests are being prepared.</p>
+      </div>
 
       <div class="pager" *ngIf="challengeTotalPages > 1">
         <button
@@ -188,48 +293,85 @@
     </div>
 
     <aside class="challenge-detail" *ngIf="selectedChallenge">
-      <div class="card-badges">
-        <span class="badge">{{ selectedChallenge.company || 'General' }}</span>
+      <div class="detail-glow"></div>
 
-        <span class="access-badge" [class.locked]="isPremiumLocked(selectedChallenge)">
+      <div class="card-badges">
+        <span class="badge company-badge">
+          <span class="icon icon-building"></span>
+          {{ selectedChallenge.company || 'General' }}
+        </span>
+
+        <span
+          class="access-badge"
+          [class.locked]="isPremiumLocked(selectedChallenge)"
+          [class.active]="
+            isPremiumContent(selectedChallenge) && !isPremiumLocked(selectedChallenge)
+          "
+        >
+          <span
+            class="icon"
+            [class.icon-lock]="isPremiumLocked(selectedChallenge)"
+            [class.icon-unlock]="!isPremiumLocked(selectedChallenge)"
+          ></span>
           {{ accessLabel(selectedChallenge) }}
         </span>
       </div>
 
       <h2>{{ selectedChallenge.title }}</h2>
-      <p>{{ selectedChallenge.description }}</p>
+
+      <p>
+        {{
+          selectedChallenge.description ||
+            'Start this coding challenge, submit your best solution, and climb the rankings.'
+        }}
+      </p>
 
       <div class="detail-stats">
         <div>
-          <span>Skill</span>
+          <span class="icon icon-code"></span>
+          <small>Skill</small>
           <strong>{{ selectedChallenge.skill || 'Coding' }}</strong>
         </div>
 
         <div>
-          <span>Duration</span>
+          <span class="icon icon-clock"></span>
+          <small>Duration</small>
           <strong>{{ selectedChallenge.durationMinutes || 0 }} min</strong>
         </div>
 
         <div>
-          <span>Marks</span>
+          <span class="icon icon-star"></span>
+          <small>Marks</small>
           <strong>{{ selectedChallenge.totalMarks || 0 }}</strong>
         </div>
       </div>
 
       <div class="premium-lock-panel" *ngIf="isPremiumLocked(selectedChallenge)">
-        <div class="lock-icon">P</div>
+        <div class="lock-icon">
+          <span class="icon icon-lock"></span>
+        </div>
+
         <div>
-          <strong>Premium challenge locked</strong>
-          <p>Unlock a Pro or Elite plan to access premium contests and leaderboard attempts.</p>
+          <strong>{{ accessLabel(selectedChallenge) }} required</strong>
+          <p>Upgrade your plan to access this coding contest and submit leaderboard attempts.</p>
         </div>
       </div>
 
       <div class="flow-box">
-        <strong>Participation Flow</strong>
-        <p>
-          Start the challenge, write your solution, submit test cases, and climb the live ranking
-          table.
-        </p>
+        <div class="flow-head">
+          <span class="icon icon-route"></span>
+          <strong>Participation Flow</strong>
+        </div>
+
+        <div class="flow-steps">
+          <span>Start</span>
+          <i></i>
+          <span>Solve</span>
+          <i></i>
+          <span>Submit</span>
+          <i></i>
+          <span>Rank</span>
+        </div>
       </div>
 
       <div class="detail-actions">
@@ -239,6 +381,11 @@
           [class.premium-unlock-btn]="isPremiumLocked(selectedChallenge)"
           (click)="startChallenge(selectedChallenge)"
         >
+          <span
+            class="icon"
+            [class.icon-lock]="isPremiumLocked(selectedChallenge)"
+            [class.icon-play]="!isPremiumLocked(selectedChallenge)"
+          ></span>
           {{ challengeActionLabel(selectedChallenge) }}
         </button>
 
@@ -247,6 +394,7 @@
           class="ghost-btn wide"
           (click)="selectChallenge(selectedChallenge, true); scrollToLeaderboard()"
         >
+          <span class="icon icon-trophy"></span>
           Challenge Leaderboard
         </button>
       </div>

@@ -131,4 +131,26 @@ export class AuthService {
   completeLoginFromResponse(res: any): void {
     this.saveAuthUser(res);
   }
+
+  googleLogin(idToken: string) {
+    return this.http
+      .post<any>(`${this.API}/oauth/google`, { idToken })
+      .pipe(tap((res) => this.saveAuthUser(res)));
+  }
+
+  githubLogin(code: string, redirectUri: string) {
+    return this.http
+      .post<any>(`${this.API}/oauth/github`, { code, redirectUri })
+      .pipe(tap((res) => this.saveAuthUser(res)));
+  }
+
+  sendPhoneOtp(phone: string) {
+    return this.http.post<any>(`${this.API}/phone/send-otp`, { phone });
+  }
+
+  verifyPhoneOtp(phone: string, otp: string) {
+    return this.http
+      .post<any>(`${this.API}/phone/verify-otp`, { phone, otp })
+      .pipe(tap((res) => this.saveAuthUser(res)));
+  }
 }

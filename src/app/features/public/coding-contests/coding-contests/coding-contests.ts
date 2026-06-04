@@ -68,6 +68,10 @@ export class CodingContestsComponent implements OnInit {
   planAccess: any = {
     loggedIn: false,
     active: false,
+    tier: '',
+    planTier: '',
+    planCode: '',
+    planName: '',
     accessPremiumChallenges: false,
     accessMockTests: false,
     accessCourses: false,
@@ -477,6 +481,12 @@ export class CodingContestsComponent implements OnInit {
         this.planAccess = {
           loggedIn: !!data.loggedIn,
           active: !!data.active,
+          tier: String(
+            data.tier || data.planTier || data.planCode || data.planName || '',
+          ).toUpperCase(),
+          planTier: String(data.planTier || '').toUpperCase(),
+          planCode: String(data.planCode || '').toUpperCase(),
+          planName: String(data.planName || '').toUpperCase(),
           accessPremiumChallenges: !!data.accessPremiumChallenges,
           accessMockTests: !!data.accessMockTests,
           accessCourses: !!data.accessCourses,
@@ -495,7 +505,19 @@ export class CodingContestsComponent implements OnInit {
         this.planAccess = {
           loggedIn: false,
           active: false,
+          tier: '',
+          planTier: '',
+          planCode: '',
+          planName: '',
           accessPremiumChallenges: false,
+          accessMockTests: false,
+          accessCourses: false,
+          accessInterviews: false,
+          accessNotes: false,
+          accessMaterials: false,
+          accessVideos: false,
+          accessLiveClasses: false,
+          accessPracticeCompanies: false,
         };
 
         this.planAccessLoading = false;
@@ -504,38 +526,136 @@ export class CodingContestsComponent implements OnInit {
     });
   }
 
-  isPremiumContent(challenge: any): boolean {
-    const accessLevel = String(
-      challenge?.accessLevel || challenge?.publicAccessLevel || 'LEAD_REQUIRED',
+  private accessCode(challenge: any): string {
+    const raw = String(
+      challenge?.accessLevel ||
+        challenge?.publicAccessLevel ||
+        challenge?.accessPolicy ||
+        challenge?.policy ||
+        'LEAD_REQUIRED',
     )
       .trim()
       .toUpperCase();
 
-    return ['PAID_STUDENT_ONLY', 'PREMIUM', 'PRO_ONLY', 'ELITE_ONLY'].includes(accessLevel);
+    if (raw.includes('ELITE')) return 'ELITE_PLAN';
+    if (raw.includes('PRO')) return 'PRO_PLAN';
+    if (raw.includes('BASIC') || raw.includes('STARTER')) return 'BASIC_PLAN';
+    if (raw === 'PAID' || raw === 'PAID_ONLY' || raw === 'PAID_STUDENT') return 'PAID_STUDENT_ONLY';
+    if (raw === 'PREMIUM') return 'PAID_STUDENT_ONLY';
+    if (raw === 'PUBLIC' || raw === 'PUBLIC_PREVIEW') return 'PUBLIC_PREVIEW';
+    if (raw === 'ACCOUNT' || raw === 'ACCOUNT_REQUIRED') return 'ACCOUNT_REQUIRED';
+    if (raw === 'ENROLLED' || raw === 'ENROLLED_STUDENT') return 'ENROLLED_STUDENT_ONLY';
+    if (raw === 'LEAD' || raw === 'LEAD_REQUIRED') return 'LEAD_REQUIRED';
+
+    return raw || 'LEAD_REQUIRED';
   }
 
-  hasPremiumChallengeAccess(): boolean {
-    return !!(
-      this.planAccess?.loggedIn &&
-      this.planAccess?.active &&
-      this.planAccess?.accessPremiumChallenges
+  private tierRank(tier: string): number {
+    const code = String(tier || '')
+      .trim()
+      .toUpperCase();
+
+    if (code.includes('ELITE')) return 3;
+    if (code.includes('PRO')) return 2;
+    if (code.includes('BASIC') || code.includes('STARTER')) return 1;
+
+    return 0;
+  }
+
+  private requiredTier(challenge: any): string {
+    const code = this.accessCode(challenge);
+
+    if (code === 'ELITE_PLAN') return 'ELITE';
+    if (code === 'PRO_PLAN') return 'PRO';
+    if (code === 'BASIC_PLAN') return 'BASIC';
+
+    return '';
+  }
+
+  private userPlanRank(): number {
+    return Math.max(
+      this.tierRank(this.planAccess?.tier),
+      this.tierRank(this.planAccess?.planTier),
+      this.tierRank(this.planAccess?.planCode),
+      this.tierRank(this.planAccess?.planName),
+      this.planAccess?.accessPremiumChallenges ? 1 : 0,
     );
   }
 
+  isPremiumContent(challenge: any): boolean {
+    return [
+      'BASIC_PLAN',
+      'PRO_PLAN',
+      'ELITE_PLAN',
+      'PAID_STUDENT_ONLY',
+      'PRO_ONLY',
+      'ELITE_ONLY',
+      'PREMIUM',
+    ].includes(this.accessCode(challenge));
+  }
+
+  hasPremiumChallengeAccess(challenge?: any): boolean {
+    if (!this.planAccess?.loggedIn || !this.planAccess?.active) {
+      return false;
+    }
+
+    if (!challenge) {
+      return !!this.planAccess?.accessPremiumChallenges || this.userPlanRank() > 0;
+    }
+
+    const code = this.accessCode(challenge);
+    const required = this.requiredTier(challenge);
+
+    if (required) {
+      return this.userPlanRank() >= this.tierRank(required);
+    }
+
+    if (code === 'PAID_STUDENT_ONLY') {
+      return !!this.planAccess?.accessPremiumChallenges || this.userPlanRank() > 0;
+    }
+
+    return true;
+  }
+
   isPremiumLocked(challenge: any): boolean {
-    return this.isPremiumContent(challenge) && !this.hasPremiumChallengeAccess();
+    return this.isPremiumContent(challenge) && !this.hasPremiumChallengeAccess(challenge);
   }
 
   accessLabel(challenge: any): string {
-    if (!this.isPremiumContent(challenge)) return 'Free Challenge';
-    if (this.hasPremiumChallengeAccess()) return 'Premium Unlocked';
-    return 'Premium Locked';
+    const code = this.accessCode(challenge);
+
+    switch (code) {
+      case 'ELITE_PLAN':
+        return this.hasPremiumChallengeAccess(challenge) ? 'Elite Unlocked' : 'Elite Plan';
+      case 'PRO_PLAN':
+        return this.hasPremiumChallengeAccess(challenge) ? 'Pro Unlocked' : 'Pro Plan';
+      case 'BASIC_PLAN':
+        return this.hasPremiumChallengeAccess(challenge) ? 'Basic Unlocked' : 'Basic Plan';
+      case 'PAID_STUDENT_ONLY':
+        return this.hasPremiumChallengeAccess(challenge) ? 'Premium Unlocked' : 'Paid Challenge';
+      case 'ACCOUNT_REQUIRED':
+        return 'Account Required';
+      case 'ENROLLED_STUDENT_ONLY':
+        return 'Enrolled Only';
+      case 'PUBLIC_PREVIEW':
+        return 'Free Preview';
+      case 'LEAD_REQUIRED':
+        return 'Lead Required';
+      default:
+        return 'Free Challenge';
+    }
   }
 
   challengeActionLabel(challenge: any): string {
-    if (!this.isPremiumContent(challenge)) return 'Start Challenge';
-    if (this.hasPremiumChallengeAccess()) return 'Start Challenge';
-    return 'Unlock Premium';
+    if (!this.isPremiumContent(challenge)) {
+      return 'Start Challenge';
+    }
+
+    if (this.hasPremiumChallengeAccess(challenge)) {
+      return 'Start Challenge';
+    }
+
+    return `Unlock ${this.accessLabel(challenge)}`;
   }
 
   rankBadge(row: any): string {
@@ -566,11 +686,11 @@ export class CodingContestsComponent implements OnInit {
     const challengeId = Number(challenge.id);
 
     if (!this.isPremiumContent(challenge)) {
-      this.router.navigate(['/free-mock-tests', 'challenge', challengeId]);
+      this.router.navigate(['/practice', 'challenge', challengeId]);
       return;
     }
 
-    if (this.hasPremiumChallengeAccess()) {
+    if (this.hasPremiumChallengeAccess(challenge)) {
       this.unlockPremiumChallengeAndOpen(challenge);
       return;
     }
@@ -578,7 +698,7 @@ export class CodingContestsComponent implements OnInit {
     this.router.navigate(['/pricing-plans'], {
       queryParams: {
         redirect: '/coding-contests',
-        unlock: 'premium-challenge',
+        unlock: this.accessCode(challenge),
         challengeId,
       },
     });
@@ -604,7 +724,7 @@ export class CodingContestsComponent implements OnInit {
             this.persistContestGrant(grant);
           }
 
-          this.router.navigate(['/free-mock-tests', 'challenge', challengeId]);
+          this.router.navigate(['/practice', 'challenge', challengeId]);
         },
         error: (err) => {
           this.loading = false;

@@ -9,10 +9,7 @@
     <div>
       <span class="vpp-kicker">Public Practice Studio</span>
       <h1>Premium publishing control for guest practice</h1>
-      <p>
-        Review trainer content, publish many interview questions at once, group by company or skill,
-        preview cards, control access rules, and track public attempts from one workspace.
-      </p>
+      <h3>Publish selected, filtered, or company-wise batches.</h3>
     </div>
 
     <button type="button" class="vpp-hero-btn" (click)="loadDashboard()" [disabled]="loading">
@@ -186,22 +183,6 @@
             <small>{{ group.published }}/{{ group.total }} live</small>
           </button>
         </div>
-
-        <div class="bulk-group-column">
-          <div class="bulk-group-title">Skill wise</div>
-
-          <button
-            type="button"
-            class="bulk-chip"
-            *ngFor="let group of bulkGroupsBySkill; trackBy: trackByGroup"
-            [disabled]="!group.unpublished"
-            (click)="openBulkPublish('SKILL', group.items, 'Skill: ' + group.name)"
-          >
-            <span>{{ group.name }}</span>
-            <b>{{ group.unpublished }} ready</b>
-            <small>{{ group.published }}/{{ group.total }} live</small>
-          </button>
-        </div>
       </div>
     </section>
 
@@ -242,20 +223,11 @@
       </label>
 
       <label>
-        <span>Skill</span>
-        <select [(ngModel)]="skillFilter" (ngModelChange)="page = 1">
-          <option value="ALL">All Skills</option>
-          <option *ngFor="let skill of skillOptions" [value]="skill">{{ skill }}</option>
-        </select>
-      </label>
-
-      <label>
         <span>Sort</span>
         <select [(ngModel)]="sortMode">
           <option value="LATEST">Latest</option>
           <option value="TITLE">Title</option>
           <option value="COMPANY">Company</option>
-          <option value="SKILL">Skill</option>
           <option value="TRAINER">Trainer</option>
           <option value="ATTEMPTS">Guest Attempts</option>
         </select>
@@ -320,10 +292,6 @@
             <strong>{{ displayCompany(item) }}</strong>
           </div>
           <div>
-            <span>Skill</span>
-            <strong>{{ displaySkill(item) }}</strong>
-          </div>
-          <div>
             <span>Trainer</span>
             <strong>{{ item.trainerName || item.trainerEmail || '-' }}</strong>
           </div>
@@ -347,11 +315,7 @@
           </span>
 
           <div>
-            <button
-              type="button"
-              class="preview-btn"
-              (click)="openDetails(item, toPublishType(item))"
-            >
+            <button type="button" class="preview-btn" (click)="previewItem(item, $event)">
               Preview
             </button>
 
@@ -391,7 +355,6 @@
             <th>Trainer</th>
             <th>Batch</th>
             <th>Company</th>
-            <th>Skill</th>
             <th>Status</th>
             <th>Policy</th>
             <th>Attempts</th>
@@ -424,7 +387,6 @@
               <small>{{ item.batchId || '' }}</small>
             </td>
             <td>{{ displayCompany(item) }}</td>
-            <td>{{ displaySkill(item) }}</td>
             <td>
               <span class="status-pill" [class.live]="item.publicVisible">
                 {{ item.publicVisible ? 'Published' : 'Private' }}
@@ -437,14 +399,33 @@
             </td>
             <td>{{ item.publicAttemptCount || 0 }}</td>
             <td (click)="$event.stopPropagation()">
-              <button
-                type="button"
-                class="publish-btn compact"
-                [disabled]="!item.active"
-                (click)="openPublish(item, toPublishType(item))"
-              >
-                {{ item.publicVisible ? 'Edit' : 'Publish' }}
-              </button>
+              <div class="table-actions">
+                <button
+                  type="button"
+                  class="preview-btn compact"
+                  (click)="previewItem(item, $event)"
+                >
+                  Preview
+                </button>
+
+                <button
+                  type="button"
+                  class="publish-btn compact"
+                  [disabled]="!item.active"
+                  (click)="openPublish(item, toPublishType(item))"
+                >
+                  {{ item.publicVisible ? 'Edit' : 'Publish' }}
+                </button>
+
+                <button
+                  type="button"
+                  class="unpublish-btn compact"
+                  *ngIf="item.publicVisible"
+                  (click)="unpublish(item, toPublishType(item))"
+                >
+                  Unpublish
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -626,54 +607,62 @@
     </div>
   </section>
 
-  <aside class="details-rail" *ngIf="selectedItem && !showPublishDrawer && !showBulkDrawer">
-    <button type="button" class="rail-close" (click)="closeDetails()">x</button>
+  <div
+    class="rail-backdrop"
+    *ngIf="selectedItem && !showPublishDrawer && !showBulkDrawer"
+    (click)="closePreview()"
+  >
+    <aside class="details-rail" (click)="$event.stopPropagation()">
+      <button type="button" class="rail-close" (click)="closePreview()">x</button>
 
-    <span class="rail-kicker">{{ selectedType }}</span>
-    <h2>{{ displayTitle(selectedItem) }}</h2>
-    <p>{{ displayDescription(selectedItem) }}</p>
+      <span class="rail-kicker">{{ selectedType }}</span>
+      <h2>{{ displayTitle(selectedItem) }}</h2>
+      <p>{{ displayDescription(selectedItem) }}</p>
 
-    <div class="rail-stats">
-      <div>
-        <span>Company</span>
-        <strong>{{ displayCompany(selectedItem) }}</strong>
-      </div>
-      <div>
-        <span>Skill</span>
-        <strong>{{ displaySkill(selectedItem) }}</strong>
-      </div>
-      <div>
-        <span>Trainer</span>
-        <strong>{{ selectedItem.trainerName || selectedItem.trainerEmail || '-' }}</strong>
-      </div>
-      <div>
-        <span>Batch</span>
-        <strong>{{ selectedItem.batchName || selectedItem.batchId || '-' }}</strong>
-      </div>
-      <span>Access</span>
-      <strong>
-        <span class="policy-badge" [ngClass]="policyClass(selectedItem.publicAccessLevel)">
-          {{ policyLabel(selectedItem.publicAccessLevel) }}
-        </span>
-      </strong>
-      <div>
-        <span>Guest Attempts</span>
-        <strong>{{ selectedItem.publicAttemptCount || 0 }}</strong>
-      </div>
-    </div>
+      <div class="rail-stats">
+        <div>
+          <span>Company</span>
+          <strong>{{ displayCompany(selectedItem) }}</strong>
+        </div>
 
-    <button
-      type="button"
-      class="rail-main-btn"
-      [disabled]="!selectedItem.active"
-      (click)="openPublish(selectedItem, selectedType)"
-    >
-      {{ selectedItem.publicVisible ? 'Edit Public Settings' : 'Publish Publicly' }}
-    </button>
-  </aside>
+        <div>
+          <span>Trainer</span>
+          <strong>{{ selectedItem.trainerName || selectedItem.trainerEmail || '-' }}</strong>
+        </div>
 
-  <div class="drawer-backdrop" *ngIf="showPublishDrawer">
-    <aside class="publish-drawer">
+        <div>
+          <span>Batch</span>
+          <strong>{{ selectedItem.batchName || selectedItem.batchId || '-' }}</strong>
+        </div>
+
+        <div>
+          <span>Access</span>
+          <strong>
+            <span class="policy-badge" [ngClass]="policyClass(selectedItem.publicAccessLevel)">
+              {{ policyLabel(selectedItem.publicAccessLevel) }}
+            </span>
+          </strong>
+        </div>
+
+        <div>
+          <span>Guest Attempts</span>
+          <strong>{{ selectedItem.publicAttemptCount || 0 }}</strong>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="rail-main-btn"
+        [disabled]="!selectedItem.active"
+        (click)="openPublish(selectedItem, selectedType)"
+      >
+        {{ selectedItem.publicVisible ? 'Edit Public Settings' : 'Publish Publicly' }}
+      </button>
+    </aside>
+  </div>
+
+  <div class="drawer-backdrop" *ngIf="showPublishDrawer" (click)="closePublish()">
+    <aside class="publish-drawer" (click)="$event.stopPropagation()">
       <button type="button" class="rail-close" (click)="closePublish()">x</button>
 
       <div class="drawer-hero">
@@ -707,21 +696,30 @@
           <input [(ngModel)]="publishForm.companyName" />
         </label>
 
-        <label>
-          <span>Skill</span>
-          <input [(ngModel)]="publishForm.skill" />
-        </label>
+        <div class="policy-check-field">
+          <span>Access Policies</span>
 
-        <label>
-          <span>Access Policy</span>
-          <select [(ngModel)]="publishForm.accessLevel">
-            <option value="LEAD_REQUIRED">Lead Required</option>
-            <option value="PUBLIC_PREVIEW">Public Preview</option>
-            <option value="ACCOUNT_REQUIRED">Account Required</option>
-            <option value="ENROLLED_STUDENT_ONLY">Enrolled Student Only</option>
-            <option value="PAID_STUDENT_ONLY">Paid Student Only</option>
-          </select>
-        </label>
+          <div class="policy-check-grid">
+            <label
+              class="policy-check-card"
+              *ngFor="let policy of accessPolicyOptions"
+              [class.selected]="isAccessPolicySelected(policy.value)"
+              [ngClass]="policyClass(policy.value)"
+            >
+              <input
+                type="checkbox"
+                [checked]="isAccessPolicySelected(policy.value)"
+                (change)="toggleAccessPolicy(policy.value)"
+              />
+
+              <b>{{ policy.label }}</b>
+              <small>{{ policy.tier }}</small>
+              <em>{{ policy.description }}</em>
+            </label>
+          </div>
+
+          <p class="policy-summary">Selected: {{ accessPolicySummary() }}</p>
+        </div>
 
         <label>
           <span>Attempt Limit</span>
@@ -732,17 +730,26 @@
       <div class="drawer-note">
         Recommended for public practice: LEAD_REQUIRED with attempt limit 1.
       </div>
-
-      <button type="button" class="drawer-publish" [disabled]="saving" (click)="publish()">
-        {{
-          saving ? 'Saving...' : selectedItem?.publicVisible ? 'Save Settings' : 'Publish Publicly'
-        }}
+      <button
+        type="button"
+        class="drawer-publish"
+        [class.saving]="saving"
+        [disabled]="saving"
+        (click)="publish()"
+      >
+        <span>{{
+          saving
+            ? 'Saving publish settings...'
+            : selectedItem?.publicVisible
+              ? 'Save Settings'
+              : 'Publish Publicly'
+        }}</span>
       </button>
     </aside>
   </div>
 
-  <div class="drawer-backdrop" *ngIf="showBulkDrawer">
-    <aside class="publish-drawer">
+  <div class="drawer-backdrop" *ngIf="showBulkDrawer" (click)="closeBulk()">
+    <aside class="publish-drawer" (click)="$event.stopPropagation()">
       <button type="button" class="rail-close" (click)="closeBulk()">x</button>
 
       <div class="drawer-hero">
@@ -776,22 +783,30 @@
           <input [(ngModel)]="publishForm.companyName" />
         </label>
 
-        <label>
-          <span>Skill</span>
-          <input [(ngModel)]="publishForm.skill" />
-        </label>
+        <div class="policy-check-field">
+          <span>Access Policies</span>
 
-        <label class="policy-select-field">
-          <span>Access Policy</span>
+          <div class="policy-check-grid">
+            <label
+              class="policy-check-card"
+              *ngFor="let policy of accessPolicyOptions"
+              [class.selected]="isAccessPolicySelected(policy.value)"
+              [ngClass]="policyClass(policy.value)"
+            >
+              <input
+                type="checkbox"
+                [checked]="isAccessPolicySelected(policy.value)"
+                (change)="toggleAccessPolicy(policy.value)"
+              />
 
-          <select [(ngModel)]="publishForm.accessLevel" (ngModelChange)="onAccessPolicyChange()">
-            <option *ngFor="let policy of accessPolicyOptions" [value]="policy.value">
-              {{ policy.label }}
-            </option>
-          </select>
+              <b>{{ policy.label }}</b>
+              <small>{{ policy.tier }}</small>
+              <em>{{ policy.description }}</em>
+            </label>
+          </div>
 
-          <small>{{ policyDescription(publishForm.accessLevel) }}</small>
-        </label>
+          <p class="policy-summary">Selected: {{ accessPolicySummary() }}</p>
+        </div>
 
         <label>
           <span>Attempt Limit</span>
@@ -803,14 +818,20 @@
         These settings apply to every selected item in this bulk publish batch.
       </div>
 
-      <button type="button" class="drawer-publish" [disabled]="saving" (click)="bulkPublish()">
-        {{ saving ? 'Publishing...' : 'Publish Bulk Batch' }}
+      <button
+        type="button"
+        class="drawer-publish"
+        [class.saving]="saving"
+        [disabled]="saving"
+        (click)="bulkPublish()"
+      >
+        <span>{{ saving ? 'Publishing bulk batch...' : 'Publish Bulk Batch' }}</span>
       </button>
     </aside>
   </div>
 
-  <div class="drawer-backdrop" *ngIf="selectedAttempt">
-    <aside class="publish-drawer">
+  <div class="drawer-backdrop" *ngIf="selectedAttempt" (click)="closeAttempt()">
+    <aside class="publish-drawer" (click)="$event.stopPropagation()">
       <button type="button" class="rail-close" (click)="closeAttempt()">x</button>
 
       <div class="drawer-hero">

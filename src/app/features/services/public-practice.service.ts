@@ -67,6 +67,39 @@ export class PublicPracticeService {
     return this.http.post(`${this.baseUrl}/access/session`, payload);
   }
 
+  getChallengeDiscussions(id: number, payload: any = {}): Observable<any> {
+    return this.http.post(`${this.baseUrl}/challenges/${id}/discussions`, payload);
+  }
+
+  postChallengeDiscussion(id: number, payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/challenges/${id}/discussions/post`, payload);
+  }
+
+  toggleChallengeDiscussionLike(id: number, discussionId: number, payload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/challenges/${id}/discussions/${discussionId}/like`,
+      payload,
+    );
+  }
+
+  reportChallengeDiscussion(id: number, discussionId: number, payload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/challenges/${id}/discussions/${discussionId}/report`,
+      payload,
+    );
+  }
+
+  blockChallengeDiscussionAuthor(id: number, discussionId: number, payload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/challenges/${id}/discussions/${discussionId}/block`,
+      payload,
+    );
+  }
+
+  getChallengeBestSubmissions(id: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/challenges/${id}/best-submissions`);
+  }
+
   getMyPlanAccess(): Observable<any> {
     return this.http.get(`${environment.apiUrl}/api/public/plans/my-access`);
   }

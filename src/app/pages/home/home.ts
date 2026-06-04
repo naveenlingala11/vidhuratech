@@ -41,8 +41,6 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   // ================= DATA =================
   seats = 25;
   activeBatch: any;
-  names = ['Ravi', 'Suresh', 'Kavya', 'Anil', 'Priya', 'Rahul', 'Krishna'];
-  cities = ['Hyderabad', 'Bangalore', 'Chennai', 'Vizag', 'Pune', 'Tirupathi'];
   popupInterval: any;
   // =============== COURSES =================
   courses: any[] = [];
@@ -55,6 +53,19 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   selectedEnrollCourse: any = null;
   selectedEnrollBatch: any = null;
   weeklyContestTopThree: any[] = [];
+
+  showMockInterviewLeadForm = false;
+  mockInterviewSubmitting = false;
+  mockInterviewLeadSuccess = '';
+  mockInterviewLeadError = '';
+
+  mockInterviewLead = {
+    name: '',
+    email: '',
+    skills: '',
+    interested: 'YES',
+    message: '',
+  };
 
   heroCountdown = signal({
     days: 0,
@@ -88,36 +99,15 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       }, 10000);
     });
     //this.loadBatch(2);
-    if (isPlatformBrowser(this.platformId)) {
-      const saved = localStorage.getItem('popupBlockUntil');
-      if (saved) {
-        const time = Number(saved);
-        this.popupClosedUntil.set(time);
-        // 🔥 IMPORTANT: if still in cooldown → block popup
-        if (Date.now() < time) {
-          this.showPopup.set(false);
-        }
-      }
-    }
+
     this.authService.authState.subscribe((status) => {
-      console.log('🔐 Auth status changed:', status);
       this.isLoggedIn.set(status);
       this.authChecked.set(true);
-      if (status) {
-        console.log('🛑 User logged in → stopping popup');
-        this.showPopup.set(false);
-        if (this.popupInterval) {
-          clearInterval(this.popupInterval);
-          this.popupInterval = null;
-        }
-        return;
-      }
-      console.log('🟢 User not logged in → starting popup');
-      this.startPopupLoop();
     });
 
     this.loadWeeklyContestTopThree();
   }
+
   ngAfterViewInit() {
     this.startTyping();
     const card = document.querySelector('.premium-card') as HTMLElement;
@@ -468,10 +458,77 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     return `${environment.apiUrl}/course-thumbnails/${url}`;
   }
 
-  ngOnDestroy() {
-    if (this.popupInterval) {
-      clearInterval(this.popupInterval);
+  openMockInterviewLeadForm(): void {
+    this.showMockInterviewLeadForm = true;
+    this.mockInterviewLeadSuccess = '';
+    this.mockInterviewLeadError = '';
+  }
+
+  closeMockInterviewLeadForm(): void {
+    if (this.mockInterviewSubmitting) return;
+
+    this.showMockInterviewLeadForm = false;
+    this.mockInterviewLeadSuccess = '';
+    this.mockInterviewLeadError = '';
+  }
+
+  submitMockInterviewLead(): void {
+    this.mockInterviewLeadSuccess = '';
+    this.mockInterviewLeadError = '';
+
+    const payload = {
+      name: this.mockInterviewLead.name.trim(),
+      email: this.mockInterviewLead.email.trim(),
+      skills: this.mockInterviewLead.skills.trim(),
+      interested: this.mockInterviewLead.interested,
+      message: this.mockInterviewLead.message.trim(),
+    };
+
+    if (!payload.name || !payload.email || !payload.skills) {
+      this.mockInterviewLeadError = 'Please enter name, email, and skills.';
+      return;
     }
+
+    this.mockInterviewSubmitting = true;
+
+    fetch(`${environment.apiUrl}/api/leads/mock-interview-interest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Unable to save your request.');
+        }
+
+        this.mockInterviewLeadSuccess =
+          'Your mock interview interest has been saved. Our team will contact you soon.';
+
+        this.mockInterviewLead = {
+          name: '',
+          email: '',
+          skills: '',
+          interested: 'YES',
+          message: '',
+        };
+
+        setTimeout(() => {
+          this.showMockInterviewLeadForm = false;
+          this.mockInterviewLeadSuccess = '';
+        }, 1800);
+      })
+      .catch((error) => {
+        this.mockInterviewLeadError = error?.message || 'Unable to save your request.';
+      })
+      .finally(() => {
+        this.mockInterviewSubmitting = false;
+      });
+  }
+
+  ngOnDestroy() {
     this.timer.stopCountdown();
   }
 
@@ -519,55 +576,5 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   formatPrice(price: number): string {
     return new Intl.NumberFormat('en-IN').format(Number(price || 0));
-  }
-  // ================= POPUP =================
-  startPopupLoop() {
-    if (this.popupInterval) return;
-    console.log('🚀 Popup loop started');
-    this.popupInterval = setInterval(() => {
-      console.log('⏱️ Checking popup conditions...');
-      // ❌ LOGIN CHECK (MISSING BUG FIX)
-      if (this.isLoggedIn()) {
-        console.log('❌ Popup blocked: user is logged in');
-        return;
-      }
-      // ❌ AUTH NOT READY
-      if (!this.authChecked()) {
-        console.log('⏳ Waiting for auth...');
-        return;
-      }
-      // ❌ COOLDOWN
-      if (this.popupClosedUntil() && Date.now() < this.popupClosedUntil()!) {
-        console.log('⛔ Popup blocked: cooldown active');
-        return;
-      }
-      const name = this.names[Math.floor(Math.random() * this.names.length)];
-      const city = this.cities[Math.floor(Math.random() * this.cities.length)];
-      const courseName = this.heroCourse?.title || 'our live course';
-      const message = `🔥 ${name} from ${city} joined ${courseName} just now`;
-      console.log('✅ Popup OPEN:', message);
-      this.popupMessage.set(message);
-      this.showPopup.set(true);
-      setTimeout(() => {
-        console.log('❌ Popup AUTO CLOSE');
-        this.showPopup.set(false);
-      }, 3000);
-    }, 7000);
-  }
-  // ✅ close popup + 10 min block
-  closePopup() {
-    console.log('❌ Popup MANUAL CLOSE');
-    this.showPopup.set(false);
-    const nextTime = Date.now() + 10 * 60 * 1000;
-    console.log('⛔ Cooldown set till:', new Date(nextTime));
-    this.popupClosedUntil.set(nextTime);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('popupBlockUntil', nextTime.toString());
-    }
-    if (this.popupInterval) {
-      clearInterval(this.popupInterval);
-      this.popupInterval = null;
-      console.log('🛑 Popup loop stopped after manual close');
-    }
   }
 }

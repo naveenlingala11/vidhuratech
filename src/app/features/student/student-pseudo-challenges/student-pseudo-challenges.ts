@@ -6,21 +6,7 @@ import { Router } from '@angular/router';
 import { PseudoChallengeService } from '../../services/pseudo-challenge';
 
 type StudentFilter = 'ALL' | 'NOT_ATTEMPTED' | 'PASS' | 'FAIL';
-
-interface ChallengeGroup {
-  id: string;
-  title: string;
-  companyName: string;
-  batchId: number | string;
-  challenges: any[];
-  totalMarks: number;
-  attemptCount: number;
-  completedCount: number;
-  passedCount: number;
-  failedCount: number;
-  pendingCount: number;
-  latestSubmittedAt: any;
-}
+type SortMode = 'LATEST' | 'TITLE' | 'COMPANY' | 'DIFFICULTY' | 'MARKS' | 'SCORE' | 'ATTEMPTS';
 
 @Component({
   selector: 'app-student-pseudo-challenges',
@@ -32,14 +18,22 @@ interface ChallengeGroup {
 export class StudentPseudoChallengesComponent implements OnInit {
   loading = false;
   toast = '';
+  error = '';
+
   search = '';
   statusFilter: StudentFilter = 'ALL';
+  companyFilter = '';
+  difficultyFilter = '';
+  sortBy: SortMode = 'LATEST';
 
   challenges: any[] = [];
 
   page = 1;
-  pageSize = 6;
-  expandedGroups: Record<string, boolean> = {};
+  pageSize = 10;
+
+  readonly pageSizes = [5, 10, 15, 25];
+  readonly statuses: StudentFilter[] = ['ALL', 'NOT_ATTEMPTED', 'PASS', 'FAIL'];
+  readonly difficulties = ['EASY', 'MEDIUM', 'HARD'];
 
   constructor(
     private service: PseudoChallengeService,
@@ -55,67 +49,54 @@ export class StudentPseudoChallengesComponent implements OnInit {
 
     return this.challenges.filter((item) => {
       const status = this.resolveStatus(item);
-      const text = [
+      const difficulty = this.resolveDifficulty(item);
+
+      const haystack = [
         item.title,
         item.problemStatement,
-        item.batchId,
         item.challengeGroupTitle,
         item.companyName,
+        item.skill,
+        item.batchId,
+        difficulty,
         status,
       ]
         .join(' ')
         .toLowerCase();
 
-      return text.includes(term) && (this.statusFilter === 'ALL' || status === this.statusFilter);
+      return (
+        (!term || haystack.includes(term)) &&
+        (this.statusFilter === 'ALL' || status === this.statusFilter) &&
+        (!this.companyFilter || this.resolveCompany(item) === this.companyFilter) &&
+        (!this.difficultyFilter || difficulty === this.difficultyFilter)
+      );
     });
   }
 
-  get groupedChallenges(): ChallengeGroup[] {
-    const groups = new Map<string, ChallengeGroup>();
+  get sortedChallenges(): any[] {
+    return [...this.filteredChallenges].sort((a, b) => this.sortChallenges(a, b));
+  }
 
-    for (const item of this.filteredChallenges) {
-      const status = this.resolveStatus(item);
-      const id = item.challengeGroupId || `LEGACY-${item.id}`;
-      const existing = groups.get(id);
-
-      if (existing) {
-        existing.challenges.push(item);
-        existing.totalMarks += Number(item.totalMarks || 0);
-        existing.attemptCount += Number(item.attemptCount || 0);
-        existing.completedCount += status === 'PASS' || status === 'FAIL' ? 1 : 0;
-        existing.passedCount += status === 'PASS' ? 1 : 0;
-        existing.failedCount += status === 'FAIL' ? 1 : 0;
-        existing.pendingCount += status === 'NOT_ATTEMPTED' ? 1 : 0;
-        existing.latestSubmittedAt = existing.latestSubmittedAt || item.lastSubmittedAt;
-        continue;
-      }
-
-      groups.set(id, {
-        id,
-        title: item.challengeGroupTitle || item.title || 'Challenge Group',
-        companyName: item.companyName || 'General',
-        batchId: item.batchId,
-        challenges: [item],
-        totalMarks: Number(item.totalMarks || 0),
-        attemptCount: Number(item.attemptCount || 0),
-        completedCount: status === 'PASS' || status === 'FAIL' ? 1 : 0,
-        passedCount: status === 'PASS' ? 1 : 0,
-        failedCount: status === 'FAIL' ? 1 : 0,
-        pendingCount: status === 'NOT_ATTEMPTED' ? 1 : 0,
-        latestSubmittedAt: item.lastSubmittedAt,
-      });
-    }
-
-    return Array.from(groups.values());
+  get pagedChallenges(): any[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.sortedChallenges.slice(start, start + this.pageSize);
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.groupedChallenges.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.sortedChallenges.length / this.pageSize));
   }
 
-  get pagedGroups(): ChallengeGroup[] {
-    const start = (this.page - 1) * this.pageSize;
-    return this.groupedChallenges.slice(start, start + this.pageSize);
+  get fromItem(): number {
+    if (!this.sortedChallenges.length) return 0;
+    return (this.page - 1) * this.pageSize + 1;
+  }
+
+  get toItem(): number {
+    return Math.min(this.page * this.pageSize, this.sortedChallenges.length);
+  }
+
+  get companies(): string[] {
+    return this.unique(this.challenges.map((item) => this.resolveCompany(item))).filter(Boolean);
   }
 
   get completedCount(): number {
@@ -136,17 +117,28 @@ export class StudentPseudoChallengesComponent implements OnInit {
   }
 
   get averageScore(): number {
+    const attempted = this.challenges.filter(
+      (item) => this.resolveStatus(item) !== 'NOT_ATTEMPTED',
+    );
+
+    if (!attempted.length) return 0;
+
+    const total = attempted.reduce((sum, item) => sum + Number(item.percentage || 0), 0);
+    return Math.round(total / attempted.length);
+  }
+
+  get completionPercent(): number {
     if (!this.challenges.length) return 0;
-    const total = this.challenges.reduce((sum, item) => sum + Number(item.lastScore || 0), 0);
-    return Math.round(total / this.challenges.length);
+    return Math.round((this.completedCount / this.challenges.length) * 100);
   }
 
   loadChallenges(): void {
     this.loading = true;
+    this.error = '';
 
     this.service.getStudentChallenges().subscribe({
       next: (res: any) => {
-        this.challenges = res?.data || [];
+        this.challenges = this.extractChallenges(res?.data ?? res);
         this.loading = false;
         this.page = 1;
       },
@@ -154,6 +146,7 @@ export class StudentPseudoChallengesComponent implements OnInit {
         console.error(error);
         this.challenges = [];
         this.loading = false;
+        this.error = 'Unable to load challenges';
         this.showToast('Unable to load challenges');
       },
     });
@@ -164,96 +157,106 @@ export class StudentPseudoChallengesComponent implements OnInit {
     this.page = 1;
   }
 
+  resetFilters(): void {
+    this.search = '';
+    this.statusFilter = 'ALL';
+    this.companyFilter = '';
+    this.difficultyFilter = '';
+    this.sortBy = 'LATEST';
+    this.pageSize = 10;
+    this.page = 1;
+  }
+
+  onFilterChange(): void {
+    this.page = 1;
+  }
+
   changePage(nextPage: number): void {
     this.page = Math.min(Math.max(nextPage, 1), this.totalPages);
   }
 
-  toggleGroup(groupId: string): void {
-    this.expandedGroups[groupId] = !this.expandedGroups[groupId];
+  pages(): number[] {
+    const total = this.totalPages;
+    const start = Math.max(1, Math.min(this.page - 2, total - 4));
+    const end = Math.min(total, start + 4);
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  startChallenge(item: any): void {
+    this.openChallenge(Number(item.id));
+  }
+
+  viewResult(item: any): void {
+    this.openChallenge(Number(item.id));
+  }
+
+  reAttempt(item: any): void {
+    this.openChallenge(Number(item.id));
   }
 
   openChallenge(id: number): void {
+    if (!id) {
+      this.showToast('Challenge id missing');
+      return;
+    }
+
     this.router.navigate(['/dashboard/student/pseudocode-lab', id]);
   }
 
-  openGroupPrimary(group: ChallengeGroup): void {
-    const pending = group.challenges.find((item) => this.resolveStatus(item) === 'NOT_ATTEMPTED');
-    const failed = group.challenges.find((item) => this.resolveStatus(item) === 'FAIL');
-    const first = pending || failed || group.challenges[0];
-
-    if (first?.id) {
-      this.openChallenge(first.id);
-    }
-  }
-
-  trackByGroup(_: number, group: ChallengeGroup): string {
-    return group.id;
-  }
-
   trackById(_: number, item: any): number {
-    return item.id;
+    return Number(item.id || 0);
   }
 
   resolveStatus(item: any): StudentFilter {
-    return item?.status || 'NOT_ATTEMPTED';
+    const status = String(item?.status || 'NOT_ATTEMPTED').toUpperCase();
+    return status === 'PASS' || status === 'FAIL' ? status : 'NOT_ATTEMPTED';
   }
 
-  getGroupStatusClass(group: ChallengeGroup): string {
-    if (group.pendingCount > 0) return 'status-pending';
-    if (group.failedCount > 0) return 'status-fail';
-    return 'status-pass';
+  resolveCompany(item: any): string {
+    return String(item?.companyName || 'General').trim() || 'General';
   }
 
-  getGroupStatusLabel(group: ChallengeGroup): string {
-    if (group.pendingCount > 0) return `${group.pendingCount} Pending`;
-    if (group.failedCount > 0) return `${group.failedCount} Retry`;
-    return 'Completed';
+  resolveDifficulty(item: any): string {
+    return String(item?.difficultyLevel || item?.difficulty || 'MEDIUM')
+      .trim()
+      .toUpperCase();
   }
 
-  getActionLabel(item: any): string {
+  resolveSkill(item: any): string {
+    return String(item?.skill || 'Logic').trim() || 'Logic';
+  }
+
+  getStatusLabel(item: any): string {
     const status = this.resolveStatus(item);
 
-    if (status === 'PASS') return 'View Result';
-    if (status === 'FAIL') return 'Re-attempt';
-    return 'Start Challenge';
+    if (status === 'PASS') return 'Passed';
+    if (status === 'FAIL') return 'Failed';
+    return 'Pending';
   }
 
-  getActionIcon(item: any): string {
+  getStatusClass(item: any): string {
     const status = this.resolveStatus(item);
 
-    if (status === 'PASS') return 'bi-eye-fill';
-    if (status === 'FAIL') return 'bi-arrow-repeat';
-    return 'bi-play-fill';
+    if (status === 'PASS') return 'status-pass';
+    if (status === 'FAIL') return 'status-fail';
+    return 'status-pending';
   }
 
-  getActionClass(item: any): string {
+  getStatusIcon(item: any): string {
     const status = this.resolveStatus(item);
 
-    if (status === 'PASS') return 'action-view';
-    if (status === 'FAIL') return 'action-retry';
-    return 'action-start';
+    if (status === 'PASS') return 'bi-check-circle-fill';
+    if (status === 'FAIL') return 'bi-x-circle-fill';
+    return 'bi-clock-history';
   }
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'PASS':
-        return 'status-pass';
-      case 'FAIL':
-        return 'status-fail';
-      default:
-        return 'status-pending';
-    }
-  }
+  getDifficultyClass(item: any): string {
+    const difficulty = this.resolveDifficulty(item);
 
-  getStatusIcon(status: string): string {
-    switch (status) {
-      case 'PASS':
-        return 'bi-check-circle-fill';
-      case 'FAIL':
-        return 'bi-x-circle-fill';
-      default:
-        return 'bi-clock-history';
-    }
+    if (difficulty === 'EASY') return 'difficulty-easy';
+    if (difficulty === 'HARD') return 'difficulty-hard';
+    return 'difficulty-medium';
   }
 
   showToast(message: string): void {
@@ -262,5 +265,55 @@ export class StudentPseudoChallengesComponent implements OnInit {
     setTimeout(() => {
       this.toast = '';
     }, 2500);
+  }
+
+  private extractChallenges(payload: any): any[] {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.content)) return payload.content;
+    if (Array.isArray(payload?.items)) return payload.items;
+    if (Array.isArray(payload?.challenges)) return payload.challenges;
+    return [];
+  }
+
+  private sortChallenges(a: any, b: any): number {
+    if (this.sortBy === 'TITLE') {
+      return String(a.title || '').localeCompare(String(b.title || ''));
+    }
+
+    if (this.sortBy === 'COMPANY') {
+      return this.resolveCompany(a).localeCompare(this.resolveCompany(b));
+    }
+
+    if (this.sortBy === 'DIFFICULTY') {
+      return (
+        this.difficultyRank(this.resolveDifficulty(a)) -
+        this.difficultyRank(this.resolveDifficulty(b))
+      );
+    }
+
+    if (this.sortBy === 'MARKS') {
+      return Number(b.totalMarks || 0) - Number(a.totalMarks || 0);
+    }
+
+    if (this.sortBy === 'SCORE') {
+      return Number(b.percentage || 0) - Number(a.percentage || 0);
+    }
+
+    if (this.sortBy === 'ATTEMPTS') {
+      return Number(b.attemptCount || 0) - Number(a.attemptCount || 0);
+    }
+
+    return Number(b.id || 0) - Number(a.id || 0);
+  }
+
+  private difficultyRank(value: string): number {
+    if (value === 'EASY') return 1;
+    if (value === 'MEDIUM') return 2;
+    if (value === 'HARD') return 3;
+    return 4;
+  }
+
+  private unique(values: string[]): string[] {
+    return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
   }
 }
