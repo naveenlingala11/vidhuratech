@@ -155,8 +155,8 @@ export const routes: Routes = [
   { path: 'checkout', component: Checkout },
 
   { path: 'courses/:slug', component: CourseDetailsComponent },
-  { path: 'free-mock-tests', component: PublicPracticeComponent },
-  { path: 'free-mock-tests/:type/:id', component: PublicPracticeComponent },
+  { path: 'practice', component: PublicPracticeComponent },
+  { path: 'practice/:type/:id', component: PublicPracticeComponent },
   { path: 'leaderboard', component: PremiumLeaderboardComponent },
   /* =========================
      POLICY ROUTES

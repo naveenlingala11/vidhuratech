@@ -77,6 +77,7 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     companyName: 'General',
     skill: 'Placement Readiness',
     accessLevel: 'LEAD_REQUIRED',
+    accessLevels: ['LEAD_REQUIRED'] as AccessPolicyCode[],
     attemptLimit: 1,
   };
 
@@ -235,13 +236,55 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   }
 
   onAccessPolicyChange(): void {
-    const policy = this.policyMeta(this.publishForm.accessLevel);
+    const selected = this.publishForm.accessLevels?.length
+      ? this.publishForm.accessLevels
+      : [this.publishForm.accessLevel || 'LEAD_REQUIRED'];
 
-    this.publishForm.accessLevel = policy.value;
+    this.publishForm.accessLevels = selected.map((value) => this.normalizeAccessLevel(value));
+    this.publishForm.accessLevel = this.publishForm.accessLevels[0];
+
+    const policy = this.policyMeta(this.publishForm.accessLevel);
 
     if (!this.publishForm.attemptLimit || this.publishForm.attemptLimit < 1) {
       this.publishForm.attemptLimit = policy.recommendedAttemptLimit;
     }
+  }
+
+  isAccessPolicySelected(value: AccessPolicyCode): boolean {
+    return (this.publishForm.accessLevels || []).includes(value);
+  }
+
+  toggleAccessPolicy(value: AccessPolicyCode): void {
+    const selected = new Set(this.publishForm.accessLevels || []);
+
+    selected.has(value) ? selected.delete(value) : selected.add(value);
+
+    if (!selected.size) {
+      selected.add('LEAD_REQUIRED');
+    }
+
+    this.publishForm.accessLevels = Array.from(selected);
+    this.publishForm.accessLevel = this.publishForm.accessLevels[0];
+    this.onAccessPolicyChange();
+  }
+
+  accessPolicySummary(): string {
+    return (this.publishForm.accessLevels || []).map((value) => this.policyLabel(value)).join(', ');
+  }
+
+  previewItem(item: any, event?: Event): void {
+    event?.stopPropagation();
+
+    this.showPublishDrawer = false;
+    this.showBulkDrawer = false;
+    this.selectedAttempt = null;
+
+    this.selectedItem = item;
+    this.selectedType = this.toPublishType(item);
+  }
+
+  closePreview(): void {
+    this.selectedItem = null;
   }
 
   ngOnInit(): void {
@@ -529,16 +572,13 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     this.selectedType = type;
     this.publishErrors = [];
 
+    const accessLevel = this.normalizeAccessLevel(item.publicAccessLevel || 'LEAD_REQUIRED');
+
     this.publishForm = {
       companyName: this.displayCompany(item),
-      skill:
-        this.displaySkill(item) ||
-        (type === 'ASSESSMENT'
-          ? 'Placement Readiness'
-          : type === 'CHALLENGE'
-            ? 'Coding'
-            : 'Interview Preparation'),
-      accessLevel: this.normalizeAccessLevel(item.publicAccessLevel || 'LEAD_REQUIRED'),
+      skill: this.displaySkill(item) || this.defaultSkill(),
+      accessLevel,
+      accessLevels: [accessLevel],
       attemptLimit: Number(item.publicAttemptLimit || 1),
     };
 
@@ -626,10 +666,13 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     this.bulkTitle = title;
     this.bulkIds = publishableItems.map((item) => Number(item.id));
     this.publishErrors = [];
+    const accessLevel = this.normalizeAccessLevel(first.publicAccessLevel || 'LEAD_REQUIRED');
+
     this.publishForm = {
       companyName: sameCompany ? this.displayCompany(first) : 'General',
-      skill: sameSkill ? this.displaySkill(first) : this.defaultSkill(),
-      accessLevel: this.normalizeAccessLevel(first.publicAccessLevel || 'LEAD_REQUIRED'),
+      skill: this.defaultSkill(),
+      accessLevel,
+      accessLevels: [accessLevel],
       attemptLimit: Number(first.publicAttemptLimit || 1),
     };
 
@@ -785,20 +828,33 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   }
 
   private publishPayload(): any {
+    const accessLevels = (
+      this.publishForm.accessLevels?.length
+        ? this.publishForm.accessLevels
+        : [this.publishForm.accessLevel || 'LEAD_REQUIRED']
+    ).map((value) => this.normalizeAccessLevel(value));
+
     return {
       companyName: String(this.publishForm.companyName || 'General').trim(),
-      skill: String(this.publishForm.skill || 'Placement Readiness').trim(),
-      accessLevel: this.normalizeAccessLevel(this.publishForm.accessLevel),
+      skill: String(this.publishForm.skill || this.defaultSkill()).trim(),
+      accessLevel: accessLevels[0],
+      accessLevels,
       attemptLimit: Number(this.publishForm.attemptLimit || 1),
     };
   }
 
   private validateCommonPublishFields(): boolean {
     if (!this.publishForm.companyName.trim()) this.publishErrors.push('Company is required');
-    if (!this.publishForm.skill.trim()) this.publishErrors.push('Skill is required');
-    const accessLevel = this.normalizeAccessLevel(this.publishForm.accessLevel);
 
-    if (!this.accessPolicyOptions.some((policy) => policy.value === accessLevel)) {
+    const accessLevels = this.publishForm.accessLevels?.length
+      ? this.publishForm.accessLevels
+      : [this.publishForm.accessLevel];
+
+    const validPolicies = accessLevels.every((value) =>
+      this.accessPolicyOptions.some((policy) => policy.value === this.normalizeAccessLevel(value)),
+    );
+
+    if (!validPolicies) {
       this.showToast('Select a valid access policy');
       return false;
     }

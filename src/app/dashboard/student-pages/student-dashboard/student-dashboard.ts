@@ -201,11 +201,11 @@ export class StudentDashboard implements OnInit {
   loadPseudoChallengeCount(): void {
     this.pseudoChallengeService.getStudentChallenges().subscribe({
       next: (res: any) => {
-        const challenges = res?.data || [];
+        const count = this.countPseudoChallenges(res?.data ?? res);
 
         this.stats = {
           ...this.stats,
-          pseudoChallenges: Array.isArray(challenges) ? challenges.length : 0,
+          pseudoChallenges: count,
         };
 
         this.cdr.detectChanges();
@@ -220,6 +220,14 @@ export class StudentDashboard implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private countPseudoChallenges(payload: any): number {
+    if (Array.isArray(payload)) return payload.length;
+    if (Array.isArray(payload?.content)) return payload.content.length;
+    if (Array.isArray(payload?.items)) return payload.items.length;
+    if (Array.isArray(payload?.challenges)) return payload.challenges.length;
+    return Number(payload?.totalElements ?? payload?.total ?? payload?.count ?? 0);
   }
 
   loadCertificateCount(): void {

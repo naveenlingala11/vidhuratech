@@ -195,7 +195,7 @@
         </p>
 
         <div class="arena-actions">
-          <a routerLink="/free-mock-tests" class="arena-primary-action"> Start Free Practice </a>
+          <a routerLink="/practice" class="arena-primary-action"> Start Free Practice </a>
 
           <a routerLink="/coding-contests" class="arena-secondary-action"> Join Coding Contest </a>
         </div>
@@ -217,47 +217,21 @@
       </div>
 
       <div class="arena-visual">
-        <div class="arena-dashboard-card">
-          <div class="arena-window-bar">
-            <div class="arena-window-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+        <a routerLink="/coding-contests" class="arena-image-card" aria-label="Open coding contests">
+          <div class="arena-image-glow"></div>
 
-            <strong>placement_arena.live</strong>
-            <em>Live</em>
+          <img src="/Coding Contest.png" alt="Coding Contest" />
+
+          <div class="arena-image-badge top">
+            <i class="fa-solid fa-code"></i>
+            <span>Weekly Coding Arena</span>
           </div>
 
-          <div class="arena-dashboard-body">
-            <div class="arena-score-card">
-              <span>Readiness Score</span>
-              <strong>82%</strong>
-              <i><em></em></i>
-              <small>Mock tests + coding practice performance</small>
-            </div>
-
-            <div class="arena-mode-grid">
-              <a routerLink="/free-mock-tests" class="arena-mode-card practice">
-                <span>01</span>
-                <strong>Free Mock Tests</strong>
-                <p>Aptitude, verbal, technical, pseudo code, and coding practice.</p>
-              </a>
-
-              <a routerLink="/coding-contests" class="arena-mode-card contest">
-                <span>02</span>
-                <strong>Weekly Contest</strong>
-                <p>Submit solutions, pass test cases, and climb the rankings.</p>
-              </a>
-            </div>
-
-            <div class="arena-code-panel">
-              <p><b>score</b> = evaluate(mock_tests + coding_challenges)</p>
-              <p><b>rank</b> = sort(score, solved_count, speed)</p>
-              <p><b>goal</b> = "job_ready"</p>
-            </div>
+          <div class="arena-image-badge bottom">
+            <i class="fa-solid fa-trophy"></i>
+            <span>Practice, submit, rank</span>
           </div>
-        </div>
+        </a>
 
         <div class="arena-leaderboard-card">
           <div class="arena-leaderboard-head">
@@ -388,7 +362,7 @@
             <b><del>₹999/year</del> Free for limited period</b>
           </a>
 
-          <a routerLink="/free-mock-tests" class="secondary-action institute-action">
+          <a routerLink="/practice" class="secondary-action institute-action">
             Free Mock Tests
           </a>
         </div>
@@ -500,12 +474,101 @@
         </div>
 
         <div class="virtual-footer-note">
-          <button type="button" disabled>Registration Opens Soon</button>
+          <button type="button" (click)="openMockInterviewLeadForm()">
+            Registration Opens Soon
+          </button>
           <p>Professional mock interviews by mentors and real-time industry experts.</p>
         </div>
       </div>
     </div>
   </section>
+
+  <div
+    class="mock-interest-overlay"
+    *ngIf="showMockInterviewLeadForm"
+    (click)="closeMockInterviewLeadForm()"
+  >
+    <form
+      class="mock-interest-modal"
+      (click)="$event.stopPropagation()"
+      (ngSubmit)="submitMockInterviewLead()"
+    >
+      <div class="mock-interest-head">
+        <span>Mock Interview Interest</span>
+        <button type="button" (click)="closeMockInterviewLeadForm()">×</button>
+      </div>
+
+      <h3>Register your interest</h3>
+      <p>
+        Share your details and our team will contact you when mock interview registrations open.
+      </p>
+
+      <label>
+        Name
+        <input
+          type="text"
+          name="mockName"
+          [(ngModel)]="mockInterviewLead.name"
+          placeholder="Enter your name"
+          required
+        />
+      </label>
+
+      <label>
+        Email
+        <input
+          type="email"
+          name="mockEmail"
+          [(ngModel)]="mockInterviewLead.email"
+          placeholder="Enter your email"
+          required
+        />
+      </label>
+
+      <label>
+        Skills
+        <input
+          type="text"
+          name="mockSkills"
+          [(ngModel)]="mockInterviewLead.skills"
+          placeholder="Java, Python, Angular, SQL..."
+          required
+        />
+      </label>
+
+      <label>
+        Interested?
+        <select name="mockInterested" [(ngModel)]="mockInterviewLead.interested">
+          <option value="YES">Yes, I am interested</option>
+          <option value="MAYBE">Maybe, tell me more</option>
+          <option value="NO">Not now</option>
+        </select>
+      </label>
+
+      <label>
+        Message
+        <textarea
+          name="mockMessage"
+          [(ngModel)]="mockInterviewLead.message"
+          rows="4"
+          placeholder="Tell us your target role, experience, or preferred interview area"
+        ></textarea>
+      </label>
+
+      <div class="mock-interest-alert success" *ngIf="mockInterviewLeadSuccess">
+        {{ mockInterviewLeadSuccess }}
+      </div>
+
+      <div class="mock-interest-alert error" *ngIf="mockInterviewLeadError">
+        {{ mockInterviewLeadError }}
+      </div>
+
+      <button type="submit" class="mock-submit-btn" [disabled]="mockInterviewSubmitting">
+        {{ mockInterviewSubmitting ? 'Saving...' : 'Save Interest' }}
+      </button>
+    </form>
+  </div>
+
   <section class="program-section">
     <div class="container">
       <div class="section-heading reveal">
@@ -1836,11 +1899,4 @@
       </div>
     </div>
   </section>
-  <div class="join-popup" *ngIf="showPopup()">
-    <div class="popup-content">
-      <span class="dot"></span>
-      <span class="text">{{ popupMessage() }}</span>
-      <span class="close" (click)="closePopup()">x</span>
-    </div>
-  </div>
 </main>

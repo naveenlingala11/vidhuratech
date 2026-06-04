@@ -156,6 +156,40 @@ export class EnrollModal {
     return new Intl.NumberFormat('en-IN').format(Number(price || 0));
   }
 
+  demoClassDate(): string {
+    const batch = this.selectedLiveCourse?.activeBatch || {};
+    const rawDate =
+      batch.demoDate ||
+      batch.demoClassDate ||
+      batch.startDate ||
+      batch.batchStartDate ||
+      batch.createdAt ||
+      this.selectedLiveCourse?.startDate ||
+      this.requestedPayload?.startDate ||
+      this.requestedPayload?.demoDate;
+
+    if (!rawDate) {
+      return 'announcing soon';
+    }
+
+    const date = new Date(rawDate);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(rawDate);
+    }
+
+    return new Intl.DateTimeFormat('en-IN', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  demoClassTitle(): string {
+    const courseName = this.selectedLiveCourse?.title || this.requestedCourse || 'Free Demo Class';
+    return `Join Free Demo Class for ${courseName}`;
+  }
+
   resetForm(form?: any) {
     this.step = 1;
     this.formData = {

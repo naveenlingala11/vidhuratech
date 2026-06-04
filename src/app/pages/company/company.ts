@@ -257,13 +257,13 @@ export class Company implements OnInit {
   }
 
   startAssessment(item: PracticeItem): void {
-    this.router.navigate(['/free-mock-tests', 'assessment', item.id], {
+    this.router.navigate(['/practice', 'assessment', item.id], {
       queryParams: { company: this.companyName },
     });
   }
 
   startChallenge(item: PracticeItem): void {
-    this.router.navigate(['/free-mock-tests', 'challenge', item.id], {
+    this.router.navigate(['/practice', 'challenge', item.id], {
       queryParams: { company: this.companyName },
     });
   }

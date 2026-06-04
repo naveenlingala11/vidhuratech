@@ -387,7 +387,6 @@
           </div>
 
           <h1>{{ challenge.title }}</h1>
-          <p>{{ challenge.problemStatement }}</p>
         </div>
 
         <div class="challenge-score-card">
@@ -406,6 +405,18 @@
 
             <b>{{ challenge.durationMinutes || '-' }} min</b>
           </div>
+
+          <section class="challenge-statement-card">
+            <div class="statement-head">
+              <div>
+                <span>Problem Statement</span>
+                <strong>Read the challenge carefully</strong>
+              </div>
+              <b>Task</b>
+            </div>
+
+            <p>{{ challenge.problemStatement || 'No problem statement provided.' }}</p>
+          </section>
 
           <section class="challenge-info-card">
             <div class="info-head">
@@ -523,11 +534,7 @@
             <b>{{ visibleSampleTestCases.length }}</b>
           </div>
 
-          <div
-            class="compact-test-grid"
-            [class.many]="visibleSampleTestCases.length > 3"
-            *ngIf="visibleSampleTestCases.length; else noSamples"
-          >
+          <div class="compact-test-grid" *ngIf="visibleSampleTestCases.length; else noSamples">
             <article
               class="compact-test-card"
               *ngFor="let tc of visibleSampleTestCases; let i = index"
@@ -570,29 +577,41 @@
             {{ challengeResult.compileError }}
           </div>
 
-          <div
-            class="compact-test-grid"
-            [class.many]="resultTestCases.length > 3"
-            *ngIf="resultTestCases.length; else noResults"
-          >
-            <article
-              class="compact-test-card result-card"
-              *ngFor="let item of resultTestCases; let i = index"
-              [class.pass]="item.status === 'PASS'"
-            >
-              <header>
-                <strong>Test {{ i + 1 }}</strong>
-                <span>{{ item.status }}</span>
-              </header>
+          <div class="result-tests-wrap" *ngIf="resultTestCases.length; else noResults">
+            <div class="compact-test-grid result-visible-grid">
+              <article
+                class="compact-test-card result-card"
+                *ngFor="let item of visibleResultCards; let i = index"
+                [class.pass]="item.status === 'PASS'"
+                [class.fail]="item.status !== 'PASS'"
+              >
+                <header>
+                  <strong>Test {{ i + 1 }}</strong>
+                  <span>{{ item.status }}</span>
+                </header>
 
-              <label>Input</label>
-              <pre>{{ item.inputData }}</pre>
+                <label>Input</label>
+                <pre>{{ item.inputData }}</pre>
 
-              <label>Your Output</label>
-              <pre>{{ item.actualOutput || '-' }}</pre>
+                <label>Your Output</label>
+                <pre>{{ item.actualOutput || '-' }}</pre>
 
-              <small *ngIf="item.errorMessage">{{ item.errorMessage }}</small>
-            </article>
+                <small *ngIf="item.errorMessage">{{ item.errorMessage }}</small>
+              </article>
+            </div>
+
+            <div class="hidden-test-strip" *ngIf="hiddenResultPills.length">
+              <article
+                class="hidden-test-pill"
+                *ngFor="let item of hiddenResultPills; let i = index"
+                [class.pass]="item.status === 'PASS'"
+                [class.fail]="item.status !== 'PASS'"
+              >
+                <b>Test {{ i + 4 }}</b>
+                <span>{{ hiddenTestStatusIcon(item) }}</span>
+                <strong>{{ item.status }}</strong>
+              </article>
+            </div>
           </div>
 
           <ng-template #noResults>
@@ -600,8 +619,292 @@
           </ng-template>
         </div>
       </section>
+
+      <section class="challenge-community-console">
+        <div class="community-panel discussion-panel" (click)="closeDiscussionMenu()">
+          <div class="community-head">
+            <div>
+              <span>Discussions</span>
+              <strong>Talk about this coding challenge</strong>
+            </div>
+
+            <b>{{ challengeDiscussions.length }}</b>
+          </div>
+
+          <div class="discussion-composer">
+            <textarea
+              [(ngModel)]="discussionText"
+              maxlength="1200"
+              placeholder="Share an idea, edge case, approach, or doubt about this challenge..."
+            ></textarea>
+
+            <div>
+              <small>{{ discussionText.length }}/1200</small>
+              <button
+                type="button"
+                [disabled]="discussionPosting"
+                (click)="postChallengeDiscussion()"
+              >
+                {{ discussionPosting ? 'Posting...' : 'Post Comment' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="community-loading" *ngIf="discussionLoading">Loading discussions...</div>
+
+          <div
+            class="discussion-list premium-discussions"
+            *ngIf="!discussionLoading && challengeDiscussions.length"
+          >
+            <article
+              class="discussion-card premium-thread"
+              *ngFor="let item of challengeDiscussions"
+            >
+              <div class="thread-avatar">
+                <span>{{ (item.authorName || 'L').charAt(0) }}</span>
+              </div>
+
+              <div class="thread-content">
+                <div class="thread-top">
+                  <div>
+                    <strong>{{ item.authorName || 'Learner' }}</strong>
+                    <span>{{ formatDiscussionTime(item.createdAt) }}</span>
+                  </div>
+
+                  <div class="discussion-menu-wrap" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      class="thread-more-btn"
+                      (click)="toggleDiscussionMenu(item)"
+                    >
+                      <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+
+                    <div
+                      class="discussion-menu premium-menu"
+                      *ngIf="activeDiscussionMenuId === item.id"
+                    >
+                      <button
+                        type="button"
+                        (click)="reportDiscussion(item)"
+                        [disabled]="reportingDiscussionIds[item.id]"
+                      >
+                        <i class="fa-regular fa-flag"></i>
+                        <span>{{
+                          reportingDiscussionIds[item.id] ? 'Reporting...' : 'Report comment'
+                        }}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        (click)="blockDiscussionAuthor(item)"
+                        [disabled]="blockingDiscussionIds[item.id]"
+                      >
+                        <i class="fa-solid fa-user-slash"></i>
+                        <span>{{
+                          blockingDiscussionIds[item.id]
+                            ? 'Blocking...'
+                            : 'Block @' + (item.authorName || 'user')
+                        }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="thread-text">{{ item.comment }}</p>
+
+                <div class="thread-actions">
+                  <button
+                    type="button"
+                    class="thread-action like"
+                    [class.active]="item.likedByMe"
+                    (click)="toggleDiscussionLike(item)"
+                  >
+                    <i class="fa-solid fa-star"></i>
+                    <span>{{ item.likeCount || 0 }}</span>
+                  </button>
+
+                  <button type="button" class="thread-action" (click)="startDiscussionReply(item)">
+                    <i class="fa-regular fa-message"></i>
+                    <span>{{ item.replyCount || 0 }} Replies</span>
+                  </button>
+
+                  <button type="button" class="thread-action" (click)="startDiscussionReply(item)">
+                    <i class="fa-solid fa-reply"></i>
+                    <span>Reply</span>
+                  </button>
+
+                  <button type="button" class="thread-action" (click)="shareDiscussion(item)">
+                    <i class="fa-solid fa-share-nodes"></i>
+                    <span>Share</span>
+                  </button>
+                </div>
+
+                <div class="premium-reply-box" *ngIf="replyingToDiscussionId === item.id">
+                  <textarea
+                    [(ngModel)]="discussionReplyText"
+                    maxlength="1200"
+                    placeholder="Write a thoughtful reply..."
+                  ></textarea>
+
+                  <div class="reply-footer">
+                    <small>{{ discussionReplyText.length }}/1200</small>
+                    <button type="button" class="reply-cancel" (click)="cancelDiscussionReply()">
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      class="reply-send"
+                      [disabled]="discussionPosting"
+                      (click)="postDiscussionReply(item)"
+                    >
+                      {{ discussionPosting ? 'Posting...' : 'Post Reply' }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="premium-replies" *ngIf="item.replies?.length">
+                  <article class="premium-reply" *ngFor="let reply of item.replies">
+                    <div class="reply-avatar">
+                      {{ (reply.authorName || 'L').charAt(0) }}
+                    </div>
+
+                    <div class="reply-content">
+                      <div class="reply-top">
+                        <strong>{{ reply.authorName || 'Learner' }}</strong>
+                        <span>{{ formatDiscussionTime(reply.createdAt) }}</span>
+                      </div>
+
+                      <p>{{ reply.comment }}</p>
+
+                      <div class="thread-actions compact">
+                        <button
+                          type="button"
+                          class="thread-action like"
+                          [class.active]="reply.likedByMe"
+                          (click)="toggleDiscussionLike(reply)"
+                        >
+                          <i class="fa-solid fa-star"></i>
+                          <span>{{ reply.likeCount || 0 }}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="thread-action"
+                          (click)="shareDiscussion(reply)"
+                        >
+                          <i class="fa-solid fa-share-nodes"></i>
+                          <span>Share</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="thread-action danger"
+                          (click)="reportDiscussion(reply)"
+                        >
+                          <i class="fa-regular fa-flag"></i>
+                          <span>Report</span>
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="community-empty" *ngIf="!discussionLoading && !challengeDiscussions.length">
+            No comments yet. Start the first discussion for this challenge.
+          </div>
+        </div>
+
+        <div class="community-panel submissions-panel">
+          <div class="community-head">
+
+            <div class="premium-best-lock" *ngIf="!planAccessLoading && !canViewBestAnswers()">
+              <div class="best-lock-glow"></div>
+
+              <div class="best-lock-icon">
+                <i class="fa-solid fa-lock"></i>
+              </div>
+
+              <div class="best-lock-copy">
+                <span>Premium Access</span>
+                <strong>Best Answers Locked</strong>
+                <p>
+                  Unlock 80%+ accepted submissions, clean answer code, and high-scoring approaches
+                  from top learners.
+                </p>
+              </div>
+
+              <div class="best-lock-features">
+                <span><i class="fa-solid fa-code"></i> Answer code</span>
+                <span><i class="fa-solid fa-star"></i> 80%+ submissions</span>
+                <span><i class="fa-solid fa-crown"></i> Any active plan</span>
+              </div>
+
+              <a routerLink="/pricing" class="best-lock-action">
+                <span>Unlock with Any Plan</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+
+          </div>
+
+          <div class="community-loading" *ngIf="canViewBestAnswers() && submissionsLoading">
+            Loading submissions...
+          </div>
+          <div
+            class="submission-list"
+            *ngIf="canViewBestAnswers() && !submissionsLoading && challengeSubmissions.length"
+          >
+            <article
+              class="submission-card best-answer-card"
+              *ngFor="let row of challengeSubmissions; let i = index"
+              [class.expanded]="isSubmissionExpanded(row)"
+            >
+              <button
+                type="button"
+                class="submission-summary"
+                (click)="toggleSubmissionAnswer(row)"
+              >
+                <div class="submission-rank">#{{ row.rank || i + 1 }}</div>
+
+                <div>
+                  <strong>{{ row.name || 'Participant' }}</strong>
+                  <span>
+                    Best Answer • {{ row.language || 'Code' }} • {{ row.percentage || 0 }}%
+                  </span>
+                </div>
+
+                <div class="submission-score">
+                  <strong>{{ row.score || 0 }}</strong>
+                  <small>/ {{ row.totalMarks || challenge.totalMarks || 0 }}</small>
+                </div>
+              </button>
+
+              <div class="best-answer-code" *ngIf="isSubmissionExpanded(row)">
+                <div class="best-answer-code-head">
+                  <span>Submitted Answer</span>
+                  <strong>{{ row.language || 'CODE' }}</strong>
+                </div>
+
+                <pre>{{ row.sourceCode || 'Source code is not available.' }}</pre>
+              </div>
+            </article>
+          </div>
+
+          <div
+            class="community-empty"
+            *ngIf="canViewBestAnswers() && !submissionsLoading && !challengeSubmissions.length"
+          >
+            No best answers yet. Submissions with 80% or above will appear here.
+          </div>
+        </div>
+      </section>
     </section>
   </ng-container>
+
   <section
     class="workspace-locked-state"
     *ngIf="!loading && mode === 'CHALLENGE' && challenge && !workspaceUnlocked && !showLeadModal"

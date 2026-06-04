@@ -88,6 +88,19 @@ export class PublicPracticeComponent implements OnInit {
   lastStarterCode = '';
   challengeResult: any = null;
 
+  challengeDiscussions: any[] = [];
+  discussionText = '';
+  discussionLoading = false;
+  discussionPosting = false;
+
+  challengeSubmissions: any[] = [];
+  submissionsLoading = false;
+  expandedSubmissionId: number | null = null;
+  activeDiscussionMenuId: number | null = null;
+  replyingToDiscussionId: number | null = null;
+  discussionReplyText = '';
+  reportingDiscussionIds: Record<number, boolean> = {};
+  blockingDiscussionIds: Record<number, boolean> = {};
   editorError = '';
   hasUnsavedChanges = false;
   draftSavedAt = '';
@@ -124,6 +137,12 @@ export class PublicPracticeComponent implements OnInit {
     email: '',
   };
 
+  planAccessLoading = false;
+  planAccess: any = {
+    loggedIn: false,
+    active: false,
+  };
+
   constructor(
     private publicPracticeService: PublicPracticeService,
     private route: ActivatedRoute,
@@ -134,6 +153,7 @@ export class PublicPracticeComponent implements OnInit {
 
   ngOnInit(): void {
     this.restoreLead();
+    this.loadMyPlanAccess();
     this.workspaceUnlocked = false;
     this.currentGrant = null;
 
@@ -261,6 +281,51 @@ export class PublicPracticeComponent implements OnInit {
     return this.authService.isLoggedIn();
   }
 
+  loadMyPlanAccess(): void {
+    this.planAccessLoading = true;
+
+    this.publicPracticeService.getMyPlanAccess().subscribe({
+      next: (res: any) => {
+        const data = res?.data || res || {};
+
+        this.planAccess = {
+          loggedIn: !!data.loggedIn,
+          active: !!data.active,
+          accessPremiumChallenges: !!data.accessPremiumChallenges,
+          plans: data.plans || [],
+        };
+
+        this.planAccessLoading = false;
+
+        if (this.mode === 'CHALLENGE' && this.challengeId && this.canViewBestAnswers()) {
+          this.loadChallengeSubmissions(this.challengeId);
+        }
+      },
+      error: () => {
+        this.planAccess = {
+          loggedIn: false,
+          active: false,
+        };
+
+        this.planAccessLoading = false;
+      },
+    });
+  }
+
+  canViewBestAnswers(): boolean {
+    return !!(this.planAccess?.loggedIn && this.planAccess?.active);
+  }
+
+  unlockBestAnswers(): void {
+    this.router.navigate(['/pricing-plans'], {
+      queryParams: {
+        redirect: this.router.url,
+        unlock: 'best-answers',
+        challengeId: this.challengeId,
+      },
+    });
+  }
+
   unlockAuthenticatedAccess(item: any): void {
     const type = this.resolvePracticeType(item);
 
@@ -293,7 +358,7 @@ export class PublicPracticeComponent implements OnInit {
               return;
             }
 
-            this.router.navigate(['/free-mock-tests', 'assessment', item.id]);
+            this.router.navigate(['/practice', 'assessment', item.id]);
             return;
           }
 
@@ -305,7 +370,7 @@ export class PublicPracticeComponent implements OnInit {
               return;
             }
 
-            this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
+            this.router.navigate(['/practice', 'challenge', item.id]);
             return;
           }
         },
@@ -419,12 +484,12 @@ export class PublicPracticeComponent implements OnInit {
       this.workspaceUnlocked = true;
 
       if (type === 'ASSESSMENT') {
-        this.router.navigate(['/free-mock-tests', 'assessment', item.id]);
+        this.router.navigate(['/practice', 'assessment', item.id]);
         return;
       }
 
       if (type === 'CHALLENGE') {
-        this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
+        this.router.navigate(['/practice', 'challenge', item.id]);
         return;
       }
     }
@@ -514,11 +579,11 @@ export class PublicPracticeComponent implements OnInit {
           this.pendingItem = null;
 
           if (item.type === 'ASSESSMENT') {
-            this.router.navigate(['/free-mock-tests', 'assessment', item.id]);
+            this.router.navigate(['/practice', 'assessment', item.id]);
             return;
           }
 
-          this.router.navigate(['/free-mock-tests', 'challenge', item.id]);
+          this.router.navigate(['/practice', 'challenge', item.id]);
         },
         error: (err) => {
           this.submitting = false;
@@ -570,7 +635,7 @@ export class PublicPracticeComponent implements OnInit {
           if (this.isPremiumItem(this.assessment)) {
             this.router.navigate(['/pricing-plans'], {
               queryParams: {
-                redirect: `/free-mock-tests/assessment/${id}`,
+                redirect: `/practice/assessment/${id}`,
                 unlock: 'assessment',
                 practiceId: id,
               },
@@ -580,7 +645,7 @@ export class PublicPracticeComponent implements OnInit {
 
           this.router.navigate(['/login'], {
             queryParams: {
-              redirect: `/free-mock-tests/assessment/${id}`,
+              redirect: `/practice/assessment/${id}`,
             },
           });
           return;
@@ -589,7 +654,7 @@ export class PublicPracticeComponent implements OnInit {
           this.workspaceUnlocked = false;
           this.showLeadModal = false;
           this.showToast(this.accessPolicyMessage(this.assessment));
-          this.router.navigate(['/free-mock-tests']);
+          this.router.navigate(['/practice']);
           return;
         }
         this.answers = (this.assessment?.questions || []).map((q: any) => ({
@@ -741,6 +806,12 @@ export class PublicPracticeComponent implements OnInit {
     this.publicPracticeService.getChallenge(id).subscribe({
       next: (res: any) => {
         this.challenge = res?.data;
+        this.loadChallengeDiscussions(id);
+        if (this.canViewBestAnswers()) {
+          this.loadChallengeSubmissions(id);
+        } else {
+          this.challengeSubmissions = [];
+        }
 
         const access = String(
           this.challenge?.accessLevel || this.challenge?.publicAccessLevel || 'LEAD_REQUIRED',
@@ -768,7 +839,7 @@ export class PublicPracticeComponent implements OnInit {
           this.loading = false;
           this.router.navigate(['/pricing-plans'], {
             queryParams: {
-              redirect: `/free-mock-tests/challenge/${id}`,
+              redirect: `/practice/challenge/${id}`,
               unlock: 'premium-challenge',
               challengeId: id,
             },
@@ -781,7 +852,7 @@ export class PublicPracticeComponent implements OnInit {
           this.workspaceUnlocked = false;
           this.showLeadModal = false;
           this.showToast(this.accessPolicyMessage(this.challenge));
-          this.router.navigate(['/free-mock-tests']);
+          this.router.navigate(['/practice']);
           return;
         }
 
@@ -831,7 +902,7 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   get visibleSampleTestCases(): any[] {
-    return this.challenge?.sampleTestCases || [];
+    return (this.challenge?.sampleTestCases || []).slice(0, 3);
   }
 
   get resultTestCases(): any[] {
@@ -915,6 +986,7 @@ export class PublicPracticeComponent implements OnInit {
           this.submitting = false;
           this.hasUnsavedChanges = false;
           this.showToast('Challenge evaluated');
+          this.loadChallengeSubmissions();
         },
         error: (err) => {
           this.submitting = false;
@@ -999,6 +1071,304 @@ export class PublicPracticeComponent implements OnInit {
   toggleHintPanel(): void {
     if (!this.hintUnlocked) return;
     this.showHintPanel = !this.showHintPanel;
+  }
+
+  discussionPayload(extra: any = {}): any {
+    return {
+      accessToken: this.currentGrant?.accessToken || '',
+      authorName: this.lead.name || this.authService.getUser()?.name || 'Learner',
+      authorEmail: this.lead.email || this.authService.getUser()?.email || '',
+      ...extra,
+    };
+  }
+
+  loadChallengeDiscussions(id = this.challengeId): void {
+    if (!id) return;
+
+    this.discussionLoading = true;
+
+    this.publicPracticeService.getChallengeDiscussions(id, this.discussionPayload()).subscribe({
+      next: (res: any) => {
+        this.challengeDiscussions = res?.data || [];
+        this.discussionLoading = false;
+      },
+      error: () => {
+        this.challengeDiscussions = [];
+        this.discussionLoading = false;
+      },
+    });
+  }
+
+  postChallengeDiscussion(): void {
+    const comment = this.discussionText.trim();
+
+    if (!comment) {
+      this.showToast('Please write a comment');
+      return;
+    }
+
+    if (!this.currentGrant?.accessToken && !this.isLoggedIn) {
+      this.requestWorkspaceAccess('Please register or login to discuss this challenge');
+      return;
+    }
+
+    this.discussionPosting = true;
+
+    this.publicPracticeService
+      .postChallengeDiscussion(this.challengeId, this.discussionPayload({ comment }))
+      .subscribe({
+        next: () => {
+          this.discussionText = '';
+          this.discussionPosting = false;
+          this.loadChallengeDiscussions();
+          this.showToast('Comment posted');
+        },
+        error: (err) => {
+          this.discussionPosting = false;
+          this.showToast(err?.error?.message || err?.error?.error || 'Unable to post comment');
+        },
+      });
+  }
+
+  toggleDiscussionLike(comment: any): void {
+    if (!this.currentGrant?.accessToken && !this.isLoggedIn) {
+      this.requestWorkspaceAccess('Please register or login to like comments');
+      return;
+    }
+
+    this.publicPracticeService
+      .toggleChallengeDiscussionLike(this.challengeId, Number(comment.id), this.discussionPayload())
+      .subscribe({
+        next: (res: any) => {
+          const updated = res?.data;
+
+          this.challengeDiscussions = this.challengeDiscussions.map((item) =>
+            Number(item.id) === Number(updated.id) ? updated : item,
+          );
+        },
+        error: (err) => {
+          this.showToast(err?.error?.message || err?.error?.error || 'Unable to update like');
+        },
+      });
+  }
+
+  toggleDiscussionMenu(item: any): void {
+    const id = Number(item?.id || 0);
+    this.activeDiscussionMenuId = this.activeDiscussionMenuId === id ? null : id;
+  }
+
+  closeDiscussionMenu(): void {
+    this.activeDiscussionMenuId = null;
+  }
+
+  startDiscussionReply(item: any): void {
+    if (!this.currentGrant?.accessToken && !this.isLoggedIn) {
+      this.requestWorkspaceAccess('Please register or login to reply');
+      return;
+    }
+
+    this.replyingToDiscussionId = Number(item.id);
+    this.discussionReplyText = '';
+    this.activeDiscussionMenuId = null;
+  }
+
+  cancelDiscussionReply(): void {
+    this.replyingToDiscussionId = null;
+    this.discussionReplyText = '';
+  }
+
+  postDiscussionReply(parent: any): void {
+    const comment = this.discussionReplyText.trim();
+
+    if (!comment) {
+      this.showToast('Please write a reply');
+      return;
+    }
+
+    this.discussionPosting = true;
+
+    this.publicPracticeService
+      .postChallengeDiscussion(
+        this.challengeId,
+        this.discussionPayload({
+          comment,
+          parentId: Number(parent.id),
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.cancelDiscussionReply();
+          this.discussionPosting = false;
+          this.loadChallengeDiscussions();
+          this.showToast('Reply posted');
+        },
+        error: (err) => {
+          this.discussionPosting = false;
+          this.showToast(err?.error?.message || err?.error?.error || 'Unable to post reply');
+        },
+      });
+  }
+
+  shareDiscussion(item: any): void {
+    const url = `${window.location.origin}${window.location.pathname}?challenge=${this.challengeId}&comment=${item.id}`;
+    const text = `${item.authorName || 'Learner'} on this coding challenge: ${item.comment || ''}`;
+
+    if (navigator.share) {
+      navigator
+        .share({
+          title: 'Challenge discussion',
+          text,
+          url,
+        })
+        .catch(() => {});
+      return;
+    }
+
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => this.showToast('Discussion link copied'))
+      .catch(() => this.showToast('Copy this link: ' + url));
+  }
+
+  reportDiscussion(item: any): void {
+    if (!this.currentGrant?.accessToken && !this.isLoggedIn) {
+      this.requestWorkspaceAccess('Please register or login to report comments');
+      return;
+    }
+
+    const id = Number(item.id);
+    this.reportingDiscussionIds[id] = true;
+    this.activeDiscussionMenuId = null;
+
+    this.publicPracticeService
+      .reportChallengeDiscussion(
+        this.challengeId,
+        id,
+        this.discussionPayload({ reason: 'Reported by user' }),
+      )
+      .subscribe({
+        next: (res: any) => {
+          const updated = res?.data;
+          this.challengeDiscussions = this.patchDiscussionTree(this.challengeDiscussions, updated);
+          this.showToast('Comment reported. Our team will review it.');
+        },
+        error: (err) => {
+          this.showToast(err?.error?.message || err?.error?.error || 'Unable to report comment');
+        },
+        complete: () => {
+          this.reportingDiscussionIds[id] = false;
+        },
+      });
+  }
+
+  blockDiscussionAuthor(item: any): void {
+    if (!this.currentGrant?.accessToken && !this.isLoggedIn) {
+      this.requestWorkspaceAccess('Please register or login to block users');
+      return;
+    }
+
+    const ok = window.confirm(
+      `Block ${item.authorName || 'this user'}? Their comments will be hidden for you.`,
+    );
+
+    if (!ok) return;
+
+    const id = Number(item.id);
+    this.blockingDiscussionIds[id] = true;
+    this.activeDiscussionMenuId = null;
+
+    this.publicPracticeService
+      .blockChallengeDiscussionAuthor(this.challengeId, id, this.discussionPayload())
+      .subscribe({
+        next: () => {
+          this.showToast('User blocked');
+          this.loadChallengeDiscussions();
+        },
+        error: (err) => {
+          this.showToast(err?.error?.message || err?.error?.error || 'Unable to block user');
+        },
+        complete: () => {
+          this.blockingDiscussionIds[id] = false;
+        },
+      });
+  }
+
+  patchDiscussionTree(list: any[], updated: any): any[] {
+    if (!updated?.id) return list;
+
+    return (list || []).map((item) => {
+      if (Number(item.id) === Number(updated.id)) {
+        return { ...item, ...updated };
+      }
+
+      return {
+        ...item,
+        replies: this.patchDiscussionTree(item.replies || [], updated),
+      };
+    });
+  }
+
+  loadChallengeSubmissions(id = this.challengeId): void {
+    if (!id) return;
+
+    this.submissionsLoading = true;
+
+    this.publicPracticeService.getChallengeBestSubmissions(id).subscribe({
+      next: (res: any) => {
+        const data = res?.data || res || {};
+        this.challengeSubmissions = data.entries || [];
+        this.submissionsLoading = false;
+      },
+      error: (err) => {
+        this.challengeSubmissions = [];
+        this.submissionsLoading = false;
+
+        if (err?.status === 403 || err?.status === 401) {
+          this.planAccess.active = false;
+        }
+      },
+    });
+  }
+
+  toggleSubmissionAnswer(row: any): void {
+    const id = Number(row?.attemptId || row?.id || 0);
+
+    if (!id) return;
+
+    this.expandedSubmissionId = this.expandedSubmissionId === id ? null : id;
+  }
+
+  isSubmissionExpanded(row: any): boolean {
+    return this.expandedSubmissionId === Number(row?.attemptId || row?.id || 0);
+  }
+
+  formatDiscussionTime(value: string): string {
+    if (!value) return 'Just now';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  get visibleResultCards(): any[] {
+    return (this.resultTestCases || []).slice(0, 3);
+  }
+
+  get hiddenResultPills(): any[] {
+    return (this.resultTestCases || []).slice(3);
+  }
+
+  hiddenTestStatusIcon(item: any): string {
+    return String(item?.status || '').toUpperCase() === 'PASS' ? '✓' : '×';
   }
 
   getStarterCode(language: string): string {
@@ -1198,7 +1568,7 @@ puts tokens.join(" ")`,
   }
 
   backToLibrary(): void {
-    this.router.navigate(['/free-mock-tests']);
+    this.router.navigate(['/practice']);
   }
 
   private grantStorageKey(type: PracticeType, id: number): string {
@@ -1267,7 +1637,7 @@ puts tokens.join(" ")`,
 
     const currentUrl = this.router.url;
 
-    if (currentUrl.startsWith('/free-mock-tests') || currentUrl.startsWith('/coding-contests')) {
+    if (currentUrl.startsWith('/practice') || currentUrl.startsWith('/coding-contests')) {
       sessionStorage.setItem('publicPracticeRedirect', currentUrl);
     }
   }
