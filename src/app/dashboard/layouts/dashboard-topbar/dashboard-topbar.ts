@@ -25,6 +25,7 @@ export class DashboardTopbar {
   quickOpen = false;
   searchFocused = false;
   searchText = '';
+  profileImageFailed = false;
 
   constructor(
     public authService: AuthService,
@@ -41,6 +42,20 @@ export class DashboardTopbar {
     this.notificationOpen = false;
     this.quickOpen = false;
     this.searchFocused = false;
+  }
+
+  get profileImageUrl(): string {
+    const url = String(this.user?.profileImageUrl || '').trim();
+
+    if (!url || this.profileImageFailed) {
+      return '';
+    }
+
+    return url.startsWith('https://') ? url : '';
+  }
+
+  onProfileImageError(): void {
+    this.profileImageFailed = true;
   }
 
   get user(): any {

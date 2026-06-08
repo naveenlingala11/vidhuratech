@@ -67,9 +67,21 @@
 
       <div class="podium-rank">#{{ rankValue(winner) }}</div>
 
-      <div class="podium-avatar">
-        {{ nameValue(winner).charAt(0) }}
-      </div>
+      <ng-container *ngIf="avatarUrl(winner); else podiumInitial">
+        <img
+          class="podium-avatar avatar-img"
+          [src]="avatarUrl(winner)"
+          [alt]="nameValue(winner)"
+          referrerpolicy="no-referrer"
+          (error)="markAvatarFailed(winner)"
+        />
+      </ng-container>
+
+      <ng-template #podiumInitial>
+        <div class="podium-avatar">
+          {{ avatarInitial(winner) }}
+        </div>
+      </ng-template>
 
       <div class="podium-info">
         <span>{{ rankBadge(winner) }}</span>
@@ -140,7 +152,19 @@
         <div class="rank-pill">#{{ rankValue(row) }}</div>
 
         <div class="rank-user">
-          <div class="rank-avatar">{{ nameValue(row).charAt(0) }}</div>
+          <ng-container *ngIf="avatarUrl(row); else rankInitial">
+            <img
+              class="rank-avatar avatar-img"
+              [src]="avatarUrl(row)"
+              [alt]="nameValue(row)"
+              referrerpolicy="no-referrer"
+              (error)="markAvatarFailed(row)"
+            />
+          </ng-container>
+
+          <ng-template #rankInitial>
+            <div class="rank-avatar">{{ avatarInitial(row) }}</div>
+          </ng-template>
 
           <div>
             <strong>{{ nameValue(row) }}</strong>

@@ -242,8 +242,21 @@
               [class.bronze]="winner.rank === 3"
             >
               <div class="arena-medal">
-                <strong>#{{ winner.rank }}</strong>
-                <span>{{ winnerBadge(winner.rank) }}</span>
+                <ng-container *ngIf="winnerAvatarUrl(winner); else winnerInitialTpl">
+                  <img
+                    class="arena-winner-avatar"
+                    [src]="winnerAvatarUrl(winner)"
+                    [alt]="winner.name || 'Participant'"
+                    referrerpolicy="no-referrer"
+                    (error)="markWinnerAvatarFailed(winner)"
+                  />
+                </ng-container>
+
+                <ng-template #winnerInitialTpl>
+                  <strong>{{ winnerInitial(winner) }}</strong>
+                </ng-template>
+
+                <span>#{{ winner.rank }} {{ winnerBadge(winner.rank) }}</span>
               </div>
 
               <div class="arena-winner-info">

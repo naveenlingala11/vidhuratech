@@ -1,6 +1,17 @@
 <aside class="sidebar" [class.collapsed]="collapsed" [class.mobile]="mobile">
   <div class="sidebar-user" *ngIf="!collapsed">
-    <div class="avatar">{{ userInitials }}</div>
+    <img
+      *ngIf="profileImageUrl; else sidebarInitials"
+      class="avatar avatar-img"
+      [src]="profileImageUrl"
+      [alt]="user?.name || 'User'"
+      referrerpolicy="no-referrer"
+      (error)="onProfileImageError()"
+    />
+
+    <ng-template #sidebarInitials>
+      <div class="avatar">{{ userInitials }}</div>
+    </ng-template>
 
     <div class="sidebar-user-meta">
       <strong>{{ user?.name || 'User' }}</strong>

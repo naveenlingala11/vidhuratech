@@ -45,6 +45,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   saving = false;
   message = '';
   error = '';
+  profileImageFailed = false;
 
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly prefsKey = 'vt_profile_preferences';
@@ -159,6 +160,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.user = user || {};
     this.form.name = this.user.name || '';
     this.form.phone = this.user.phone || '';
+  }
+
+  get profileImageUrl(): string {
+    const url = String(this.user?.profileImageUrl || '').trim();
+
+    if (!url || this.profileImageFailed) {
+      return '';
+    }
+
+    return url.startsWith('https://') ? url : '';
+  }
+
+  onProfileImageError(): void {
+    this.profileImageFailed = true;
   }
 
   getInitials(): string {

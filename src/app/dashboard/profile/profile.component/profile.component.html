@@ -27,7 +27,18 @@
 
       <div class="identity-block">
         <div class="avatar-shell">
-          <div class="avatar">{{ getInitials() }}</div>
+          <img
+            *ngIf="profileImageUrl; else profileInitials"
+            class="avatar avatar-img"
+            [src]="profileImageUrl"
+            [alt]="user?.name || 'User'"
+            referrerpolicy="no-referrer"
+            (error)="onProfileImageError()"
+          />
+
+          <ng-template #profileInitials>
+            <div class="avatar">{{ getInitials() }}</div>
+          </ng-template>
           <span class="status-dot" [class.danger]="statusTone === 'danger'"></span>
         </div>
 
