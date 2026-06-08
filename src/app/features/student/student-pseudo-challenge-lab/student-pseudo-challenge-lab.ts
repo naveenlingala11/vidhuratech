@@ -43,6 +43,13 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   lastSavedLanguage: CodeLanguage | null = null;
   compilerDiagnostics: CompilerDiagnostic[] = [];
   localDiagnostics: CompilerDiagnostic[] = [];
+  validationErrors: string[] = [];
+
+  private readonly maxSourceChars = 20000;
+  private readonly maxSourceLines = 600;
+
+  private readonly shellCommandPattern =
+    /^(find|cat|ls|pwd|whoami|id|uname|ps|env|printenv|curl|wget|nc|netcat|bash|sh|zsh|python|python3|perl|ruby)\b/i;
 
   private editorInstance: any;
   private monacoInstance: any;
@@ -367,6 +374,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
     const code = this.sourceCode?.trim();
 
+    if (!this.validateBeforeAction('run')) {
+      return;
+    }
+
     if (!code) {
       this.result = null;
       this.applyCompilerErrors('');
@@ -456,8 +467,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
     const code = this.sourceCode?.trim();
 
-    if (!code) {
-      this.showToast('Nothing to save');
+    if (!this.validateBeforeAction('save')) {
       return;
     }
 
@@ -498,6 +508,11 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     }
 
     const code = this.sourceCode?.trim();
+
+    if (!this.validateBeforeAction('submit')) {
+      this.showSubmitModal = false;
+      return;
+    }
 
     if (!code) {
       this.showToast('Write code before submitting');
@@ -582,6 +597,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
     const code = this.sourceCode?.trim();
 
+    if (!this.validateBeforeAction('submit')) {
+      return;
+    }
+    
     if (!code) {
       this.showToast('Write code before submitting');
       return;
@@ -607,6 +626,163 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   showToast(message: string): void {
     this.toast = message;
     setTimeout(() => (this.toast = ''), 2500);
+  }
+
+  private refreshValidationErrors(): void {
+    this.validationErrors = this.collectValidationErrors();
+  }
+
+  private collectValidationErrors(): string[] {
+    const errors: string[] = [];
+    const code = this.sourceCode || '';
+    const trimmed = code.trim();
+
+    if (!trimmed) {
+      errors.push('Write your solution before running, saving, or submitting.');
+      return errors;
+    }
+
+    if (!this.isSupportedLanguage(this.language)) {
+      errors.push('Unsupported language selected.');
+    }
+
+    if (code.length > this.maxSourceChars) {
+      errors.push(`Code is too large. Maximum ${this.maxSourceChars} characters allowed.`);
+    }
+
+    const lineCount = code.split(/\r?\n/).length;
+    if (lineCount > this.maxSourceLines) {
+      errors.push(`Code has too many lines. Maximum ${this.maxSourceLines} lines allowed.`);
+    }
+
+    if (this.containsInvalidControlCharacters(code)) {
+      errors.push('Code contains invalid control characters.');
+    }
+
+    const shellError = this.detectShellCommand(code);
+    if (shellError) {
+      errors.push(shellError);
+    }
+
+    const unsafeError = this.detectUnsafeCode(code);
+    if (unsafeError) {
+      errors.push(unsafeError);
+    }
+
+    return [...new Set(errors)];
+  }
+
+  private validateBeforeAction(action: 'run' | 'save' | 'submit'): boolean {
+    this.validateCode();
+    this.refreshValidationErrors();
+
+    const allErrors = [
+      ...this.validationErrors,
+      ...this.localDiagnostics.map((item) => item.message),
+    ].filter(Boolean);
+
+    if (!allErrors.length) {
+      return true;
+    }
+
+    const actionLabel = action === 'run' ? 'running' : action === 'save' ? 'saving' : 'submitting';
+
+    this.result = {
+      status: 'FAIL',
+      percentage: 0,
+      compileError: allErrors.join('\n'),
+      testResults: [],
+    };
+
+    this.applyCompilerErrors(this.result.compileError);
+    this.showToast(`Fix validation errors before ${actionLabel}`);
+    return false;
+  }
+
+  private isSupportedLanguage(language: CodeLanguage): boolean {
+    return [
+      'JAVA',
+      'PYTHON',
+      'C',
+      'CPP',
+      'CSHARP',
+      'FSHARP',
+      'PHP',
+      'RUBY',
+      'HASKELL',
+      'GO',
+      'RUST',
+      'TYPESCRIPT',
+    ].includes(language);
+  }
+
+  private containsInvalidControlCharacters(code: string): boolean {
+    for (const char of code) {
+      if (char === '\n' || char === '\r' || char === '\t') continue;
+      if (char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private detectShellCommand(code: string): string {
+    const firstMeaningfulLine =
+      code
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find((line) => line && !line.startsWith('//') && !line.startsWith('#')) || '';
+
+    if (this.shellCommandPattern.test(firstMeaningfulLine)) {
+      return 'Shell commands are not allowed in this code editor. Write only program code.';
+    }
+
+    const lowered = code.toLowerCase();
+
+    if (
+      lowered.includes('2>/dev/null') ||
+      lowered.includes('/etc/passwd') ||
+      lowered.includes('/home') ||
+      lowered.includes('/root') ||
+      lowered.includes('/proc')
+    ) {
+      return 'Accessing server files or OS paths is not allowed.';
+    }
+
+    return '';
+  }
+
+  private detectUnsafeCode(code: string): string {
+    const checks: Array<{ pattern: RegExp; message: string }> = [
+      {
+        pattern: /\bRuntime\s*\.\s*getRuntime\s*\(/i,
+        message: 'Runtime execution is blocked.',
+      },
+      {
+        pattern: /\bProcessBuilder\b/i,
+        message: 'Process execution is blocked.',
+      },
+      {
+        pattern: /\bsubprocess\b|\bos\.system\s*\(|\beval\s*\(|\bexec\s*\(/i,
+        message: 'Unsafe Python execution APIs are blocked.',
+      },
+      {
+        pattern: /\bchild_process\b|\brequire\s*\(\s*['"]fs['"]|\brequire\s*\(\s*['"]net['"]/i,
+        message: 'Node.js system modules are blocked.',
+      },
+      {
+        pattern: /\bsystem\s*\(|\bpopen\s*\(|\bfork\s*\(|\bsocket\s*\(/i,
+        message: 'System, process, and network calls are blocked.',
+      },
+      {
+        pattern: /\bDeno\.(run|readTextFile|writeTextFile|readDir|remove)\b/i,
+        message: 'Deno file/process APIs are blocked.',
+      },
+    ];
+
+    const match = checks.find((item) => item.pattern.test(code));
+    return match?.message || '';
   }
 
   getTestPercentage(test: any): number {
@@ -656,8 +832,17 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   }
 
   validateCode(): void {
+    this.refreshValidationErrors();
     this.localDiagnostics = this.collectLocalDiagnostics();
-    this.compilerDiagnostics = [...this.localDiagnostics];
+
+    const validationDiagnostics: CompilerDiagnostic[] = this.validationErrors.map((message) => ({
+      line: null,
+      column: null,
+      message,
+      raw: message,
+    }));
+
+    this.compilerDiagnostics = [...validationDiagnostics, ...this.localDiagnostics];
 
     if (!this.editorInstance || !this.monacoInstance) return;
 

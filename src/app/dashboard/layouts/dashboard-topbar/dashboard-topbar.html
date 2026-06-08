@@ -148,7 +148,18 @@
 
     <div class="profile" (click)="$event.stopPropagation()">
       <button class="profile-btn" type="button" (click)="toggleProfile($event)">
-        <div class="avatar">{{ getInitials() }}</div>
+        <img
+          *ngIf="profileImageUrl; else topbarInitials"
+          class="avatar avatar-img"
+          [src]="profileImageUrl"
+          [alt]="user?.name || 'User'"
+          referrerpolicy="no-referrer"
+          (error)="onProfileImageError()"
+        />
+
+        <ng-template #topbarInitials>
+          <div class="avatar">{{ getInitials() }}</div>
+        </ng-template>
 
         <div class="profile-meta">
           <strong>{{ user?.name || 'User' }}</strong>
@@ -168,7 +179,18 @@
 
       <div class="dropdown" *ngIf="profileOpen">
         <div class="dropdown-user">
-          <div class="avatar large">{{ getInitials() }}</div>
+          <img
+            *ngIf="profileImageUrl; else dropdownInitials"
+            class="avatar avatar-img large"
+            [src]="profileImageUrl"
+            [alt]="user?.name || 'User'"
+            referrerpolicy="no-referrer"
+            (error)="onProfileImageError()"
+          />
+
+          <ng-template #dropdownInitials>
+            <div class="avatar large">{{ getInitials() }}</div>
+          </ng-template>
           <div>
             <strong>{{ user?.name || 'User' }}</strong>
             <small>{{ user?.email || 'Vidhura Tech' }}</small>

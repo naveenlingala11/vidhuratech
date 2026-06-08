@@ -99,6 +99,7 @@ export class AuthService {
       active: res.active,
       firstLogin: res.firstLogin,
       notificationsEnabled: res.notificationsEnabled,
+      profileImageUrl: res.profileImageUrl || '',
     });
     this.authState.next(true);
   }

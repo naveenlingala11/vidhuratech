@@ -532,6 +532,48 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     this.timer.stopCountdown();
   }
 
+  safeProfileImageUrl(value: any): string {
+    const url = String(value || '').trim();
+    return url.startsWith('https://') ? url : '';
+  }
+
+  winnerAvatarUrl(winner: any): string {
+    if (!winner || winner.__avatarFailed) return '';
+
+    return this.safeProfileImageUrl(
+      winner.profileImageUrl ||
+        winner.userProfileImageUrl ||
+        winner.authorProfileImageUrl ||
+        winner.imageUrl ||
+        winner.photoURL ||
+        winner.photoUrl ||
+        winner.picture ||
+        winner.avatarUrl ||
+        winner.user?.profileImageUrl ||
+        winner.user?.picture ||
+        winner.student?.profileImageUrl ||
+        winner.participant?.profileImageUrl,
+    );
+  }
+
+  winnerInitial(winner: any): string {
+    const name = String(
+      winner?.name ||
+        winner?.studentName ||
+        winner?.fullName ||
+        winner?.participantName ||
+        winner?.userName ||
+        winner?.email ||
+        'P',
+    ).trim();
+
+    return name ? name.charAt(0).toUpperCase() : 'P';
+  }
+
+  markWinnerAvatarFailed(winner: any): void {
+    if (winner) winner.__avatarFailed = true;
+  }
+
   mapPublicCourse(c: any) {
     let meta: any = {};
 

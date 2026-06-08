@@ -16,6 +16,7 @@ export class Navbar implements OnDestroy {
   showDropdown = false;
   scrolled = false;
   private navSub: Subscription;
+  profileImageFailed = false;
 
   constructor(
     private router: Router,
@@ -112,5 +113,33 @@ export class Navbar implements OnDestroy {
     this.showDropdown = false;
     this.closeMenu();
     this.router.navigate([`/dashboard/${role}/profile`]);
+  }
+
+  get user(): any {
+    return this.authService.getUser() || {};
+  }
+
+  get profileImageUrl(): string {
+    const url = String(this.user?.profileImageUrl || '').trim();
+
+    if (!url || this.profileImageFailed) {
+      return '';
+    }
+
+    return url.startsWith('https://') ? url : '';
+  }
+
+  getInitials(): string {
+    const name = this.user?.name || this.user?.email || 'User';
+    const parts = String(name).trim().split(/\s+/).filter(Boolean);
+
+    if (!parts.length) return 'U';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  onProfileImageError(): void {
+    this.profileImageFailed = true;
   }
 }

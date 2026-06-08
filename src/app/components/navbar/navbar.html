@@ -40,9 +40,18 @@
         <li *ngIf="authService.isLoggedIn()" class="nav-item user-nav-item">
           <div class="user-wrapper">
             <button class="user-display" type="button" (click)="toggleDropdown($event)">
-              <span class="user-avatar">
-                <i class="fa-solid fa-user"></i>
-              </span>
+              <img
+                *ngIf="profileImageUrl; else navInitials"
+                class="user-avatar user-avatar-img"
+                [src]="profileImageUrl"
+                [alt]="user?.name || 'User'"
+                referrerpolicy="no-referrer"
+                (error)="onProfileImageError()"
+              />
+
+              <ng-template #navInitials>
+                <span class="user-avatar">{{ getInitials() }}</span>
+              </ng-template>
               <span class="user-meta">
                 <small>Welcome</small>
                 <b>{{ authService.getUser()?.name || 'User' }}</b>
@@ -58,7 +67,18 @@
             </button>
             <div class="user-dropdown" *ngIf="showDropdown">
               <div class="dropdown-user">
-                <span class="dropdown-avatar"><i class="fa-solid fa-user"></i></span>
+                <img
+                  *ngIf="profileImageUrl; else navDropdownInitials"
+                  class="dropdown-avatar dropdown-avatar-img"
+                  [src]="profileImageUrl"
+                  [alt]="user?.name || 'User'"
+                  referrerpolicy="no-referrer"
+                  (error)="onProfileImageError()"
+                />
+
+                <ng-template #navDropdownInitials>
+                  <span class="dropdown-avatar">{{ getInitials() }}</span>
+                </ng-template>
                 <div>
                   <strong>{{ authService.getUser()?.name || 'User' }}</strong>
                   <small>{{ authService.getUser()?.email || 'Vidhura Tech' }}</small>

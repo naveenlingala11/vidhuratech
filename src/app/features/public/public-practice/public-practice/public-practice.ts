@@ -56,6 +56,66 @@ export class PublicPracticeComponent implements OnInit {
     EY: 'logos/ey.svg',
   };
 
+  readonly maxSourceChars = 20000;
+  readonly maxSourceLines = 600;
+
+  readonly blockedCodePatterns: Record<string, { pattern: RegExp; label: string }[]> = {
+    PYTHON: [
+      { pattern: /\bimport\s+os\b/i, label: 'os module' },
+      { pattern: /\bimport\s+subprocess\b/i, label: 'subprocess module' },
+      { pattern: /\bimport\s+socket\b/i, label: 'socket module' },
+      { pattern: /\bimport\s+requests\b/i, label: 'requests module' },
+      { pattern: /\bopen\s*\(/i, label: 'file access' },
+      { pattern: /\beval\s*\(/i, label: 'eval' },
+      { pattern: /\bexec\s*\(/i, label: 'exec' },
+      { pattern: /\b__import__\s*\(/i, label: '__import__' },
+      { pattern: /__class__|__dict__|__mro__|__subclasses__/i, label: 'Python internals' },
+    ],
+    JAVA: [
+      { pattern: /\bimport\s+java\.io\.File\b/i, label: 'file access' },
+      { pattern: /\bimport\s+java\.nio\.file\./i, label: 'file access' },
+      { pattern: /\bimport\s+java\.net\./i, label: 'network access' },
+      { pattern: /\bRuntime\s*\.\s*getRuntime\s*\(/i, label: 'runtime execution' },
+      { pattern: /\bProcessBuilder\b/i, label: 'process execution' },
+      { pattern: /\bSystem\s*\.\s*exit\s*\(/i, label: 'System.exit' },
+      { pattern: /\bClass\s*\.\s*forName\s*\(/i, label: 'reflection' },
+      { pattern: /\bwhile\s*\(\s*true\s*\)/i, label: 'infinite loop pattern' },
+      { pattern: /\bfor\s*\(\s*;\s*;\s*\)/i, label: 'infinite loop pattern' },
+    ],
+    CPP: [
+      { pattern: /#\s*include\s*<\s*fstream\s*>/i, label: 'file access' },
+      { pattern: /#\s*include\s*<\s*filesystem\s*>/i, label: 'filesystem access' },
+      { pattern: /\bsystem\s*\(/i, label: 'system command' },
+      { pattern: /\bpopen\s*\(/i, label: 'process execution' },
+      { pattern: /\bfopen\s*\(/i, label: 'file access' },
+      { pattern: /\bwhile\s*\(\s*true\s*\)/i, label: 'infinite loop pattern' },
+      { pattern: /\bfor\s*\(\s*;\s*;\s*\)/i, label: 'infinite loop pattern' },
+    ],
+    C: [
+      { pattern: /\bsystem\s*\(/i, label: 'system command' },
+      { pattern: /\bpopen\s*\(/i, label: 'process execution' },
+      { pattern: /\bfopen\s*\(/i, label: 'file access' },
+      { pattern: /\bwhile\s*\(\s*1\s*\)/i, label: 'infinite loop pattern' },
+      { pattern: /\bfor\s*\(\s*;\s*;\s*\)/i, label: 'infinite loop pattern' },
+    ],
+    JAVASCRIPT: [
+      { pattern: /\brequire\s*\(/i, label: 'require' },
+      { pattern: /\bprocess\b/i, label: 'process access' },
+      { pattern: /\bchild_process\b/i, label: 'child_process' },
+      { pattern: /\bfs\b/i, label: 'file system' },
+      { pattern: /\beval\s*\(/i, label: 'eval' },
+      { pattern: /\bFunction\s*\(/i, label: 'Function constructor' },
+      { pattern: /\bwhile\s*\(\s*true\s*\)/i, label: 'infinite loop pattern' },
+    ],
+    RUST: [
+      { pattern: /\bstd::fs\b/i, label: 'file system' },
+      { pattern: /\bstd::net\b/i, label: 'network access' },
+      { pattern: /\bstd::process\b/i, label: 'process execution' },
+      { pattern: /\bunsafe\b/i, label: 'unsafe Rust' },
+      { pattern: /\bloop\s*\{/i, label: 'infinite loop pattern' },
+    ],
+  };
+
   loading = false;
   submitting = false;
   toast = '';
@@ -102,6 +162,10 @@ export class PublicPracticeComponent implements OnInit {
   reportingDiscussionIds: Record<number, boolean> = {};
   blockingDiscussionIds: Record<number, boolean> = {};
   editorError = '';
+  editorValidationErrors: string[] = [];
+
+  private readonly shellCommandPattern =
+    /^(find|cat|ls|pwd|whoami|id|uname|ps|env|printenv|curl|wget|nc|netcat|bash|sh|zsh|python|python3|perl|ruby)\b/i;
   hasUnsavedChanges = false;
   draftSavedAt = '';
   private draftSaveTimer?: ReturnType<typeof setTimeout>;
@@ -910,14 +974,15 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   onCodeChange(): void {
-    this.hasUnsavedChanges = true;
-    this.editorError = '';
+    this.hasUnsavedChanges = this.sourceCode !== this.lastStarterCode;
+    this.editorValidationErrors = this.collectEditorValidationErrors();
+    this.editorError = this.editorValidationErrors.join('\n');
 
-    if (this.draftSaveTimer) {
-      clearTimeout(this.draftSaveTimer);
-    }
+    clearTimeout(this.draftSaveTimer);
 
-    this.draftSaveTimer = setTimeout(() => this.saveDraftLocally(), 500);
+    this.draftSaveTimer = setTimeout(() => {
+      this.saveDraftLocally();
+    }, 600);
   }
 
   saveDraftLocally(): void {
@@ -958,6 +1023,280 @@ export class PublicPracticeComponent implements OnInit {
     localStorage.removeItem(this.draftKey);
   }
 
+  handleCodeEditorKeydown(event: KeyboardEvent): void {
+    const textarea = event.target as HTMLTextAreaElement | null;
+    if (!textarea) return;
+
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      this.handleEditorTab(textarea, event.shiftKey);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.handleEditorEnter(textarea);
+    }
+  }
+
+  private handleEditorTab(textarea: HTMLTextAreaElement, outdent: boolean): void {
+    const indent = '    ';
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    const value = textarea.value || '';
+
+    if (start !== end) {
+      const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+      const selected = value.slice(lineStart, end);
+      const lines = selected.split('\n');
+
+      const updatedLines = outdent
+        ? lines.map((line) =>
+            line.startsWith(indent) ? line.slice(indent.length) : line.replace(/^\t/, ''),
+          )
+        : lines.map((line) => `${indent}${line}`);
+
+      const updated = updatedLines.join('\n');
+      const nextValue = value.slice(0, lineStart) + updated + value.slice(end);
+      const delta = updated.length - selected.length;
+
+      this.updateEditorValue(textarea, nextValue, start, end + delta);
+      return;
+    }
+
+    if (outdent) {
+      const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+      const beforeCursor = value.slice(lineStart, start);
+
+      if (beforeCursor.endsWith(indent)) {
+        const removeStart = start - indent.length;
+        const nextValue = value.slice(0, removeStart) + value.slice(start);
+        this.updateEditorValue(textarea, nextValue, removeStart, removeStart);
+      }
+
+      return;
+    }
+
+    const nextValue = value.slice(0, start) + indent + value.slice(end);
+    this.updateEditorValue(textarea, nextValue, start + indent.length, start + indent.length);
+  }
+
+  private handleEditorEnter(textarea: HTMLTextAreaElement): void {
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    const value = textarea.value || '';
+    const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+    const currentLine = value.slice(lineStart, start);
+    const baseIndent = currentLine.match(/^\s*/)?.[0] || '';
+    const trimmed = currentLine.trim();
+    const extraIndent = this.shouldIncreaseEditorIndent(trimmed) ? '    ' : '';
+    const insertion = `\n${baseIndent}${extraIndent}`;
+    const nextValue = value.slice(0, start) + insertion + value.slice(end);
+    const cursor = start + insertion.length;
+
+    this.updateEditorValue(textarea, nextValue, cursor, cursor);
+  }
+
+  private shouldIncreaseEditorIndent(line: string): boolean {
+    if (!line) return false;
+
+    if (String(this.language).toUpperCase() === 'PYTHON') {
+      return line.endsWith(':');
+    }
+
+    return /[\{\[\(]\s*$/.test(line);
+  }
+
+  private updateEditorValue(
+    textarea: HTMLTextAreaElement,
+    nextValue: string,
+    selectionStart: number,
+    selectionEnd: number,
+  ): void {
+    textarea.value = nextValue;
+    this.sourceCode = nextValue;
+    this.onCodeChange();
+
+    requestAnimationFrame(() => {
+      textarea.selectionStart = Math.max(selectionStart, 0);
+      textarea.selectionEnd = Math.max(selectionEnd, 0);
+    });
+  }
+
+  private firstExecutionError(result: any): string {
+    const tests = result?.testResults || result?.results || result?.cases || [];
+
+    if (!Array.isArray(tests)) return '';
+
+    const failed = tests.find(
+      (item: any) =>
+        item?.compileError ||
+        item?.compilerError ||
+        item?.runtimeError ||
+        item?.errorMessage ||
+        item?.stderr ||
+        item?.error,
+    );
+
+    return String(
+      failed?.compileError ||
+        failed?.compilerError ||
+        failed?.runtimeError ||
+        failed?.errorMessage ||
+        failed?.stderr ||
+        failed?.error ||
+        '',
+    ).trim();
+  }
+
+  private compilerErrorFromResult(result: any): string {
+    return String(
+      result?.compileError ||
+        result?.compilerError ||
+        result?.runtimeError ||
+        result?.errorMessage ||
+        result?.stderr ||
+        result?.error ||
+        this.firstExecutionError(result) ||
+        '',
+    ).trim();
+  }
+
+  private collectEditorValidationErrors(): string[] {
+    const errors: string[] = [];
+    const code = this.sourceCode || '';
+    const trimmed = code.trim();
+    const language = String(this.language || '').toUpperCase();
+
+    if (!trimmed) {
+      errors.push('Write your solution before running.');
+      return errors;
+    }
+
+    if (!this.languages.includes(language)) {
+      errors.push('Unsupported language selected.');
+    }
+
+    if (code.length > this.maxSourceChars) {
+      errors.push(`Code is too large. Maximum ${this.maxSourceChars} characters allowed.`);
+    }
+
+    if (this.sourceLineCount > this.maxSourceLines) {
+      errors.push(`Code has too many lines. Maximum ${this.maxSourceLines} lines allowed.`);
+    }
+
+    if (this.containsInvalidControlCharacters(code)) {
+      errors.push('Code contains invalid control characters.');
+    }
+
+    const shellError = this.detectShellCommand(code);
+    if (shellError) {
+      errors.push(shellError);
+    }
+
+    const unsafeError = this.detectUnsafeCode(code, language);
+    if (unsafeError) {
+      errors.push(unsafeError);
+    }
+
+    return [...new Set(errors)];
+  }
+
+  private containsInvalidControlCharacters(code: string): boolean {
+    for (const char of code) {
+      if (char === '\n' || char === '\r' || char === '\t') continue;
+
+      const value = char.charCodeAt(0);
+      if (value < 32 || value === 127) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private detectShellCommand(code: string): string {
+    const firstMeaningfulLine =
+      code
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find((line) => line && !line.startsWith('//') && !line.startsWith('#')) || '';
+
+    if (this.shellCommandPattern.test(firstMeaningfulLine)) {
+      return 'Shell commands are not allowed in this code editor. Write only program code.';
+    }
+
+    const lowered = code.toLowerCase();
+
+    if (
+      lowered.includes('2>/dev/null') ||
+      lowered.includes('/etc/passwd') ||
+      lowered.includes('/home') ||
+      lowered.includes('/root') ||
+      lowered.includes('/proc')
+    ) {
+      return 'Accessing server files or OS paths is not allowed.';
+    }
+
+    return '';
+  }
+
+  private detectUnsafeCode(code: string, language: string): string {
+    const commonChecks: Array<{ pattern: RegExp; message: string }> = [
+      {
+        pattern: /\bRuntime\s*\.\s*getRuntime\s*\(/i,
+        message: 'Runtime execution is blocked.',
+      },
+      {
+        pattern: /\bProcessBuilder\b/i,
+        message: 'Process execution is blocked.',
+      },
+      {
+        pattern: /\bchild_process\b/i,
+        message: 'Node.js child_process is blocked.',
+      },
+      {
+        pattern: /\bDeno\.(run|readTextFile|writeTextFile|readDir|remove)\b/i,
+        message: 'Deno file/process APIs are blocked.',
+      },
+      {
+        pattern: /\bsystem\s*\(|\bpopen\s*\(|\bfork\s*\(|\bsocket\s*\(/i,
+        message: 'System, process, and network calls are blocked.',
+      },
+    ];
+
+    const commonMatch = commonChecks.find((item) => item.pattern.test(code));
+    if (commonMatch) {
+      return commonMatch.message;
+    }
+
+    const patterns = this.blockedCodePatterns[language] || [];
+    const matched = patterns.find((item) => item.pattern.test(code));
+
+    if (matched) {
+      return `Unsafe code blocked: ${matched.label} is not allowed in practice editor.`;
+    }
+
+    return '';
+  }
+
+  validateSourceCode(): string {
+    this.editorValidationErrors = this.collectEditorValidationErrors();
+    return this.editorValidationErrors[0] || '';
+  }
+
+  get sourceLineCount(): number {
+    return (this.sourceCode || '').split(/\r\n|\r|\n/).length;
+  }
+
+  get sourceCharCount(): number {
+    return (this.sourceCode || '').length;
+  }
+
+  get editorSecurityWarning(): string {
+    return this.validateSourceCode();
+  }
+
   runChallenge(): void {
     if (!this.canUseWorkspace || !this.workspaceUnlocked) {
       this.requestWorkspaceAccess(
@@ -966,8 +1305,11 @@ export class PublicPracticeComponent implements OnInit {
       return;
     }
 
-    if (!this.sourceCode.trim()) {
-      this.showToast('Please write your code before running');
+    this.editorValidationErrors = this.collectEditorValidationErrors();
+
+    if (this.editorValidationErrors.length) {
+      this.editorError = this.editorValidationErrors.join('\n');
+      this.showToast('Fix validation errors before running');
       return;
     }
 
@@ -981,18 +1323,41 @@ export class PublicPracticeComponent implements OnInit {
       })
       .subscribe({
         next: (res: any) => {
-          this.challengeResult = res?.data;
-          this.editorError = this.challengeResult?.compileError || '';
+          const data = res?.data || res;
+          const compilerError = this.compilerErrorFromResult(data);
+
+          this.challengeResult = compilerError ? { ...data, compileError: compilerError } : data;
+          this.editorError = compilerError;
           this.submitting = false;
           this.hasUnsavedChanges = false;
-          this.showToast('Challenge evaluated');
+
+          const passed =
+            this.challengeResult?.status === 'PASS' ||
+            this.challengeResult?.allTestsPassed === true;
+
+          if (passed && !compilerError) {
+            this.showToast('All test cases passed successfully');
+          } else if (compilerError) {
+            this.showToast('Compilation failed');
+          } else {
+            this.showToast('Some test cases failed');
+          }
+
           this.loadChallengeSubmissions();
         },
         error: (err) => {
           this.submitting = false;
 
           const message = err?.error?.message || err?.error?.error || 'Challenge run failed';
+
           this.editorError = message;
+          this.challengeResult = {
+            status: 'FAIL',
+            percentage: 0,
+            compileError: message,
+            testResults: [],
+          };
+
           if (err?.status === 403) {
             this.clearGrant('CHALLENGE', this.challengeId);
             this.currentGrant = null;
@@ -1001,7 +1366,9 @@ export class PublicPracticeComponent implements OnInit {
             return;
           }
 
-          this.showToast(message);
+          if (err?.status === 0) this.showToast('Unable to connect to compiler server');
+          else if (err?.status >= 500) this.showToast('Compiler server error');
+          else this.showToast(message);
         },
       });
   }
@@ -1074,12 +1441,81 @@ export class PublicPracticeComponent implements OnInit {
   }
 
   discussionPayload(extra: any = {}): any {
+    const user = this.authService.getUser?.() || {};
+
     return {
       accessToken: this.currentGrant?.accessToken || '',
-      authorName: this.lead.name || this.authService.getUser()?.name || 'Learner',
-      authorEmail: this.lead.email || this.authService.getUser()?.email || '',
+      authorName: this.lead.name || user.name || 'Learner',
+      authorEmail: this.lead.email || user.email || '',
+      authorProfileImageUrl: this.currentUserProfileImageUrl(),
+      profileImageUrl: this.currentUserProfileImageUrl(),
       ...extra,
     };
+  }
+
+  safeProfileImageUrl(value: any): string {
+    const url = String(value || '').trim();
+
+    if (!url) {
+      return '';
+    }
+
+    if (url.startsWith('https://')) {
+      return url;
+    }
+
+    return '';
+  }
+
+  currentUserProfileImageUrl(): string {
+    const user = this.authService.getUser?.() || {};
+
+    return this.safeProfileImageUrl(
+      user.profileImageUrl ||
+        user.authorProfileImageUrl ||
+        user.userProfileImageUrl ||
+        user.avatarUrl ||
+        user.photoUrl ||
+        user.picture ||
+        user.user?.profileImageUrl ||
+        user.student?.profileImageUrl ||
+        user.author?.profileImageUrl,
+    );
+  }
+
+  discussionAvatarUrl(item: any): string {
+    if (!item || item.__avatarFailed) {
+      return '';
+    }
+
+    return this.safeProfileImageUrl(
+      item.profileImageUrl ||
+        item.authorProfileImageUrl ||
+        item.userProfileImageUrl ||
+        item.avatarUrl ||
+        item.photoUrl ||
+        item.picture ||
+        item.user?.profileImageUrl ||
+        item.student?.profileImageUrl ||
+        item.author?.profileImageUrl ||
+        item.createdByUser?.profileImageUrl,
+    );
+  }
+
+  discussionInitial(item: any): string {
+    const name = String(item?.authorName || item?.name || item?.email || 'Learner').trim();
+
+    if (!name) {
+      return 'L';
+    }
+
+    return name.charAt(0).toUpperCase();
+  }
+
+  markDiscussionAvatarFailed(item: any): void {
+    if (item) {
+      item.__avatarFailed = true;
+    }
   }
 
   loadChallengeDiscussions(id = this.challengeId): void {

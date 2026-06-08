@@ -500,13 +500,47 @@
                 <button
                   type="button"
                   class="run-action"
-                  [disabled]="submitting"
+                  [disabled]="submitting || !!editorSecurityWarning"
                   (click)="runChallenge()"
                 >
                   <i class="fas fa-play"></i>
                   {{ submitting ? 'Running...' : 'Run' }}
                 </button>
               </div>
+            </div>
+
+            <div class="editor-security-strip" [class.danger]="editorSecurityWarning">
+              <div>
+                <i
+                  class="fa-solid"
+                  [ngClass]="editorSecurityWarning ? 'fa-shield-halved' : 'fa-lock'"
+                ></i>
+                <span>
+                  {{
+                    editorSecurityWarning
+                      ? editorSecurityWarning
+                      : 'Secure editor: file, network, process, reflection, and unsafe APIs are blocked.'
+                  }}
+                </span>
+              </div>
+
+              <small
+                >{{ sourceCharCount }}/{{ maxSourceChars }} chars • {{ sourceLineCount }}/{{
+                  maxSourceLines
+                }}
+                lines</small
+              >
+            </div>
+
+            <div class="editor-validation-panel" *ngIf="editorValidationErrors.length">
+              <div class="editor-validation-head">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <strong>Fix before running</strong>
+              </div>
+
+              <ul>
+                <li *ngFor="let error of editorValidationErrors">{{ error }}</li>
+              </ul>
             </div>
 
             <div class="editor-error-premium" *ngIf="editorError">
@@ -517,7 +551,11 @@
               class="premium-code-editor"
               [(ngModel)]="sourceCode"
               (ngModelChange)="onCodeChange()"
+              (keydown)="handleCodeEditorKeydown($event)"
               spellcheck="false"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
             ></textarea>
           </div>
         </main>
@@ -660,9 +698,21 @@
               class="discussion-card premium-thread"
               *ngFor="let item of challengeDiscussions"
             >
-              <div class="thread-avatar">
-                <span>{{ (item.authorName || 'L').charAt(0) }}</span>
-              </div>
+              <ng-container *ngIf="discussionAvatarUrl(item); else threadInitial">
+                <img
+                  class="thread-avatar discussion-avatar-img"
+                  [src]="discussionAvatarUrl(item)"
+                  [alt]="item.authorName || 'Learner'"
+                  referrerpolicy="no-referrer"
+                  (error)="markDiscussionAvatarFailed(item)"
+                />
+              </ng-container>
+
+              <ng-template #threadInitial>
+                <div class="thread-avatar">
+                  <span>{{ discussionInitial(item) }}</span>
+                </div>
+              </ng-template>
 
               <div class="thread-content">
                 <div class="thread-top">
@@ -765,9 +815,21 @@
 
                 <div class="premium-replies" *ngIf="item.replies?.length">
                   <article class="premium-reply" *ngFor="let reply of item.replies">
-                    <div class="reply-avatar">
-                      {{ (reply.authorName || 'L').charAt(0) }}
-                    </div>
+                    <ng-container *ngIf="discussionAvatarUrl(reply); else replyInitial">
+                      <img
+                        class="reply-avatar reply-avatar-img"
+                        [src]="discussionAvatarUrl(reply)"
+                        [alt]="reply.authorName || 'Learner'"
+                        referrerpolicy="no-referrer"
+                        (error)="markDiscussionAvatarFailed(reply)"
+                      />
+                    </ng-container>
+
+                    <ng-template #replyInitial>
+                      <div class="reply-avatar">
+                        {{ discussionInitial(reply) }}
+                      </div>
+                    </ng-template>
 
                     <div class="reply-content">
                       <div class="reply-top">
@@ -820,7 +882,6 @@
 
         <div class="community-panel submissions-panel">
           <div class="community-head">
-
             <div class="premium-best-lock" *ngIf="!planAccessLoading && !canViewBestAnswers()">
               <div class="best-lock-glow"></div>
 
@@ -843,12 +904,11 @@
                 <span><i class="fa-solid fa-crown"></i> Any active plan</span>
               </div>
 
-              <a routerLink="/pricing" class="best-lock-action">
+              <a routerLink="/pricing-plans" class="best-lock-action">
                 <span>Unlock with Any Plan</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </a>
             </div>
-
           </div>
 
           <div class="community-loading" *ngIf="canViewBestAnswers() && submissionsLoading">

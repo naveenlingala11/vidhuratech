@@ -114,6 +114,53 @@ export class PremiumLeaderboardComponent implements OnInit, OnChanges {
       .sort((a, b) => this.rankValue(a) - this.rankValue(b))
       .slice(0, 3);
   }
+  safeProfileImageUrl(value: any): string {
+    const url = String(value || '').trim();
+
+    if (!url) {
+      return '';
+    }
+
+    return url.startsWith('https://') ? url : '';
+  }
+
+  avatarUrl(row: any): string {
+    if (!row || row.__avatarFailed) {
+      return '';
+    }
+
+    return this.safeProfileImageUrl(
+      row.profileImageUrl ||
+        row.userProfileImageUrl ||
+        row.authorProfileImageUrl ||
+        row.imageUrl ||
+        row.photoURL ||
+        row.photoUrl ||
+        row.picture ||
+        row.avatarUrl ||
+        row.user?.profileImageUrl ||
+        row.user?.picture ||
+        row.student?.profileImageUrl ||
+        row.participant?.profileImageUrl ||
+        row.author?.profileImageUrl,
+    );
+  }
+
+  avatarInitial(row: any): string {
+    const name = this.nameValue(row).trim();
+
+    if (!name) {
+      return 'P';
+    }
+
+    return name.charAt(0).toUpperCase();
+  }
+
+  markAvatarFailed(row: any): void {
+    if (row) {
+      row.__avatarFailed = true;
+    }
+  }
 
   get filteredEntries(): any[] {
     const term = this.search.trim().toLowerCase();

@@ -22,6 +22,7 @@ export class DashboardSidebar implements OnInit {
   menuItems: any[] = [];
   searchText = '';
   currentYear = new Date().getFullYear();
+  profileImageFailed = false;
 
   constructor(
     private authService: AuthService,
@@ -33,6 +34,20 @@ export class DashboardSidebar implements OnInit {
     this.user = this.authService.getUser();
     this.menuItems = DASHBOARD_MENUS[this.user?.role] || [];
     this.userPlanBadgeService.load();
+  }
+
+  get profileImageUrl(): string {
+    const url = String(this.user?.profileImageUrl || '').trim();
+
+    if (!url || this.profileImageFailed) {
+      return '';
+    }
+
+    return url.startsWith('https://') ? url : '';
+  }
+
+  onProfileImageError(): void {
+    this.profileImageFailed = true;
   }
 
   get filteredMenuItems(): any[] {
