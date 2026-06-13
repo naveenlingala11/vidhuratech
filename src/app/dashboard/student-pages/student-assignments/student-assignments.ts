@@ -12,7 +12,19 @@ export class StudentAssignmentsComponent implements OnInit {
   constructor(private service: StudentService) {}
   ngOnInit(): void {
     this.service.getAssignments().subscribe((res: any) => {
-      this.assignments = res.data;
+      this.assignments = res?.data || [];
     });
+  }
+
+  get pendingCount(): number {
+    return this.assignments.filter(a => a.status?.toUpperCase() === 'PENDING' || !a.status).length;
+  }
+
+  get submittedCount(): number {
+    return this.assignments.filter(a => a.status?.toUpperCase() === 'SUBMITTED' || a.status?.toUpperCase() === 'COMPLETED').length;
+  }
+
+  get gradedCount(): number {
+    return this.assignments.filter(a => a.status?.toUpperCase() === 'GRADED').length;
   }
 }

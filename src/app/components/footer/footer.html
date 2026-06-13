@@ -13,19 +13,27 @@
                 <p class="brand-desc">Enterprise-grade IT training platform offering interactive sandbox coding,
                     real-world projects, and premium placements.</p>
 
-                <!-- Theme Switcher -->
-                <div class="theme-switcher-wrapper">
-                    <span class="switcher-label">
-                        <i class="fa-solid fa-circle-half-stroke"></i> Theme Mode
+                <!-- Newsletter Subscribe -->
+                <div class="subscribe-wrapper">
+                    <span class="subscribe-label">
+                        <i class="fa-solid fa-bell"></i> Stay Updated
                     </span>
-                    <button type="button" class="theme-toggle-slider" (click)="toggleTheme()"
-                        [class.active]="isLightTheme"
-                        [title]="isLightTheme ? 'Switch to Dark Mode' : 'Switch to Light Mode'">
-                        <span class="slider-circle">
-                            <i class="fa-solid"
-                                [ngClass]="isLightTheme ? 'fa-sun text-yellow' : 'fa-moon text-blue'"></i>
-                        </span>
-                    </button>
+                    <p class="subscribe-desc">Get notifications about new courses, jobs & announcements.</p>
+                    <form class="subscribe-form" (ngSubmit)="subscribe()" *ngIf="!subscribeSuccess">
+                        <div class="subscribe-input-group" [class.error]="subscribeError">
+                            <i class="fa-solid fa-envelope input-icon"></i>
+                            <input type="email" placeholder="Enter your email" [(ngModel)]="email" name="email"
+                                required autocomplete="email" id="footer-subscribe-email" />
+                            <button type="submit" class="subscribe-btn" [disabled]="isSubscribing">
+                                <i class="fa-solid" [ngClass]="isSubscribing ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+                            </button>
+                        </div>
+                        <span class="subscribe-error-msg" *ngIf="subscribeError">{{ subscribeError }}</span>
+                    </form>
+                    <div class="subscribe-success-msg" *ngIf="subscribeSuccess">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Subscribed! We'll keep you posted.</span>
+                    </div>
                 </div>
             </div>
 

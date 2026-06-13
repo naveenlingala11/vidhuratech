@@ -1,66 +1,158 @@
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <h4>📘 Batch Enrollment</h4>
-    <p *ngIf="batch" class="mt-2 text-primary">
-      <strong>{{ batch?.name }}</strong>
-    </p>
-  </div>
-</div>
-<!-- SEARCH -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header">
-    <h5>Enroll Student</h5>
-  </div>
-  <div class="card-body">
-    <input class="form-control mb-3" [(ngModel)]="keyword" (keyup)="onSearch()" placeholder="🔍 Search student..." />
-    <div *ngFor="let student of students" class="student-item d-flex justify-content-between align-items-center mb-2">
-      <div>
-        <strong>{{ student?.name }}</strong>
-        <div class="text-muted small">{{ student?.email }}</div>
+<div class="enrollment-page">
+  <!-- BACKGROUND ORBS -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <!-- HERO SECTION -->
+  <header class="enrollment-hero">
+    <div class="hero-content">
+      <span class="eyebrow">
+        🔑 Administrative Console
+      </span>
+      <h1>Batch Enrollment Manager</h1>
+      <p *ngIf="batch">
+        Add or remove students for the cohort: <strong>{{ batch?.name }}</strong> (Batch ID: #{{ batchId }})
+      </p>
+    </div>
+  </header>
+
+  <div class="workspace-grid">
+    <!-- SEARCH & ENROLL COLUMN -->
+    <article class="panel search-panel">
+      <div class="panel-head">
+        <div>
+          <span>Operator Console</span>
+          <h2>Enroll Student</h2>
+        </div>
       </div>
-      <button class="btn btn-primary btn-sm" (click)="enroll(student.id)">
-        + Enroll
-      </button>
-    </div>
-  </div>
-</div>
-<!-- TABLE -->
-<div class="card shadow-sm">
-  <div class="card-header">
-    <h5>Enrolled Students</h5>
-  </div>
-  <div class="card-body">
-    <!-- LOADING -->
-    <div *ngIf="loading" class="text-center py-3">
-      Loading...
-    </div>
-    <table class="table align-middle" *ngIf="!loading">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Date</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let enrollment of enrollments">
-          <!-- ✅ SAFE NAVIGATION FIX -->
-          <td>{{ enrollment?.student?.name || 'N/A' }}</td>
-          <td>{{ enrollment?.student?.email || 'N/A' }}</td>
-          <td>{{ enrollment?.enrolledAt | date:'medium' }}</td>
-          <td>
-            <button class="btn btn-danger btn-sm" (click)="remove(enrollment.id)">
-              Remove
+
+      <div class="search-form">
+        <label class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input [(ngModel)]="keyword" (keyup)="onSearch()" placeholder="Search student by name or email..." />
+        </label>
+
+        <!-- SUGGESTIONS LIST -->
+        <div class="suggestions-list" *ngIf="students.length > 0">
+          <div *ngFor="let student of students" class="student-item">
+            <div class="student-info">
+              <div class="avatar-circle">
+                {{ student?.name ? student.name.substring(0, 2).toUpperCase() : 'ST' }}
+              </div>
+              <div>
+                <strong>{{ student?.name }}</strong>
+                <div class="email-muted">{{ student?.email }}</div>
+              </div>
+            </div>
+            <button class="enroll-btn" (click)="enroll(student.id)">
+              <i class="fa-solid fa-plus"></i> Enroll
             </button>
-          </td>
-        </tr>
-        <tr *ngIf="enrollments.length === 0">
-          <td colspan="4" class="text-center text-muted">
-            No students enrolled
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+        </div>
+        <div class="empty-suggestions" *ngIf="keyword && students.length === 0">
+          No students found matching "{{ keyword }}"
+        </div>
+      </div>
+    </article>
+
+    <!-- ROSTER TABLE COLUMN -->
+    <article class="panel roster-panel">
+      <div class="panel-head">
+        <div>
+          <span>Cohort Members</span>
+          <h2>Enrolled Students</h2>
+        </div>
+        <span class="badge-count">{{ enrollments.length }} Students</span>
+      </div>
+
+      <!-- LOADING -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="loader"></div>
+        <p>Fetching cohort roster...</p>
+      </div>
+
+      <!-- ROSTER TABLE -->
+      <div class="table-container" *ngIf="!loading">
+        <table class="roster-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Enrolled Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let enrollment of enrollments">
+              <td>
+                <div class="roster-student">
+                  <div class="avatar-circle table-avatar">
+                    {{ enrollment?.student?.name ? enrollment.student.name.substring(0, 2).toUpperCase() : 'ST' }}
+                  </div>
+                  <div>
+                    <strong>{{ enrollment?.student?.name || 'N/A' }}</strong>
+                    <div class="email-muted">{{ enrollment?.student?.email || 'N/A' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="date-cell">{{ enrollment?.enrolledAt | date:'dd MMM yyyy, h:mm a' }}</td>
+              <td>
+                <button class="remove-btn" (click)="remove(enrollment.id)">
+                  <i class="fa-solid fa-trash-can"></i> Remove
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="enrollments.length === 0">
+              <td colspan="3" class="empty-roster">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>No students enrolled in this batch yet.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
   </div>
+
+  <!-- =====================================================
+       OPERATIONS INSTRUCTIONS / ACTIONS
+  ====================================================== -->
+  <section class="operations-instructions-panel">
+    <div class="instructions-header">
+      <div class="instructions-badge">
+        📌 Operator Guidelines
+      </div>
+      <h2>Batch Enrollment Operations Guide</h2>
+      <p>Follow these steps to enroll students or manage the cohort membership securely:</p>
+    </div>
+    
+    <div class="instructions-steps">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <h3>Search Student Records</h3>
+        <p>Type in the student's full name or email address. The system queries the database asynchronously with a 400ms buffer.</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon"><i class="fa-solid fa-id-card"></i></div>
+        <h3>Verify Student Details</h3>
+        <p>Ensure the student profile and email domain correspond exactly to the registered applicant details to prevent errors.</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon"><i class="fa-solid fa-plus"></i></div>
+        <h3>Add Cohort Linkage</h3>
+        <p>Click the "+ Enroll" action button. This creates a link in the LMS batch registry, granting immediate dashboard access.</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">04</div>
+        <div class="step-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <h3>Audit Cohort Roster</h3>
+        <p>Verify enrolled rows. If a student is assigned to the wrong batch, click the "Remove" button and confirm the browser prompt.</p>
+      </div>
+    </div>
+  </section>
 </div>

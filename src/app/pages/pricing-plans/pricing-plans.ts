@@ -1,7 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
@@ -110,14 +110,43 @@ export class PricingPlansComponent implements OnInit {
     },
   ];
 
+  preselectedCode = '';
+  redirectUrl = '/coding-contests';
+
   constructor(
     private http: HttpClient,
     private router: Router,
+    private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {}
 
   ngOnInit(): void {
     this.loadPlans();
+    this.route.queryParams.subscribe(params => {
+      const code = params['plan'] || params['unlock'] || params['code'];
+      if (code) {
+        this.preselectedCode = String(code).toUpperCase();
+        this.selectPlanByCode(this.preselectedCode);
+      }
+      const redirect = params['redirect'];
+      if (redirect) {
+        this.redirectUrl = redirect;
+      }
+    });
+  }
+
+  selectPlanByCode(codeUpper: string): void {
+    const match = this.plans.find(p => 
+      p.code === codeUpper || 
+      (codeUpper === 'ELITE_PLAN' && p.code === 'ELITE') || 
+      (codeUpper === 'PRO_PLAN' && p.code === 'PRO') ||
+      (codeUpper === 'STARTER_PLAN' && p.code === 'STARTER') ||
+      (codeUpper === 'BASIC_PLAN' && p.code === 'STARTER') ||
+      (codeUpper === 'BASIC' && p.code === 'STARTER')
+    );
+    if (match) {
+      this.selectedPlan = match;
+    }
   }
 
   loadPlans(): void {
@@ -130,7 +159,12 @@ export class PricingPlansComponent implements OnInit {
           .map((apiPlan: any) => this.mergePlan(apiPlan))
           .filter((plan: any) => plan.active !== false);
 
-        if (merged.length) this.plans = merged;
+        if (merged.length) {
+          this.plans = merged;
+          if (this.preselectedCode) {
+            this.selectPlanByCode(this.preselectedCode);
+          }
+        }
         this.plansLoading = false;
       },
       error: () => {
@@ -448,7 +482,7 @@ export class PricingPlansComponent implements OnInit {
 
           setTimeout(() => {
             this.router.navigate(['/login'], {
-              queryParams: { email: this.buyer.email, redirect: '/coding-contests' },
+              queryParams: { email: this.buyer.email, redirect: this.redirectUrl },
             });
           }, 900);
         },
