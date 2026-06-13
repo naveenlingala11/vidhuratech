@@ -1,461 +1,320 @@
-<section class="trainer-assessments">
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
-
-  <header class="page-hero">
-    <div class="hero-mesh"></div>
-    <div class="hero-grid"></div>
-    <div class="hero-scan"></div>
-
-    <div class="hero-copy">
-      <span class="hero-badge">
-        <i class="bi bi-stars"></i>
-        Assessment Center
-      </span>
-
-      <h1>
-        Assessments
-        <span>& Results Studio</span>
-      </h1>
-
-      <p>
-        Create assessments, monitor submissions, export tests, preview questions, and review student
-        performance from one polished trainer workspace.
-      </p>
+<section class="ta-page">
+  <!-- Dynamic Alert Toast -->
+  <div class="ta-toast" *ngIf="toast">
+    <div class="toast-indicator"></div>
+    <div class="toast-content">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      <span>{{ toast }}</span>
     </div>
+  </div>
 
-    <div class="hero-actions">
-      <button
-        type="button"
-        class="primary-action"
-        routerLink="/dashboard/trainer/create-assessment"
-      >
-        <i class="bi bi-plus-circle"></i>
-        Create Assessment
-      </button>
+  <!-- Frosted Glass Hero Banner -->
+  <header class="ta-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="hero-mesh"></div>
 
-      <button type="button" class="ghost-action" (click)="loadAssessments()">
-        <i class="bi bi-arrow-clockwise"></i>
-        Refresh
-      </button>
+    <div class="ta-hero__body">
+      <div class="ta-hero__text">
+        <div class="ta-hero__eyebrow">
+          <i class="bi bi-shield-check me-1"></i> Assessment Command Center
+        </div>
+        <h1>Assessments <span>& Results Studio</span></h1>
+        <p>Create, manage, preview, and analyze assessments across all batch cohorts. Monitor student submissions, export metrics, and evaluate progress.</p>
+      </div>
+      <div class="ta-hero__cta">
+        <button type="button" class="primary-btn action-btn" routerLink="/dashboard/trainer/create-assessment">
+          <i class="bi bi-plus-circle-fill"></i>
+          <span>New Assessment</span>
+        </button>
+        <button type="button" class="ghost-btn action-btn" (click)="loadAssessments()">
+          <i class="bi bi-arrow-clockwise"></i>
+          <span>Refresh List</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <section class="summary-grid">
-    <button
-      type="button"
-      class="summary-card blue"
-      (click)="setFilter('ALL')"
-      [class.active]="filterMode === 'ALL'"
-    >
-      <i class="bi bi-clipboard-data"></i>
-      <span>Total Assessments</span>
-      <strong>{{ totalAssessments }}</strong>
-      <small>All created tests</small>
-    </button>
-
-    <button
-      type="button"
-      class="summary-card green"
-      (click)="setFilter('WITH_ATTEMPTS')"
-      [class.active]="filterMode === 'WITH_ATTEMPTS'"
-    >
-      <i class="bi bi-check2-circle"></i>
-      <span>Total Attempts</span>
-      <strong>{{ totalAttempts }}</strong>
-      <small>Student submissions</small>
-    </button>
-
-    <button type="button" class="summary-card purple">
-      <i class="bi bi-question-circle"></i>
-      <span>Total Questions</span>
-      <strong>{{ totalQuestions }}</strong>
-      <small>Across assessments</small>
-    </button>
-
-    <button
-      type="button"
-      class="summary-card orange"
-      (click)="setFilter('NO_ATTEMPTS')"
-      [class.active]="filterMode === 'NO_ATTEMPTS'"
-    >
-      <i class="bi bi-hourglass-split"></i>
-      <span>No Submissions</span>
-      <strong>{{ noAttemptCount }}</strong>
-      <small>Awaiting attempts</small>
-    </button>
-
-    <button type="button" class="summary-card slate">
-      <i class="bi bi-award"></i>
-      <span>Total Marks</span>
-      <strong>{{ totalMarks }}</strong>
-      <small>Maximum score pool</small>
-    </button>
-
-    <button type="button" class="summary-card cyan">
-      <i class="bi bi-graph-up-arrow"></i>
-      <span>Avg Attempts</span>
-      <strong>{{ averageAttempts }}</strong>
-      <small>Per assessment</small>
-    </button>
-  </section>
-
-  <section class="toolbar">
-    <label class="search-box">
-      <i class="bi bi-search"></i>
-      <input
-        [(ngModel)]="search"
-        (ngModelChange)="resetPage()"
-        placeholder="Search title, batch, course, description..."
-      />
-      <button *ngIf="search" type="button" (click)="search = ''">
-        <i class="bi bi-x"></i>
-      </button>
-    </label>
-
-    <div class="toolbar-controls">
-      <div class="sort-pills">
-        <button
-          type="button"
-          *ngFor="let sort of sortOptions"
-          [class.active]="sortMode === sort"
-          (click)="setSort(sort)"
-        >
-          <i [class]="sortIcon(sort)"></i>
-          {{
-            sort === 'LATEST'
-              ? 'Latest'
-              : sort === 'TITLE'
-                ? 'Title'
-                : sort === 'ATTEMPTS_HIGH'
-                  ? 'Attempts'
-                  : sort === 'QUESTIONS_HIGH'
-                    ? 'Questions'
-                    : 'Marks'
-          }}
-        </button>
+  <!-- Insights Telemetry Cards Deck -->
+  <div class="ta-stats">
+    <button type="button" class="ta-stat total-card" [class.ta-stat--active]="filterMode === 'ALL'" (click)="setFilter('ALL')">
+      <div class="card-glow"></div>
+      <div class="ta-stat__icon ta-stat__icon--indigo"><i class="bi bi-clipboard-data-fill"></i></div>
+      <div class="ta-stat__data">
+        <small>Total Catalog</small>
+        <strong>{{ totalAssessments }}</strong>
+        <span>All created tests</span>
       </div>
+    </button>
 
-      <div class="filter-tabs">
-        <button type="button" [class.active]="filterMode === 'ALL'" (click)="setFilter('ALL')">
-          All
-        </button>
-
-        <button
-          type="button"
-          [class.active]="filterMode === 'WITH_ATTEMPTS'"
-          (click)="setFilter('WITH_ATTEMPTS')"
-        >
-          With Submissions
-        </button>
-
-        <button
-          type="button"
-          [class.active]="filterMode === 'NO_ATTEMPTS'"
-          (click)="setFilter('NO_ATTEMPTS')"
-        >
-          No Submissions
-        </button>
+    <button type="button" class="ta-stat attempts-card" [class.ta-stat--active]="filterMode === 'WITH_ATTEMPTS'" (click)="setFilter('WITH_ATTEMPTS')">
+      <div class="card-glow"></div>
+      <div class="ta-stat__icon ta-stat__icon--emerald"><i class="bi bi-check2-circle"></i></div>
+      <div class="ta-stat__data">
+        <small>Total Attempts</small>
+        <strong>{{ totalAttempts }}</strong>
+        <span>Student submissions</span>
       </div>
+    </button>
 
-      <div class="view-toggle">
-        <button type="button" [class.active]="viewMode === 'GRID'" (click)="setView('GRID')">
-          <i class="bi bi-grid-3x3-gap"></i>
-        </button>
-
-        <button type="button" [class.active]="viewMode === 'TABLE'" (click)="setView('TABLE')">
-          <i class="bi bi-table"></i>
-        </button>
+    <button type="button" class="ta-stat questions-card">
+      <div class="card-glow"></div>
+      <div class="ta-stat__icon ta-stat__icon--violet"><i class="bi bi-question-circle-fill"></i></div>
+      <div class="ta-stat__data">
+        <small>Total Questions</small>
+        <strong>{{ totalQuestions }}</strong>
+        <span>Across assessments</span>
       </div>
-    </div>
-  </section>
+    </button>
 
-  <section class="selection-bar" *ngIf="filteredAssessments.length">
-    <div>
-      <strong>{{ startRecord }}-{{ endRecord }}</strong>
-      <span>of {{ filteredAssessments.length }} assessments</span>
-      <b *ngIf="selectedCount">{{ selectedCount }} selected</b>
-    </div>
+    <button type="button" class="ta-stat pending-card" [class.ta-stat--active]="filterMode === 'NO_ATTEMPTS'" (click)="setFilter('NO_ATTEMPTS')">
+      <div class="card-glow"></div>
+      <div class="ta-stat__icon ta-stat__icon--amber"><i class="bi bi-hourglass-split"></i></div>
+      <div class="ta-stat__data">
+        <small>Awaiting Submits</small>
+        <strong>{{ noAttemptCount }}</strong>
+        <span>Pending attempts</span>
+      </div>
+    </button>
 
-    <div>
-      <button type="button" (click)="selectVisible()">Select Visible</button>
-      <button type="button" (click)="clearSelection()" [disabled]="!selectedCount">Clear</button>
-      <button type="button" (click)="downloadSelected()" [disabled]="!selectedCount">
-        <i class="bi bi-download"></i>
-        Export Selected
-      </button>
-    </div>
-  </section>
+    <button type="button" class="ta-stat marks-card">
+      <div class="card-glow"></div>
+      <div class="ta-stat__icon ta-stat__icon--slate"><i class="bi bi-award-fill"></i></div>
+      <div class="ta-stat__data">
+        <small>Total Marks Pool</small>
+        <strong>{{ totalMarks }}</strong>
+        <span>Max scorecard</span>
+      </div>
+    </button>
 
-  <div class="loading" *ngIf="loading">
-    <div class="loader"></div>
-    <h2>Loading assessments</h2>
-    <p>Please wait while we prepare your assessment workspace.</p>
-  </div>
-
-  <div class="empty" *ngIf="!loading && !assessments.length">
-    <i class="bi bi-clipboard-plus"></i>
-    <h2>No assessments created yet</h2>
-    <p>Create your first assessment for an assigned batch.</p>
-    <button type="button" routerLink="/dashboard/trainer/create-assessment">
-      Create Assessment
+    <button type="button" class="ta-stat avg-card">
+      <div class="card-glow"></div>
+      <div class="ta-stat__icon ta-stat__icon--teal"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="ta-stat__data">
+        <small>Avg Attempts</small>
+        <strong>{{ averageAttempts }}</strong>
+        <span>Per test setup</span>
+      </div>
     </button>
   </div>
 
-  <div class="empty" *ngIf="!loading && assessments.length && !filteredAssessments.length">
-    <i class="bi bi-search"></i>
-    <h2>No matching assessments</h2>
-    <p>Try a different search, filter, or sort option.</p>
-  </div>
+  <!-- Filter & Search Toolbar (Floating Glass Dock) -->
+  <div class="ta-toolbar">
+    <div class="ta-toolbar__row">
+      <label class="ta-search">
+        <i class="bi bi-search search-icon"></i>
+        <input [(ngModel)]="search" (ngModelChange)="resetPage()" placeholder="Search assessments..." class="search-input" />
+        <button *ngIf="search" type="button" (click)="search = ''" class="clear-search-btn"><i class="bi bi-x-lg"></i></button>
+      </label>
 
-  <section
-    class="assessment-grid"
-    [class.table-view]="viewMode === 'TABLE'"
-    *ngIf="!loading && filteredAssessments.length"
-  >
-    <article
-      class="assessment-card"
-      *ngFor="let a of pagedAssessments; trackBy: trackById"
-      [class.selected]="isSelected(a.id)"
-    >
-      <div class="card-top">
-        <label class="select-check">
-          <input type="checkbox" [checked]="isSelected(a.id)" (change)="toggleSelected(a.id)" />
-          <span></span>
-        </label>
-
-        <span class="batch-pill">
-          <i class="bi bi-collection"></i>
-          {{ a.batchName || 'Batch #' + a.batchId }}
-        </span>
-
-        <span class="submission-pill" [class.empty-pill]="!hasAttempts(a)">
-          {{ a.attemptCount || 0 }} Submissions
-        </span>
-
-        <span class="public-status" [class.published]="a.publicVisible">
-          {{ a.publicVisible ? 'Published by Admin' : 'Not Published' }}
-        </span>
-      </div>
-
-      <div class="card-title">
-        <div class="assessment-icon">
-          <i class="bi bi-clipboard-check"></i>
+      <div class="ta-toolbar__right">
+        <!-- Sort pills -->
+        <div class="ta-pills">
+          <button *ngFor="let sort of sortOptions" type="button" class="ta-pill" [class.ta-pill--on]="sortMode === sort" (click)="setSort(sort)">
+            <i [class]="sortIcon(sort)"></i>
+            <span>{{ sort === 'LATEST' ? 'Latest' : sort === 'TITLE' ? 'Title' : sort === 'ATTEMPTS_HIGH' ? 'Attempts' : sort === 'QUESTIONS_HIGH' ? 'Questions' : 'Marks' }}</span>
+          </button>
         </div>
 
-        <div>
-          <h2>{{ a.title }}</h2>
+        <!-- Filter tabs -->
+        <div class="ta-tabs">
+          <button type="button" class="tab-select-btn" [class.ta-tabs--on]="filterMode === 'ALL'" (click)="setFilter('ALL')">All</button>
+          <button type="button" class="tab-select-btn" [class.ta-tabs--on]="filterMode === 'WITH_ATTEMPTS'" (click)="setFilter('WITH_ATTEMPTS')">Submitted</button>
+          <button type="button" class="tab-select-btn" [class.ta-tabs--on]="filterMode === 'NO_ATTEMPTS'" (click)="setFilter('NO_ATTEMPTS')">Pending</button>
+        </div>
 
-          <p [class.expanded]="isDescriptionExpanded(a.id)">
-            {{ a.description || 'No description added.' }}
-          </p>
+        <!-- View switches -->
+        <div class="ta-view">
+          <button type="button" class="view-btn" [class.ta-view--on]="viewMode === 'GRID'" (click)="setView('GRID')" title="Grid View"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+          <button type="button" class="view-btn" [class.ta-view--on]="viewMode === 'TABLE'" (click)="setView('TABLE')" title="List View"><i class="bi bi-list-ul"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <button
-            type="button"
-            class="description-toggle"
-            *ngIf="shouldShowDescriptionToggle(a.description)"
-            (click)="toggleDescription(a.id)"
-          >
-            {{ isDescriptionExpanded(a.id) ? 'View Less' : 'View More' }}
+  <!-- Bulk Actions Bar -->
+  <div class="ta-bulk" *ngIf="filteredAssessments.length">
+    <div class="ta-bulk__left">
+      <span class="bulk-count">Showing <strong>{{ startRecord }}–{{ endRecord }}</strong> of {{ filteredAssessments.length }} records</span>
+      <span class="ta-bulk__sel" *ngIf="selectedCount">
+        <i class="bi bi-check2-square"></i>
+        <span>{{ selectedCount }} selected</span>
+      </span>
+    </div>
+    <div class="ta-bulk__right">
+      <button type="button" class="bulk-action-btn" (click)="selectVisible()"><i class="bi bi-check-all"></i> Select Page</button>
+      <button type="button" class="bulk-action-btn" (click)="clearSelection()" [disabled]="!selectedCount"><i class="bi bi-x-circle"></i> Clear</button>
+      <button type="button" class="ta-bulk__export bulk-action-btn" (click)="downloadSelected()" [disabled]="!selectedCount"><i class="bi bi-download"></i> Export selected</button>
+    </div>
+  </div>
+
+  <!-- Roster States -->
+  <div class="ta-empty" *ngIf="loading">
+    <div class="spinner-loader"></div>
+    <h3>Loading assessments</h3>
+    <p>Please wait while we synchronize the program files...</p>
+  </div>
+
+  <div class="ta-empty" *ngIf="!loading && !assessments.length">
+    <div class="ta-empty__icon"><i class="bi bi-clipboard-plus"></i></div>
+    <h3>No Assessments Scheduled</h3>
+    <p>You have not created any assessments for your batch cohorts yet.</p>
+    <button type="button" class="primary-btn action-btn mt-2" routerLink="/dashboard/trainer/create-assessment">
+      <i class="bi bi-plus-lg"></i> Create First Assessment
+    </button>
+  </div>
+
+  <div class="ta-empty" *ngIf="!loading && assessments.length && !filteredAssessments.length">
+    <div class="ta-empty__icon ta-empty__icon--warn"><i class="bi bi-search"></i></div>
+    <h3>No Matching Assessments</h3>
+    <p>Try refining your search query or choosing another status tab above.</p>
+  </div>
+
+  <!-- Grid/List Cards Workspace -->
+  <section class="ta-grid" [class.ta-grid--list]="viewMode === 'TABLE'" *ngIf="!loading && filteredAssessments.length">
+    <article class="ta-card" *ngFor="let a of pagedAssessments; trackBy: trackById" [class.ta-card--sel]="isSelected(a.id)">
+      <div class="ta-card__bar"></div>
+
+      <!-- Card Top Header details -->
+      <div class="ta-card__head">
+        <label class="ta-check">
+          <input type="checkbox" [checked]="isSelected(a.id)" (change)="toggleSelected(a.id)" />
+          <span class="custom-checkbox"></span>
+        </label>
+
+        <span class="tag-badge tag-batch">
+          <i class="bi bi-collection-fill"></i>
+          <span>{{ a.batchName || 'Batch #' + a.batchId }}</span>
+        </span>
+
+        <span class="tag-badge" [class.tag-submitted]="hasAttempts(a)" [class.tag-pending]="!hasAttempts(a)">
+          <i class="bi" [ngClass]="hasAttempts(a) ? 'bi-people-fill' : 'bi-clock-history'"></i>
+          <span>{{ a.attemptCount || 0 }} Submissions</span>
+        </span>
+
+        <span class="tag-badge" [class.tag-published]="a.publicVisible" [class.tag-draft]="!a.publicVisible">
+          <i class="bi" [ngClass]="a.publicVisible ? 'bi-globe2' : 'bi-lock-fill'"></i>
+          <span>{{ a.publicVisible ? 'Published' : 'Draft' }}</span>
+        </span>
+      </div>
+
+      <!-- Title & roadmaps -->
+      <div class="ta-card__title">
+        <div class="ta-card__glyph">
+          <i class="bi bi-clipboard-check-fill"></i>
+        </div>
+        <div class="ta-title-copy">
+          <h3>{{ a.title }}</h3>
+          <p [class.ta-card__desc--open]="isDescriptionExpanded(a.id)" class="card-desc-text">{{ a.description || 'No description provided.' }}</p>
+          <button *ngIf="shouldShowDescriptionToggle(a.description)" type="button" class="ta-card__more" (click)="toggleDescription(a.id)">
+            <span>{{ isDescriptionExpanded(a.id) ? 'Collapse' : 'Expand description' }}</span>
+            <i class="bi" [ngClass]="isDescriptionExpanded(a.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
           </button>
         </div>
       </div>
 
-      <div class="meta-grid">
-        <div>
-          <span>Questions</span>
-          <strong>{{ questionCount(a) }}</strong>
-        </div>
+      <!-- Metadata Parameters Grid -->
+      <div class="ta-card__meta">
+        <div class="meta-item"><i class="bi bi-question-circle"></i><span>Questions</span><strong>{{ questionCount(a) }}</strong></div>
+        <div class="meta-item"><i class="bi bi-stopwatch"></i><span>Duration</span><strong>{{ a.durationMinutes || 0 }}m</strong></div>
+        <div class="meta-item"><i class="bi bi-trophy"></i><span>Marks Pool</span><strong>{{ a.totalMarks || 0 }}</strong></div>
+        <div class="meta-item"><i class="bi bi-calendar3"></i><span>Created</span><strong>{{ formatDate(a.createdAt) }}</strong></div>
+      </div>
 
-        <div>
-          <span>Duration</span>
-          <strong>{{ a.durationMinutes || 0 }}m</strong>
-        </div>
-
-        <div>
-          <span>Marks</span>
-          <strong>{{ a.totalMarks || 0 }}</strong>
-        </div>
-
-        <div>
-          <span>Created</span>
-          <strong>{{ formatDate(a.createdAt) }}</strong>
+      <!-- Roster Submissions Health Card -->
+      <div class="ta-card__status" [class.ta-card__status--ok]="hasAttempts(a)">
+        <i class="bi" [ngClass]="hasAttempts(a) ? 'bi-graph-up-arrow' : 'bi-inbox-fill'"></i>
+        <div class="status-summary">
+          <strong>{{ hasAttempts(a) ? 'Results available' : 'Awaiting student attempts' }}</strong>
+          <p>{{ hasAttempts(a) ? 'Click Results below to analyze score summaries and responses.' : 'Students have not submitted this assessment yet.' }}</p>
         </div>
       </div>
 
-      <div class="submission-state" [class.has-submissions]="hasAttempts(a)">
-        <i class="bi" [ngClass]="hasAttempts(a) ? 'bi-graph-up-arrow' : 'bi-inbox'"></i>
-
-        <div>
-          <strong>
-            {{ hasAttempts(a) ? 'Results available' : 'No submissions yet' }}
-          </strong>
-
-          <p>
-            {{
-              hasAttempts(a)
-                ? 'Open results to review student attempts.'
-                : 'Students have not submitted this assessment yet.'
-            }}
-          </p>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button type="button" (click)="previewAssessment(a.id)">
-          <i class="bi bi-eye"></i>
-          Preview
-        </button>
-
-        <button type="button" class="edit-action" (click)="editAssessment(a.id)">
-          <i class="bi bi-pencil-square"></i>
-          Edit
-        </button>
-
-        <button type="button" (click)="downloadAssessment(a)">
-          <i class="bi bi-download"></i>
-          Download
-        </button>
-
-        <button type="button" [disabled]="!hasAttempts(a)" (click)="viewResults(a.id)">
-          <i class="bi bi-bar-chart"></i>
-          Results
-        </button>
-
-        <button type="button" class="danger" (click)="deleteAssessment(a.id)">
-          <i class="bi bi-trash"></i>
-          Delete
-        </button>
+      <!-- Action link controls -->
+      <div class="ta-card__acts">
+        <button type="button" class="ta-act ta-act--view" (click)="previewAssessment(a.id)"><i class="bi bi-eye-fill"></i> Preview</button>
+        <button type="button" class="ta-act ta-act--edit" (click)="editAssessment(a.id)"><i class="bi bi-pencil-square"></i> Edit</button>
+        <button type="button" class="ta-act ta-act--dl" (click)="downloadAssessment(a)"><i class="bi bi-download"></i> Export</button>
+        <button type="button" class="ta-act ta-act--res" [disabled]="!hasAttempts(a)" (click)="viewResults(a.id)"><i class="bi bi-bar-chart-line-fill"></i> Results</button>
+        <button type="button" class="ta-act ta-act--del" (click)="deleteAssessment(a.id)"><i class="bi bi-trash3-fill"></i> Delete</button>
       </div>
     </article>
   </section>
-  <section class="premium-pagination" *ngIf="!loading && filteredAssessments.length">
-    <div>
-      <strong>Showing {{ startRecord }}-{{ endRecord }}</strong>
-      <span>of {{ filteredAssessments.length }} assessments</span>
+
+  <!-- Main Roster Pagination Footer -->
+  <div class="ta-pager" *ngIf="!loading && filteredAssessments.length">
+    <div class="ta-pager__info">Showing <strong>{{ startRecord }}–{{ endRecord }}</strong> of {{ filteredAssessments.length }} records</div>
+    <div class="ta-pager__nav">
+      <button type="button" class="pager-arrow-btn" [disabled]="page === 1" (click)="changePage(page - 1)"><i class="bi bi-chevron-left"></i></button>
+      <button type="button" *ngFor="let p of pageNumbers" class="ta-pager__num" [class.ta-pager__num--on]="page === p" (click)="changePage(p)">{{ p }}</button>
+      <button type="button" class="pager-arrow-btn" [disabled]="page === totalPages" (click)="changePage(page + 1)"><i class="bi bi-chevron-right"></i></button>
+      
+      <div class="page-size-selector">
+        <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" class="modern-select page-size-select">
+          <option [ngValue]="6">6 / page</option>
+          <option [ngValue]="9">9 / page</option>
+          <option [ngValue]="12">12 / page</option>
+          <option [ngValue]="18">18 / page</option>
+        </select>
+      </div>
     </div>
-
-    <div class="page-actions">
-      <button type="button" class="page-btn" [disabled]="page === 1" (click)="changePage(page - 1)">
-        <i class="bi bi-chevron-left"></i>
-      </button>
-
-      <button
-        type="button"
-        class="page-number"
-        *ngFor="let p of pageNumbers"
-        [class.active]="page === p"
-        (click)="changePage(p)"
-      >
-        {{ p }}
-      </button>
-
-      <button
-        type="button"
-        class="page-btn"
-        [disabled]="page === totalPages"
-        (click)="changePage(page + 1)"
-      >
-        <i class="bi bi-chevron-right"></i>
-      </button>
-
-      <select [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
-        <option [ngValue]="6">6 / page</option>
-        <option [ngValue]="9">9 / page</option>
-        <option [ngValue]="12">12 / page</option>
-        <option [ngValue]="18">18 / page</option>
-      </select>
-    </div>
-  </section>
+  </div>
 </section>
 
-<div class="preview-overlay" *ngIf="selectedAssessment || previewLoading">
-  <div class="preview-modal">
-    <button type="button" class="preview-close" (click)="closePreview()">
-      <i class="bi bi-x-lg"></i>
-    </button>
+<!-- Assessment details preview Modal overlay -->
+<div class="ta-overlay" *ngIf="selectedAssessment || previewLoading" (click)="closePreview()">
+  <div class="ta-modal" (click)="$event.stopPropagation()">
+    <button type="button" class="ta-modal__close" (click)="closePreview()"><i class="bi bi-x-lg"></i></button>
 
-    <div class="loading compact" *ngIf="previewLoading">
-      <div class="loader"></div>
-      <h2>Loading preview</h2>
+    <div class="ta-empty ta-empty--inline" *ngIf="previewLoading">
+      <div class="spinner-loader"></div>
+      <h3>Loading preview</h3>
+      <p>Building schema preview...</p>
     </div>
 
     <ng-container *ngIf="!previewLoading && selectedAssessment">
-      <div class="preview-header">
-        <span>Assessment Preview</span>
+      <div class="ta-modal__head">
+        <span class="ta-modal__eye"><i class="bi bi-eye-fill me-1"></i> Assessment Blueprint Preview</span>
         <h2>{{ selectedAssessment.title }}</h2>
-        <p>{{ selectedAssessment.description || 'No description added.' }}</p>
+        <p class="modal-description">{{ selectedAssessment.description || 'No description provided.' }}</p>
       </div>
 
-      <div class="preview-meta">
-        <div>
-          <span>Batch</span>
-          <strong>{{
-            selectedAssessment.batchName || 'Batch #' + selectedAssessment.batchId
-          }}</strong>
-        </div>
-
-        <div>
-          <span>Questions</span>
-          <strong>{{ selectedAssessment.questions?.length || 0 }}</strong>
-        </div>
-
-        <div>
-          <span>Marks</span>
-          <strong>{{ selectedAssessment.totalMarks || 0 }}</strong>
-        </div>
-
-        <div>
-          <span>Duration</span>
-          <strong>{{ selectedAssessment.durationMinutes || 0 }}m</strong>
-        </div>
+      <div class="ta-modal__stats">
+        <div class="modal-stat-item"><i class="bi bi-collection-fill"></i><span>Target Cohort</span><strong>{{ selectedAssessment.batchName || 'Batch #' + selectedAssessment.batchId }}</strong></div>
+        <div class="modal-stat-item"><i class="bi bi-question-circle-fill"></i><span>Questions count</span><strong>{{ selectedAssessment.questions?.length || 0 }}</strong></div>
+        <div class="modal-stat-item"><i class="bi bi-trophy-fill"></i><span>Marks Pool</span><strong>{{ selectedAssessment.totalMarks || 0 }}</strong></div>
+        <div class="modal-stat-item"><i class="bi bi-stopwatch-fill"></i><span>Duration Limit</span><strong>{{ selectedAssessment.durationMinutes || 0 }}m</strong></div>
       </div>
 
-      <div class="preview-questions">
-        <article
-          class="preview-question"
-          *ngFor="let q of selectedAssessment.questions; let i = index"
-        >
-          <div class="preview-question-head">
-            <strong>Q{{ i + 1 }}. {{ q.question }}</strong>
-            <span>{{ q.marks || 0 }} marks</span>
+      <div class="ta-modal__questions">
+        <article class="ta-q-card" *ngFor="let q of selectedAssessment.questions; let i = index">
+          <div class="ta-q__head">
+            <span class="ta-q__num">Q{{ i + 1 }}</span>
+            <strong>{{ q.question }}</strong>
+            <span class="ta-q__marks">{{ q.marks || 0 }} marks</span>
           </div>
-
-          <div class="preview-options">
-            <div
-              class="preview-option"
-              *ngFor="let key of ['A', 'B', 'C', 'D']"
-              [class.correct]="q.correctAnswer === key"
-            >
-              <span>{{ key }}</span>
-              <p>{{ getOptionValue(q.options, key) }}</p>
-              <strong *ngIf="q.correctAnswer === key">Correct</strong>
+          
+          <div class="ta-q__opts">
+            <div class="ta-q__opt" *ngFor="let key of ['A', 'B', 'C', 'D']" [class.ta-q__opt--right]="q.correctAnswer === key">
+              <span class="ta-q__key">{{ key }}</span>
+              <p class="option-text">{{ getOptionValue(q.options, key) }}</p>
+              <strong *ngIf="q.correctAnswer === key" class="badge-correct"><i class="bi bi-check-circle-fill me-1"></i> Correct Answer</strong>
             </div>
           </div>
-
-          <div class="preview-explanation" *ngIf="q.explanation">
-            <strong>Explanation:</strong> {{ q.explanation }}
+          
+          <div class="ta-q__explain" *ngIf="q.explanation">
+            <i class="bi bi-lightbulb-fill explain-bulb"></i>
+            <div class="explain-content">
+              <strong>Evaluation Explanation</strong>
+              <p>{{ q.explanation }}</p>
+            </div>
           </div>
         </article>
       </div>
 
-      <div class="preview-footer-actions">
-        <button
-          type="button"
-          class="download-full edit-full"
-          (click)="editAssessment(selectedAssessment.id)"
-        >
-          <i class="bi bi-pencil-square"></i>
-          Edit Assessment
-        </button>
-
-        <button
-          type="button"
-          class="download-full"
-          (click)="downloadAssessment(selectedAssessment)"
-        >
-          <i class="bi bi-download"></i>
-          Download Assessment JSON
-        </button>
+      <div class="ta-modal__foot">
+        <button type="button" class="primary-btn action-btn secondary-style" (click)="editAssessment(selectedAssessment.id)"><i class="bi bi-pencil-square"></i> Edit Assessment</button>
+        <button type="button" class="primary-btn action-btn" (click)="downloadAssessment(selectedAssessment)"><i class="bi bi-download"></i> Download JSON blueprint</button>
       </div>
     </ng-container>
   </div>

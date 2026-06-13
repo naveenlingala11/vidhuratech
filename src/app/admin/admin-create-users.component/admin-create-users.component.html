@@ -1,32 +1,143 @@
-<div class="create-user-card">
-    <div class="header">
-        <h3>👤 Create Employee</h3>
-        <p>Invite employees and assign roles</p>
+<!-- Verified Placements Page -->
+<div class="create-user-container">
+  <!-- Glowing meshes -->
+  <div class="bg-radial-mesh-1"></div>
+  <div class="bg-radial-mesh-2"></div>
+  <div class="bg-grid-overlay"></div>
+
+  <!-- Header Banner -->
+  <header class="control-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to Directory</span>
+      </button>
+      <h2>Invite Team Member</h2>
+      <p class="subtitle">Provision system privileges and assign access control parameters</p>
     </div>
-    <div class="form-group">
-        <label>Name *</label>
-        <input [(ngModel)]="form.name" placeholder="Enter full name" />
-    </div>
-    <div class="form-group">
-        <label>Email *</label>
-        <input [(ngModel)]="form.email" placeholder="Enter email address" />
-    </div>
-    <div class="form-group">
-        <label>Phone</label>
-        <input [(ngModel)]="form.phone" placeholder="Enter phone number" />
-    </div>
-    <div class="form-group">
-        <label>Role *</label>
-        <select [(ngModel)]="form.role">
+  </header>
+
+  <!-- Two-Column Layout -->
+  <div class="create-user-layout">
+    <!-- Left Panel: Form -->
+    <main class="creation-form-box">
+      <div class="form-header">
+        <h3>👤 Account Details</h3>
+        <p>Complete the profile information below to issue a system invitation</p>
+      </div>
+
+      <div class="form-fields">
+        <!-- Name -->
+        <div class="form-group">
+          <label><i class="bi bi-person"></i> Full Name *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="form.name" 
+            placeholder="e.g. Swetha Lingam"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label><i class="bi bi-envelope"></i> Email Address *</label>
+          <input 
+            type="email" 
+            [(ngModel)]="form.email" 
+            placeholder="e.g. swetha.l@vidhuratech.com"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label><i class="bi bi-telephone"></i> Phone Number</label>
+          <input 
+            type="text" 
+            [(ngModel)]="form.phone" 
+            placeholder="e.g. +91 98765 43210"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Role Select -->
+        <div class="form-group">
+          <label><i class="bi bi-shield-check"></i> System Role *</label>
+          <select [(ngModel)]="form.role" class="form-select">
             <option value="">Select Role</option>
-            <option *ngFor="let r of roles">{{ r }}</option>
-        </select>
-    </div>
-    <button class="submit-btn" (click)="submit()" [disabled]="loading">
-        <span *ngIf="!loading">Create & Send Invite</span>
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Role Description Card -->
+        <div class="dynamic-role-card" *ngIf="form.role" [ngClass]="form.role.toLowerCase()">
+          <div class="role-card-header">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>{{ form.role }} Privileges Activated</span>
+          </div>
+          <p>{{ roleDescriptions[form.role] }}</p>
+        </div>
+      </div>
+
+      <!-- Submit button -->
+      <button class="submit-btn" (click)="submit()" [disabled]="loading">
+        <span *ngIf="!loading"><i class="bi bi-envelope-paper-fill"></i> Create & Send Invite</span>
         <span *ngIf="loading" class="spinner-wrap">
-            <span class="spinner"></span>
-            Sending...
+          <span class="spinner"></span>
+          Issuing Credentials...
         </span>
-    </button>
+      </button>
+    </main>
+
+    <!-- Right Panel: Info & Instructions -->
+    <aside class="instructions-box">
+      <!-- Instruction loop card -->
+      <div class="info-card">
+        <h4><i class="bi bi-send-check-fill icon-blue"></i> Invitation Loop</h4>
+        <div class="step-list">
+          <div class="step-item">
+            <span class="step-badge">1</span>
+            <div>
+              <h5>Generate Invite URL</h5>
+              <p>Submitting the form issues a unique enrollment token mapped to the email address.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="step-badge">2</span>
+            <div>
+              <h5>Secure Email Dispatch</h5>
+              <p>The system dispatches an auto-verification link allowing the invitee to establish passwords.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="step-badge">3</span>
+            <div>
+              <h5>Role-based Activation</h5>
+              <p>Once authenticated, the dashboard opens containing access limits corresponding to their role.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Roles Matrix -->
+      <div class="info-card">
+        <h4><i class="bi bi-matrix icon-purple"></i> Role Directory Matrix</h4>
+        <ul class="matrix-list">
+          <li><strong>ADMIN:</strong> Sourcing, admissions, invoicing, system settings, and certificates.</li>
+          <li><strong>TRAINER:</strong> Batch sessions, announcements, syllabus milestones, and tasks.</li>
+          <li><strong>HR:</strong> Jobs management, hiring partner coordinate, and lead pipeline.</li>
+          <li><strong>MANAGER/MENTOR:</strong> Lead allocations, mock interviews, and assessment tests.</li>
+        </ul>
+      </div>
+
+      <!-- Security Warning -->
+      <div class="security-warning-card">
+        <div class="warning-title">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Security Advisory</span>
+        </div>
+        <p>Ensure the email address is correct and belongs to an authorized team member. Mismatched emails can compromise operational dashboards and leak student profiles.</p>
+      </div>
+    </aside>
+  </div>
 </div>

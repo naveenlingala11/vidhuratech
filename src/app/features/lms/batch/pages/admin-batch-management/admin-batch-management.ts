@@ -19,6 +19,15 @@ export class AdminBatchManagementComponent implements OnInit {
   trainers: any[] = [];
   loading = false;
   totalPages = 0;
+  get activeBatchesCount(): number {
+    return this.batches.filter(b => b.status === 'ACTIVE').length;
+  }
+  get completedBatchesCount(): number {
+    return this.batches.filter(b => b.status === 'COMPLETED').length;
+  }
+  get totalStudentsEnrolled(): number {
+    return this.batches.reduce((sum, b) => sum + (b.studentCount || 0), 0);
+  }
   // ================= FILTERS =================
   filters = {
     keyword: '',

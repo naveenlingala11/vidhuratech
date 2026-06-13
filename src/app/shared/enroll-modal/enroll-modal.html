@@ -1,215 +1,324 @@
 <!-- ================= ENROLL MODAL ================= -->
 <div class="modal fade" id="enrollModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered custom-modal">
-    <div class="modal-content modern-modal">
-      <!-- TOP BAR -->
-      <div class="top-bar">
-        <div>Limited Seats | {{ demoClassTitle() }}</div>
-        <button
-          class="btn-close custom-close"
-          data-bs-dismiss="modal"
-          (click)="resetForm(enrollForm)"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="countdown-banner">
-        <!-- 🔥 SEATS + URGENCY -->
-        <p class="urgency-text">🔥 Only few seats left — Filling fast!</p>
-        <!-- 🔥 TIMER -->
-        <div class="countdown flip" [class.shake]="timer.hours() === 0">
-          <ng-container *ngIf="timer.days() > 0; else hoursView">
-            <div class="time flip-card green">
-              <span>{{ timer.days() }}</span>
-              <small>Days</small>
-            </div>
-            <div class="time flip-card yellow">
-              <span>{{ timer.hours() }}</span>
-              <small>Hrs</small>
-            </div>
-            <div class="time flip-card blue">
-              <span>{{ timer.minutes() }}</span>
-              <small>Min</small>
-            </div>
-          </ng-container>
-          <ng-template #hoursView>
-            <div class="time flip-card yellow">
-              <span>{{ timer.hours() }}</span>
-              <small>Hrs</small>
-            </div>
-            <div class="time flip-card blue">
-              <span>{{ timer.minutes() }}</span>
-              <small>Min</small>
-            </div>
-            <div class="time flip-card red">
-              <span>{{ timer.seconds() }}</span>
-              <small>Sec</small>
-            </div>
-          </ng-template>
-        </div>
-        <!-- 🔥 PROGRESS BAR -->
-        <div class="time-progress">
-          <div class="time-progress-fill" [style.width.%]="timer.progress()"></div>
-        </div>
-      </div>
-      <!-- HEADER -->
-      <div class="modal-header border-0">
-        <h5 class="fw-bold">Enroll for Free Demo Class</h5>
-        <button class="clear-btn" (click)="submitted = false; resetForm(enrollForm)">
-          🧹 Clear
-        </button>
-      </div>
-      <!-- BODY -->
-      <div class="modal-body">
-        <form #enrollForm="ngForm">
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="step * 33"></div>
+  <div class="modal-dialog modal-dialog-centered enroll-dialog">
+    <div class="modal-content enroll-modal-card">
+
+      <!-- CLOSE BUTTON -->
+      <button
+        class="enroll-close-btn"
+        data-bs-dismiss="modal"
+        (click)="resetForm(enrollForm)"
+        aria-label="Close"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- LEFT PANEL — BRANDING -->
+      <div class="enroll-sidebar">
+        <div class="sidebar-glow"></div>
+        <div class="sidebar-content">
+          <div class="sidebar-badge">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Free Demo Class</span>
           </div>
-          <!-- STEP 1 -->
-          <div class="row">
-            <div class="col-md-6">
-              <div class="field">
-                <input
-                  type="text"
-                  name="name"
-                  [(ngModel)]="formData.name"
-                  required
-                  minlength="3"
-                  #name="ngModel"
-                  placeholder=" "
-                />
-                <label>Name *</label>
-                <small class="v-error" *ngIf="name.invalid && (name.dirty || name.touched)">
-                  Name must be at least 3 characters
+          <h3 class="sidebar-heading">{{ demoClassTitle() }}</h3>
+          <p class="sidebar-desc">Join live sessions with real-time coding, expert mentors, and guaranteed placement support.</p>
+
+          <!-- COUNTDOWN -->
+          <div class="sidebar-countdown">
+            <p class="countdown-label">
+              <i class="fa-solid fa-clock"></i>
+              <span>Offer ends in</span>
+            </p>
+            <div class="countdown-row" [class.shake]="timer.hours() === 0">
+              <ng-container *ngIf="timer.days() > 0; else hoursOnly">
+                <div class="cd-unit">
+                  <span class="cd-num">{{ timer.days() }}</span>
+                  <span class="cd-lbl">Days</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit">
+                  <span class="cd-num">{{ timer.hours() }}</span>
+                  <span class="cd-lbl">Hrs</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit">
+                  <span class="cd-num">{{ timer.minutes() }}</span>
+                  <span class="cd-lbl">Min</span>
+                </div>
+              </ng-container>
+              <ng-template #hoursOnly>
+                <div class="cd-unit">
+                  <span class="cd-num">{{ timer.hours() }}</span>
+                  <span class="cd-lbl">Hrs</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit">
+                  <span class="cd-num">{{ timer.minutes() }}</span>
+                  <span class="cd-lbl">Min</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit cd-unit--urgent">
+                  <span class="cd-num">{{ timer.seconds() }}</span>
+                  <span class="cd-lbl">Sec</span>
+                </div>
+              </ng-template>
+            </div>
+            <div class="cd-progress-track">
+              <div class="cd-progress-bar" [style.width.%]="timer.progress()"></div>
+            </div>
+          </div>
+
+          <!-- TRUST INDICATORS -->
+          <div class="sidebar-trust">
+            <div class="trust-item">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>100% Free</span>
+            </div>
+            <div class="trust-item">
+              <i class="fa-solid fa-users"></i>
+              <span>5000+ Students</span>
+            </div>
+            <div class="trust-item">
+              <i class="fa-solid fa-star"></i>
+              <span>4.9 Rating</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL — FORM -->
+      <div class="enroll-form-panel">
+        <!-- MOBILE HEADER (shown only on mobile) -->
+        <div class="mobile-form-header">
+          <div class="mobile-badge">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Free Demo Class</span>
+          </div>
+          <h4 class="mobile-heading">Enroll Now</h4>
+          <!-- MOBILE COUNTDOWN -->
+          <div class="mobile-countdown">
+            <div class="countdown-row compact" [class.shake]="timer.hours() === 0">
+              <ng-container *ngIf="timer.days() > 0; else mobileHoursOnly">
+                <div class="cd-unit sm"><span class="cd-num">{{ timer.days() }}</span><span class="cd-lbl">D</span></div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit sm"><span class="cd-num">{{ timer.hours() }}</span><span class="cd-lbl">H</span></div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit sm"><span class="cd-num">{{ timer.minutes() }}</span><span class="cd-lbl">M</span></div>
+              </ng-container>
+              <ng-template #mobileHoursOnly>
+                <div class="cd-unit sm"><span class="cd-num">{{ timer.hours() }}</span><span class="cd-lbl">H</span></div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit sm"><span class="cd-num">{{ timer.minutes() }}</span><span class="cd-lbl">M</span></div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit sm cd-unit--urgent"><span class="cd-num">{{ timer.seconds() }}</span><span class="cd-lbl">S</span></div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-header">
+          <h4 class="form-title">Register for Demo</h4>
+          <button class="clear-form-btn" (click)="submitted = false; resetForm(enrollForm)" title="Clear form">
+            <i class="fa-solid fa-arrow-rotate-left"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <div class="form-scroll-area">
+          <form #enrollForm="ngForm">
+
+            <!-- SELECTED COURSE CARD -->
+            <div class="selected-course" *ngIf="selectedLiveCourse; else noCourse">
+              <div class="course-indicator"></div>
+              <div class="course-meta">
+                <span class="course-tag">Selected Course</span>
+                <strong class="course-name">{{ selectedLiveCourse.title }}</strong>
+                <span class="course-batch">{{ selectedLiveCourse.activeBatch?.name || 'Upcoming batch' }}</span>
+              </div>
+              <span class="course-price-tag">₹{{ formatPrice(selectedLiveCourse.price) }}</span>
+            </div>
+            <ng-template #noCourse>
+              <div class="selected-course selected-course--warn">
+                <div class="course-indicator course-indicator--warn"></div>
+                <div class="course-meta">
+                  <span class="course-tag course-tag--warn">No Active Batch</span>
+                  <strong class="course-name">Currently no batch available</strong>
+                </div>
+              </div>
+            </ng-template>
+
+            <!-- FORM FIELDS -->
+            <div class="form-grid">
+              <div class="form-field">
+                <div class="field-icon"><i class="fa-solid fa-user"></i></div>
+                <div class="field-body">
+                  <input
+                    type="text"
+                    name="name"
+                    id="enroll-name"
+                    [(ngModel)]="formData.name"
+                    required
+                    minlength="3"
+                    #name="ngModel"
+                    placeholder=" "
+                  />
+                  <label for="enroll-name">Full Name <span class="req">*</span></label>
+                </div>
+                <small class="field-error" *ngIf="name.invalid && (name.dirty || name.touched)">
+                  Minimum 3 characters required
                 </small>
               </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field">
-                <input
-                  type="tel"
-                  name="phone"
-                  [(ngModel)]="formData.phone"
-                  required
-                  pattern="^[6-9][0-9]{9}$"
-                  #phone="ngModel"
-                  placeholder=" "
-                />
-                <label>Phone *</label>
-                <small class="v-error" *ngIf="phone.invalid && (phone.dirty || phone.touched)">
+
+              <div class="form-field">
+                <div class="field-icon"><i class="fa-solid fa-phone"></i></div>
+                <div class="field-body">
+                  <input
+                    type="tel"
+                    name="phone"
+                    id="enroll-phone"
+                    [(ngModel)]="formData.phone"
+                    required
+                    pattern="^[6-9][0-9]{9}$"
+                    #phone="ngModel"
+                    placeholder=" "
+                  />
+                  <label for="enroll-phone">Phone Number <span class="req">*</span></label>
+                </div>
+                <small class="field-error" *ngIf="phone.invalid && (phone.dirty || phone.touched)">
                   Enter valid 10-digit mobile number
                 </small>
               </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="field">
-                <input
-                  type="email"
-                  name="email"
-                  [(ngModel)]="formData.email"
-                  #email="ngModel"
-                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                  placeholder=" "
-                />
-                <label>Email</label>
-                <small class="v-error" *ngIf="email.invalid && (email.dirty || email.touched)">
-                  Enter valid email (example@gmail.com)
+
+              <div class="form-field">
+                <div class="field-icon"><i class="fa-solid fa-envelope"></i></div>
+                <div class="field-body">
+                  <input
+                    type="email"
+                    name="email"
+                    id="enroll-email"
+                    [(ngModel)]="formData.email"
+                    #email="ngModel"
+                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                    placeholder=" "
+                  />
+                  <label for="enroll-email">Email Address</label>
+                </div>
+                <small class="field-error" *ngIf="email.invalid && (email.dirty || email.touched)">
+                  Enter a valid email address
                 </small>
               </div>
-            </div>
-            <div class="col-md-6">
-              <div class="field">
-                <input type="text" name="city" [(ngModel)]="formData.city" placeholder=" " />
-                <label>City</label>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="live-course-card" *ngIf="selectedLiveCourse; else noLiveCourse">
-                  <span class="live-dot"></span>
-                  <div>
-                    <small>Selected Course</small>
-                    <strong>{{ selectedLiveCourse.title }}</strong>
-                    <em>{{ selectedLiveCourse.activeBatch?.name || 'Upcoming batch' }}</em>
-                    <b class="course-price">Rs. {{ formatPrice(selectedLiveCourse.price) }}</b>
-                  </div>
+
+              <div class="form-field">
+                <div class="field-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="field-body">
+                  <input
+                    type="text"
+                    name="city"
+                    id="enroll-city"
+                    [(ngModel)]="formData.city"
+                    placeholder=" "
+                  />
+                  <label for="enroll-city">City</label>
                 </div>
-                <ng-template #noLiveCourse>
-                  <div class="live-course-card warning">
-                    <span class="live-dot"></span>
-                    <div>
-                      <small>No Live Course</small>
-                      <strong>Currently no active batch available</strong>
-                    </div>
-                  </div>
-                </ng-template>
               </div>
-              <div class="col-md-6">
-                <div class="field">
-                  <select name="experience" [(ngModel)]="formData.experience">
-                    <option value="" disabled>Select Experience</option>
+
+              <div class="form-field form-field--full">
+                <div class="field-icon"><i class="fa-solid fa-briefcase"></i></div>
+                <div class="field-body">
+                  <select name="experience" id="enroll-experience" [(ngModel)]="formData.experience">
+                    <option value="" disabled>Select Experience Level</option>
                     <option value="Fresher">Fresher</option>
                     <option value="Student">Student</option>
-                    <option value="Working">Working</option>
+                    <option value="Working">Working Professional</option>
                   </select>
                 </div>
               </div>
-            </div>
-            <div class="col-12">
-              <div class="field">
-                <textarea
-                  name="message"
-                  [(ngModel)]="formData.message"
-                  placeholder="Tell us your goal (e.g., job, career switch, learning coding)..."
-                ></textarea>
+
+              <div class="form-field form-field--full">
+                <div class="field-icon field-icon--top"><i class="fa-solid fa-message"></i></div>
+                <div class="field-body">
+                  <textarea
+                    name="message"
+                    id="enroll-message"
+                    [(ngModel)]="formData.message"
+                    placeholder="Tell us your goal (e.g., job, career switch, learning coding)..."
+                    rows="3"
+                  ></textarea>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="d-flex gap-2">
+
+            <!-- SUBMIT -->
             <button
               type="button"
               (click)="submitForm()"
               [disabled]="isSubmitting || !selectedLiveCourse"
-              class="btn submit-btn w-100"
+              class="enroll-submit-btn"
+              id="enroll-submit"
             >
-              {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+              <span *ngIf="!isSubmitting">
+                <i class="fa-solid fa-paper-plane"></i>
+                Submit Enrollment
+              </span>
+              <span *ngIf="isSubmitting" class="submit-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Submitting...
+              </span>
             </button>
-          </div>
-        </form>
+
+            <p class="form-disclaimer">
+              <i class="fa-solid fa-lock"></i>
+              Your information is secure and will never be shared.
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
 <!-- ================= SUCCESS POPUP ================= -->
-<div class="success-popup" *ngIf="submitted">
-  <div class="success-box">
-    <!-- CLOSE -->
-    <button class="close-btn" (click)="submitted = false">✕</button>
+<div class="success-overlay" *ngIf="submitted">
+  <div class="success-card">
     <!-- CONFETTI -->
-    <div class="confetti-container">
+    <div class="confetti-area">
       <span
         *ngFor="let i of [].constructor(80); let idx = index"
-        class="confetti"
+        class="confetti-piece"
         [ngClass]="{
-          square: idx % 3 === 0,
-          circle: idx % 3 === 1,
-          triangle: idx % 3 === 2,
+          'c-square': idx % 3 === 0,
+          'c-circle': idx % 3 === 1,
+          'c-triangle': idx % 3 === 2
         }"
         [style.left.%]="idx * 1.2"
         [style.animationDelay]="idx * 0.05 + 's'"
         [style.animationDuration]="3 + (idx % 5) + 's'"
       ></span>
     </div>
-    <!-- CHECK -->
-    <div class="checkmark"></div>
-    <h4>Successfully Registered 🎉</h4>
-    <p>We will contact you soon</p>
-    <!-- ACTION -->
-    <button class="btn whatsapp-btn w-100 mb-2" (click)="openWhatsApp()">
-      💬 Contact on WhatsApp
+
+    <!-- CLOSE -->
+    <button class="success-close" (click)="submitted = false" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
     </button>
-    <button class="btn cancel-btn w-100" (click)="submitted = false">Cancel</button>
+
+    <!-- CHECK ANIMATION -->
+    <div class="success-check-ring">
+      <div class="success-check-icon">
+        <i class="fa-solid fa-check"></i>
+      </div>
+    </div>
+
+    <h4 class="success-title">Successfully Registered! 🎉</h4>
+    <p class="success-subtitle">We will contact you shortly with demo class details.</p>
+
+    <!-- ACTIONS -->
+    <button class="success-wa-btn" (click)="openWhatsApp()">
+      <i class="fa-brands fa-whatsapp"></i>
+      Chat on WhatsApp
+    </button>
+    <button class="success-dismiss-btn" (click)="submitted = false">
+      Close
+    </button>
   </div>
 </div>

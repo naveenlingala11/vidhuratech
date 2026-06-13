@@ -1,28 +1,310 @@
-<div class="bulk-page">
-    <h2>📦 Bulk Course Upload</h2>
-    <textarea [(ngModel)]="jsonInput" rows="12" placeholder="Paste JSON here..."></textarea>
-    <div class="actions">
-        <button (click)="parseJSON()">Preview</button>
-        <button (click)="upload()" [disabled]="loading || !preview.length">
-            {{ loading ? 'Uploading...' : 'Upload' }}
+<section class="cb-page">
+  <!-- Interactive Frosted Glass Header -->
+  <header class="cb-hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-clouds-fill"></i>
+        System Administration
+      </span>
+      <h1>Course Bulk Upload</h1>
+      <p class="hero-desc">
+        Seamlessly ingest complete course catalogs via standard structured JSON payloads. View schema parameters, load sample templates, validate syntax on-the-fly, and upload in batches.
+      </p>
+    </div>
+  </header>
+
+  <!-- Split Creator Workspace -->
+  <div class="cb-workspace">
+    <!-- Left Column: JSON Terminal Console -->
+    <div class="cb-workspace-card cb-editor-card">
+      <div class="card-header-glow"></div>
+      <div class="card-header-bar">
+        <div class="header-title-wrapper">
+          <span class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </span>
+          <h3>JSON Editor Console</h3>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn-console-action" (click)="loadSample()" title="Load Sample JSON">
+            <i class="bi bi-filetype-json me-1"></i> Load Sample
+          </button>
+          <button type="button" class="btn-console-action" (click)="copyTemplate()" title="Copy Sample JSON">
+            <i class="bi bi-clipboard2-check me-1"></i> Copy
+          </button>
+          <button type="button" class="btn-console-action btn-danger-action" (click)="clearInput()" title="Clear Content">
+            <i class="bi bi-trash3 me-1"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="editor-viewport">
+        <textarea
+          [(ngModel)]="jsonInput"
+          (input)="parseJSON()"
+          rows="14"
+          placeholder="Paste or write your Course Catalog JSON array here..."
+          class="terminal-textarea"
+        ></textarea>
+      </div>
+
+      <!-- Parsing Validation HUD -->
+      <div class="hud-feedback-area">
+        <!-- Success/Error Feedback Alerts -->
+        <div class="feedback-alert alert-success-state" *ngIf="successMessage">
+          <i class="bi bi-check-circle-fill alert-icon"></i>
+          <span class="alert-text">{{ successMessage }}</span>
+          <button type="button" class="alert-close" (click)="successMessage = ''">&times;</button>
+        </div>
+        <div class="feedback-alert alert-error-state" *ngIf="errorMessage">
+          <i class="bi bi-exclamation-octagon-fill alert-icon"></i>
+          <span class="alert-text">{{ errorMessage }}</span>
+          <button type="button" class="alert-close" (click)="errorMessage = ''">&times;</button>
+        </div>
+
+        <!-- Syntax Parser Error -->
+        <div class="feedback-alert alert-error-state" *ngIf="jsonError">
+          <i class="bi bi-bug-fill alert-icon"></i>
+          <div class="alert-details">
+            <strong>JSON Syntax Error:</strong>
+            <p>{{ jsonError }}</p>
+          </div>
+        </div>
+
+        <!-- Semantic Validator Warnings -->
+        <div class="feedback-alert alert-warning-state" *ngIf="validationErrors.length > 0">
+          <i class="bi bi-exclamation-triangle-fill alert-icon"></i>
+          <div class="alert-details">
+            <strong>Validation Schema Mismatch ({{ validationErrors.length }} errors):</strong>
+            <ul class="validation-errors-list">
+              <li *ngFor="let err of validationErrors">{{ err }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Ingestion Ready Banner -->
+        <div class="feedback-alert alert-ready-state" *ngIf="preview.length > 0 && !jsonError && validationErrors.length === 0">
+          <i class="bi bi-patch-check-fill alert-icon"></i>
+          <div class="alert-details">
+            <strong>JSON Schema Validated:</strong>
+            <p>{{ preview.length }} courses processed and ready for ingestion.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingest Action Button -->
+      <div class="editor-action-footer">
+        <button
+          type="button"
+          class="btn-ingest"
+          [disabled]="loading || preview.length === 0 || !!jsonError || validationErrors.length > 0"
+          (click)="upload()"
+        >
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" *ngIf="loading"></span>
+          <i class="bi bi-cloud-arrow-up-fill me-2" *ngIf="!loading"></i>
+          {{ loading ? 'Uploading Courses...' : 'Ingest Courses to Database' }}
         </button>
+      </div>
     </div>
-    <!-- PREVIEW -->
-    <div *ngIf="preview.length">
-        <h4>Preview ({{ preview.length }})</h4>
-        <div class="preview-card" *ngFor="let c of preview">
-            <strong>{{ c.title }}</strong> - {{ c.code }}
+
+    <!-- Right Column: Schema Rules & Instructions -->
+    <div class="cb-workspace-card cb-instructions-card">
+      <div class="card-header-bar">
+        <h3>
+          <i class="bi bi-journal-code text-primary me-2"></i>
+          Schema Guidelines & Rules
+        </h3>
+      </div>
+      <div class="instructions-content">
+        <p class="section-intro">
+          The catalog JSON must be formatted as an <strong>array of objects</strong>. All fields are audited by the ingestion engine before storing.
+        </p>
+
+        <div class="schema-specification-list">
+          <!-- Item 1 -->
+          <div class="schema-field-item field-required">
+            <div class="field-meta">
+              <span class="field-name">title</span>
+              <span class="field-badgebadge badge-req">Required</span>
+              <span class="field-type">string</span>
+            </div>
+            <p class="field-desc">The human-readable course name (e.g., "Intro to Kubernetes").</p>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="schema-field-item field-required">
+            <div class="field-meta">
+              <span class="field-name">code</span>
+              <span class="field-badgebadge badge-req">Required</span>
+              <span class="field-type">string</span>
+            </div>
+            <p class="field-desc">Unique alphanumeric code identifier. Duplicate codes will be rejected.</p>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="schema-field-item field-required">
+            <div class="field-meta">
+              <span class="field-name">level</span>
+              <span class="field-badgebadge badge-req">Required</span>
+              <span class="field-type">enum</span>
+            </div>
+            <p class="field-desc">Must be exactly: <code>BEGINNER</code>, <code>INTERMEDIATE</code>, or <code>ADVANCED</code>.</p>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="schema-field-item field-optional">
+            <div class="field-meta">
+              <span class="field-name">status</span>
+              <span class="field-badgebadge badge-opt">Optional</span>
+              <span class="field-type">enum</span>
+            </div>
+            <p class="field-desc">Set draft status or publish status: <code>DRAFT</code> or <code>PUBLISHED</code>.</p>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="schema-field-item field-optional">
+            <div class="field-meta">
+              <span class="field-name">durationHours</span>
+              <span class="field-badgebadge badge-opt">Optional</span>
+              <span class="field-type">number</span>
+            </div>
+            <p class="field-desc">Total training hours (must be 0 or positive).</p>
+          </div>
+
+          <!-- Item 6 -->
+          <div class="schema-field-item field-optional">
+            <div class="field-meta">
+              <span class="field-name">price</span>
+              <span class="field-badgebadge badge-opt">Optional</span>
+              <span class="field-type">number</span>
+            </div>
+            <p class="field-desc">Sales or registration price value in local currency (non-negative).</p>
+          </div>
+
+          <!-- Item 7 -->
+          <div class="schema-field-item field-optional">
+            <div class="field-meta">
+              <span class="field-name">description</span>
+              <span class="field-badgebadge badge-opt">Optional</span>
+              <span class="field-type">string</span>
+            </div>
+            <p class="field-desc">Full paragraph summary detailing curriculum elements.</p>
+          </div>
         </div>
+
+        <div class="audit-disclaimer">
+          <i class="bi bi-shield-fill-check disclaimer-icon"></i>
+          <div>
+            <h5>Transactional Isolation</h5>
+            <p>If any code conflicts with existing catalog items, the request will isolate duplicates while uploading the remainder.</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- RESULT -->
-    <div *ngIf="result" class="result">
-        <p>✅ Success: {{ result.successCount }}</p>
-        <p>❌ Failed: {{ result.failedCount }}</p>
-        <div *ngIf="result.duplicateCodes?.length">
-            <h5>Duplicates:</h5>
-            <span *ngFor="let d of result.duplicateCodes" class="dup">
-                {{ d }}
+  </div>
+
+  <!-- Bottom Workspace: Upload Results & Previews -->
+  <div class="cb-results-area" *ngIf="preview.length > 0 || result">
+    <!-- Section Dividers -->
+    <div class="results-header-container">
+      <h2>Ingestion Summary & Preview</h2>
+      <div class="results-divider"></div>
+    </div>
+
+    <!-- Ingestion Results Response Cards -->
+    <div class="response-status-board" *ngIf="result">
+      <div class="response-stat-card card-success-stat">
+        <div class="stat-icon-wrapper">
+          <i class="bi bi-cloud-check-fill"></i>
+        </div>
+        <div class="stat-digits">
+          <span class="value">{{ result.successCount || 0 }}</span>
+          <span class="label">Ingested Successfully</span>
+        </div>
+      </div>
+
+      <div class="response-stat-card card-failed-stat">
+        <div class="stat-icon-wrapper">
+          <i class="bi bi-cloud-slash-fill"></i>
+        </div>
+        <div class="stat-digits">
+          <span class="value">{{ result.failedCount || 0 }}</span>
+          <span class="label">Rejected / Duplicates</span>
+        </div>
+      </div>
+
+      <div class="response-stat-card card-duplicate-listings" *ngIf="result.duplicateCodes?.length > 0">
+        <div class="stat-icon-wrapper">
+          <i class="bi bi-exclamation-circle-fill"></i>
+        </div>
+        <div class="stat-digits">
+          <span class="label">Duplicate codes ignored:</span>
+          <div class="dup-codes-flex">
+            <span class="dup-code-badge" *ngFor="let d of result.duplicateCodes">
+              {{ d }}
             </span>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+
+    <!-- Roster Ingestion Pre-flight Preview Grid -->
+    <div class="preview-workspace-section" *ngIf="preview.length > 0">
+      <div class="preview-deck-title">
+        <h4>
+          <i class="bi bi-eye-fill text-muted me-2"></i>
+          Pre-flight Catalog Preview
+        </h4>
+        <span class="badge rounded-pill bg-light text-dark shadow-sm">
+          {{ preview.length }} Items
+        </span>
+      </div>
+
+      <div class="preview-courses-grid">
+        <article
+          class="preview-course-card"
+          *ngFor="let c of preview"
+          [class.lvl-beginner]="c.level === 'BEGINNER'"
+          [class.lvl-intermediate]="c.level === 'INTERMEDIATE'"
+          [class.lvl-advanced]="c.level === 'ADVANCED'"
+        >
+          <!-- Accent color stripe on left -->
+          <div class="card-level-stripe"></div>
+
+          <div class="card-main-content">
+            <div class="card-identity-header">
+              <span class="course-code-tag">{{ c.code || 'NO-CODE' }}</span>
+              <span class="level-indicator-badge">
+                {{ c.level || 'BEGINNER' }}
+              </span>
+            </div>
+
+            <h4 class="course-title">{{ c.title }}</h4>
+            <p class="course-description">{{ c.description || 'No description provided.' }}</p>
+
+            <div class="course-meta-tags">
+              <span class="meta-tag price-tag" *ngIf="c.price !== undefined">
+                <i class="bi bi-tag-fill me-1 text-primary"></i>
+                ${{ c.price | number:'1.2-2' }}
+              </span>
+              <span class="meta-tag duration-tag" *ngIf="c.durationHours !== undefined">
+                <i class="bi bi-clock-history me-1 text-info"></i>
+                {{ c.durationHours }} Hours
+              </span>
+              <span class="meta-tag status-tag" [class.status-published]="c.status === 'PUBLISHED'">
+                <i class="bi" [ngClass]="c.status === 'PUBLISHED' ? 'bi-eye-fill text-success' : 'bi-eye-slash-fill text-warning'"></i>
+                {{ c.status || 'DRAFT' }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>

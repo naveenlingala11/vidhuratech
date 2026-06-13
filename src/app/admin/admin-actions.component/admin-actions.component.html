@@ -1,10 +1,150 @@
-<div class="actions-page">
-  <h2>⚡ Admin Actions</h2>
-  <p class="subtitle">Quick access to all admin modules</p>
-  <div class="grid">
-    <div class="card" *ngFor="let m of modules" (click)="navigate(m.route)">
-      <div class="icon">{{ m.icon }}</div>
-      <div class="title">{{ m.title }}</div>
+<!-- Verified Placements Page -->
+<div class="admin-control-center">
+  <!-- Glowing meshes -->
+  <div class="bg-radial-mesh-1"></div>
+  <div class="bg-radial-mesh-2"></div>
+  <div class="bg-grid-overlay"></div>
+
+  <!-- Header Banner -->
+  <header class="control-header">
+    <div class="header-left">
+      <span class="control-eyebrow">
+        <span class="live-dot-pulse"></span>
+        SYSTEM ROOT ACCESS ACTIVE
+      </span>
+      <h2>System Control Panel</h2>
+      <p class="subtitle">Oversee, configure, and monitor VidhuraTech platform operations</p>
     </div>
+    <div class="header-right">
+      <div class="system-time-card">
+        <i class="bi bi-clock"></i>
+        <span>Root Terminal Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Metrics Grid -->
+  <section class="kpi-grid">
+    <div class="kpi-card" *ngFor="let stat of stats" [ngClass]="stat.color">
+      <div class="kpi-icon-wrapper">
+        <i class="bi" [ngClass]="stat.icon"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">{{ stat.title }}</span>
+        <h3 class="kpi-value">{{ stat.value }}</h3>
+        <span class="kpi-change" [ngClass]="stat.trend">
+          <i class="bi" [ngClass]="stat.trend === 'up' ? 'bi-arrow-up-short' : 'bi-dash'"></i>
+          {{ stat.change }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Layout Split -->
+  <div class="dashboard-layout">
+    <!-- Left Panel: Search & Command Module Grid -->
+    <main class="main-dashboard-panel">
+      <!-- Search & Filters Bar -->
+      <div class="controls-bar">
+        <div class="search-box">
+          <i class="bi bi-search search-icon"></i>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            placeholder="Search commands, actions, or modules..." 
+            class="search-input"
+          />
+        </div>
+
+        <div class="category-pills">
+          <button 
+            *ngFor="let cat of categories" 
+            (click)="selectCategory(cat)"
+            [class.active]="selectedCategory === cat"
+            class="category-btn"
+          >
+            {{ cat }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Modules Grid -->
+      <div class="modules-grid" *ngIf="filteredModules.length > 0">
+        <div 
+          class="module-card" 
+          *ngFor="let m of filteredModules" 
+          (click)="navigate(m.route)"
+        >
+          <div class="module-accent-border" [ngClass]="m.category.toLowerCase()"></div>
+          
+          <div class="module-header">
+            <div class="module-icon-box" [ngClass]="m.category.toLowerCase()">
+              <i class="bi" [ngClass]="m.icon"></i>
+            </div>
+            <span class="module-category-badge">{{ m.category }}</span>
+          </div>
+
+          <h3 class="module-title">{{ m.title }}</h3>
+          <p class="module-description">{{ m.description }}</p>
+
+          <div class="module-footer">
+            <span class="action-prompt">Execute Command</span>
+            <i class="bi bi-arrow-right-short arrow-icon"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Search State -->
+      <div class="empty-state" *ngIf="filteredModules.length === 0">
+        <div class="empty-icon-box">
+          <i class="bi bi-search-heart"></i>
+        </div>
+        <h4>No matching modules found</h4>
+        <p>Try refining your search terms or selecting a different category.</p>
+        <button class="reset-search-btn" (click)="searchQuery = ''; selectedCategory = 'All'">
+          Reset Filters
+        </button>
+      </div>
+    </main>
+
+    <!-- Right Sidebar Panel: Health & Audit Log -->
+    <aside class="sidebar-dashboard-panel">
+      <!-- System Health Checklist -->
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">
+          <i class="bi bi-shield-check icon-emerald"></i>
+          System Integrity
+        </h4>
+        <div class="health-list">
+          <div class="health-item" *ngFor="let sys of systemHealth">
+            <div class="health-left">
+              <i class="bi" [ngClass]="[sys.icon, sys.color]"></i>
+              <span>{{ sys.name }}</span>
+            </div>
+            <span class="health-badge" [ngClass]="sys.color">{{ sys.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Audit Log Feed -->
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">
+          <i class="bi bi-activity icon-blue"></i>
+          Audit Logs
+        </h4>
+        <div class="audit-list">
+          <div class="audit-item" *ngFor="let log of auditLogs">
+            <div class="audit-icon-wrapper" [ngClass]="log.color">
+              <i class="bi" [ngClass]="log.icon"></i>
+            </div>
+            <div class="audit-content">
+              <h5>{{ log.action }}</h5>
+              <p>{{ log.details }}</p>
+              <span class="audit-time">{{ log.time }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>

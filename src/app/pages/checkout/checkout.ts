@@ -34,6 +34,7 @@ export class Checkout implements OnInit {
   batchId = 0;
 
   formErrors: Record<string, string> = {};
+  formSubmitted = false;
 
   formData = {
     name: '',
@@ -57,6 +58,12 @@ export class Checkout implements OnInit {
 
   ngOnInit(): void {
     this.loadSelectedCourseOnly();
+  }
+
+  onFieldChange(): void {
+    if (this.formSubmitted) {
+      this.validate();
+    }
   }
 
   loadSelectedCourseOnly(): void {
@@ -206,6 +213,7 @@ export class Checkout implements OnInit {
   }
 
   startCheckoutAndPay(): void {
+    this.formSubmitted = true;
     if (!this.validate()) return;
 
     this.loading.set(true);

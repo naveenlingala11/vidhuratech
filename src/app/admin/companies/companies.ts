@@ -20,15 +20,24 @@ export class CompaniesComponent implements OnInit {
   direction = 'asc';
   activeFilter: any = '';
   isLoading = false;
+
+  successMessage = '';
+  errorMessage = '';
+  deletingCompanyId: number | null = null;
+  Math = Math;
+
   newCompany = {
     company: '',
     type: 'greenhouse',
     url: '',
   };
+
   constructor(private http: HttpClient, private cd: ChangeDetectorRef) { }
+
   ngOnInit() {
     this.loadCompanies();
   }
+
   // ================= LOAD =================
   loadCompanies() {
     this.isLoading = true;
@@ -45,12 +54,15 @@ export class CompaniesComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
+        this.cd.detectChanges();
       }
     });
   }
+
   refresh() {
     this.loadCompanies();
   }
+
   // ================= PAGINATION =================
   nextCompanyPage() {
     if ((this.companyPage + 1) * this.companySize < this.totalCompanies) {
@@ -58,17 +70,20 @@ export class CompaniesComponent implements OnInit {
       this.loadCompanies();
     }
   }
+
   prevCompanyPage() {
     if (this.companyPage > 0) {
       this.companyPage--;
       this.loadCompanies();
     }
   }
+
   // ================= SEARCH =================
   onSearchChange() {
     this.companyPage = 0;
     this.loadCompanies();
   }
+
   // ================= SORT =================
   changeSort(field: string) {
     if (this.sortBy === field) {
@@ -79,41 +94,78 @@ export class CompaniesComponent implements OnInit {
     }
     this.loadCompanies();
   }
+
   // ================= ADD =================
   addCompany() {
     if (!this.newCompany.company || !this.newCompany.url) {
-      alert('Fill required fields');
+      this.errorMessage = 'Please enter both the Company Name and Careers URL.';
+      setTimeout(() => this.errorMessage = '', 4000);
       return;
     }
-    fetch(`${environment.apiUrl}/admin/companies`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(this.newCompany),
-    }).then(() => {
-      alert('Company Added ✅');
-      this.newCompany = {
-        company: '',
-        type: 'greenhouse',
-        url: '',
-      };
-      this.loadCompanies();
+
+    this.isLoading = true;
+    this.http.post(`${environment.apiUrl}/admin/companies`, this.newCompany).subscribe({
+      next: () => {
+        this.successMessage = `Company "${this.newCompany.company}" added successfully!`;
+        setTimeout(() => this.successMessage = '', 4000);
+        this.newCompany = {
+          company: '',
+          type: 'greenhouse',
+          url: '',
+        };
+        this.loadCompanies();
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.errorMessage = err.error?.message || 'Failed to add company. Please check input parameters.';
+        setTimeout(() => this.errorMessage = '', 4000);
+        this.cd.detectChanges();
+      }
     });
   }
+
   // ================= DELETE =================
-  deleteCompany(id: number) {
-    if (!confirm('Delete this company?')) return;
-    fetch(`${environment.apiUrl}/admin/companies/${id}`, {
-      method: 'DELETE',
-    }).then(() => this.loadCompanies());
+  confirmDelete(id: number) {
+    this.deletingCompanyId = id;
   }
+
+  cancelDelete() {
+    this.deletingCompanyId = null;
+  }
+
+  deleteCompany(id: number) {
+    this.isLoading = true;
+    this.deletingCompanyId = null;
+    this.http.delete(`${environment.apiUrl}/admin/companies/${id}`).subscribe({
+      next: () => {
+        this.successMessage = 'Company deleted successfully.';
+        setTimeout(() => this.successMessage = '', 4000);
+        this.loadCompanies();
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.errorMessage = err.error?.message || 'Failed to delete company.';
+        setTimeout(() => this.errorMessage = '', 4000);
+        this.cd.detectChanges();
+      }
+    });
+  }
+
   // ================= TOGGLE =================
   toggleCompany(c: any) {
-    fetch(`${environment.apiUrl}/admin/companies/${c.id}/toggle`, {
-      method: 'PUT'
-    }).then(() => {
-      c.active = !c.active; // instant UI update
+    this.http.put(`${environment.apiUrl}/admin/companies/${c.id}/toggle`, {}).subscribe({
+      next: () => {
+        c.active = !c.active; // instant UI update
+        this.successMessage = `Company "${c.company}" ${c.active ? 'enabled' : 'disabled'} successfully.`;
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err: any) => {
+        this.errorMessage = err.error?.message || 'Failed to update company status.';
+        setTimeout(() => this.errorMessage = '', 4000);
+      }
     });
   }
+
   // ================= BADGE STYLE =================
   getStatusClass(active: boolean) {
     return active ? 'active-badge' : 'inactive-badge';

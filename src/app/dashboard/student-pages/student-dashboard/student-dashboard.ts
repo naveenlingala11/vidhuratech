@@ -92,6 +92,18 @@ export class StudentDashboard implements OnInit {
     notes: '',
   };
 
+  localTasks: { id: number; text: string; done: boolean }[] = [];
+  newTaskText = '';
+  loginHistory: string[] = [];
+
+  dailyTips = [
+    "Tip: Code is read more often than it's written. Use clear descriptive naming.",
+    "Concept: Big O Notation defines worst-case performance limits.",
+    "Best Practice: Commit small and commit often with atomic descriptive messages.",
+    "Vitals: Mock interviews reduce real anxiety and build clean storytelling patterns.",
+    "Design: Keep components modular and reusable (Single Responsibility Principle)."
+  ];
+
   quickActions: QuickAction[] = [
     {
       label: 'Open LMS',
@@ -149,6 +161,8 @@ export class StudentDashboard implements OnInit {
   ngOnInit(): void {
     this.loadDashboard();
     this.loadStudentWorkflow();
+    this.loadLocalTasks();
+    this.trackLoginAndStreak();
   }
 
   loadDashboard(): void {
@@ -482,5 +496,158 @@ export class StudentDashboard implements OnInit {
     item: { title?: string; label?: string; name?: string; courseName?: string },
   ): string | undefined {
     return item.title || item.label || item.name || item.courseName;
+  }
+
+  // === CUSTOM PREMIUM TO-DO PLANNER ===
+  loadLocalTasks(): void {
+    try {
+      this.localTasks = JSON.parse(localStorage.getItem('vt_student_tasks') || '[]');
+      if (this.localTasks.length === 0) {
+        this.localTasks = [
+          { id: 1, text: 'Review OOP concepts & class inheritance', done: false },
+          { id: 2, text: 'Solve 1 dynamic coding pseudo challenge', done: true },
+          { id: 3, text: 'Prepare response for mock interview questions', done: false }
+        ];
+        this.saveLocalTasks();
+      }
+    } catch {
+      this.localTasks = [];
+    }
+  }
+
+  saveLocalTasks(): void {
+    localStorage.setItem('vt_student_tasks', JSON.stringify(this.localTasks));
+  }
+
+  addLocalTask(): void {
+    if (!this.newTaskText.trim()) return;
+    this.localTasks.push({
+      id: Date.now(),
+      text: this.newTaskText.trim(),
+      done: false
+    });
+    this.newTaskText = '';
+    this.saveLocalTasks();
+    this.showToast('Daily task added to planner');
+  }
+
+  toggleLocalTask(task: any): void {
+    task.done = !task.done;
+    this.saveLocalTasks();
+    this.cdr.detectChanges();
+  }
+
+  deleteLocalTask(id: number): void {
+    this.localTasks = this.localTasks.filter(t => t.id !== id);
+    this.saveLocalTasks();
+    this.showToast('Task removed from list');
+    this.cdr.detectChanges();
+  }
+
+  // === GAMIFICATION & METRIC CONSOLES ===
+  // === REAL LOGIN & STREAK TRACKING ===
+  trackLoginAndStreak(): void {
+    try {
+      const historyJson = localStorage.getItem('vt_login_history');
+      let history: string[] = historyJson ? JSON.parse(historyJson) : [];
+      
+      const today = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+      
+      if (!history.includes(today)) {
+        history.push(today);
+        // Keep only last 60 days of logs to keep data clean
+        history = history.sort().slice(-60);
+        localStorage.setItem('vt_login_history', JSON.stringify(history));
+      }
+      this.loginHistory = history;
+    } catch {
+      this.loginHistory = [new Date().toLocaleDateString('en-CA')];
+    }
+  }
+
+  get calculatedStreak(): number {
+    if (this.loginHistory.length === 0) return 0;
+    
+    // Sort descending
+    const sorted = [...this.loginHistory].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+    
+    // Streak is active if visited today or yesterday
+    if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) {
+      return 0;
+    }
+    
+    let streak = 0;
+    const currentCheck = new Date(sorted[0]);
+    
+    while (true) {
+      const currentCheckStr = currentCheck.toLocaleDateString('en-CA');
+      if (sorted.includes(currentCheckStr)) {
+        streak++;
+        currentCheck.setDate(currentCheck.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  get last7DaysActivity(): { dateLabel: string; active: boolean }[] {
+    const list = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString('en-CA');
+      const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
+      
+      list.push({
+        dateLabel: `${dayLabel} (${d.getDate()})`,
+        active: this.loginHistory.includes(dateStr)
+      });
+    }
+    return list;
+  }
+
+  get totalXP(): number {
+    const courseXP = this.myCourses.reduce((sum, c) => sum + (c.progress || 0) * 8, 0);
+    const challengeXP = (this.stats.pseudoChallenges || 0) * 35;
+    const practiceXP = (this.stats.practiceItems || 0) * 20;
+    return courseXP + challengeXP + practiceXP;
+  }
+
+  get userLevel(): number {
+    return Math.floor(this.totalXP / 450) + 1;
+  }
+
+  get xpProgressPercentage(): number {
+    return Math.round(((this.totalXP % 450) / 450) * 100);
+  }
+
+  get skillMetrics() {
+    const challengeCount = this.stats.pseudoChallenges || 0;
+    const mockCount = this.mockRequests.length;
+    
+    const codingLogic = Math.min(60 + (challengeCount * 8), 98);
+    const conceptualDsa = Math.min(50 + (this.averageProgress * 0.45), 95);
+    const mockVitals = Math.min(45 + (mockCount * 12), 92);
+    const coreTechStack = Math.min(40 + (this.averageProgress * 0.55), 97);
+    
+    return [
+      { name: 'Coding & Logic', value: codingLogic, icon: 'bi-code-slash', tone: 'blue' },
+      { name: 'DSA & Concepts', value: conceptualDsa, icon: 'bi-calculator', tone: 'purple' },
+      { name: 'Interview Vitals', value: mockVitals, icon: 'bi-people', tone: 'rose' },
+      { name: 'Core Tech Stack', value: coreTechStack, icon: 'bi-layers', tone: 'teal' }
+    ];
+  }
+
+  get currentTip(): string {
+    const day = new Date().getDay();
+    return this.dailyTips[day % this.dailyTips.length];
   }
 }

@@ -1,213 +1,542 @@
-<section class="layout">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h3>Filters</h3>
-    <!-- SORT -->
-    <div class="filter-block">
-      <div class="filter-header" (click)="toggleSection('showSort')">
-        🔽 Sort By
-        <span>{{ showSort ? '▲' : '▼' }}</span>
+<div class="jobs-workspace">
+  <!-- Ambient background glows -->
+  <div class="policy-ambient-glow">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- HERO STATS HEADER -->
+  <section class="premium-hero-stats">
+    <div class="stats-grid">
+      <div class="stat-card stat-blue">
+        <div class="stat-icon-wrap">
+          <i class="bi bi-briefcase"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-count">{{ totalJobs > 0 ? totalJobs : '120+' }}</span>
+          <span class="stat-label">Active Opportunities</span>
+        </div>
+        <div class="stat-badge">Live Now</div>
       </div>
-      <div *ngIf="showSort">
-        <label>
+
+      <div class="stat-card stat-emerald">
+        <div class="stat-icon-wrap">
+          <i class="bi bi-laptop"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-count">85+</span>
+          <span class="stat-label">Remote-friendly Roles</span>
+        </div>
+        <div class="stat-badge badge-green">Flexible</div>
+      </div>
+
+      <div class="stat-card stat-amber">
+        <div class="stat-icon-wrap">
+          <i class="bi bi-building"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-count">{{ companies.length > 0 ? companies.length : '40+' }}</span>
+          <span class="stat-label">Top Hiring Brands</span>
+        </div>
+        <div class="stat-badge badge-orange">Verified</div>
+      </div>
+
+      <div class="stat-card stat-pink">
+        <div class="stat-icon-wrap">
+          <i class="bi bi-lightning-charge"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-count">1.8h</span>
+          <span class="stat-label">Avg. Interview Match</span>
+        </div>
+        <div class="stat-badge badge-red">Fast Track</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <!-- SIDEBAR FILTERS -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="bi bi-sliders header-icon"></i>
+        <h3>Filter Opportunities</h3>
+      </div>
+
+      <!-- SORT -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showSort')">
+          <span class="header-title">
+            <i class="bi bi-sort-down icon-accent"></i> Sort By
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showSort">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showSort" class="filter-content-wrap">
+          <label class="radio-container">
+            <input
+              type="radio"
+              name="sort"
+              value="latest"
+              [(ngModel)]="filters.sort"
+              (change)="page = 0"
+            />
+            <span class="custom-radio"></span>
+            Latest Listings
+          </label>
+          <label class="radio-container">
+            <input
+              type="radio"
+              name="sort"
+              value="oldest"
+              [(ngModel)]="filters.sort"
+              (change)="page = 0"
+            />
+            <span class="custom-radio"></span>
+            Oldest Listings
+          </label>
+        </div>
+      </div>
+
+      <!-- DATE FILTER -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showDate')">
+          <span class="header-title">
+            <i class="bi bi-calendar-event icon-accent"></i> Date Posted
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showDate">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showDate" class="filter-content-wrap">
+          <label class="radio-container" *ngFor="let d of ['today', 'week', 'month']">
+            <input type="radio" [value]="d" [(ngModel)]="filters.date" (change)="page = 0" />
+            <span class="custom-radio"></span>
+            Posted {{ d === 'today' ? 'Today' : 'this ' + d }}
+          </label>
+        </div>
+      </div>
+
+      <!-- LOCATION -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showLocation')">
+          <span class="header-title">
+            <i class="bi bi-geo-alt icon-accent"></i> Job Location
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showLocation">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showLocation" class="filter-content-wrap">
+          <label class="checkbox-container" *ngFor="let l of locations">
+            <input type="checkbox" [checked]="filters.location.includes(l)" (change)="toggleFilter('location', l)" />
+            <span class="custom-chk"></span>
+            {{ l }}
+          </label>
+        </div>
+      </div>
+
+      <!-- REMOTE -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showRemote')">
+          <span class="header-title">
+            <i class="bi bi-laptop icon-accent"></i> Work Mode
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showRemote">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showRemote" class="filter-content-wrap">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="filters.remote" (change)="page = 0" />
+            <span class="custom-chk"></span>
+            Remote Only
+          </label>
+        </div>
+      </div>
+
+      <!-- COMPANIES -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showCompanyDropdown')">
+          <span class="header-title">
+            <i class="bi bi-building icon-accent"></i> Companies
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showCompanyDropdown">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showCompanyDropdown" class="filter-content-wrap dropdown-wrap">
+          <div class="company-search-box-wrapper">
+            <i class="bi bi-search search-icon-inner"></i>
+            <input
+              type="text"
+              placeholder="Search company..."
+              [(ngModel)]="companySearch"
+              class="search-box-inner"
+            />
+          </div>
+          <div class="company-list-scroll">
+            <label *ngFor="let c of filteredCompanies" class="checkbox-container checkbox-item">
+              <input
+                type="checkbox"
+                [checked]="filters.company.includes(c.name)"
+                (change)="toggleFilter('company', c.name)"
+              />
+              <span class="custom-chk"></span>
+              <span class="company-name-label">{{ c.name }}</span>
+              <span class="company-count-badge">{{ c.count }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPERIENCE -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showExperience')">
+          <span class="header-title">
+            <i class="bi bi-briefcase icon-accent"></i> Experience
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showExperience">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showExperience" class="filter-content-wrap">
+          <label class="checkbox-container" *ngFor="let e of ['0', '3', '5', '10']">
+            <input type="checkbox" [checked]="filters.experience.includes(e)" (change)="toggleFilter('experience', e)" />
+            <span class="custom-chk"></span>
+            {{ e === '0' ? 'Entry Level (0+ yrs)' : e + '+ yrs Experience' }}
+          </label>
+        </div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="filter-block">
+        <div class="filter-header" (click)="toggleSection('showSkills')">
+          <span class="header-title">
+            <i class="bi bi-award icon-accent"></i> Core Skills
+          </span>
+          <span class="arrow-icon" [class.rotated]="!showSkills">
+            <i class="bi bi-chevron-up"></i>
+          </span>
+        </div>
+        <div *ngIf="showSkills" class="filter-content-wrap">
+          <label class="checkbox-container" *ngFor="let s of ['Java', 'React', 'Python', 'Angular']">
+            <input type="checkbox" [checked]="filters.skill.includes(s)" (change)="toggleFilter('skill', s)" />
+            <span class="custom-chk"></span>
+            {{ s }}
+          </label>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <button
+          class="apply-btn"
+          (click)="applyAll()"
+          [disabled]="!searchText && selectedFilters.length === 0 && !filters.remote && !filters.date"
+        >
+          <i class="bi bi-check-circle"></i> Apply Filters
+        </button>
+        <button class="clear-btn" (click)="clearFilters()">
+          <i class="bi bi-arrow-clockwise"></i> Reset All
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+      <!-- SEARCH HEADER -->
+      <header class="header">
+        <div class="search-bar-wrapper">
+          <i class="bi bi-search main-search-icon"></i>
           <input
-            type="radio"
-            name="sort"
-            value="latest"
-            [(ngModel)]="filters.sort"
-            (change)="page = 0"
+            type="search"
+            placeholder="Search matching job roles, keys, or organizations..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="page = 0"
+            (keydown.enter)="applyAll()"
           />
-          Latest
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="sort"
-            value="oldest"
-            [(ngModel)]="filters.sort"
-            (change)="page = 0"
-          />
-          Oldest
-        </label>
+          <button class="search-action-btn" (click)="applyAll()">Search</button>
+        </div>
+      </header>
+
+      <!-- TRENDING SEARCHES -->
+      <div class="trending-searches-wrapper">
+        <span class="trending-label"><i class="bi bi-fire text-coral"></i> Trending:</span>
+        <div class="trending-pills">
+          <span *ngFor="let term of trendingSearches" (click)="selectTrendingSearch(term)" class="trending-pill">
+            {{ term }}
+          </span>
+        </div>
       </div>
+
+      <!-- ACTIVE FILTERS SUMMARY TAGS -->
+      <div class="active-tags-row" *ngIf="selectedFilters.length > 0">
+        <span class="active-tag-label">Active Filters:</span>
+        <div class="active-tags-list">
+          <span class="tag-pill" *ngFor="let f of selectedFilters">
+            {{ f }}
+          </span>
+        </div>
+      </div>
+
+      <!-- CONTROLS & LAYOUT TOGGLES -->
+      <div class="results-controls-bar">
+        <div class="results-count">
+          Showing <span class="highlight">{{ getStartIndex() }}</span> - <span class="highlight">{{ getEndIndex() }}</span> of <span class="highlight">{{ totalJobs }}</span> matching opportunities
+        </div>
+        <div class="layout-toggles">
+          <button class="toggle-layout-btn" [class.active]="viewMode === 'grid'" (click)="changeViewMode('grid')" title="Grid View">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Grid
+          </button>
+          <button class="toggle-layout-btn" [class.active]="viewMode === 'list'" (click)="changeViewMode('list')" title="List View">
+            <i class="bi bi-list-ul"></i> List
+          </button>
+        </div>
+      </div>
+
+      <!-- JOB LIST -->
+      <ng-container *ngIf="jobs$ | async as res">
+        <main class="job-grid" [class.list-layout]="viewMode === 'list'">
+          <!-- SKELETON LOADER -->
+          <ng-container *ngIf="loading">
+            <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4, 5, 6]" [class.skeleton-list-card]="viewMode === 'list'">
+              <div class="skeleton-shimmer"></div>
+              <div class="skeleton-header">
+                <div class="skeleton-circle"></div>
+                <div class="skeleton-lines">
+                  <div class="skeleton-line-long"></div>
+                  <div class="skeleton-line-short"></div>
+                </div>
+              </div>
+              <div class="skeleton-meta"></div>
+              <div class="skeleton-chips">
+                <div class="skeleton-chip"></div>
+                <div class="skeleton-chip"></div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- DATA -->
+          <ng-container *ngIf="!loading">
+            <!-- EMPTY STATE -->
+            <div *ngIf="!res?.content || res.content.length === 0" class="empty-state-card">
+              <div class="empty-icon-wrap">
+                <i class="bi bi-slash-circle"></i>
+              </div>
+              <h3>No matching opportunities found</h3>
+              <p>Try refining your search terms or relaxing filter options to view wider opportunities.</p>
+              <button class="clear-filters-link" (click)="clearFilters()">Reset All Filters</button>
+            </div>
+
+            <!-- JOB CARDS -->
+            <article
+              *ngFor="let job of res.content"
+              class="job-card"
+              [class.list-mode-card]="viewMode === 'list'"
+              (click)="openQuickView(job, $event)"
+            >
+              <div class="card-inner">
+                <!-- Top Header Row -->
+                <div class="card-top-header">
+                  <div class="logo-box">
+                    <img
+                      [src]="getCompanyLogo(job.companyName)"
+                      (error)="onLogoError($event, job.companyName)"
+                      alt="{{ job.companyName }} logo"
+                    />
+                  </div>
+                  <div class="job-role-info">
+                    <h3 class="job-title" (click)="goToDetail(job.id); $event.stopPropagation()">{{ job.title }}</h3>
+                    <p class="company">{{ job.companyName }}</p>
+                  </div>
+                  <div class="posted-badge">
+                    <i class="bi bi-clock"></i> {{ getPostedAgo(job.postedAt) }}
+                  </div>
+                </div>
+
+                <!-- Meta Row -->
+                <div class="meta">
+                  <span class="meta-item location-tag">
+                    <i class="bi bi-geo-alt"></i> {{ job.location }}
+                  </span>
+                  <span class="meta-item exp-tag">
+                    <i class="bi bi-briefcase"></i> {{ job.experience ? job.experience + '+ yrs exp' : 'Not specified' }}
+                  </span>
+                  <span class="meta-item type-tag" *ngIf="job.jobType">
+                    <i class="bi bi-clock-history"></i> {{ job.jobType }}
+                  </span>
+                </div>
+
+                <!-- Skills Cloud row -->
+                <div class="skills" *ngIf="job.skills && job.skills.length > 0">
+                  <span *ngFor="let s of job.skills | slice: 0 : 3" class="skill-chip">
+                    {{ s }}
+                  </span>
+                  <span class="skill-chip-more" *ngIf="job.skills.length > 3">
+                    +{{ job.skills.length - 3 }}
+                  </span>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="card-footer-row">
+                  <div class="salary-estimate" *ngIf="job.salary">
+                    <i class="bi bi-wallet2"></i> {{ job.salary }}
+                  </div>
+                  <div class="salary-estimate undisclosed" *ngIf="!job.salary">
+                    <i class="bi bi-wallet2"></i> Not Disclosed
+                  </div>
+                  <div class="card-actions">
+                    <button class="quick-view-action-btn" (click)="openQuickView(job, $event)">
+                      Quick View
+                    </button>
+                    <button class="view-job-btn" (click)="goToDetail(job.id); $event.stopPropagation()">
+                      Details <i class="bi bi-arrow-right"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </ng-container>
+        </main>
+
+        <!-- PAGINATION CONTROLS -->
+        <div class="pagination-wrapper" *ngIf="!loading && res?.content && res.content.length > 0">
+          <div class="job-count">
+            Showing <strong class="text-accent">{{ getStartIndex() }}</strong> - <strong class="text-accent">{{ getEndIndex() }}</strong> of <strong class="text-accent">{{ totalJobs }}</strong> available opportunities
+          </div>
+          <div class="pagination">
+            <button class="pag-nav-btn" (click)="prevPage()" [disabled]="page === 0">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button
+              *ngFor="let i of getVisiblePages()"
+              (click)="goToPage(i)"
+              class="pag-num-btn"
+              [class.active]="i === page"
+            >
+              {{ i + 1 }}
+            </button>
+            <button class="pag-nav-btn" (click)="nextPage()" [disabled]="page === totalPages - 1">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </ng-container>
     </div>
-    <!-- DATE FILTER -->
-    <div class="filter-block">
-      <div class="filter-header" (click)="toggleSection('showDate')">
-        📅 Posted
-        <span>{{ showDate ? '▲' : '▼' }}</span>
+  </section>
+
+  <!-- QUICK VIEW SIDE DRAWER -->
+  <div class="quick-view-backdrop" *ngIf="selectedJob" (click)="closeQuickView()"></div>
+  <aside class="quick-view-drawer" [class.drawer-open]="selectedJob">
+    <div class="drawer-header" *ngIf="selectedJob">
+      <div class="drawer-header-left">
+        <span class="drawer-subtitle">Vidhura Job Portal</span>
+        <h3 class="drawer-title">{{ selectedJob.title }}</h3>
       </div>
-      <div *ngIf="showDate">
-        <label *ngFor="let d of ['today', 'week', 'month']">
-          <input type="radio" [value]="d" [(ngModel)]="filters.date" (change)="page = 0" />
-          {{ d }}
-        </label>
-      </div>
-    </div>
-    <!-- LOCATION -->
-    <div class="filter-block">
-      <div class="filter-header" (click)="toggleSection('showLocation')">
-        📍 Location
-        <span>{{ showLocation ? '▲' : '▼' }}</span>
-      </div>
-      <div *ngIf="showLocation">
-        <label *ngFor="let l of locations">
-          <input type="checkbox" (change)="toggleFilter('location', l)" />
-          {{ l }}
-        </label>
-      </div>
-    </div>
-    <!-- REMOTE -->
-    <div class="filter-block">
-      <div class="filter-header" (click)="toggleSection('showRemote')">
-        🌍 Work Mode
-        <span>{{ showRemote ? '▲' : '▼' }}</span>
-      </div>
-      <div *ngIf="showRemote">
-        <label>
-          <input type="checkbox" [(ngModel)]="filters.remote" (change)="page = 0" />
-          Remote Only
-        </label>
-      </div>
-    </div>
-    <div class="filter-section">
-      <!-- HEADER -->
-      <div class="filter-header" (click)="toggleSection('showCompanyDropdown')">
-        🏢 Companies
-        <span class="arrow">
-          {{ showCompanyDropdown ? '▲' : '▼' }}
-        </span>
-      </div>
-      <!-- DROPDOWN -->
-      <div *ngIf="showCompanyDropdown" class="dropdown">
-        <!-- 🔍 SEARCH -->
-        <input
-          type="text"
-          placeholder="Search company..."
-          [(ngModel)]="companySearch"
-          class="search-box"
-        />
-        <!-- ✅ LIST -->
-        <label *ngFor="let c of filteredCompanies" class="checkbox-item">
-          <input
-            type="checkbox"
-            [checked]="filters.company.includes(c.name)"
-            (change)="toggleFilter('company', c.name)"
-          />
-          {{ c.name }} ({{ c.count }})
-        </label>
-      </div>
-    </div>
-    <!-- EXPERIENCE -->
-    <div class="filter-block">
-      <div class="filter-header" (click)="toggleSection('showExperience')">
-        💼 Experience
-        <span>{{ showExperience ? '▲' : '▼' }}</span>
-      </div>
-      <div *ngIf="showExperience">
-        <label *ngFor="let e of ['0', '3', '5', '10']">
-          <input type="checkbox" (change)="toggleFilter('experience', e)" />
-          {{ e }}+ yrs
-        </label>
-      </div>
-    </div>
-    <!-- SKILLS -->
-    <div class="filter-block">
-      <div class="filter-header" (click)="toggleSection('showSkills')">
-        🧠 Skills
-        <span>{{ showSkills ? '▲' : '▼' }}</span>
-      </div>
-      <div *ngIf="showSkills">
-        <label *ngFor="let s of ['Java', 'React', 'Python', 'Angular']">
-          <input type="checkbox" (change)="toggleFilter('skill', s)" />
-          {{ s }}
-        </label>
-      </div>
-    </div>
-    <!-- ACTIONS -->
-    <div class="actions">
-      <button
-        class="apply-btn"
-        (click)="applyAll()"
-        [disabled]="!searchText && selectedFilters.length === 0 && !filters.remote && !filters.date"
-      >
-        Apply Filters
+      <button class="close-drawer-btn" (click)="closeQuickView()">
+        <i class="bi bi-x-lg"></i>
       </button>
-      <button class="clear-btn" (click)="clearFilters()">Clear Filters</button>
+    </div>
+    
+    <div class="drawer-body" *ngIf="selectedJob">
+      <!-- Company Card -->
+      <div class="drawer-company-card">
+        <div class="drawer-logo-box">
+          <img [src]="getCompanyLogo(selectedJob.companyName)" (error)="onLogoError($event, selectedJob.companyName)" alt="logo">
+        </div>
+        <div class="drawer-company-details">
+          <h4>{{ selectedJob.companyName }}</h4>
+          <span class="drawer-source-badge">
+            <i class="bi bi-globe"></i> Source: {{ selectedJob.source || 'VidhuraTech API' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick Badges Grid -->
+      <div class="drawer-badges-grid">
+        <div class="drawer-badge-card badge-blue">
+          <i class="bi bi-geo-alt"></i>
+          <div class="badge-content">
+            <span class="badge-label">Location</span>
+            <span class="badge-val">{{ selectedJob.location }}</span>
+          </div>
+        </div>
+        <div class="drawer-badge-card badge-emerald">
+          <i class="bi bi-wallet2"></i>
+          <div class="badge-content">
+            <span class="badge-label">Compensation</span>
+            <span class="badge-val">{{ selectedJob.salary || 'Competitive' }}</span>
+          </div>
+        </div>
+        <div class="drawer-badge-card badge-orange">
+          <i class="bi bi-briefcase"></i>
+          <div class="badge-content">
+            <span class="badge-label">Experience</span>
+            <span class="badge-val">{{ selectedJob.experience ? selectedJob.experience + '+ Yrs' : 'Entry Level' }}</span>
+          </div>
+        </div>
+        <div class="drawer-badge-card badge-purple">
+          <i class="bi bi-laptop"></i>
+          <div class="badge-content">
+            <span class="badge-label">Mode / Type</span>
+            <span class="badge-val">{{ selectedJob.jobType || (selectedJob.remote ? 'Remote' : 'On-Site') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Skills -->
+      <div class="drawer-section">
+        <h5 class="section-title"><i class="bi bi-award text-accent"></i> Key Competencies</h5>
+        <div class="drawer-skills-list">
+          <span class="drawer-skill-chip" *ngFor="let s of selectedJob.skills">{{ s }}</span>
+          <span class="no-skills-msg" *ngIf="!selectedJob.skills || selectedJob.skills.length === 0">General Engineering Profile</span>
+        </div>
+      </div>
+
+      <!-- Role Description -->
+      <div class="drawer-section">
+        <h5 class="section-title"><i class="bi bi-file-earmark-text text-accent"></i> Job Summary</h5>
+        <div class="drawer-description-text">
+          <p>{{ selectedJob.description || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features.' }}</p>
+        </div>
+      </div>
+
+      <!-- Quick Apply simulated form -->
+      <div class="drawer-section quick-apply-section">
+        <h5 class="section-title"><i class="bi bi-send text-accent"></i> Instant Application</h5>
+        
+        <form (submit)="submitQuickApply($event)" *ngIf="!applySuccess" class="quick-apply-form">
+          <div class="form-group">
+            <label for="apply-name">Full Name</label>
+            <input type="text" id="apply-name" name="applicantName" [(ngModel)]="applicantName" placeholder="Naveen Lingala" required class="drawer-form-input">
+          </div>
+          <div class="form-group">
+            <label for="apply-email">Email Address</label>
+            <input type="email" id="apply-email" name="applicantEmail" [(ngModel)]="applicantEmail" placeholder="naveen@example.com" required class="drawer-form-input">
+          </div>
+          
+          <div class="apply-actions">
+            <button type="submit" class="drawer-apply-btn" [disabled]="isApplying || !applicantName || !applicantEmail">
+              <span *ngIf="!isApplying"><i class="bi bi-lightning-charge"></i> Quick Apply Now</span>
+              <span *ngIf="isApplying"><span class="spinner-border spinner-border-sm me-1" role="status"></span> Processing Application...</span>
+            </button>
+            <button type="button" class="drawer-detail-btn" (click)="goToDetail(selectedJob.id)">
+              Read Reviews <i class="bi bi-box-arrow-up-right"></i>
+            </button>
+          </div>
+        </form>
+
+        <!-- Apply Success Message -->
+        <div class="apply-success-card" *ngIf="applySuccess">
+          <div class="success-icon-wrap">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h4>Application Submitted!</h4>
+          <p>Your instant application has been submitted to <strong>{{ selectedJob.companyName }}</strong>. Good luck!</p>
+        </div>
+      </div>
     </div>
   </aside>
-  <!-- MAIN CONTENT -->
-  <div class="content">
-    <!-- HEADER -->
-    <header class="header">
-      <input
-        type="search"
-        placeholder="Search jobs..."
-        [(ngModel)]="searchText"
-        (ngModelChange)="page = 0"
-      />
-    </header>
-    <!-- JOB LIST -->
-    <ng-container *ngIf="jobs$ | async as res">
-      <main class="job-grid">
-        <!-- LOADING -->
-        <ng-container *ngIf="loading">
-          <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4, 5, 6]"></div>
-        </ng-container>
-        <!-- DATA -->
-        <ng-container *ngIf="!loading">
-          <!-- EMPTY -->
-          <div *ngIf="!res?.content || res.content.length === 0" class="empty">
-            ❌ No jobs found
-          </div>
-          <!-- JOB CARD -->
-          <article
-            *ngFor="let job of res.content"
-            class="job-card"
-            (click)="job.id && goToDetail(job.id)"
-          >
-            <div class="top">
-              <img
-                [src]="getCompanyLogo(job.companyName)"
-                (error)="onLogoError($event, job.companyName)"
-              />
-              <div>
-                <h3>{{ job.title }}</h3>
-                <p class="company">{{ job.companyName }}</p>
-              </div>
-              <div class="meta">
-                <span>📍 {{ job.location }}</span>
-                <span>💼 {{ job.experience || 'Not specified' }}</span>
-              </div>
-              <div class="skills">
-                <span *ngFor="let s of job.skills | slice: 0 : 3" class="skill-chip">
-                  {{ s }}
-                </span>
-              </div>
-              <button (click)="job.id && goToDetail(job.id); $event.stopPropagation()">
-                View →
-              </button>
-            </div>
-          </article>
-        </ng-container>
-      </main>
-    </ng-container>
-    <!-- PAGINATION -->
-    <div class="pagination-wrapper">
-      <div class="job-count">
-        Showing {{ getStartIndex() }} - {{ getEndIndex() }} of {{ totalJobs }} jobs
-      </div>
-      <div class="pagination">
-        <button (click)="prevPage()" [disabled]="page === 0">⬅</button>
-        <button
-          *ngFor="let i of getVisiblePages()"
-          (click)="goToPage(i)"
-          [class.active]="i === page"
-        >
-          {{ i + 1 }}
-        </button>
-        <button (click)="nextPage()" [disabled]="page === totalPages - 1">➡</button>
-      </div>
-    </div>
-  </div>
-</section>
+</div>

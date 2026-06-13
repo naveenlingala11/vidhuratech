@@ -51,12 +51,34 @@ export class DashboardSidebar implements OnInit {
   }
 
   get filteredMenuItems(): any[] {
+    const currentUrl = this.router.url.split('?')[0];
+
+    const dashboardItem = this.menuItems.find(item => item.label === 'Dashboard');
+    const profileItem = this.menuItems.find(item => item.label === 'Profile');
+
+    const isDashboardPage = dashboardItem && currentUrl === dashboardItem.route;
+    const isProfilePage = profileItem && currentUrl === profileItem.route;
+
+    const headerItems: any[] = [];
+    if (dashboardItem && !isDashboardPage) {
+      headerItems.push(dashboardItem);
+    }
+    if (profileItem && !isProfilePage) {
+      headerItems.push(profileItem);
+    }
+
+    const otherItems = this.menuItems.filter(
+      item => item.label !== 'Dashboard' && item.label !== 'Profile'
+    );
+    otherItems.sort((a, b) => a.label.localeCompare(b.label));
+
+    const allItems = [...headerItems, ...otherItems];
     const term = this.searchText.trim().toLowerCase();
 
-    if (!term) return this.menuItems;
+    if (!term) return allItems;
 
-    return this.menuItems.filter((item) =>
-      `${item.label} ${item.route}`.toLowerCase().includes(term),
+    return allItems.filter((item) =>
+      `${item.label} ${item.route}`.toLowerCase().includes(term)
     );
   }
 

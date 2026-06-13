@@ -3,83 +3,109 @@
   <div class="vpp-aurora aurora-a"></div>
   <div class="vpp-aurora aurora-b"></div>
 
-  <div class="vpp-toast" *ngIf="toast">{{ toast }}</div>
+  <!-- Toast Notifications -->
+  <div class="vpp-toast" *ngIf="toast">
+    <i class="bi bi-info-circle-fill text-gradient"></i>
+    <span>{{ toast }}</span>
+  </div>
 
+  <!-- Header Section -->
   <header class="vpp-hero">
     <div>
-      <span class="vpp-kicker">Public Practice Studio</span>
+      <span class="vpp-kicker">
+        <i class="bi bi-globe2"></i> Public Practice Studio
+      </span>
       <h1>Premium publishing control for guest practice</h1>
-      <h3>Publish selected, filtered, or company-wise batches.</h3>
+      <h3>Manage and publish practice content to your public-facing guest catalog.</h3>
     </div>
 
     <button type="button" class="vpp-hero-btn" (click)="loadDashboard()" [disabled]="loading">
-      {{ loading ? 'Syncing...' : 'Sync Dashboard' }}
+      <i class="bi bi-arrow-repeat" [class.spin-icon]="loading"></i>
+      <span>{{ loading ? 'Syncing...' : 'Sync Dashboard' }}</span>
     </button>
   </header>
 
+  <!-- Metrics Command Grid -->
   <section class="vpp-command-grid">
     <button type="button" class="metric-card blue" (click)="quickFilter('ASSESSMENT', 'ALL')">
-      <span>Assessments</span>
+      <span>
+        <i class="bi bi-journal-check"></i> Assessments
+      </span>
       <strong>{{ assessments.length }}</strong>
       <small>{{ publishedAssessments }} published</small>
     </button>
 
     <button type="button" class="metric-card teal" (click)="quickFilter('CHALLENGE', 'ALL')">
-      <span>Challenges</span>
+      <span>
+        <i class="bi bi-code-slash"></i> Challenges
+      </span>
       <strong>{{ challenges.length }}</strong>
       <small>{{ publishedChallenges }} published</small>
     </button>
 
     <button type="button" class="metric-card rose" (click)="quickFilter('INTERVIEW', 'ALL')">
-      <span>Interviews</span>
+      <span>
+        <i class="bi bi-chat-left-quote"></i> Interviews
+      </span>
       <strong>{{ interviewQuestions.length }}</strong>
       <small>{{ publishedInterviewQuestions }} published</small>
     </button>
 
     <button type="button" class="metric-card amber" (click)="setTab('ATTEMPTS')">
-      <span>Attempts</span>
+      <span>
+        <i class="bi bi-person-check"></i> Attempts
+      </span>
       <strong>{{ totalAttempts }}</strong>
       <small>{{ passRate }}% pass rate</small>
     </button>
 
     <button type="button" class="metric-card violet" (click)="setTab('POLICIES')">
-      <span>Published</span>
+      <span>
+        <i class="bi bi-shield-check"></i> Published
+      </span>
       <strong>{{ totalPublished }}</strong>
       <small>{{ totalCandidates }} total items</small>
     </button>
   </section>
 
+  <!-- Navigation Tabs -->
   <nav class="vpp-tabs">
     <button
       type="button"
       [class.active]="activeTab === 'ASSESSMENT'"
       (click)="setTab('ASSESSMENT')"
     >
+      <i class="bi bi-journal-check"></i>
       <span>Assessments</span>
       <b>{{ assessments.length }}</b>
     </button>
 
     <button type="button" [class.active]="activeTab === 'CHALLENGE'" (click)="setTab('CHALLENGE')">
+      <i class="bi bi-code-slash"></i>
       <span>Coding Challenges</span>
       <b>{{ challenges.length }}</b>
     </button>
 
     <button type="button" [class.active]="activeTab === 'INTERVIEW'" (click)="setTab('INTERVIEW')">
+      <i class="bi bi-chat-left-quote"></i>
       <span>Interview Questions</span>
       <b>{{ interviewQuestions.length }}</b>
     </button>
 
     <button type="button" [class.active]="activeTab === 'ATTEMPTS'" (click)="setTab('ATTEMPTS')">
+      <i class="bi bi-graph-up"></i>
       <span>Public Attempts</span>
       <b>{{ totalAttempts }}</b>
     </button>
 
     <button type="button" [class.active]="activeTab === 'POLICIES'" (click)="setTab('POLICIES')">
+      <i class="bi bi-shield-lock"></i>
       <span>Access Policies</span>
       <b>{{ accessPolicies.length }}</b>
     </button>
   </nav>
 
+  <!-- Items and Bulk studio lists -->
   <section
     class="vpp-board"
     *ngIf="activeTab === 'ASSESSMENT' || activeTab === 'CHALLENGE' || activeTab === 'INTERVIEW'"
@@ -87,6 +113,7 @@
     <div class="board-head">
       <div>
         <span>
+          <i class="bi bi-sliders2"></i>
           {{
             activeTab === 'ASSESSMENT'
               ? 'Assessment Publishing'
@@ -109,23 +136,25 @@
 
       <div class="view-toggle">
         <button type="button" [class.active]="viewMode === 'GRID'" (click)="viewMode = 'GRID'">
-          Cards
+          <i class="bi bi-grid-3x3-gap-fill"></i> Cards
         </button>
         <button type="button" [class.active]="viewMode === 'TABLE'" (click)="viewMode = 'TABLE'">
-          Table
+          <i class="bi bi-list-task"></i> Table
         </button>
       </div>
     </div>
 
+    <!-- Bulk Publishing Studio Panel -->
     <section class="bulk-studio">
       <div class="bulk-command">
         <div>
-          <span>Bulk Publishing</span>
+          <span><i class="bi bi-lightning-charge-fill"></i> Bulk Publishing</span>
           <h3>Publish selected, filtered, company-wise, or skill-wise batches.</h3>
         </div>
 
         <div class="bulk-actions">
           <button type="button" class="ghost-action" (click)="togglePageSelection()">
+            <i class="bi" [ngClass]="pageAllSelected ? 'bi-check-square-fill' : 'bi-square'"></i>
             {{ pageAllSelected ? 'Clear Page' : 'Select Page' }}
           </button>
 
@@ -135,7 +164,7 @@
             [disabled]="!selectedCount"
             (click)="clearSelection()"
           >
-            Clear Selected
+            <i class="bi bi-x-circle"></i> Clear Selected
           </button>
 
           <button
@@ -144,7 +173,7 @@
             [disabled]="!selectedCount"
             (click)="openBulkPublish('SELECTED', selectedCurrentItems, 'Selected items')"
           >
-            Publish Selected ({{ selectedCount }})
+            <i class="bi bi-cloud-upload"></i> Publish Selected ({{ selectedCount }})
           </button>
 
           <button
@@ -153,7 +182,7 @@
             [disabled]="!selectedPublishedCount"
             (click)="bulkUnpublishSelected()"
           >
-            Unpublish Selected ({{ selectedPublishedCount }})
+            <i class="bi bi-cloud-download"></i> Unpublish Selected ({{ selectedPublishedCount }})
           </button>
 
           <button
@@ -162,33 +191,53 @@
             [disabled]="!unpublishedFilteredItems.length"
             (click)="openBulkPublish('FILTERED', unpublishedFilteredItems, 'Current filtered list')"
           >
-            Publish Filtered ({{ unpublishedFilteredItems.length }})
+            <i class="bi bi-funnel"></i> Publish Filtered ({{ unpublishedFilteredItems.length }})
           </button>
         </div>
       </div>
 
+      <!-- Bulk Publishing Groups Grid -->
       <div class="bulk-group-grid">
         <div class="bulk-group-column">
-          <div class="bulk-group-title">Company wise</div>
+          <div class="bulk-group-title"><i class="bi bi-building"></i> Company wise</div>
+          <div class="bulk-group-list">
+            <button
+              type="button"
+              class="bulk-chip"
+              *ngFor="let group of bulkGroupsByCompany; trackBy: trackByGroup"
+              [disabled]="!group.unpublished"
+              (click)="openBulkPublish('COMPANY', group.items, 'Company: ' + group.name)"
+            >
+              <span>{{ group.name }}</span>
+              <b><i class="bi bi-arrow-up-circle"></i> {{ group.unpublished }} ready</b>
+              <small><i class="bi bi-eye"></i> {{ group.published }}/{{ group.total }} live</small>
+            </button>
+          </div>
+        </div>
 
-          <button
-            type="button"
-            class="bulk-chip"
-            *ngFor="let group of bulkGroupsByCompany; trackBy: trackByGroup"
-            [disabled]="!group.unpublished"
-            (click)="openBulkPublish('COMPANY', group.items, 'Company: ' + group.name)"
-          >
-            <span>{{ group.name }}</span>
-            <b>{{ group.unpublished }} ready</b>
-            <small>{{ group.published }}/{{ group.total }} live</small>
-          </button>
+        <div class="bulk-group-column">
+          <div class="bulk-group-title"><i class="bi bi-tags"></i> Skill wise</div>
+          <div class="bulk-group-list">
+            <button
+              type="button"
+              class="bulk-chip"
+              *ngFor="let group of bulkGroupsBySkill; trackBy: trackByGroup"
+              [disabled]="!group.unpublished"
+              (click)="openBulkPublish('SKILL', group.items, 'Skill: ' + group.name)"
+            >
+              <span>{{ group.name }}</span>
+              <b><i class="bi bi-arrow-up-circle"></i> {{ group.unpublished }} ready</b>
+              <small><i class="bi bi-eye"></i> {{ group.published }}/{{ group.total }} live</small>
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
+    <!-- Filters Bar -->
     <div class="vpp-filters">
       <label class="search-field">
-        <span>Search candidates</span>
+        <span><i class="bi bi-search"></i> Search candidates</span>
         <input
           [(ngModel)]="search"
           (ngModelChange)="page = 1"
@@ -197,25 +246,25 @@
       </label>
 
       <label>
-        <span>Public status</span>
+        <span><i class="bi bi-check-circle"></i> Status</span>
         <select [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
-          <option value="ALL">All</option>
+          <option value="ALL">All Statuses</option>
           <option value="PUBLISHED">Published</option>
           <option value="UNPUBLISHED">Not Published</option>
         </select>
       </label>
 
       <label>
-        <span>Active</span>
+        <span><i class="bi bi-toggle-on"></i> Active</span>
         <select [(ngModel)]="activeFilter" (ngModelChange)="page = 1">
-          <option value="ALL">All</option>
+          <option value="ALL">All States</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
         </select>
       </label>
 
       <label>
-        <span>Company</span>
+        <span><i class="bi bi-building"></i> Company</span>
         <select [(ngModel)]="companyFilter" (ngModelChange)="page = 1">
           <option value="ALL">All Companies</option>
           <option *ngFor="let company of companyOptions" [value]="company">{{ company }}</option>
@@ -223,34 +272,38 @@
       </label>
 
       <label>
-        <span>Sort</span>
+        <span><i class="bi bi-sort-down"></i> Sort</span>
         <select [(ngModel)]="sortMode">
-          <option value="LATEST">Latest</option>
-          <option value="TITLE">Title</option>
-          <option value="COMPANY">Company</option>
-          <option value="TRAINER">Trainer</option>
+          <option value="LATEST">Latest Added</option>
+          <option value="TITLE">Alphabetical Title</option>
+          <option value="COMPANY">Company Name</option>
+          <option value="TRAINER">Trainer Name</option>
           <option value="ATTEMPTS">Guest Attempts</option>
         </select>
       </label>
 
       <label>
-        <span>Per page</span>
+        <span><i class="bi bi-filter-left"></i> Per page</span>
         <select [(ngModel)]="pageSize" (ngModelChange)="page = 1">
-          <option [ngValue]="6">6</option>
-          <option [ngValue]="9">9</option>
-          <option [ngValue]="12">12</option>
-          <option [ngValue]="18">18</option>
+          <option [ngValue]="6">6 per page</option>
+          <option [ngValue]="9">9 per page</option>
+          <option [ngValue]="12">12 per page</option>
+          <option [ngValue]="18">18 per page</option>
         </select>
       </label>
 
-      <button type="button" class="ghost-action" (click)="resetFilters()">Reset</button>
+      <button type="button" class="ghost-action reset-filter" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+      </button>
     </div>
 
+    <!-- Summary Bar -->
     <div class="list-summary">
-      <strong>{{ rangeLabel() }}</strong>
-      <span>{{ filteredCandidates.length }} matching candidates</span>
+      <strong><i class="bi bi-info-circle"></i> Showing {{ rangeLabel() }}</strong>
+      <span>{{ filteredCandidates.length }} matching candidates found</span>
     </div>
 
+    <!-- Candidate Cards Grid (RE-DESIGNED MINIMALIST LAYOUT) -->
     <div class="vpp-card-grid" *ngIf="viewMode === 'GRID'">
       <article
         class="candidate-card"
@@ -259,93 +312,87 @@
       >
         <div class="card-glow"></div>
 
-        <div class="candidate-top">
-          <label class="select-box" (click)="$event.stopPropagation()">
-            <input
-              type="checkbox"
-              [checked]="isSelected(item)"
-              (change)="toggleCandidate(item, $event)"
-            />
-            <span>Select</span>
-          </label>
+        <div class="card-header">
+          <span class="type-tag"><i class="bi bi-tag-fill"></i> {{ item.type }}</span>
 
-          <span>{{ item.type }}</span>
+          <div class="header-right">
+            <!-- Active indicator dot -->
+            <span class="status-dot" [class.active]="item.active" [title]="item.active ? 'Active' : 'Inactive'"></span>
 
-          <span>Policy</span>
-          <strong>
-            <span class="policy-badge" [ngClass]="policyClass(item.publicAccessLevel)">
-              {{ policyLabel(item.publicAccessLevel) }}
-            </span>
-          </strong>
-
-          <b [class.live]="item.publicVisible">
-            {{ item.publicVisible ? 'Published' : 'Private' }}
-          </b>
+            <!-- Custom checkbox selection ring -->
+            <label class="custom-check-wrapper" (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                [checked]="isSelected(item)"
+                (change)="toggleCandidate(item, $event)"
+              />
+              <span class="check-ring"></span>
+            </label>
+          </div>
         </div>
 
         <h3>{{ displayTitle(item) }}</h3>
         <p>{{ displayDescription(item) }}</p>
 
-        <div class="mini-metrics">
-          <div>
-            <span>Company</span>
-            <strong>{{ displayCompany(item) }}</strong>
-          </div>
-          <div>
-            <span>Trainer</span>
-            <strong>{{ item.trainerName || item.trainerEmail || '-' }}</strong>
-          </div>
-          <div>
-            <span>Batch</span>
-            <strong>{{ item.batchName || item.batchId || '-' }}</strong>
-          </div>
-          <div>
-            <span>Policy</span>
-            <strong>{{ item.publicAccessLevel || 'LEAD_REQUIRED' }}</strong>
-          </div>
-          <div>
-            <span>Attempts</span>
-            <strong>{{ item.publicAttemptCount || 0 }}</strong>
-          </div>
+        <!-- Minimalist Meta line -->
+        <div class="candidate-meta-row">
+          <span [title]="displayCompany(item)"><i class="bi bi-building"></i> {{ displayCompany(item) }}</span>
+          <span [title]="item.trainerName || item.trainerEmail || 'Trainer'"><i class="bi bi-person"></i> {{ item.trainerName || item.trainerEmail || 'Trainer' }}</span>
+          <span [title]="item.batchName || '-'"><i class="bi bi-people"></i> {{ item.batchName || '-' }}</span>
         </div>
 
-        <div class="candidate-actions" (click)="$event.stopPropagation()">
-          <span class="active-pill" [class.off]="!item.active">
-            {{ item.active ? 'Active' : 'Inactive' }}
+        <!-- Badges row -->
+        <div class="candidate-stats-row">
+          <span class="policy-pill" [ngClass]="policyClass(item.publicAccessLevel)">
+            <i class="bi bi-shield-lock-fill"></i> {{ policyLabel(item.publicAccessLevel) }}
+          </span>
+          <span class="attempts-pill">
+            <i class="bi bi-graph-up"></i> {{ item.publicAttemptCount || 0 }} attempts
+          </span>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer" (click)="$event.stopPropagation()">
+          <span class="publish-status" [class.live]="item.publicVisible">
+            <i class="bi" [ngClass]="item.publicVisible ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
+            {{ item.publicVisible ? 'Live' : 'Draft' }}
           </span>
 
-          <div>
-            <button type="button" class="preview-btn" (click)="previewItem(item, $event)">
-              Preview
+          <div class="action-buttons">
+            <button type="button" class="preview-btn-icon" (click)="previewItem(item, $event)" title="Preview Details">
+              <i class="bi bi-zoom-in"></i>
             </button>
 
             <button
               type="button"
-              class="publish-btn"
+              class="action-primary-btn"
               [disabled]="!item.active"
               (click)="openPublish(item, toPublishType(item))"
             >
-              {{ item.publicVisible ? 'Edit' : 'Publish' }}
+              {{ item.publicVisible ? 'Configure' : 'Publish' }}
             </button>
 
             <button
               type="button"
-              class="unpublish-btn"
+              class="more-btn"
               *ngIf="item.publicVisible"
               (click)="unpublish(item, toPublishType(item))"
+              title="Unpublish"
             >
-              Unpublish
+              <i class="bi bi-cloud-slash"></i>
             </button>
           </div>
         </div>
       </article>
 
       <div class="empty-state" *ngIf="!loading && !pagedCandidates.length">
+        <i class="bi bi-folder-x"></i>
         <strong>No candidates found</strong>
-        <span>Change filters or sync dashboard.</span>
+        <span>Try clearing filters or syncing the dashboard.</span>
       </div>
     </div>
 
+    <!-- Candidate Table View -->
     <div class="vpp-table-wrap" *ngIf="viewMode === 'TABLE'">
       <table>
         <thead>
@@ -389,7 +436,8 @@
             <td>{{ displayCompany(item) }}</td>
             <td>
               <span class="status-pill" [class.live]="item.publicVisible">
-                {{ item.publicVisible ? 'Published' : 'Private' }}
+                <i class="bi" [ngClass]="item.publicVisible ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
+                {{ item.publicVisible ? 'Live' : 'Draft' }}
               </span>
             </td>
             <td>
@@ -405,7 +453,7 @@
                   class="preview-btn compact"
                   (click)="previewItem(item, $event)"
                 >
-                  Preview
+                  <i class="bi bi-eye"></i> Preview
                 </button>
 
                 <button
@@ -414,7 +462,7 @@
                   [disabled]="!item.active"
                   (click)="openPublish(item, toPublishType(item))"
                 >
-                  {{ item.publicVisible ? 'Edit' : 'Publish' }}
+                  Configure
                 </button>
 
                 <button
@@ -432,8 +480,11 @@
       </table>
     </div>
 
+    <!-- Pagination -->
     <div class="vpp-pagination" *ngIf="filteredCandidates.length">
-      <button type="button" (click)="setPage(page - 1)" [disabled]="page === 1">Previous</button>
+      <button type="button" (click)="setPage(page - 1)" [disabled]="page === 1">
+        <i class="bi bi-chevron-left"></i> Previous
+      </button>
 
       <button
         type="button"
@@ -445,23 +496,25 @@
       </button>
 
       <button type="button" (click)="setPage(page + 1)" [disabled]="page === totalPages">
-        Next
+        Next <i class="bi bi-chevron-right"></i>
       </button>
     </div>
   </section>
 
+  <!-- Attempts Section -->
   <section class="vpp-board" *ngIf="activeTab === 'ATTEMPTS'">
     <div class="board-head">
       <div>
-        <span>Guest Attempt Analytics</span>
-        <h2>Public Attempts</h2>
+        <span><i class="bi bi-graph-up"></i> Guest Attempt Analytics</span>
+        <h2>Public Practice Attempts</h2>
       </div>
-      <strong>{{ attemptRangeLabel() }}</strong>
+      <strong>Showing {{ attemptRangeLabel() }}</strong>
     </div>
 
+    <!-- Attempt Filters -->
     <div class="vpp-filters attempt-filters">
       <label class="search-field">
-        <span>Search attempts</span>
+        <span><i class="bi bi-search"></i> Search attempts</span>
         <input
           [(ngModel)]="attemptSearch"
           (ngModelChange)="attemptPage = 1"
@@ -470,35 +523,38 @@
       </label>
 
       <label>
-        <span>Type</span>
+        <span><i class="bi bi-tag"></i> Type</span>
         <select [(ngModel)]="attemptTypeFilter" (ngModelChange)="attemptPage = 1">
-          <option value="ALL">All</option>
+          <option value="ALL">All Types</option>
           <option value="ASSESSMENT">Assessment</option>
           <option value="CHALLENGE">Challenge</option>
         </select>
       </label>
 
       <label>
-        <span>Result</span>
+        <span><i class="bi bi-trophy"></i> Result</span>
         <select [(ngModel)]="attemptStatusFilter" (ngModelChange)="attemptPage = 1">
-          <option value="ALL">All</option>
-          <option value="PASS">Pass</option>
-          <option value="FAIL">Fail</option>
+          <option value="ALL">All Results</option>
+          <option value="PASS">Pass Only</option>
+          <option value="FAIL">Fail Only</option>
         </select>
       </label>
 
       <label>
-        <span>Per page</span>
+        <span><i class="bi bi-filter-left"></i> Per page</span>
         <select [(ngModel)]="attemptPageSize" (ngModelChange)="attemptPage = 1">
-          <option [ngValue]="6">6</option>
-          <option [ngValue]="9">9</option>
-          <option [ngValue]="12">12</option>
+          <option [ngValue]="6">6 per page</option>
+          <option [ngValue]="9">9 per page</option>
+          <option [ngValue]="12">12 per page</option>
         </select>
       </label>
 
-      <button type="button" class="ghost-action" (click)="resetAttemptFilters()">Reset</button>
+      <button type="button" class="ghost-action reset-filter" (click)="resetAttemptFilters()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+      </button>
     </div>
 
+    <!-- Attempt Cards Grid -->
     <div class="attempt-grid">
       <article
         class="attempt-card"
@@ -506,43 +562,54 @@
         (click)="viewAttempt(attempt)"
       >
         <div class="attempt-card-head">
-          <span>{{ attempt.type }}</span>
-          <b [class.pass]="attempt.status === 'PASS'">{{ attempt.status }}</b>
+          <span class="type-tag"><i class="bi bi-tag-fill"></i> {{ attempt.type }}</span>
+          <span class="status-pill" [class.pass]="attempt.status === 'PASS'">
+            <i class="bi" [ngClass]="attempt.status === 'PASS' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+            {{ attempt.status }}
+          </span>
         </div>
 
         <h3>{{ attempt.practiceTitle }}</h3>
-        <p>{{ attempt.companyName || 'General' }} · {{ attempt.skill || '-' }}</p>
+        <p><i class="bi bi-building"></i> {{ attempt.companyName || 'General' }} · {{ attempt.skill || '-' }}</p>
 
-        <div class="score-orbit">
-          <strong>{{ attempt.percentage }}%</strong>
-          <span>{{ attempt.score }}/{{ attempt.totalMarks }}</span>
+        <!-- Minimalist Score & Progress Bar -->
+        <div class="attempt-score-section">
+          <div class="attempt-score-info">
+            <span>Score Percentage</span>
+            <strong>{{ attempt.percentage }}% ({{ attempt.score }}/{{ attempt.totalMarks }} Marks)</strong>
+          </div>
+          <div class="attempt-progress-bar-bg">
+            <div
+              class="attempt-progress-bar"
+              [class.pass]="attempt.status === 'PASS'"
+              [style.width.%]="attempt.percentage"
+            ></div>
+          </div>
         </div>
 
-        <div class="lead-row">
-          <div>
-            <span>Lead</span>
-            <strong>{{ attempt.leadName || '-' }}</strong>
-          </div>
-          <div>
-            <span>Phone</span>
-            <strong>{{ attempt.leadPhone || '-' }}</strong>
-          </div>
+        <!-- Inline Lead details row -->
+        <div class="lead-info-row">
+          <span class="lead-info-item" [title]="attempt.leadName || '-'"><i class="bi bi-person-badge-fill"></i> <strong>{{ attempt.leadName || '-' }}</strong></span>
+          <span class="lead-info-item" [title]="attempt.leadPhone || '-'"><i class="bi bi-telephone-fill"></i> <strong>{{ attempt.leadPhone || '-' }}</strong></span>
+          <span class="lead-info-item" [title]="attempt.leadEmail || '-'"><i class="bi bi-envelope-fill"></i> <strong>{{ attempt.leadEmail || '-' }}</strong></span>
         </div>
       </article>
 
       <div class="empty-state" *ngIf="!pagedAttempts.length">
-        <strong>No attempts yet</strong>
-        <span>Guest submissions will appear here.</span>
+        <i class="bi bi-clipboard-x"></i>
+        <strong>No attempts recorded yet</strong>
+        <span>Guest submissions will appear here automatically.</span>
       </div>
     </div>
 
+    <!-- Attempt Pagination -->
     <div class="vpp-pagination" *ngIf="filteredAttempts.length">
       <button
         type="button"
         (click)="setAttemptPage(attemptPage - 1)"
         [disabled]="attemptPage === 1"
       >
-        Previous
+        <i class="bi bi-chevron-left"></i> Previous
       </button>
 
       <button
@@ -559,17 +626,17 @@
         (click)="setAttemptPage(attemptPage + 1)"
         [disabled]="attemptPage === attemptTotalPages"
       >
-        Next
+        Next <i class="bi bi-chevron-right"></i>
       </button>
     </div>
   </section>
 
+  <!-- Access Policies Section -->
   <section class="vpp-board" *ngIf="activeTab === 'POLICIES'">
-    <div class="board-heading">
+    <div class="board-head">
       <div>
-        <span>Access Matrix</span>
+        <span><i class="bi bi-shield-check"></i> Access Matrix</span>
         <h2>Public Practice Access Policies</h2>
-        <p>Basic, Pro, and Elite plans are now mapped directly to publishing access rules.</p>
       </div>
     </div>
 
@@ -581,7 +648,7 @@
       >
         <div class="policy-card-top">
           <div class="policy-icon">
-            <i class="bi bi-shield-lock"></i>
+            <i class="bi bi-shield-lock-fill"></i>
           </div>
 
           <span class="policy-badge" [ngClass]="policyClass(policy.value)">
@@ -600,43 +667,46 @@
         </ul>
 
         <div class="policy-limit">
-          <span>Recommended attempts</span>
+          <span>Recommended attempts limit</span>
           <strong>{{ policy.recommendedAttemptLimit }}</strong>
         </div>
       </article>
     </div>
   </section>
 
+  <!-- Details Sidebar Rail -->
   <div
     class="rail-backdrop"
     *ngIf="selectedItem && !showPublishDrawer && !showBulkDrawer"
     (click)="closePreview()"
   >
     <aside class="details-rail" (click)="$event.stopPropagation()">
-      <button type="button" class="rail-close" (click)="closePreview()">x</button>
+      <button type="button" class="rail-close" (click)="closePreview()">
+        <i class="bi bi-x-lg"></i>
+      </button>
 
-      <span class="rail-kicker">{{ selectedType }}</span>
+      <span class="rail-kicker"><i class="bi bi-info-circle"></i> {{ selectedType }}</span>
       <h2>{{ displayTitle(selectedItem) }}</h2>
       <p>{{ displayDescription(selectedItem) }}</p>
 
       <div class="rail-stats">
         <div>
-          <span>Company</span>
+          <span><i class="bi bi-building"></i> Company</span>
           <strong>{{ displayCompany(selectedItem) }}</strong>
         </div>
 
         <div>
-          <span>Trainer</span>
+          <span><i class="bi bi-person"></i> Trainer</span>
           <strong>{{ selectedItem.trainerName || selectedItem.trainerEmail || '-' }}</strong>
         </div>
 
         <div>
-          <span>Batch</span>
+          <span><i class="bi bi-people"></i> Batch</span>
           <strong>{{ selectedItem.batchName || selectedItem.batchId || '-' }}</strong>
         </div>
 
         <div>
-          <span>Access</span>
+          <span><i class="bi bi-shield-lock"></i> Access</span>
           <strong>
             <span class="policy-badge" [ngClass]="policyClass(selectedItem.publicAccessLevel)">
               {{ policyLabel(selectedItem.publicAccessLevel) }}
@@ -645,7 +715,7 @@
         </div>
 
         <div>
-          <span>Guest Attempts</span>
+          <span><i class="bi bi-graph-up"></i> Attempts</span>
           <strong>{{ selectedItem.publicAttemptCount || 0 }}</strong>
         </div>
       </div>
@@ -656,48 +726,51 @@
         [disabled]="!selectedItem.active"
         (click)="openPublish(selectedItem, selectedType)"
       >
-        {{ selectedItem.publicVisible ? 'Edit Public Settings' : 'Publish Publicly' }}
+        Configure Settings
       </button>
     </aside>
   </div>
 
+  <!-- Publish Drawer Modal -->
   <div class="drawer-backdrop" *ngIf="showPublishDrawer" (click)="closePublish()">
     <aside class="publish-drawer" (click)="$event.stopPropagation()">
-      <button type="button" class="rail-close" (click)="closePublish()">x</button>
+      <button type="button" class="rail-close" (click)="closePublish()">
+        <i class="bi bi-x-lg"></i>
+      </button>
 
       <div class="drawer-hero">
-        <span>{{ selectedType }}</span>
+        <span><i class="bi bi-globe2"></i> {{ selectedType }}</span>
         <h2>{{ selectedItem?.publicVisible ? 'Edit Public Release' : 'Publish Publicly' }}</h2>
         <p>{{ displayTitle(selectedItem) }}</p>
       </div>
 
       <div class="drawer-summary">
         <div>
-          <span>Trainer</span>
+          <span><i class="bi bi-person"></i> Trainer</span>
           <strong>{{ selectedItem?.trainerName || selectedItem?.trainerEmail || '-' }}</strong>
         </div>
         <div>
-          <span>Batch</span>
+          <span><i class="bi bi-people"></i> Batch</span>
           <strong>{{ selectedItem?.batchName || selectedItem?.batchId || '-' }}</strong>
         </div>
         <div>
-          <span>Status</span>
+          <span><i class="bi bi-toggle-on"></i> Status</span>
           <strong>{{ selectedItem?.active ? 'Active' : 'Inactive' }}</strong>
         </div>
       </div>
 
       <div class="drawer-errors" *ngIf="publishErrors.length">
-        <div *ngFor="let error of publishErrors">{{ error }}</div>
+        <div *ngFor="let error of publishErrors"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
       </div>
 
       <div class="drawer-form">
         <label>
-          <span>Company</span>
-          <input [(ngModel)]="publishForm.companyName" />
+          <span><i class="bi bi-building"></i> Company</span>
+          <input [(ngModel)]="publishForm.companyName" placeholder="Enter company name..." />
         </label>
 
         <div class="policy-check-field">
-          <span>Access Policies</span>
+          <span><i class="bi bi-shield-lock"></i> Access Policies</span>
 
           <div class="policy-check-grid">
             <label
@@ -718,18 +791,19 @@
             </label>
           </div>
 
-          <p class="policy-summary">Selected: {{ accessPolicySummary() }}</p>
+          <p class="policy-summary"><i class="bi bi-check-all"></i> Selected: {{ accessPolicySummary() }}</p>
         </div>
 
         <label>
-          <span>Attempt Limit</span>
+          <span><i class="bi bi-shield-exclamation"></i> Attempt Limit</span>
           <input type="number" min="1" [(ngModel)]="publishForm.attemptLimit" />
         </label>
       </div>
 
       <div class="drawer-note">
-        Recommended for public practice: LEAD_REQUIRED with attempt limit 1.
+        <i class="bi bi-info-circle-fill"></i> Recommended for public practice: LEAD_REQUIRED with attempt limit 1.
       </div>
+      
       <button
         type="button"
         class="drawer-publish"
@@ -737,54 +811,59 @@
         [disabled]="saving"
         (click)="publish()"
       >
-        <span>{{
-          saving
-            ? 'Saving publish settings...'
-            : selectedItem?.publicVisible
-              ? 'Save Settings'
-              : 'Publish Publicly'
-        }}</span>
+        <span>
+          {{
+            saving
+              ? 'Saving publish settings...'
+              : selectedItem?.publicVisible
+                ? 'Save Settings'
+                : 'Publish Publicly'
+          }}
+        </span>
       </button>
     </aside>
   </div>
 
+  <!-- Bulk Publish Drawer Modal -->
   <div class="drawer-backdrop" *ngIf="showBulkDrawer" (click)="closeBulk()">
     <aside class="publish-drawer" (click)="$event.stopPropagation()">
-      <button type="button" class="rail-close" (click)="closeBulk()">x</button>
+      <button type="button" class="rail-close" (click)="closeBulk()">
+        <i class="bi bi-x-lg"></i>
+      </button>
 
       <div class="drawer-hero">
-        <span>{{ currentPublishType }} BULK</span>
+        <span><i class="bi bi-layers-half"></i> {{ currentPublishType }} BULK</span>
         <h2>Publish {{ bulkIds.length }} items</h2>
         <p>{{ bulkTitle }}</p>
       </div>
 
       <div class="drawer-summary">
         <div>
-          <span>Mode</span>
+          <span><i class="bi bi-gear-wide-connected"></i> Mode</span>
           <strong>{{ bulkMode }}</strong>
         </div>
         <div>
-          <span>Items</span>
+          <span><i class="bi bi-stack"></i> Items</span>
           <strong>{{ bulkIds.length }}</strong>
         </div>
         <div>
-          <span>Type</span>
+          <span><i class="bi bi-tag"></i> Type</span>
           <strong>{{ currentPublishType }}</strong>
         </div>
       </div>
 
       <div class="drawer-errors" *ngIf="publishErrors.length">
-        <div *ngFor="let error of publishErrors">{{ error }}</div>
+        <div *ngFor="let error of publishErrors"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
       </div>
 
       <div class="drawer-form">
         <label>
-          <span>Company</span>
-          <input [(ngModel)]="publishForm.companyName" />
+          <span><i class="bi bi-building"></i> Company</span>
+          <input [(ngModel)]="publishForm.companyName" placeholder="Enter company name..." />
         </label>
 
         <div class="policy-check-field">
-          <span>Access Policies</span>
+          <span><i class="bi bi-shield-lock"></i> Access Policies</span>
 
           <div class="policy-check-grid">
             <label
@@ -805,17 +884,17 @@
             </label>
           </div>
 
-          <p class="policy-summary">Selected: {{ accessPolicySummary() }}</p>
+          <p class="policy-summary"><i class="bi bi-check-all"></i> Selected: {{ accessPolicySummary() }}</p>
         </div>
 
         <label>
-          <span>Attempt Limit</span>
+          <span><i class="bi bi-shield-exclamation"></i> Attempt Limit</span>
           <input type="number" min="1" [(ngModel)]="publishForm.attemptLimit" />
         </label>
       </div>
 
       <div class="drawer-note">
-        These settings apply to every selected item in this bulk publish batch.
+        <i class="bi bi-info-circle-fill"></i> These settings apply to every selected item in this bulk publish batch.
       </div>
 
       <button
@@ -830,52 +909,64 @@
     </aside>
   </div>
 
+  <!-- Attempt Detail Drawer Modal -->
   <div class="drawer-backdrop" *ngIf="selectedAttempt" (click)="closeAttempt()">
     <aside class="publish-drawer" (click)="$event.stopPropagation()">
-      <button type="button" class="rail-close" (click)="closeAttempt()">x</button>
+      <button type="button" class="rail-close" (click)="closeAttempt()">
+        <i class="bi bi-x-lg"></i>
+      </button>
 
-      <div class="drawer-hero">
-        <span>{{ selectedAttempt.type }}</span>
+      <div class="drawer-hero" *ngIf="selectedAttempt">
+        <span><i class="bi bi-clock-history"></i> {{ selectedAttempt.type }}</span>
         <h2>{{ selectedAttempt.practiceTitle }}</h2>
-        <p>{{ selectedAttempt.submittedAt | date: 'medium' }}</p>
+        <p><i class="bi bi-calendar-event"></i> {{ selectedAttempt.submittedAt | date: 'medium' }}</p>
       </div>
 
-      <div class="drawer-summary">
+      <div class="drawer-summary" *ngIf="selectedAttempt">
         <div>
-          <span>Lead</span>
+          <span><i class="bi bi-person-badge"></i> Lead</span>
           <strong>{{ selectedAttempt.leadName || '-' }}</strong>
         </div>
         <div>
-          <span>Phone</span>
+          <span><i class="bi bi-telephone"></i> Phone</span>
           <strong>{{ selectedAttempt.leadPhone || '-' }}</strong>
         </div>
         <div>
-          <span>Email</span>
+          <span><i class="bi bi-envelope"></i> Email</span>
           <strong>{{ selectedAttempt.leadEmail || '-' }}</strong>
         </div>
         <div>
-          <span>Score</span>
+          <span><i class="bi bi-award"></i> Score</span>
           <strong>{{ selectedAttempt.score }}/{{ selectedAttempt.totalMarks }}</strong>
         </div>
         <div>
-          <span>Percentage</span>
+          <span><i class="bi bi-percent"></i> Percent</span>
           <strong>{{ selectedAttempt.percentage }}%</strong>
         </div>
         <div>
-          <span>Status</span>
+          <span><i class="bi bi-check-circle"></i> Status</span>
           <strong>{{ selectedAttempt.status }}</strong>
         </div>
       </div>
-      <div class="policy-live-card" [ngClass]="policyClass(publishForm.accessLevel)">
+
+      <div class="policy-live-card" *ngIf="selectedAttempt" [ngClass]="policyClass(publishForm.accessLevel)">
         <div>
           <span>{{ policyTier(publishForm.accessLevel) }} Access</span>
           <strong>{{ policyLabel(publishForm.accessLevel) }}</strong>
           <p>{{ policyDescription(publishForm.accessLevel) }}</p>
         </div>
 
-        <i class="bi bi-shield-check"></i>
+        <i class="bi bi-shield-fill-check"></i>
       </div>
-      <pre *ngIf="selectedAttempt.sourceCode">{{ selectedAttempt.sourceCode }}</pre>
+
+      <!-- Copyable Source Code block -->
+      <div *ngIf="selectedAttempt && selectedAttempt.sourceCode" style="margin: 20px 30px 0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-light-muted);"><i class="bi bi-code-square"></i> Submitted Source Code</span>
+        <button type="button" class="ghost-action compact" style="min-height: 28px; padding: 0 8px; border-radius: 6px;" (click)="copyCode(selectedAttempt.sourceCode)">
+          <i class="bi bi-clipboard"></i> Copy Code
+        </button>
+      </div>
+      <pre *ngIf="selectedAttempt && selectedAttempt.sourceCode">{{ selectedAttempt.sourceCode }}</pre>
     </aside>
   </div>
 </section>

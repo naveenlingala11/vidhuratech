@@ -1,205 +1,2347 @@
-<div class="resume-container">
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="brand">Resume Builder</div>
-    <div class="score-box">
-      <h2>{{ profileScore }}%</h2>
-      <p>Profile Strength</p>
+<div class="resume-workspace">
+  <!-- COLUMN 1: SIDEBAR (CHECKLIST, TEMPLATES & SECTIONS) -->
+  <aside class="workspace-sidebar">
+    <div class="brand-header">
+      <i class="fa-solid fa-file-invoice logo-icon"></i>
+      <span>ATS Resume Lab</span>
     </div>
-    <ul>
-      <li
-        *ngFor="let s of sections; let i = index"
-        (click)="setSection(s.id)"
-        [class.active]="activeSection === s.id"
-        draggable="true"
-        (dragstart)="onDragStart(i)"
-        (drop)="onDrop(i)"
-        (dragover)="$event.preventDefault()"
-      >
-        {{ s.label }}
-      </li>
-    </ul>
-    <button class="download-btn" (click)="downloadPDF()">Download Resume</button>
-  </div>
-  <!-- MAIN -->
-  <div class="main">
-    <!-- LEFT PANEL -->
-    <div class="form-panel">
-      <!-- AI BOX -->
-      <div class="ai-box">
-        <h3>AI Resume Generator</h3>
-        <input placeholder="Enter Role" [(ngModel)]="aiRole" />
-        <select [(ngModel)]="aiExperience">
-          <option>Fresher</option>
-          <option>1 Year</option>
-          <option>2 Years</option>
-          <option>3+ Years</option>
-        </select>
-        <button (click)="generateAIResume()">Generate Resume</button>
+
+    <!-- Circular Profile Strength Meter & Checklist -->
+    <div class="strength-card">
+      <div class="meter-radial">
+        <svg class="radial-svg" viewBox="0 0 36 36">
+          <path class="radial-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          <path class="radial-stroke" [style.strokeDasharray]="profileScore + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+        <div class="radial-text">
+          <h3>{{ profileScore }}%</h3>
+          <p>ATS Match</p>
+        </div>
       </div>
-      <!-- TEMPLATE SELECTOR -->
-      <div class="template-bar">
+
+      <!-- Checklist items -->
+      <ul class="strength-checklist">
+        <li [class.passed]="scoreChecklist.hasName">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasName ? 'fa-circle-check' : 'fa-circle'"></i> Name & Info
+        </li>
+        <li [class.passed]="scoreChecklist.hasContact">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasContact ? 'fa-circle-check' : 'fa-circle'"></i> Valid Email & Phone
+        </li>
+        <li [class.passed]="scoreChecklist.hasSummary">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasSummary ? 'fa-circle-check' : 'fa-circle'"></i> Profile Summary
+        </li>
+        <li [class.passed]="scoreChecklist.hasSkills">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasSkills ? 'fa-circle-check' : 'fa-circle'"></i> Key Skills (4+)
+        </li>
+        <li [class.passed]="scoreChecklist.hasEmployment">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasEmployment ? 'fa-circle-check' : 'fa-circle'"></i> Work Experience
+        </li>
+        <li [class.passed]="scoreChecklist.hasProjects">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasProjects ? 'fa-circle-check' : 'fa-circle'"></i> Project Portfolio
+        </li>
+        <li [class.passed]="scoreChecklist.hasEducation">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasEducation ? 'fa-circle-check' : 'fa-circle'"></i> Education Info
+        </li>
+        <li [class.passed]="scoreChecklist.hasSocials">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasSocials ? 'fa-circle-check' : 'fa-circle'"></i> LinkedIn / GitHub
+        </li>
+        <li [class.passed]="scoreChecklist.hasReferences">
+          <i class="fa-solid" [ngClass]="scoreChecklist.hasReferences ? 'fa-circle-check' : 'fa-circle'"></i> References
+        </li>
+      </ul>
+    </div>
+
+    <!-- Section Navigation (Draggable) -->
+    <div class="sidebar-block" *ngIf="activeTab === 'editor'">
+      <h4>Drag to Reorder Sections</h4>
+      <nav class="sections-nav">
         <div
+          *ngFor="let s of sections; let i = index"
+          class="section-nav-link"
+          [class.active]="activeSection === s.id"
+          (click)="setSection(s.id)"
+          draggable="true"
+          (dragstart)="onDragStart(i)"
+          (drop)="onDrop(i)"
+          (dragover)="$event.preventDefault()"
+        >
+          <i class="fa-solid fa-grip-vertical drag-handle"></i>
+          <span>{{ s.label }}</span>
+        </div>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- WORKSPACE MAIN AREA (TEMPLATE SELECTOR & SPLIT COLUMNS) -->
+  <div class="workspace-main-area">
+    <!-- Horizontal Templates Selector Row -->
+    <div class="templates-horizontal-bar">
+      <div class="horizontal-bar-header">
+        <i class="fa-solid fa-palette selector-icon"></i>
+        <span>Select Premium ATS Template</span>
+      </div>
+      <div class="templates-horizontal-scroll">
+        <button
           *ngFor="let t of templates"
-          class="template-card"
+          type="button"
+          class="template-pill-btn"
           [class.active]="selectedTemplate === t.id"
           (click)="selectedTemplate = t.id"
         >
-          <div class="color" [style.background]="t.color"></div>
-          <p>{{ t.name }}</p>
-        </div>
-      </div>
-      <!-- FORM -->
-      <h3>Basic Information</h3>
-      <input placeholder="Full Name" [(ngModel)]="data.name" maxlength="50" />
-      <small class="error" *ngIf="errors.name">{{ errors.name }}</small>
-      <input placeholder="Email" [(ngModel)]="data.email" />
-      <small class="error" *ngIf="errors.email">{{ errors.email }}</small>
-      <input placeholder="Phone" [(ngModel)]="data.phone" maxlength="10" />
-      <small class="error" *ngIf="errors.phone">{{ errors.phone }}</small>
-      <input placeholder="Headline" [(ngModel)]="data.headline" />
-      <input type="file" (change)="onFileChange($event)" />
-      <!-- SUMMARY -->
-      <div *ngIf="activeSection === 'summary'">
-        <h4>Summary</h4>
-        <textarea [(ngModel)]="data.summary" maxlength="300"></textarea>
-        <small>{{ data.summary.length }}/300</small>
-      </div>
-      <!-- SKILLS -->
-      <div *ngIf="activeSection === 'skills'">
-        <h4>Skills</h4>
-        <input [(ngModel)]="skillInput" (input)="onSkillInput()" />
-        <div class="suggestions" *ngIf="filteredSkills.length">
-          <div *ngFor="let s of filteredSkills" (click)="addSkill(s)">
-            {{ s }}
-          </div>
-        </div>
-        <div class="selected-skills">
-          <span *ngFor="let s of selectedSkills; let i = index">
-            {{ s }} <b (click)="removeSkill(i)">×</b>
-          </span>
-        </div>
-      </div>
-      <!-- EMPLOYMENT -->
-      <div *ngIf="activeSection === 'employment'">
-        <h4>Employment</h4>
-        <div *ngFor="let e of data.employment; let i = index" class="card">
-          <input placeholder="Company" [(ngModel)]="e.company" />
-          <input placeholder="Role" [(ngModel)]="e.role" />
-          <input placeholder="Location" [(ngModel)]="e.location" />
-          <input type="date" [(ngModel)]="e.start" />
-          <input type="date" [(ngModel)]="e.end" [disabled]="e.current" />
-          <p>{{ getDuration(e.start, e.end) }}</p>
-          <label>
-            <input type="checkbox" [(ngModel)]="e.current" />
-            Current Job
-          </label>
-          <textarea [(ngModel)]="e.responsibilities"></textarea>
-          <button (click)="removeItem('employment', i)">Remove</button>
-        </div>
-        <button (click)="addItem('employment')">+ Add</button>
-      </div>
-      <!-- PROJECTS -->
-      <div *ngIf="activeSection === 'projects'">
-        <h4>Projects</h4>
-        <div *ngFor="let p of data.projects; let i = index" class="card">
-          <input [(ngModel)]="p.title" placeholder="Title" />
-          <input [(ngModel)]="p.tech" placeholder="Tech" />
-          <input [(ngModel)]="p.role" placeholder="Role" />
-          <input [(ngModel)]="p.link" placeholder="Link" />
-          <textarea [(ngModel)]="p.desc"></textarea>
-          <button (click)="removeItem('projects', i)">Remove</button>
-        </div>
-        <button (click)="addItem('projects')">+ Add</button>
-      </div>
-      <!-- EDUCATION -->
-      <div *ngIf="activeSection === 'education'">
-        <h4>Education</h4>
-        <div *ngFor="let e of data.education; let i = index" class="card">
-          <input [(ngModel)]="e.degree" placeholder="Degree" />
-          <input [(ngModel)]="e.college" placeholder="College" />
-          <input [(ngModel)]="e.year" placeholder="Year" />
-          <button (click)="removeItem('education', i)">Remove</button>
-        </div>
-        <button (click)="addItem('education')">+ Add</button>
-      </div>
-      <!-- PERSONAL -->
-      <div *ngIf="activeSection === 'personal'">
-        <h4>Personal</h4>
-        <input [(ngModel)]="data.personal.dob" placeholder="DOB" />
-        <input [(ngModel)]="data.personal.gender" placeholder="Gender" />
-        <input [(ngModel)]="data.personal.address" placeholder="Address" />
-        <input [(ngModel)]="data.personal.nationality" placeholder="Nationality" />
-        <input [(ngModel)]="data.personal.linkedin" placeholder="LinkedIn" />
-        <input [(ngModel)]="data.personal.github" placeholder="GitHub" />
-        <h5>Languages</h5>
-        <div *ngFor="let lang of allLanguages">
-          <input
-            type="checkbox"
-            [checked]="selectedLanguages.includes(lang)"
-            (change)="toggleLanguage(lang)"
-          />
-          {{ lang }}
-        </div>
+          <span class="color-dot" [style.background]="t.color"></span>
+          {{ t.name }}
+        </button>
       </div>
     </div>
-    <!-- RIGHT PANEL -->
-    <div class="preview-panel">
-      <!-- TOOLBAR -->
-      <div class="toolbar">
-        <button (click)="zoomOut()">−</button>
-        <span>{{ zoomLevel * 100 | number: '1.0-0' }}%</span>
-        <button (click)="zoomIn()">+</button>
-        <button (click)="downloadPDF()">Download PDF</button>
+
+    <div class="workspace-columns-split">
+      <!-- COLUMN 2: WORKSPACE EDITOR (FORMS, AI GENERATOR, SCANNER & TIPS) -->
+      <main class="workspace-editor">
+    <!-- Tab Selector Navigation -->
+    <div class="workspace-tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'editor'"
+        (click)="activeTab = 'editor'"
+      >
+        <i class="fa-solid fa-pen-to-square"></i> Form Editor
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'scanner'"
+        (click)="activeTab = 'scanner'"
+      >
+        <i class="fa-solid fa-magnifying-glass-chart"></i> ATS JD Scanner
+      </button>
+    </div>
+
+    <!-- TAB 1: FORM EDITOR VIEW -->
+    <div class="tab-content-wrapper" *ngIf="activeTab === 'editor'">
+      <!-- Quick Actions Bar -->
+      <div class="actions-header">
+        <h2>Resume Editor</h2>
+        <div class="quick-btns">
+          <button type="button" class="action-btn seed-btn" (click)="loadSampleData()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Data
+          </button>
+          <button type="button" class="action-btn clear-btn" (click)="clearForm()">
+            <i class="fa-solid fa-trash-can"></i> Clear All
+          </button>
+        </div>
       </div>
-      <!-- PREVIEW -->
-      <div class="preview" id="preview">
+
+      <!-- Interactive AI Assistant -->
+      <div class="glass-card ai-generator-card">
+        <div class="card-header">
+          <i class="fa-solid fa-robot ai-icon"></i>
+          <div>
+            <h3>AI Resume Copilot</h3>
+            <p>Enter target profile to generate professional descriptions and project roles</p>
+          </div>
+        </div>
+        <div class="ai-controls-grid">
+          <div class="input-field-wrap">
+            <input
+              type="text"
+              placeholder="e.g. Java Developer, Frontend Developer"
+              [(ngModel)]="aiRole"
+              list="roles-datalist"
+            />
+            <datalist id="roles-datalist">
+              <option *ngFor="let role of availableRoles" [value]="role"></option>
+            </datalist>
+          </div>
+          <div class="select-field-wrap">
+            <select [(ngModel)]="aiExperience">
+              <option>Fresher</option>
+              <option>1 Year</option>
+              <option>2 Years</option>
+              <option>3+ Years</option>
+            </select>
+          </div>
+          <button type="button" class="ai-action-btn" (click)="generateAIResume()">
+            Generate Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Section Help Suggestions -->
+      <div class="glass-card help-tips-card" *ngIf="sectionGuidelines[activeSection]">
+        <h4><i class="fa-solid fa-lightbulb tips-icon"></i> {{ sectionGuidelines[activeSection].title }}</h4>
+        <ul class="tips-list">
+          <li *ngFor="let tip of sectionGuidelines[activeSection].tips">{{ tip }}</li>
+        </ul>
+      </div>
+
+      <!-- DYNAMIC FORM SECTIONS CONTAINER -->
+      <div class="form-container">
+        
+        <!-- Basic Information Forms (Always Visible at Top) -->
+        <div class="glass-card form-section-block">
+          <h3>Contact & Header Details</h3>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Full Name <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="data.name" placeholder="John Doe" (ngModelChange)="updateScore()" />
+              <small class="error-msg" *ngIf="errors.name">{{ errors.name }}</small>
+            </div>
+            <div class="form-group">
+              <label>Professional Title</label>
+              <input type="text" [(ngModel)]="data.headline" placeholder="e.g. Associate Software Engineer" (ngModelChange)="updateScore()" />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Email Address <span class="required">*</span></label>
+              <input type="email" [(ngModel)]="data.email" placeholder="john.doe@example.com" (ngModelChange)="updateScore()" />
+              <small class="error-msg" *ngIf="errors.email">{{ errors.email }}</small>
+            </div>
+            <div class="form-group">
+              <label>Phone Number <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="data.phone" placeholder="9108057464" maxlength="10" (ngModelChange)="updateScore()" />
+              <small class="error-msg" *ngIf="errors.phone">{{ errors.phone }}</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Profile Picture (Optional)</label>
+            <div class="file-uploader">
+              <input type="file" id="photo-input" (change)="onFileChange($event)" accept="image/*" />
+              <label for="photo-input" class="file-label">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Photo
+              </label>
+              <span class="file-name" *ngIf="data.photo">Image uploaded successfully</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. SUMMARY -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'summary'">
+          <h3>Profile Summary</h3>
+          <div class="form-group">
+            <textarea
+              [(ngModel)]="data.summary"
+              placeholder="Write a brief summary of your skills and experiences..."
+              maxlength="500"
+              (ngModelChange)="updateScore()"
+            ></textarea>
+            <div class="textarea-footer">
+              <small class="error-msg" *ngIf="errors.summary">{{ errors.summary }}</small>
+              <span class="char-count">{{ data.summary.length }}/500</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SKILLS -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'skills'">
+          <h3>Key Skills & ATS Keywords</h3>
+          
+          <div class="form-group">
+            <label>Target Role for Keywords</label>
+            <select [(ngModel)]="targetRole">
+              <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+            </select>
+          </div>
+
+          <!-- Keyword Cloud Suggestions -->
+          <div class="keyword-suggestion-cloud" *ngIf="roleKeywords[targetRole]">
+            <h5>ATS High-Value Keywords (Click to add):</h5>
+            <div class="keyword-tags">
+              <button
+                *ngFor="let k of roleKeywords[targetRole]"
+                type="button"
+                class="keyword-btn"
+                (click)="addKeyword(k)"
+                [disabled]="selectedSkills.includes(k)"
+              >
+                + {{ k }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Skill Input Auto-suggestions -->
+          <div class="form-group margin-top-20">
+            <label>Add Custom Skill</label>
+            <div class="skills-input-row">
+              <input
+                type="text"
+                placeholder="Type skill name & hit Enter"
+                [(ngModel)]="skillInput"
+                (input)="onSkillInput()"
+                (keydown.enter)="addSkill(skillInput)"
+              />
+              <button type="button" class="add-tag-btn" (click)="addSkill(skillInput)">Add</button>
+            </div>
+            
+            <div class="autocomplete-dropdown" *ngIf="filteredSkills.length">
+              <div *ngFor="let s of filteredSkills" (click)="addSkill(s)">
+                {{ s }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Skills Tags -->
+          <div class="selected-skills-tags">
+            <span class="skill-tag" *ngFor="let s of selectedSkills; let i = index">
+              {{ s }}
+              <button type="button" class="remove-tag-icon" (click)="removeSkill(i)">&times;</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 3. EMPLOYMENT -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'employment'">
+          <div class="section-title-row">
+            <h3>Employment History</h3>
+            <button type="button" class="btn-add-item" (click)="addItem('employment')">
+              <i class="fa-solid fa-plus"></i> Add History
+            </button>
+          </div>
+
+          <div class="nested-cards-list">
+            <div *ngFor="let e of data.employment; let i = index" class="nested-form-card">
+              <div class="nested-card-header">
+                <span>Position #{{ i + 1 }}</span>
+                <button type="button" class="btn-remove-item" (click)="removeItem('employment', i)">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Company / Organization</label>
+                  <input type="text" [(ngModel)]="e.company" placeholder="e.g. Google" (ngModelChange)="updateScore()" />
+                </div>
+                <div class="form-group">
+                  <label>Designated Role</label>
+                  <input type="text" [(ngModel)]="e.role" placeholder="e.g. Frontend Intern" (ngModelChange)="updateScore()" />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Start Date</label>
+                  <input type="date" [(ngModel)]="e.start" />
+                </div>
+                <div class="form-group">
+                  <label>End Date</label>
+                  <input type="date" [(ngModel)]="e.end" [disabled]="e.current" />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Office Location</label>
+                  <input type="text" [(ngModel)]="e.location" placeholder="e.g. Bangalore, India" />
+                </div>
+                <div class="form-group flex-row-align">
+                  <label class="checkbox-container">
+                    <input type="checkbox" [(ngModel)]="e.current" />
+                    <span class="custom-chk"></span>
+                    I currently work here
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Roles & Responsibilities</label>
+                <textarea
+                  [(ngModel)]="e.responsibilities"
+                  placeholder="Mention key architectures developed, and outcomes achieved..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. PROJECTS -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'projects'">
+          <div class="section-title-row">
+            <h3>Projects Portfolio</h3>
+            <button type="button" class="btn-add-item" (click)="addItem('projects')">
+              <i class="fa-solid fa-plus"></i> Add Project
+            </button>
+          </div>
+
+          <div class="nested-cards-list">
+            <div *ngFor="let p of data.projects; let i = index" class="nested-form-card">
+              <div class="nested-card-header">
+                <span>Project #{{ i + 1 }}</span>
+                <button type="button" class="btn-remove-item" (click)="removeItem('projects', i)">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Project Title</label>
+                  <input type="text" [(ngModel)]="p.title" placeholder="e.g. Interactive Sandbox Dashboard" (ngModelChange)="updateScore()" />
+                </div>
+                <div class="form-group">
+                  <label>Technologies Used</label>
+                  <input type="text" [(ngModel)]="p.tech" placeholder="e.g. Angular, Java, SQL" />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Designation Role</label>
+                  <input type="text" [(ngModel)]="p.role" placeholder="e.g. Team Lead, Developer" />
+                </div>
+                <div class="form-group">
+                  <label>Repository / Live URL</label>
+                  <input type="text" [(ngModel)]="p.link" placeholder="e.g. https://github.com/..." />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Description & Scope</label>
+                <textarea
+                  [(ngModel)]="p.desc"
+                  placeholder="Explain the problem solving details and backend modules optimized..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. EDUCATION -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'education'">
+          <div class="section-title-row">
+            <h3>Education Details</h3>
+            <button type="button" class="btn-add-item" (click)="addItem('education')">
+              <i class="fa-solid fa-plus"></i> Add Education
+            </button>
+          </div>
+
+          <div class="nested-cards-list">
+            <div *ngFor="let ed of data.education; let i = index" class="nested-form-card">
+              <div class="nested-card-header">
+                <span>Degree #{{ i + 1 }}</span>
+                <button type="button" class="btn-remove-item" (click)="removeItem('education', i)">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Degree / Certification</label>
+                  <input type="text" [(ngModel)]="ed.degree" placeholder="e.g. B.Tech Computer Science" (ngModelChange)="updateScore()" />
+                </div>
+                <div class="form-group">
+                  <label>University / School</label>
+                  <input type="text" [(ngModel)]="ed.college" placeholder="e.g. JNTU University" (ngModelChange)="updateScore()" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Graduation Year</label>
+                <input type="text" [(ngModel)]="ed.year" placeholder="e.g. 2024" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. PERSONAL DETAILS -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'personal'">
+          <h3>Personal Details & URLs</h3>
+          
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="text" [(ngModel)]="data.personal.dob" placeholder="YYYY-MM-DD" />
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <input type="text" [(ngModel)]="data.personal.gender" placeholder="e.g. Male, Female" />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Nationality</label>
+              <input type="text" [(ngModel)]="data.personal.nationality" placeholder="e.g. Indian" />
+            </div>
+            <div class="form-group">
+              <label>City & Address</label>
+              <input type="text" [(ngModel)]="data.personal.address" placeholder="e.g. HSR Layout, Bangalore" />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>LinkedIn URL</label>
+              <input type="text" [(ngModel)]="data.personal.linkedin" placeholder="https://linkedin.com/in/..." (ngModelChange)="updateScore()" />
+            </div>
+            <div class="form-group">
+              <label>GitHub Profile URL</label>
+              <input type="text" [(ngModel)]="data.personal.github" placeholder="https://github.com/..." (ngModelChange)="updateScore()" />
+            </div>
+          </div>
+
+          <!-- Languages selection -->
+          <div class="form-group margin-top-20">
+            <label>Languages Known</label>
+            <div class="languages-flex-grid">
+              <label *ngFor="let lang of allLanguages" class="checkbox-container">
+                <input
+                  type="checkbox"
+                  [checked]="selectedLanguages.includes(lang)"
+                  (change)="toggleLanguage(lang)"
+                />
+                <span class="custom-chk"></span>
+                {{ lang }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. REFERENCES -->
+        <div class="glass-card form-section-block" *ngIf="activeSection === 'references'">
+          <div class="section-title-row">
+            <h3>Professional References</h3>
+            <button type="button" class="btn-add-item" (click)="addItem('references')">
+              <i class="fa-solid fa-plus"></i> Add Reference
+            </button>
+          </div>
+
+          <div class="nested-cards-list">
+            <div *ngFor="let r of data.references; let i = index" class="nested-form-card">
+              <div class="nested-card-header">
+                <span>Reference #{{ i + 1 }}</span>
+                <button type="button" class="btn-remove-item" (click)="removeItem('references', i)">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Reference Name</label>
+                  <input type="text" [(ngModel)]="r.name" placeholder="e.g. Dr. Ramesh Kumar" (ngModelChange)="updateScore()" />
+                </div>
+                <div class="form-group">
+                  <label>Designated Role / Relationship</label>
+                  <input type="text" [(ngModel)]="r.relationship" placeholder="e.g. HOD / Senior Supervisor" />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label>Company / Institution</label>
+                  <input type="text" [(ngModel)]="r.company" placeholder="e.g. JNTU CSE Department" />
+                </div>
+                <div class="form-group">
+                  <label>Contact Phone</label>
+                  <input type="text" [(ngModel)]="r.phone" placeholder="e.g. 9848022338" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Contact Email Address</label>
+                <input type="email" [(ngModel)]="r.email" placeholder="e.g. ramesh@jntu.edu.in" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: ATS SCANNER & OPTIMIZER VIEW -->
+    <div class="tab-content-wrapper scanner-tab-wrapper" *ngIf="activeTab === 'scanner'">
+      <div class="glass-card scanner-controls-card">
+        <div class="card-header">
+          <i class="fa-solid fa-magnifying-glass-chart ai-icon"></i>
+          <div>
+            <h3>ATS Scanner Dashboard</h3>
+            <p>Paste target Job Description and upload/paste your current resume to compute keyword match compliance.</p>
+          </div>
+        </div>
+
+        <div class="scanner-split-fields">
+          <div class="form-group">
+            <label>Job Description Requirements <span class="required">*</span></label>
+            <div class="scanner-textarea-wrapper" [class.scanning-active]="isScanning">
+              <textarea
+                [(ngModel)]="jobDescriptionText"
+                placeholder="Paste the target job description or core skills listed on the job posting here..."
+                class="jd-textarea"
+              ></textarea>
+              <div class="laser-scanner-line" *ngIf="isScanning"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Upload or Paste Old Resume Text</label>
+            
+            <!-- Drag and drop zone -->
+            <div class="old-resume-uploader-zone">
+              <input type="file" id="old-resume-file" (change)="onOldResumeUpload($event)" accept=".txt,.json" />
+              <label for="old-resume-file" class="upload-dropzone">
+                <i class="fa-solid fa-file-circle-plus dropzone-icon"></i>
+                <strong>Upload Resume File</strong>
+                <span class="file-types">Supports raw .txt or JSON formats</span>
+              </label>
+            </div>
+
+            <div class="scanner-textarea-wrapper" [class.scanning-active]="isScanning">
+              <textarea
+                [(ngModel)]="oldResumeText"
+                (ngModelChange)="parseOldResumeText(oldResumeText)"
+                (paste)="onOldResumePaste()"
+                placeholder="Or paste your raw resume text here to parse contact parameters and skill tags..."
+                class="old-resume-textarea"
+              ></textarea>
+              <div class="laser-scanner-line" *ngIf="isScanning"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scanner-action-row">
+          <button type="button" class="btn-scan-action" (click)="scanJdAndResume()" [disabled]="isScanning">
+            <i class="fa-solid" [ngClass]="isScanning ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
+            {{ isScanning ? 'Comparing Resume and Job Description...' : 'Scan & Compare Keywords' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- MATCH METERS & KEYWORDS CLOUD -->
+      <div class="glass-card match-score-card" *ngIf="jdMatchScore > 0 || jdMatchedSkills.length > 0 || jdMissingSkills.length > 0">
+        <div class="match-score-header">
+          <div>
+            <h3>Match Compliance Results</h3>
+            <p>Compliance evaluation based on technical keywords matches</p>
+          </div>
+          <div class="score-badge-circle" [class.excellent]="jdMatchScore >= 80" [class.average]="jdMatchScore < 80 && jdMatchScore >= 50" [class.poor]="jdMatchScore < 50">
+            {{ jdMatchScore }}%
+          </div>
+        </div>
+
+        <!-- Glassmorphic Progress Bar -->
+        <div class="match-progress-track">
+          <div class="match-progress-fill" [style.width.%]="jdMatchScore" [class.excellent]="jdMatchScore >= 80" [class.average]="jdMatchScore < 80 && jdMatchScore >= 50" [class.poor]="jdMatchScore < 50"></div>
+        </div>
+
+        <!-- Keyword clouds -->
+        <div class="keyword-match-clouds">
+          <!-- Matched keywords -->
+          <div class="cloud-section" *ngIf="jdMatchedSkills.length > 0">
+            <h5><i class="fa-solid fa-circle-check icon-green"></i> Matched Keywords ({{ jdMatchedSkills.length }}):</h5>
+            <div class="keyword-tags matched-group">
+              <span class="keyword-tag matched" *ngFor="let k of jdMatchedSkills">{{ k }}</span>
+            </div>
+          </div>
+
+          <!-- Missing keywords -->
+          <div class="cloud-section" *ngIf="jdMissingSkills.length > 0">
+            <h5><i class="fa-solid fa-circle-exclamation icon-orange"></i> Missing Keywords ({{ jdMissingSkills.length }}):</h5>
+            <p class="cloud-help">Click individual tags to add them, or click "One-Click Optimize" to add all.</p>
+            <div class="keyword-tags missing-group">
+              <button
+                type="button"
+                class="keyword-tag missing-clickable"
+                *ngFor="let k of jdMissingSkills"
+                (click)="addKeyword(k)"
+              >
+                + {{ k }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optimize Action button -->
+        <div class="optimize-action-bar" *ngIf="jdMissingSkills.length > 0">
+          <button type="button" class="btn-optimize-resume" (click)="optimizeResume()">
+            <i class="fa-solid fa-bolt-lightning"></i> One-Click Optimize Resume
+          </button>
+        </div>
+      </div>
+
+      <!-- RECOMMENDED RESUME OPTIMIZATIONS CARD -->
+      <div class="glass-card suggestions-card" *ngIf="jdSuggestions.length > 0">
+        <h4><i class="fa-solid fa-wand-magic-sparkles suggestions-icon"></i> Recommended Resume Optimizations</h4>
+        <ul class="suggestions-checklist">
+          <li *ngFor="let s of jdSuggestions" class="suggestion-item">
+            <i class="fa-solid fa-circle-exclamation suggestion-alert-icon"></i>
+            <span>{{ s }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- COLUMN 3: REAL-TIME PREVIEW PANEL (ATS COMPLIANT RENDER) -->
+  <aside class="workspace-preview">
+    <!-- Preview Toolbar controls -->
+    <div class="preview-toolbar">
+      <div class="zoom-box">
+        <button type="button" class="zoom-btn" (click)="zoomOut()" [disabled]="zoomLevel <= 0.6">
+          <i class="fa-solid fa-magnifying-glass-minus"></i>
+        </button>
+        <span class="zoom-percent">{{ zoomLevel * 100 | number: '1.0-0' }}%</span>
+        <button type="button" class="zoom-btn" (click)="zoomIn()" [disabled]="zoomLevel >= 1.5">
+          <i class="fa-solid fa-magnifying-glass-plus"></i>
+        </button>
+      </div>
+
+      <button type="button" class="btn-download-pdf" (click)="downloadPDF()">
+        <i class="fa-solid fa-file-arrow-down"></i> Download ATS PDF
+      </button>
+    </div>
+
+    <!-- Scrollable Canvas -->
+    <div class="canvas-scroll-container">
+      <div class="resume-sheet-preview" id="preview-content">
         <div
-          class="resume"
+          class="ats-resume-template"
           [ngClass]="selectedTemplate"
           [style.transform]="'scale(' + zoomLevel + ')'"
           style="transform-origin: top center"
         >
-          <h2>{{ data.name || 'Your Name' }}</h2>
-          <p>{{ data.email }} | {{ data.phone }}</p>
-          <div *ngIf="data.summary">
-            <h4>Summary</h4>
-            <p>{{ data.summary }}</p>
-          </div>
-          <div *ngIf="selectedSkills.length">
-            <h4>Skills</h4>
-            <div *ngFor="let s of selectedSkills">• {{ s }}</div>
-          </div>
-          <div *ngIf="data.employment.length">
-            <h4>Experience</h4>
-            <div *ngFor="let e of data.employment">
-              <b>{{ e.role }} - {{ e.company }}</b>
-              <p>{{ e.start }} - {{ e.end }}</p>
-              <p>{{ e.responsibilities }}</p>
+          <!-- RENDER LOGIC FOR ALL 10 ATS TEMPLATES -->
+
+          <!-- Template 1: Standard Classic (ATS Golden Standard) -->
+          <div *ngIf="selectedTemplate === 'template1'" class="classic-ats-container">
+            <div class="classic-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="classic-title" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="classic-contact-line">
+                <span>{{ data.email || 'email@example.com' }}</span> |
+                <span>{{ data.phone || '9999999999' }}</span>
+                <span *ngIf="data.personal.linkedin"> | LinkedIn: {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | GitHub: {{ data.personal.github }}</span>
+              </div>
+            </div>
+
+            <!-- Profile Summary -->
+            <div class="classic-section" *ngIf="data.summary">
+              <h2>PROFESSIONAL SUMMARY</h2>
+              <p class="classic-body-text">{{ data.summary }}</p>
+            </div>
+
+            <!-- Core Competencies -->
+            <div class="classic-section" *ngIf="selectedSkills.length">
+              <h2>TECHNICAL SKILLS</h2>
+              <p class="classic-body-text italic">
+                {{ selectedSkills.join(', ') }}
+              </p>
+            </div>
+
+            <!-- Work Experience -->
+            <div class="classic-section" *ngIf="data.employment.length">
+              <h2>WORK EXPERIENCE</h2>
+              <div *ngFor="let emp of data.employment" class="classic-item-row">
+                <div class="classic-item-header">
+                  <strong>{{ emp.role || 'Role Designate' }}</strong>
+                  <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="classic-item-subheader">
+                  <span>{{ emp.company || 'Company Name' }}</span> |
+                  <span>{{ emp.location }}</span>
+                </div>
+                <p class="classic-desc-text whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="classic-section" *ngIf="data.projects.length">
+              <h2>PROJECT PORTFOLIO</h2>
+              <div *ngFor="let proj of data.projects" class="classic-item-row">
+                <div class="classic-item-header">
+                  <strong>{{ proj.title || 'Project Title' }}</strong>
+                  <span *ngIf="proj.link">{{ proj.link }}</span>
+                </div>
+                <div class="classic-item-subheader">
+                  <span>Role: {{ proj.role || 'Developer' }}</span> |
+                  <span>Technologies: {{ proj.tech }}</span>
+                </div>
+                <p class="classic-desc-text">{{ proj.desc }}</p>
+              </div>
+            </div>
+
+            <!-- Education -->
+            <div class="classic-section" *ngIf="data.education.length">
+              <h2>EDUCATION</h2>
+              <div *ngFor="let ed of data.education" class="classic-education-row">
+                <div>
+                  <strong>{{ ed.degree || 'Degree Completed' }}</strong>
+                  <p class="sub-school">{{ ed.college || 'School Name' }}</p>
+                </div>
+                <span>Graduation Year: {{ ed.year }}</span>
+              </div>
+            </div>
+
+            <!-- References -->
+            <div class="classic-section" *ngIf="data.references.length">
+              <h2>PROFESSIONAL REFERENCES</h2>
+              <div class="classic-references-grid">
+                <div *ngFor="let ref of data.references" class="classic-ref-box">
+                  <strong>{{ ref.name }}</strong>
+                  <p>{{ ref.relationship }} — {{ ref.company }}</p>
+                  <p>Email: {{ ref.email }} | Phone: {{ ref.phone }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Details -->
+            <div class="classic-section" *ngIf="data.personal.address || selectedLanguages.length">
+              <h2>ADDITIONAL INFORMATION</h2>
+              <p class="classic-body-text" *ngIf="data.personal.address">Address: {{ data.personal.address }}</p>
+              <p class="classic-body-text" *ngIf="selectedLanguages.length">Languages: {{ selectedLanguages.join(', ') }}</p>
             </div>
           </div>
-          <div *ngIf="data.projects.length">
-            <h4>Projects</h4>
-            <div *ngFor="let p of data.projects">
-              <b>{{ p.title }}</b>
-              <p>{{ p.tech }}</p>
-              <p>{{ p.desc }}</p>
+
+
+          <!-- Template 2: Corporate Modern (Accents, Sidebar highlights) -->
+          <div *ngIf="selectedTemplate === 'template2'" class="corporate-ats-container">
+            <div class="corporate-header">
+              <div class="headline-bar"></div>
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="corp-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              
+              <div class="corp-meta-grid">
+                <span><i class="fa-solid fa-envelope"></i> {{ data.email || 'email@example.com' }}</span>
+                <span><i class="fa-solid fa-phone"></i> {{ data.phone || '9999999999' }}</span>
+                <span *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> {{ data.personal.github }}</span>
+              </div>
+            </div>
+
+            <div class="corporate-content-grid">
+              <!-- Summary -->
+              <div class="corp-block" *ngIf="data.summary">
+                <h3><span class="block-icon"></span> Professional Profile</h3>
+                <p>{{ data.summary }}</p>
+              </div>
+
+              <!-- Skills -->
+              <div class="corp-block" *ngIf="selectedSkills.length">
+                <h3><span class="block-icon"></span> Core Skills</h3>
+                <div class="corp-skills-list">
+                  <span *ngFor="let s of selectedSkills" class="corp-skill-pill">{{ s }}</span>
+                </div>
+              </div>
+
+              <!-- Experience -->
+              <div class="corp-block" *ngIf="data.employment.length">
+                <h3><span class="block-icon"></span> Employment Record</h3>
+                <div class="corp-experience-timeline">
+                  <div *ngFor="let emp of data.employment" class="timeline-item">
+                    <div class="item-title">
+                      <strong>{{ emp.role }}</strong>
+                      <span class="date-badge">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                    </div>
+                    <div class="item-sub">{{ emp.company }} | {{ emp.location }}</div>
+                    <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Projects -->
+              <div class="corp-block" *ngIf="data.projects.length">
+                <h3><span class="block-icon"></span> Project Portfolio</h3>
+                <div class="corp-projects-list">
+                  <div *ngFor="let p of data.projects" class="project-box">
+                    <div class="item-title">
+                      <strong>{{ p.title }}</strong>
+                      <span class="tech-pill">{{ p.tech }}</span>
+                    </div>
+                    <div class="item-sub" *ngIf="p.link">Repository: {{ p.link }}</div>
+                    <p>{{ p.desc }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Education -->
+              <div class="corp-block" *ngIf="data.education.length">
+                <h3><span class="block-icon"></span> Education</h3>
+                <div class="corp-edu-grid">
+                  <div *ngFor="let ed of data.education" class="edu-item">
+                    <strong>{{ ed.degree }}</strong>
+                    <span>{{ ed.college }} ({{ ed.year }})</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- References -->
+              <div class="corp-block" *ngIf="data.references.length">
+                <h3><span class="block-icon"></span> References</h3>
+                <div class="corp-ref-grid">
+                  <div *ngFor="let r of data.references" class="ref-item">
+                    <strong>{{ r.name }}</strong>
+                    <p>{{ r.relationship }} — {{ r.company }}</p>
+                    <p>{{ r.email }} | {{ r.phone }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div *ngIf="data.education.length">
-            <h4>Education</h4>
-            <div *ngFor="let e of data.education">
-              <b>{{ e.degree }}</b>
-              <p>{{ e.college }} - {{ e.year }}</p>
+
+
+          <!-- Template 3: Dual Column Professional (Structured split) -->
+          <div *ngIf="selectedTemplate === 'template3'" class="dual-column-container">
+            <!-- Sidebar Column -->
+            <div class="dual-sidebar">
+              <div class="sidebar-photo-wrap" *ngIf="data.photo">
+                <img [src]="data.photo" class="sidebar-avatar" alt="Avatar" />
+              </div>
+              
+              <div class="sidebar-block">
+                <h3>Contact</h3>
+                <ul class="sidebar-contact-list">
+                  <li><i class="fa-solid fa-envelope"></i> {{ data.email || 'email@example.com' }}</li>
+                  <li><i class="fa-solid fa-phone"></i> {{ data.phone || '9999999999' }}</li>
+                  <li *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</li>
+                  <li *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> GitHub</li>
+                </ul>
+              </div>
+
+              <div class="sidebar-block" *ngIf="selectedSkills.length">
+                <h3>Skills</h3>
+                <ul class="sidebar-skills-list">
+                  <li *ngFor="let s of selectedSkills">{{ s }}</li>
+                </ul>
+              </div>
+
+              <div class="sidebar-block" *ngIf="selectedLanguages.length">
+                <h3>Languages</h3>
+                <p class="languages-comma">{{ selectedLanguages.join(', ') }}</p>
+              </div>
+
+              <div class="sidebar-block" *ngIf="data.references.length">
+                <h3>References</h3>
+                <div class="sidebar-reference-item" *ngFor="let r of data.references">
+                  <strong>{{ r.name }}</strong>
+                  <p>{{ r.company }}</p>
+                  <p class="small-text">Tel: {{ r.phone }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Column -->
+            <div class="dual-main">
+              <div class="main-header">
+                <h1>{{ data.name || 'Your Full Name' }}</h1>
+                <p class="headline-title" *ngIf="data.headline">{{ data.headline }}</p>
+              </div>
+
+              <!-- Summary -->
+              <div class="main-section" *ngIf="data.summary">
+                <h2>Profile Summary</h2>
+                <p class="summary-body">{{ data.summary }}</p>
+              </div>
+
+              <!-- Experience -->
+              <div class="main-section" *ngIf="data.employment.length">
+                <h2>Experience</h2>
+                <div *ngFor="let emp of data.employment" class="main-timeline-item">
+                  <div class="main-item-header">
+                    <strong>{{ emp.role }}</strong>
+                    <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="main-item-sub">{{ emp.company }} | {{ emp.location }}</div>
+                  <p class="whitespace-pre font-size-12">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+
+              <!-- Projects -->
+              <div class="main-section" *ngIf="data.projects.length">
+                <h2>Projects</h2>
+                <div *ngFor="let p of data.projects" class="main-timeline-item">
+                  <div class="main-item-header">
+                    <strong>{{ p.title }}</strong>
+                    <span *ngIf="p.link">URL: {{ p.link }}</span>
+                  </div>
+                  <div class="main-item-sub">Role: {{ p.role }} | Tech: {{ p.tech }}</div>
+                  <p class="font-size-12">{{ p.desc }}</p>
+                </div>
+              </div>
+
+              <!-- Education -->
+              <div class="main-section" *ngIf="data.education.length">
+                <h2>Education</h2>
+                <div *ngFor="let ed of data.education" class="edu-timeline-item">
+                  <strong>{{ ed.degree }}</strong>
+                  <p>{{ ed.college }} — {{ ed.year }}</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div>
-            <h4>Additional</h4>
-            <p>{{ data.personal.address }}</p>
-            <p>{{ selectedLanguages.join(', ') }}</p>
+
+
+          <!-- Template 4: Tech Developer Special (Badges, Dev Focus, Code links) -->
+          <div *ngIf="selectedTemplate === 'template4'" class="tech-developer-container">
+            <div class="tech-header">
+              <div class="developer-decor">&lt;coder&gt;</div>
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="tech-subtitle">{{ data.headline || 'Full Stack Engineer' }}</p>
+              
+              <div class="tech-contact-row">
+                <span><i class="fa-solid fa-code"></i> {{ data.email }}</span>
+                <span><i class="fa-solid fa-mobile-screen-button"></i> {{ data.phone }}</span>
+                <span *ngIf="data.personal.github"><i class="fa-solid fa-link-slash"></i> github.com/{{ data.name.replace(' ', '').toLowerCase() }}</span>
+              </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="tech-section" *ngIf="data.summary">
+              <h3>console.log("Summary");</h3>
+              <p class="tech-body">{{ data.summary }}</p>
+            </div>
+
+            <!-- Skills Row -->
+            <div class="tech-section" *ngIf="selectedSkills.length">
+              <h3>const techStack = [</h3>
+              <div class="tech-skills-badges">
+                <span *ngFor="let s of selectedSkills" class="tech-badge-tag">{{ s }}</span>
+              </div>
+              <div class="close-brackets">];</div>
+            </div>
+
+            <!-- Experience -->
+            <div class="tech-section" *ngIf="data.employment.length">
+              <h3>class Experience {{ '{' }}</h3>
+              <div *ngFor="let emp of data.employment" class="tech-experience-block">
+                <div class="tech-item-title">
+                  <strong>{{ emp.role }}()</strong>
+                  <span>@ {{ emp.company }}</span>
+                  <span class="tech-date">[{{ formatDate(emp.start) }} - {{ emp.current ? 'Present' : formatDate(emp.end) }}]</span>
+                </div>
+                <div class="tech-item-body whitespace-pre">{{ emp.responsibilities }}</div>
+              </div>
+              <div class="close-brackets">{{ '}' }}</div>
+            </div>
+
+            <!-- Projects -->
+            <div class="tech-section" *ngIf="data.projects.length">
+              <h3>const projects = {{ '{' }}</h3>
+              <div *ngFor="let p of data.projects" class="tech-project-block">
+                <strong>{{ p.title }}: {{ '{' }}</strong>
+                <div class="tech-project-body">
+                  <p>role: "{{ p.role }}",</p>
+                  <p>tech: [{{ p.tech }}],</p>
+                  <p *ngIf="p.link">repository: "{{ p.link }}",</p>
+                  <p class="desc-p">description: "{{ p.desc }}"</p>
+                </div>
+                <strong>{{ '}' }},</strong>
+              </div>
+              <div class="close-brackets">{{ '}' }}</div>
+            </div>
+
+            <!-- Education -->
+            <div class="tech-section" *ngIf="data.education.length">
+              <h3>struct Education {{ '{' }}</h3>
+              <div *ngFor="let ed of data.education" class="tech-edu-block">
+                <strong>{{ ed.degree }}</strong>
+                <span>{{ ed.college }} — Year: {{ ed.year }}</span>
+              </div>
+              <div class="close-brackets">{{ '}' }}</div>
+            </div>
+
+            <!-- References -->
+            <div class="tech-section" *ngIf="data.references.length">
+              <h3>const references = [</h3>
+              <div *ngFor="let r of data.references" class="tech-ref-block">
+                <strong>{{ r.name }}</strong> ({{ r.relationship }} @ {{ r.company }}): email: "{{ r.email }}" | phone: "{{ r.phone }}"
+              </div>
+              <div class="close-brackets">];</div>
+            </div>
           </div>
+
+
+          <!-- Template 5: Executive Serif (Centered, Serif, crimson highlights) -->
+          <div *ngIf="selectedTemplate === 'template5'" class="executive-serif-container">
+            <div class="exec-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="exec-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="exec-contact">
+                <span>{{ data.email }}</span> |
+                <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+                <span *ngIf="data.personal.address"> | {{ data.personal.address }}</span>
+              </div>
+            </div>
+
+            <div class="exec-section" *ngIf="data.summary">
+              <h2>Professional Summary</h2>
+              <p class="exec-body">{{ data.summary }}</p>
+            </div>
+
+            <div class="exec-section" *ngIf="selectedSkills.length">
+              <h2>Core Competencies</h2>
+              <div class="exec-skills-grid">
+                <span *ngFor="let s of selectedSkills">{{ s }}</span>
+              </div>
+            </div>
+
+            <div class="exec-section" *ngIf="data.employment.length">
+              <h2>Professional Experience</h2>
+              <div *ngFor="let emp of data.employment" class="exec-item">
+                <div class="exec-item-header">
+                  <strong>{{ emp.company }}</strong> — <span>{{ emp.location }}</span>
+                  <span class="exec-date">{{ formatDate(emp.start) }} – {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="exec-item-sub"><em>{{ emp.role }}</em></div>
+                <p class="exec-desc whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+
+            <div class="exec-section" *ngIf="data.projects.length">
+              <h2>Key Projects</h2>
+              <div *ngFor="let p of data.projects" class="exec-item">
+                <div class="exec-item-header">
+                  <strong>{{ p.title }}</strong>
+                  <span class="exec-date">{{ p.role }}</span>
+                </div>
+                <div class="exec-item-sub"><em>Tech Stack: {{ p.tech }}</em> <span *ngIf="p.link">| URL: {{ p.link }}</span></div>
+                <p class="exec-desc">{{ p.desc }}</p>
+              </div>
+            </div>
+
+            <div class="exec-section" *ngIf="data.education.length">
+              <h2>Education</h2>
+              <div *ngFor="let ed of data.education" class="exec-edu-item">
+                <strong>{{ ed.college }}</strong> — <em>{{ ed.degree }}</em>
+                <span class="exec-date">{{ ed.year }}</span>
+              </div>
+            </div>
+
+            <div class="exec-section" *ngIf="data.references.length">
+              <h2>References</h2>
+              <div class="exec-ref-grid">
+                <div *ngFor="let r of data.references" class="exec-ref-box">
+                  <strong>{{ r.name }}</strong> ({{ r.relationship }})
+                  <p>{{ r.company }} | {{ r.email }} | {{ r.phone }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="exec-section" *ngIf="selectedLanguages.length">
+              <h2>Languages</h2>
+              <p class="exec-body">{{ selectedLanguages.join(', ') }}</p>
+            </div>
+          </div>
+
+
+          <!-- Template 6: Minimalist Clean (Light grey typography, spacious spacing) -->
+          <div *ngIf="selectedTemplate === 'template6'" class="minimalist-clean-container">
+            <div class="min-header">
+              <div class="min-title-wrap">
+                <h1>{{ data.name || 'Your Full Name' }}</h1>
+                <p class="min-headline">{{ data.headline }}</p>
+              </div>
+              <div class="min-contact-column">
+                <div>{{ data.email }}</div>
+                <div>{{ data.phone }}</div>
+                <div *ngIf="data.personal.linkedin">{{ data.personal.linkedin }}</div>
+                <div *ngIf="data.personal.github">{{ data.personal.github }}</div>
+              </div>
+            </div>
+            
+            <div class="min-row" *ngIf="data.summary">
+              <div class="min-label">Profile</div>
+              <div class="min-val"><p>{{ data.summary }}</p></div>
+            </div>
+            
+            <div class="min-row" *ngIf="selectedSkills.length">
+              <div class="min-label">Expertise</div>
+              <div class="min-val">
+                <div class="min-skills-list">
+                  <span *ngFor="let s of selectedSkills">{{ s }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="min-row" *ngIf="data.employment.length">
+              <div class="min-label">Experience</div>
+              <div class="min-val">
+                <div *ngFor="let emp of data.employment" class="min-item">
+                  <div class="min-item-title">
+                    <strong>{{ emp.company }}</strong>, {{ emp.role }}
+                    <span class="min-date">{{ formatDate(emp.start) }} – {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="min-loc">{{ emp.location }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="min-row" *ngIf="data.projects.length">
+              <div class="min-label">Projects</div>
+              <div class="min-val">
+                <div *ngFor="let p of data.projects" class="min-item">
+                  <div class="min-item-title">
+                    <strong>{{ p.title }}</strong>, {{ p.role }}
+                    <span class="min-date" *ngIf="p.link">{{ p.link }}</span>
+                  </div>
+                  <div class="min-tech">Tech: {{ p.tech }}</div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="min-row" *ngIf="data.education.length">
+              <div class="min-label">Education</div>
+              <div class="min-val">
+                <div *ngFor="let ed of data.education" class="min-edu">
+                  <strong>{{ ed.college }}</strong>, {{ ed.degree }}
+                  <span class="min-date">{{ ed.year }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="min-row" *ngIf="data.references.length">
+              <div class="min-label">References</div>
+              <div class="min-val">
+                <div class="min-ref-grid">
+                  <div *ngFor="let r of data.references" class="min-ref-item">
+                    <strong>{{ r.name }}</strong> ({{ r.relationship }} @ {{ r.company }})
+                    <div>{{ r.email }} | {{ r.phone }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Template 7: Bold Left Border (Red bar accent line) -->
+          <div *ngIf="selectedTemplate === 'template7'" class="bold-left-border-container">
+            <div class="bold-left-bar"></div>
+            <div class="bold-main-content">
+              <header class="bold-header">
+                <h1>{{ data.name || 'Your Full Name' }}</h1>
+                <p class="bold-headline">{{ data.headline }}</p>
+                <div class="bold-contact-grid">
+                  <span><i class="fa-solid fa-envelope"></i> {{ data.email }}</span>
+                  <span><i class="fa-solid fa-phone"></i> {{ data.phone }}</span>
+                  <span *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> {{ data.personal.linkedin }}</span>
+                  <span *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> {{ data.personal.github }}</span>
+                </div>
+              </header>
+
+              <section class="bold-section" *ngIf="data.summary">
+                <h3>About Me</h3>
+                <p>{{ data.summary }}</p>
+              </section>
+
+              <section class="bold-section" *ngIf="selectedSkills.length">
+                <h3>Core Skills</h3>
+                <div class="bold-skills-tags">
+                  <span *ngFor="let s of selectedSkills" class="bold-skill-tag">{{ s }}</span>
+                </div>
+              </section>
+
+              <section class="bold-section" *ngIf="data.employment.length">
+                <h3>Professional History</h3>
+                <div *ngFor="let emp of data.employment" class="bold-history-item">
+                  <div class="bold-history-header">
+                    <strong>{{ emp.role }}</strong>
+                    <span class="bold-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="bold-history-sub">{{ emp.company }} | {{ emp.location }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </section>
+
+              <section class="bold-section" *ngIf="data.projects.length">
+                <h3>Featured Work</h3>
+                <div *ngFor="let p of data.projects" class="bold-history-item">
+                  <div class="bold-history-header">
+                    <strong>{{ p.title }}</strong>
+                    <span class="bold-tech-badge">{{ p.tech }}</span>
+                  </div>
+                  <div class="bold-history-sub">Role: {{ p.role }} <span *ngIf="p.link">| Link: {{ p.link }}</span></div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </section>
+
+              <section class="bold-section" *ngIf="data.education.length">
+                <h3>Academic Qualification</h3>
+                <div *ngFor="let ed of data.education" class="bold-edu-item">
+                  <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+                </div>
+              </section>
+
+              <section class="bold-section" *ngIf="data.references.length">
+                <h3>References</h3>
+                <div class="bold-ref-grid">
+                  <div *ngFor="let r of data.references" class="bold-ref-box">
+                    <strong>{{ r.name }}</strong>
+                    <p>{{ r.relationship }} — {{ r.company }}</p>
+                    <p class="small">{{ r.email }} | {{ r.phone }}</p>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+
+          <!-- Template 8: Accent Top Header (Indigo colored banner strip) -->
+          <div *ngIf="selectedTemplate === 'template8'" class="accent-top-header-container">
+            <div class="accent-banner">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="banner-headline">{{ data.headline }}</p>
+              <div class="banner-contact">
+                <span><i class="fa-solid fa-envelope"></i> {{ data.email }}</span>
+                <span><i class="fa-solid fa-phone"></i> {{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</span>
+                <span *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> GitHub</span>
+              </div>
+            </div>
+            <div class="accent-content-body">
+              <div class="accent-sec" *ngIf="data.summary">
+                <h2>Professional Background</h2>
+                <p>{{ data.summary }}</p>
+              </div>
+
+              <div class="accent-sec" *ngIf="selectedSkills.length">
+                <h2>Technical Core</h2>
+                <div class="accent-skills-flex">
+                  <span *ngFor="let s of selectedSkills" class="accent-skill-tag">{{ s }}</span>
+                </div>
+              </div>
+
+              <div class="accent-sec" *ngIf="data.employment.length">
+                <h2>Employment & Experience</h2>
+                <div *ngFor="let emp of data.employment" class="accent-job-item">
+                  <div class="job-header">
+                    <strong>{{ emp.role }}</strong> @ {{ emp.company }}
+                    <span class="job-date">{{ formatDate(emp.start) }} – {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="job-loc">{{ emp.location }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+
+              <div class="accent-sec" *ngIf="data.projects.length">
+                <h2>Key Projects Portfolio</h2>
+                <div *ngFor="let p of data.projects" class="accent-job-item">
+                  <div class="job-header">
+                    <strong>{{ p.title }}</strong> ({{ p.role }})
+                    <span class="proj-link" *ngIf="p.link">{{ p.link }}</span>
+                  </div>
+                  <div class="job-loc">Built with: {{ p.tech }}</div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </div>
+
+              <div class="accent-sec" *ngIf="data.education.length">
+                <h2>Education</h2>
+                <div *ngFor="let ed of data.education" class="accent-edu-item">
+                  <strong>{{ ed.degree }}</strong> — {{ ed.college }} (Graduation: {{ ed.year }})
+                </div>
+              </div>
+
+              <div class="accent-sec" *ngIf="data.references.length">
+                <h2>Professional References</h2>
+                <div class="accent-ref-grid">
+                  <div *ngFor="let r of data.references" class="accent-ref-card">
+                    <strong>{{ r.name }}</strong>
+                    <p>{{ r.relationship }} @ {{ r.company }}</p>
+                    <p>{{ r.email }} | {{ r.phone }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Template 9: Academic CV (Traditional layout structure) -->
+          <div *ngIf="selectedTemplate === 'template9'" class="academic-cv-container">
+            <div class="acad-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="acad-subtitle">{{ data.headline }}</p>
+              <div class="acad-contact">
+                <span>Email: {{ data.email }}</span> |
+                <span>Phone: {{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | LinkedIn: {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | GitHub: {{ data.personal.github }}</span>
+                <span *ngIf="data.personal.address"> | Address: {{ data.personal.address }}</span>
+              </div>
+            </div>
+
+            <hr class="acad-divider" />
+
+            <div class="acad-section" *ngIf="data.summary">
+              <h3>RESEARCH & PROFESSIONAL SUMMARY</h3>
+              <p class="acad-body-text">{{ data.summary }}</p>
+            </div>
+
+            <div class="acad-section" *ngIf="data.education.length">
+              <h3>EDUCATION</h3>
+              <div *ngFor="let ed of data.education" class="acad-item">
+                <div class="acad-item-header">
+                  <strong>{{ ed.degree }}</strong>
+                  <span>{{ ed.year }}</span>
+                </div>
+                <div class="acad-item-sub">{{ ed.college }}</div>
+              </div>
+            </div>
+
+            <div class="acad-section" *ngIf="selectedSkills.length">
+              <h3>AREAS OF SPECIALIZATION</h3>
+              <p class="acad-body-text">{{ selectedSkills.join(', ') }}</p>
+            </div>
+
+            <div class="acad-section" *ngIf="data.employment.length">
+              <h3>PROFESSIONAL APPOINTMENTS</h3>
+              <div *ngFor="let emp of data.employment" class="acad-item">
+                <div class="acad-item-header">
+                  <strong>{{ emp.role }}</strong>
+                  <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="acad-item-sub">{{ emp.company }}, {{ emp.location }}</div>
+                <p class="acad-desc-text whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+
+            <div class="acad-section" *ngIf="data.projects.length">
+              <h3>PUBLICATIONS & MAJOR PROJECTS</h3>
+              <div *ngFor="let p of data.projects" class="acad-item">
+                <div class="acad-item-header">
+                  <strong>{{ p.title }}</strong>
+                  <span *ngIf="p.link">{{ p.link }}</span>
+                </div>
+                <div class="acad-item-sub">Role: {{ p.role }} | Technology Stack: {{ p.tech }}</div>
+                <p class="acad-desc-text">{{ p.desc }}</p>
+              </div>
+            </div>
+
+            <div class="acad-section" *ngIf="data.references.length">
+              <h3>REFERENCES</h3>
+              <div *ngFor="let r of data.references" class="acad-item">
+                <strong>{{ r.name }}</strong> — {{ r.relationship }}
+                <p class="acad-ref-info">{{ r.company }} | Email: {{ r.email }} | Phone: {{ r.phone }}</p>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Template 10: Startup Creative (Vibrant pink accents, timeline dot points) -->
+          <div *ngIf="selectedTemplate === 'template10'" class="startup-creative-container">
+            <div class="startup-header">
+              <div class="startup-avatar-row">
+                <div class="startup-avatar-wrap" *ngIf="data.photo">
+                  <img [src]="data.photo" class="startup-avatar" alt="Avatar" />
+                </div>
+                <div>
+                  <h1>{{ data.name || 'Your Full Name' }}</h1>
+                  <p class="startup-headline">{{ data.headline }}</p>
+                </div>
+              </div>
+              
+              <div class="startup-meta-chips">
+                <span class="startup-chip"><i class="fa-solid fa-envelope"></i> {{ data.email }}</span>
+                <span class="startup-chip"><i class="fa-solid fa-phone"></i> {{ data.phone }}</span>
+                <span class="startup-chip" *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</span>
+                <span class="startup-chip" *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> GitHub</span>
+              </div>
+            </div>
+
+            <div class="startup-section" *ngIf="data.summary">
+              <h3 class="startup-sec-title">About Me</h3>
+              <p class="startup-summary">{{ data.summary }}</p>
+            </div>
+
+            <div class="startup-section" *ngIf="selectedSkills.length">
+              <h3 class="startup-sec-title">Skills & Stack</h3>
+              <div class="startup-stack-tags">
+                <span *ngFor="let s of selectedSkills" class="startup-stack-tag">{{ s }}</span>
+              </div>
+            </div>
+
+            <div class="startup-section" *ngIf="data.employment.length">
+              <h3 class="startup-sec-title">Experience Timeline</h3>
+              <div class="startup-timeline">
+                <div *ngFor="let emp of data.employment" class="timeline-node">
+                  <div class="node-dot"></div>
+                  <div class="node-content">
+                    <div class="node-header">
+                      <strong>{{ emp.role }}</strong>
+                      <span class="node-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                    </div>
+                    <div class="node-sub">{{ emp.company }} | {{ emp.location }}</div>
+                    <p class="whitespace-pre node-desc">{{ emp.responsibilities }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="startup-section" *ngIf="data.projects.length">
+              <h3 class="startup-sec-title">Projects Built</h3>
+              <div class="startup-projects-grid">
+                <div *ngFor="let p of data.projects" class="startup-project-card">
+                  <div class="proj-head">
+                    <strong>{{ p.title }}</strong>
+                    <span class="proj-role">{{ p.role }}</span>
+                  </div>
+                  <p class="proj-desc">{{ p.desc }}</p>
+                  <div class="proj-footer">
+                    <span class="proj-tech">Stack: {{ p.tech }}</span>
+                    <span class="proj-link-lbl" *ngIf="p.link">URL: {{ p.link }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="startup-section" *ngIf="data.education.length">
+              <h3 class="startup-sec-title">Education</h3>
+              <div *ngFor="let ed of data.education" class="startup-edu-item">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+
+            <div class="startup-section" *ngIf="data.references.length">
+              <h3 class="startup-sec-title">References</h3>
+              <div class="startup-ref-grid">
+                <div *ngFor="let r of data.references" class="startup-ref-card">
+                  <strong>{{ r.name }}</strong>
+                  <span>{{ r.relationship }} — {{ r.company }}</span>
+                  <span>{{ r.email }} | {{ r.phone }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 11: Elegant Royal (Gold highlights, serif) -->
+          <div *ngIf="selectedTemplate === 'template11'" class="royal-ats-container">
+            <div class="royal-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="royal-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="royal-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="royal-section" *ngIf="data.summary">
+              <h2>Professional Summary</h2>
+              <p class="royal-body-text">{{ data.summary }}</p>
+            </div>
+            <div class="royal-section" *ngIf="selectedSkills.length">
+              <h2>Core Strengths</h2>
+              <p class="royal-body-text italic">{{ selectedSkills.join(', ') }}</p>
+            </div>
+            <div class="royal-section" *ngIf="data.employment.length">
+              <h2>Experience</h2>
+              <div *ngFor="let emp of data.employment" class="royal-item">
+                <div class="royal-item-header">
+                  <strong>{{ emp.role }}</strong>
+                  <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="royal-item-sub">{{ emp.company }} | {{ emp.location }}</div>
+                <p class="royal-desc whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="royal-section" *ngIf="data.projects.length">
+              <h2>Projects</h2>
+              <div *ngFor="let p of data.projects" class="royal-item">
+                <div class="royal-item-header">
+                  <strong>{{ p.title }}</strong>
+                  <span *ngIf="p.link">{{ p.link }}</span>
+                </div>
+                <div class="royal-item-sub">Role: {{ p.role }} | Stack: {{ p.tech }}</div>
+                <p class="royal-desc">{{ p.desc }}</p>
+              </div>
+            </div>
+            <div class="royal-section" *ngIf="data.education.length">
+              <h2>Education</h2>
+              <div *ngFor="let ed of data.education" class="royal-item-edu">
+                <strong>{{ ed.degree }}</strong> — <span>{{ ed.college }}</span>
+                <span class="royal-date">{{ ed.year }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 12: Navy Compact (Navy accent headers, dense text) -->
+          <div *ngIf="selectedTemplate === 'template12'" class="navy-compact-container">
+            <div class="navy-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="navy-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="navy-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="navy-section" *ngIf="data.summary">
+              <h3>Summary</h3>
+              <p>{{ data.summary }}</p>
+            </div>
+            <div class="navy-section" *ngIf="selectedSkills.length">
+              <h3>Expertise</h3>
+              <div class="navy-skills-list">
+                <span *ngFor="let s of selectedSkills">{{ s }}</span>
+              </div>
+            </div>
+            <div class="navy-section" *ngIf="data.employment.length">
+              <h3>Experience</h3>
+              <div *ngFor="let emp of data.employment" class="navy-item">
+                <div class="navy-item-header">
+                  <strong>{{ emp.role }}</strong> @ {{ emp.company }}
+                  <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="navy-section" *ngIf="data.projects.length">
+              <h3>Projects</h3>
+              <div *ngFor="let p of data.projects" class="navy-item">
+                <div class="navy-item-header">
+                  <strong>{{ p.title }}</strong>
+                  <span>{{ p.role }}</span>
+                </div>
+                <p>{{ p.desc }} (Tech: {{ p.tech }})</p>
+              </div>
+            </div>
+            <div class="navy-section" *ngIf="data.education.length">
+              <h3>Education</h3>
+              <div *ngFor="let ed of data.education" class="navy-edu-row">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 13: Teal Modern (Clean teal banner, rounded chips) -->
+          <div *ngIf="selectedTemplate === 'template13'" class="teal-modern-container">
+            <div class="teal-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="teal-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="teal-contact">
+                <span><i class="fa-solid fa-envelope"></i> {{ data.email }}</span>
+                <span><i class="fa-solid fa-phone"></i> {{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</span>
+                <span *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> GitHub</span>
+              </div>
+            </div>
+            <div class="teal-sec" *ngIf="data.summary">
+              <h2>Professional Summary</h2>
+              <p>{{ data.summary }}</p>
+            </div>
+            <div class="teal-sec" *ngIf="selectedSkills.length">
+              <h2>Key Technologies</h2>
+              <div class="teal-skills-tags">
+                <span *ngFor="let s of selectedSkills" class="teal-skill-tag">{{ s }}</span>
+              </div>
+            </div>
+            <div class="teal-sec" *ngIf="data.employment.length">
+              <h2>Professional Experience</h2>
+              <div *ngFor="let emp of data.employment" class="teal-item">
+                <div class="teal-item-head">
+                  <strong>{{ emp.role }}</strong> @ {{ emp.company }}
+                  <span class="teal-date">{{ formatDate(emp.start) }} – {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="teal-item-loc">{{ emp.location }}</div>
+                <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="teal-sec" *ngIf="data.projects.length">
+              <h2>Key Projects</h2>
+              <div *ngFor="let p of data.projects" class="teal-item">
+                <div class="teal-item-head">
+                  <strong>{{ p.title }}</strong>
+                  <span class="teal-date">{{ p.role }}</span>
+                </div>
+                <div class="teal-item-loc">Stack: {{ p.tech }} <span *ngIf="p.link">| URL: {{ p.link }}</span></div>
+                <p>{{ p.desc }}</p>
+              </div>
+            </div>
+            <div class="teal-sec" *ngIf="data.education.length">
+              <h2>Education</h2>
+              <div *ngFor="let ed of data.education" class="teal-edu-item">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 14: Charcoal Corporate (Charcoal header strip) -->
+          <div *ngIf="selectedTemplate === 'template14'" class="charcoal-corporate-container">
+            <div class="charcoal-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="char-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="char-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="charcoal-content">
+              <div class="char-section" *ngIf="data.summary">
+                <h2>Summary</h2>
+                <p>{{ data.summary }}</p>
+              </div>
+              <div class="char-section" *ngIf="selectedSkills.length">
+                <h2>Skills</h2>
+                <div class="char-skills-list">
+                  <span *ngFor="let s of selectedSkills">{{ s }}</span>
+                </div>
+              </div>
+              <div class="char-section" *ngIf="data.employment.length">
+                <h2>Experience</h2>
+                <div *ngFor="let emp of data.employment" class="char-item">
+                  <div class="char-item-header">
+                    <strong>{{ emp.role }}</strong> @ {{ emp.company }}
+                    <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+              <div class="char-section" *ngIf="data.projects.length">
+                <h2>Projects</h2>
+                <div *ngFor="let p of data.projects" class="char-item">
+                  <div class="char-item-header">
+                    <strong>{{ p.title }}</strong>
+                    <span>{{ p.role }}</span>
+                  </div>
+                  <p>{{ p.desc }} (Tech: {{ p.tech }})</p>
+                </div>
+              </div>
+              <div class="char-section" *ngIf="data.education.length">
+                <h2>Education</h2>
+                <div *ngFor="let ed of data.education" class="char-edu-row">
+                  <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 15: Left Bar Minimal (Left vertical accent block) -->
+          <div *ngIf="selectedTemplate === 'template15'" class="left-bar-minimal-container">
+            <div class="lbar-decor"></div>
+            <div class="lbar-content">
+              <header class="lbar-header">
+                <h1>{{ data.name || 'Your Full Name' }}</h1>
+                <p class="lbar-headline" *ngIf="data.headline">{{ data.headline }}</p>
+                <div class="lbar-contact">
+                  <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                  <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                  <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+                </div>
+              </header>
+              <section class="lbar-sec" *ngIf="data.summary">
+                <h3>Profile</h3>
+                <p>{{ data.summary }}</p>
+              </section>
+              <section class="lbar-sec" *ngIf="selectedSkills.length">
+                <h3>Skills</h3>
+                <div class="lbar-skills-list">
+                  <span *ngFor="let s of selectedSkills" class="lbar-skill-tag">{{ s }}</span>
+                </div>
+              </section>
+              <section class="lbar-sec" *ngIf="data.employment.length">
+                <h3>Experience</h3>
+                <div *ngFor="let emp of data.employment" class="lbar-job">
+                  <div class="lbar-job-header">
+                    <strong>{{ emp.role }}</strong>
+                    <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="lbar-job-sub">{{ emp.company }} | {{ emp.location }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </section>
+              <section class="lbar-sec" *ngIf="data.projects.length">
+                <h3>Projects</h3>
+                <div *ngFor="let p of data.projects" class="lbar-job">
+                  <div class="lbar-job-header">
+                    <strong>{{ p.title }}</strong>
+                    <span>{{ p.role }}</span>
+                  </div>
+                  <div class="lbar-job-sub">Tech: {{ p.tech }}</div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </section>
+              <section class="lbar-sec" *ngIf="data.education.length">
+                <h3>Education</h3>
+                <div *ngFor="let ed of data.education" class="lbar-edu">
+                  <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- Template 16: Slate Standard (Classic clean layout, slate grey) -->
+          <div *ngIf="selectedTemplate === 'template16'" class="slate-standard-container">
+            <div class="slate-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="slate-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="slate-contact">
+                <span><i class="fa-solid fa-envelope"></i> {{ data.email }}</span>
+                <span><i class="fa-solid fa-phone"></i> {{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</span>
+                <span *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> GitHub</span>
+              </div>
+            </div>
+            <div class="slate-sec" *ngIf="data.summary">
+              <h3>Summary</h3>
+              <p>{{ data.summary }}</p>
+            </div>
+            <div class="slate-sec" *ngIf="selectedSkills.length">
+              <h3>Skills</h3>
+              <div class="slate-skills-list">
+                <span *ngFor="let s of selectedSkills" class="slate-skill-tag">{{ s }}</span>
+              </div>
+            </div>
+            <div class="slate-sec" *ngIf="data.employment.length">
+              <h3>Experience</h3>
+              <div *ngFor="let emp of data.employment" class="slate-job">
+                <div class="slate-job-header">
+                  <strong>{{ emp.role }}</strong> @ {{ emp.company }}
+                  <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="slate-sec" *ngIf="data.projects.length">
+              <h3>Projects</h3>
+              <div *ngFor="let p of data.projects" class="slate-job">
+                <div class="slate-job-header">
+                  <strong>{{ p.title }}</strong>
+                  <span>{{ p.role }}</span>
+                </div>
+                <p>{{ p.desc }} (Tech: {{ p.tech }})</p>
+              </div>
+            </div>
+            <div class="slate-sec" *ngIf="data.education.length">
+              <h3>Education</h3>
+              <div *ngFor="let ed of data.education" class="slate-edu-item">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 17: Orange Bold (Energetic orange accent lines) -->
+          <div *ngIf="selectedTemplate === 'template17'" class="orange-bold-container">
+            <div class="orange-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="orange-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="orange-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="orange-sec" *ngIf="data.summary">
+              <h3>About</h3>
+              <p>{{ data.summary }}</p>
+            </div>
+            <div class="orange-sec" *ngIf="selectedSkills.length">
+              <h3>Skills</h3>
+              <div class="orange-skills">
+                <span *ngFor="let s of selectedSkills" class="orange-tag">{{ s }}</span>
+              </div>
+            </div>
+            <div class="orange-sec" *ngIf="data.employment.length">
+              <h3>Experience</h3>
+              <div *ngFor="let emp of data.employment" class="orange-job">
+                <div class="orange-job-header">
+                  <strong>{{ emp.role }}</strong>
+                  <span class="orange-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="orange-job-sub">{{ emp.company }} | {{ emp.location }}</div>
+                <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="orange-sec" *ngIf="data.projects.length">
+              <h3>Projects</h3>
+              <div *ngFor="let p of data.projects" class="orange-job">
+                <div class="orange-job-header">
+                  <strong>{{ p.title }}</strong>
+                  <span>{{ p.role }}</span>
+                </div>
+                <div class="orange-job-sub">Tech: {{ p.tech }}</div>
+                <p>{{ p.desc }}</p>
+              </div>
+            </div>
+            <div class="orange-sec" *ngIf="data.education.length">
+              <h3>Education</h3>
+              <div *ngFor="let ed of data.education" class="orange-edu">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 18: Clean Split (Vertical left/right side layouts) -->
+          <div *ngIf="selectedTemplate === 'template18'" class="clean-split-container">
+            <div class="split-left">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="split-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              
+              <div class="split-contact-block">
+                <h3>Contact</h3>
+                <p>{{ data.email }}</p>
+                <p>{{ data.phone }}</p>
+                <p *ngIf="data.personal.linkedin">LinkedIn</p>
+                <p *ngIf="data.personal.github">GitHub</p>
+              </div>
+
+              <div class="split-left-block" *ngIf="selectedSkills.length">
+                <h3>Expertise</h3>
+                <ul class="split-skills">
+                  <li *ngFor="let s of selectedSkills">{{ s }}</li>
+                </ul>
+              </div>
+
+              <div class="split-left-block" *ngIf="selectedLanguages.length">
+                <h3>Languages</h3>
+                <p>{{ selectedLanguages.join(', ') }}</p>
+              </div>
+            </div>
+            <div class="split-right">
+              <div class="split-right-sec" *ngIf="data.summary">
+                <h2>Profile Summary</h2>
+                <p>{{ data.summary }}</p>
+              </div>
+
+              <div class="split-right-sec" *ngIf="data.employment.length">
+                <h2>Experience</h2>
+                <div *ngFor="let emp of data.employment" class="split-job">
+                  <div class="split-job-header">
+                    <strong>{{ emp.role }}</strong>
+                    <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="split-job-sub">{{ emp.company }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+
+              <div class="split-right-sec" *ngIf="data.projects.length">
+                <h2>Projects</h2>
+                <div *ngFor="let p of data.projects" class="split-job">
+                  <div class="split-job-header">
+                    <strong>{{ p.title }}</strong>
+                    <span>{{ p.role }}</span>
+                  </div>
+                  <div class="split-job-sub">Tech: {{ p.tech }}</div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </div>
+
+              <div class="split-right-sec" *ngIf="data.education.length">
+                <h2>Education</h2>
+                <div *ngFor="let ed of data.education" class="split-edu">
+                  <strong>{{ ed.degree }}</strong>
+                  <p>{{ ed.college }} ({{ ed.year }})</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 19: Retro Terminal (Monospace console log) -->
+          <div *ngIf="selectedTemplate === 'template19'" class="retro-terminal-container">
+            <div class="term-decor">&gt;_ terminal</div>
+            <div class="term-header">
+              <h1>./{{ data.name.replace(' ', '').toLowerCase() || 'profile' }} --info</h1>
+              <p class="term-subtitle" *ngIf="data.headline">// {{ data.headline }}</p>
+              <div class="term-contact">
+                <span>$ email: "{{ data.email }}"</span>
+                <span>$ phone: "{{ data.phone }}"</span>
+                <span *ngIf="data.personal.github">$ github: "{{ data.personal.github }}"</span>
+              </div>
+            </div>
+
+            <div class="term-sec" *ngIf="data.summary">
+              <h3>cat summary.txt</h3>
+              <p class="term-body">{{ data.summary }}</p>
+            </div>
+
+            <div class="term-sec" *ngIf="selectedSkills.length">
+              <h3>echo $SKILLS</h3>
+              <div class="term-skills-badges">
+                <span *ngFor="let s of selectedSkills" class="term-badge">{{ s }}</span>
+              </div>
+            </div>
+
+            <div class="term-sec" *ngIf="data.employment.length">
+              <h3>cat experience.json</h3>
+              <div *ngFor="let emp of data.employment" class="term-exp-block">
+                <strong>{{ emp.role }} @ {{ emp.company }} {{ '{' }}</strong>
+                <div class="term-indent">
+                  <p>duration: "{{ formatDate(emp.start) }} - {{ emp.current ? 'Present' : formatDate(emp.end) }}",</p>
+                  <p>location: "{{ emp.location }}",</p>
+                  <p class="whitespace-pre">duties: "{{ emp.responsibilities }}"</p>
+                </div>
+                <strong>{{ '}' }}</strong>
+              </div>
+            </div>
+
+            <div class="term-sec" *ngIf="data.projects.length">
+              <h3>./list_projects.sh</h3>
+              <div *ngFor="let p of data.projects" class="term-project-block">
+                <strong>* [{{ p.title }}]</strong>
+                <div class="term-indent">
+                  <p>role: "{{ p.role }}"</p>
+                  <p>stack: [{{ p.tech }}]</p>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="term-sec" *ngIf="data.education.length">
+              <h3>cat education.txt</h3>
+              <div *ngFor="let ed of data.education" class="term-edu-block">
+                <strong>{{ ed.degree }}</strong> -- {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 20: Creative Portfolio (Vibrant rose cards) -->
+          <div *ngIf="selectedTemplate === 'template20'" class="creative-portfolio-container">
+            <div class="creative-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="creative-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="creative-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="creative-body">
+              <div class="creative-section" *ngIf="data.summary">
+                <h3>About Me</h3>
+                <p>{{ data.summary }}</p>
+              </div>
+              <div class="creative-section" *ngIf="selectedSkills.length">
+                <h3>Stack & Skills</h3>
+                <div class="creative-skills">
+                  <span *ngFor="let s of selectedSkills" class="creative-tag">{{ s }}</span>
+                </div>
+              </div>
+              <div class="creative-section" *ngIf="data.employment.length">
+                <h3>My Journey</h3>
+                <div *ngFor="let emp of data.employment" class="creative-card">
+                  <div class="creative-card-header">
+                    <strong>{{ emp.role }}</strong>
+                    <span class="creative-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="creative-card-sub">{{ emp.company }} | {{ emp.location }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+              <div class="creative-section" *ngIf="data.projects.length">
+                <h3>Featured Creations</h3>
+                <div *ngFor="let p of data.projects" class="creative-card">
+                  <div class="creative-card-header">
+                    <strong>{{ p.title }}</strong>
+                    <span>{{ p.role }}</span>
+                  </div>
+                  <div class="creative-card-sub">Tech: {{ p.tech }}</div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </div>
+              <div class="creative-section" *ngIf="data.education.length">
+                <h3>Education</h3>
+                <div *ngFor="let ed of data.education" class="creative-edu-item">
+                  <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 21: Luxury Gold (Imperial Serif, Gold headers) -->
+          <div *ngIf="selectedTemplate === 'template21'" class="luxury-gold-container">
+            <div class="luxury-header">
+              <h1 class="lux-title">{{ data.name || 'Your Full Name' }}</h1>
+              <p class="lux-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="lux-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="lux-section" *ngIf="data.summary">
+              <h2>Professional Summary</h2>
+              <p class="lux-body">{{ data.summary }}</p>
+            </div>
+            <div class="lux-section" *ngIf="selectedSkills.length">
+              <h2>Core Strengths & Expertise</h2>
+              <div class="lux-skills">
+                <span *ngFor="let s of selectedSkills">{{ s }}</span>
+              </div>
+            </div>
+            <div class="lux-section" *ngIf="data.employment.length">
+              <h2>Executive Experience</h2>
+              <div *ngFor="let emp of data.employment" class="lux-item">
+                <div class="lux-item-header">
+                  <strong>{{ emp.role }}</strong>
+                  <span class="lux-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="lux-item-sub">{{ emp.company }} | {{ emp.location }}</div>
+                <p class="lux-desc whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="lux-section" *ngIf="data.projects.length">
+              <h2>Key Architectural Projects</h2>
+              <div *ngFor="let p of data.projects" class="lux-item">
+                <div class="lux-item-header">
+                  <strong>{{ p.title }}</strong>
+                  <span>{{ p.role }}</span>
+                </div>
+                <div class="lux-item-sub">Technology Stack: {{ p.tech }} <span *ngIf="p.link">| Repository: {{ p.link }}</span></div>
+                <p class="lux-desc">{{ p.desc }}</p>
+              </div>
+            </div>
+            <div class="lux-section" *ngIf="data.education.length">
+              <h2>Education</h2>
+              <div *ngFor="let ed of data.education" class="lux-edu-row">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }}
+                <span class="lux-date">Class of {{ ed.year }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 22: Executive Crimson (Crimson header strip, centered typography) -->
+          <div *ngIf="selectedTemplate === 'template22'" class="executive-crimson-container">
+            <div class="crimson-decor-bar"></div>
+            <div class="crimson-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="crimson-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="crimson-contact">
+                <span>{{ data.email }}</span> | <span>{{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | {{ data.personal.github }}</span>
+              </div>
+            </div>
+            <div class="crimson-sec" *ngIf="data.summary">
+              <h2>Executive Profile</h2>
+              <p class="crimson-body">{{ data.summary }}</p>
+            </div>
+            <div class="crimson-sec" *ngIf="selectedSkills.length">
+              <h2>Technical Competencies</h2>
+              <div class="crimson-skills">
+                <span *ngFor="let s of selectedSkills" class="crimson-tag">{{ s }}</span>
+              </div>
+            </div>
+            <div class="crimson-sec" *ngIf="data.employment.length">
+              <h2>Professional Career History</h2>
+              <div *ngFor="let emp of data.employment" class="crimson-item">
+                <div class="crimson-item-head">
+                  <strong>{{ emp.role }}</strong> @ {{ emp.company }}
+                  <span class="crimson-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="crimson-item-sub">{{ emp.location }}</div>
+                <p class="whitespace-pre crimson-desc">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+            <div class="crimson-sec" *ngIf="data.projects.length">
+              <h2>Selected Key Projects</h2>
+              <div *ngFor="let p of data.projects" class="crimson-item">
+                <div class="crimson-item-head">
+                  <strong>{{ p.title }}</strong>
+                  <span>Role: {{ p.role }}</span>
+                </div>
+                <div class="crimson-item-sub">Technologies: {{ p.tech }} <span *ngIf="p.link">| Link: {{ p.link }}</span></div>
+                <p class="crimson-desc">{{ p.desc }}</p>
+              </div>
+            </div>
+            <div class="crimson-sec" *ngIf="data.education.length">
+              <h2>Academic Background</h2>
+              <div *ngFor="let ed of data.education" class="crimson-edu">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 23: Tech Lead Minimal (Sleek slate accents, compact grids) -->
+          <div *ngIf="selectedTemplate === 'template23'" class="tech-lead-minimal-container">
+            <div class="tlead-header">
+              <div class="tlead-title-box">
+                <h1>{{ data.name || 'Your Full Name' }}</h1>
+                <p class="tlead-headline" *ngIf="data.headline">{{ data.headline }}</p>
+              </div>
+              <div class="tlead-contact">
+                <div>{{ data.email }}</div>
+                <div>{{ data.phone }}</div>
+                <div *ngIf="data.personal.linkedin">{{ data.personal.linkedin }}</div>
+                <div *ngIf="data.personal.github">{{ data.personal.github }}</div>
+              </div>
+            </div>
+            <div class="tlead-row" *ngIf="data.summary">
+              <div class="tlead-label">Executive Summary</div>
+              <div class="tlead-val"><p>{{ data.summary }}</p></div>
+            </div>
+            <div class="tlead-row" *ngIf="selectedSkills.length">
+              <div class="tlead-label">Technology Stack</div>
+              <div class="tlead-val">
+                <div class="tlead-skills">
+                  <span *ngFor="let s of selectedSkills">{{ s }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="tlead-row" *ngIf="data.employment.length">
+              <div class="tlead-label">Professional Experience</div>
+              <div class="tlead-val">
+                <div *ngFor="let emp of data.employment" class="tlead-item">
+                  <div class="tlead-item-header">
+                    <strong>{{ emp.company }}</strong> — {{ emp.role }}
+                    <span class="tlead-date">{{ formatDate(emp.start) }} – {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                  </div>
+                  <div class="tlead-loc">{{ emp.location }}</div>
+                  <p class="whitespace-pre">{{ emp.responsibilities }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="tlead-row" *ngIf="data.projects.length">
+              <div class="tlead-label">Featured Projects</div>
+              <div class="tlead-val">
+                <div *ngFor="let p of data.projects" class="tlead-item">
+                  <div class="tlead-item-header">
+                    <strong>{{ p.title }}</strong>
+                    <span *ngIf="p.link">{{ p.link }}</span>
+                  </div>
+                  <div class="tlead-tech">Stack: {{ p.tech }} | Role: {{ p.role }}</div>
+                  <p>{{ p.desc }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="tlead-row" *ngIf="data.education.length">
+              <div class="tlead-label">Education</div>
+              <div class="tlead-val">
+                <div *ngFor="let ed of data.education" class="tlead-edu">
+                  <strong>{{ ed.college }}</strong> — {{ ed.degree }}
+                  <span class="tlead-date">Graduation: {{ ed.year }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 24: Startup Creative Premium (Glassmorphic badges, premium grids) -->
+          <div *ngIf="selectedTemplate === 'template24'" class="startup-premium-container">
+            <div class="sp-header">
+              <div class="sp-avatar-box" *ngIf="data.photo">
+                <img [src]="data.photo" class="sp-avatar" alt="Avatar" />
+              </div>
+              <div class="sp-title-box">
+                <h1>{{ data.name || 'Your Full Name' }}</h1>
+                <p class="sp-headline" *ngIf="data.headline">{{ data.headline }}</p>
+                <div class="sp-meta-chips">
+                  <span class="sp-chip"><i class="fa-solid fa-envelope"></i> {{ data.email }}</span>
+                  <span class="sp-chip"><i class="fa-solid fa-phone"></i> {{ data.phone }}</span>
+                  <span class="sp-chip" *ngIf="data.personal.linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</span>
+                  <span class="sp-chip" *ngIf="data.personal.github"><i class="fa-brands fa-github"></i> GitHub</span>
+                </div>
+              </div>
+            </div>
+            <div class="sp-section" *ngIf="data.summary">
+              <h3 class="sp-section-title">Overview</h3>
+              <p class="sp-summary">{{ data.summary }}</p>
+            </div>
+            <div class="sp-section" *ngIf="selectedSkills.length">
+              <h3 class="sp-section-title">Core Skills</h3>
+              <div class="sp-stack-tags">
+                <span *ngFor="let s of selectedSkills" class="sp-tag">{{ s }}</span>
+              </div>
+            </div>
+            <div class="sp-section" *ngIf="data.employment.length">
+              <h3 class="sp-section-title">Experience Timeline</h3>
+              <div class="sp-timeline">
+                <div *ngFor="let emp of data.employment" class="sp-node">
+                  <div class="sp-node-dot"></div>
+                  <div class="sp-node-content">
+                    <div class="sp-node-header">
+                      <strong>{{ emp.role }}</strong>
+                      <span class="sp-node-date">{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                    </div>
+                    <div class="sp-node-sub">{{ emp.company }} | {{ emp.location }}</div>
+                    <p class="whitespace-pre sp-node-desc">{{ emp.responsibilities }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sp-section" *ngIf="data.projects.length">
+              <h3 class="sp-section-title">Creations</h3>
+              <div class="sp-projects-grid">
+                <div *ngFor="let p of data.projects" class="sp-project-card">
+                  <div class="sp-proj-head">
+                    <strong>{{ p.title }}</strong>
+                    <span class="sp-proj-role">{{ p.role }}</span>
+                  </div>
+                  <p class="sp-proj-desc">{{ p.desc }}</p>
+                  <div class="sp-proj-footer">
+                    <span class="sp-proj-tech">Stack: {{ p.tech }}</span>
+                    <span *ngIf="p.link" class="sp-proj-link-lbl">URL: {{ p.link }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sp-section" *ngIf="data.education.length">
+              <h3 class="sp-section-title">Education</h3>
+              <div *ngFor="let ed of data.education" class="sp-edu-row">
+                <strong>{{ ed.degree }}</strong> — {{ ed.college }} ({{ ed.year }})
+              </div>
+            </div>
+          </div>
+
+          <!-- Template 25: Academic Premium (Elegant horizontal rule dividers, serif styling) -->
+          <div *ngIf="selectedTemplate === 'template25'" class="academic-premium-container">
+            <div class="acp-header">
+              <h1>{{ data.name || 'Your Full Name' }}</h1>
+              <p class="acp-subtitle" *ngIf="data.headline">{{ data.headline }}</p>
+              <div class="acp-contact">
+                <span>Email: {{ data.email }}</span> | <span>Phone: {{ data.phone }}</span>
+                <span *ngIf="data.personal.linkedin"> | LinkedIn: {{ data.personal.linkedin }}</span>
+                <span *ngIf="data.personal.github"> | GitHub: {{ data.personal.github }}</span>
+              </div>
+            </div>
+
+            <hr class="acp-double-line" />
+
+            <div class="acp-section" *ngIf="data.summary">
+              <h3>RESEARCH INTERESTS & PROFESSIONAL SUMMARY</h3>
+              <p class="acp-body-text">{{ data.summary }}</p>
+            </div>
+
+            <div class="acp-section" *ngIf="data.education.length">
+              <h3>EDUCATION</h3>
+              <div *ngFor="let ed of data.education" class="acp-item">
+                <div class="acp-item-header">
+                  <strong>{{ ed.degree }}</strong>
+                  <span>{{ ed.year }}</span>
+                </div>
+                <div class="acp-item-sub">{{ ed.college }}</div>
+              </div>
+            </div>
+
+            <div class="acp-section" *ngIf="selectedSkills.length">
+              <h3>AREAS OF SPECIALIZATION</h3>
+              <p class="acp-body-text">{{ selectedSkills.join(', ') }}</p>
+            </div>
+
+            <div class="acp-section" *ngIf="data.employment.length">
+              <h3>ACADEMIC APPOINTMENTS</h3>
+              <div *ngFor="let emp of data.employment" class="acp-item">
+                <div class="acp-item-header">
+                  <strong>{{ emp.role }}</strong>
+                  <span>{{ formatDate(emp.start) }} — {{ emp.current ? 'Present' : formatDate(emp.end) }}</span>
+                </div>
+                <div class="acp-item-sub">{{ emp.company }}, {{ emp.location }}</div>
+                <p class="acp-desc-text whitespace-pre">{{ emp.responsibilities }}</p>
+              </div>
+            </div>
+
+            <div class="acp-section" *ngIf="data.projects.length">
+              <h3>PUBLICATIONS & PROJECT PORTFOLIO</h3>
+              <div *ngFor="let p of data.projects" class="acp-item">
+                <div class="acp-item-header">
+                  <strong>{{ p.title }}</strong>
+                  <span *ngIf="p.link">{{ p.link }}</span>
+                </div>
+                <div class="acp-item-sub">Role: {{ p.role }} | Stack: {{ p.tech }}</div>
+                <p class="acp-desc-text">{{ p.desc }}</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
-  </div>
+  </aside>
+  </div> <!-- .workspace-columns-split -->
+  </div> <!-- .workspace-main-area -->
 </div>
+
+

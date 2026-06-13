@@ -1,401 +1,991 @@
 <section class="trainer-dashboard">
-  <div class="trainer-hero">
-    <div>
-      <span>Trainer Workspace</span>
-      <h1>Manage batches, students, reviews, and interviews</h1>
-      <p>
-        Track registered students, post assignments or assessments, review submissions, upload
-        learning content, and handle mock interview requests.
-      </p>
-    </div>
-
-    <div class="hero-actions">
-      <button routerLink="/dashboard/trainer/create-assessment">
-        <i class="bi bi-plus-circle"></i>
-        Create Assessment
-      </button>
-      <button routerLink="/dashboard/trainer/pseudo-challenges">
-        <i class="bi bi-code-square"></i>
-        Pseudo Challenges
-      </button>
-      <button type="button" (click)="openCurriculumPopup()">
-        <i class="bi bi-cloud-upload"></i>
-        Upload Curriculum
-      </button>
-      <button routerLink="/dashboard/trainer/assessments">
-        <i class="bi bi-clipboard-data"></i>
-        View Assessments
-      </button>
-    </div>
+  <!-- Toast alert overlay -->
+  <div class="toast" *ngIf="toast">
+    <i class="bi bi-info-circle-fill"></i>
+    <span>{{ toast }}</span>
   </div>
 
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <!-- Header Banner with Brand details and Active Batch context filter -->
+  <header class="workspace-header">
+    <div class="hero-brand">
+      <span class="eyebrow"><i class="bi bi-cpu"></i> Management Desk</span>
+      <h1>Trainer Workspace</h1>
+      <p>Aggregate training statistics, review student submissions, schedule mock interviews, and publish course materials.</p>
+    </div>
+    
+    <div class="header-controls">
+      <div class="batch-filter-wrap">
+        <label for="batchFilter"><i class="bi bi-funnel-fill"></i> Workspace Context</label>
+        <select id="batchFilter" [(ngModel)]="filterBatchId" (change)="onBatchFilterChange()">
+          <option value="">All Assigned Batches</option>
+          <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} (Batch #{{ b.id }})</option>
+        </select>
+      </div>
 
-  <div class="stats-grid">
-    <button type="button" class="stat-card blue" routerLink="/dashboard/trainer/courses">
-      <i class="bi bi-journal-bookmark"></i>
-      <h3>{{ stats.assignedCourses || courses.length }}</h3>
-      <p>Assigned Courses</p>
-    </button>
+      <div class="hero-shortcuts">
+        <button class="shortcut-btn primary" routerLink="/dashboard/trainer/create-assessment">
+          <i class="bi bi-plus-circle"></i> Create Evaluation
+        </button>
+        <button class="shortcut-btn secondary" (click)="openCurriculumPopup()">
+          <i class="bi bi-cloud-upload"></i> Upload Curriculum
+        </button>
+      </div>
+    </div>
+  </header>
 
-    <button type="button" class="stat-card blue" routerLink="/dashboard/trainer/batches">
-      <i class="bi bi-collection"></i>
-      <h3>{{ stats.assignedBatches }}</h3>
-      <p>Assigned Batches</p>
+  <!-- Horizontal navigation tabs pills -->
+  <nav class="navigation-pills">
+    <button [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">
+      <i class="bi bi-pie-chart-fill"></i> Overview Console
     </button>
+    <button [class.active]="activeTab === 'students'" (click)="activeTab = 'students'">
+      <i class="bi bi-people-fill"></i> Students Directory
+      <span class="pill-counter blue" *ngIf="filteredStudentsList.length">{{ filteredStudentsList.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'mocks'" (click)="activeTab = 'mocks'">
+      <i class="bi bi-camera-video-fill"></i> Mock Desk
+      <span class="pill-counter orange" *ngIf="filteredMocksList.length">{{ filteredMocksList.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'submissions'" (click)="activeTab = 'submissions'">
+      <i class="bi bi-clipboard-check-fill"></i> Review Gradebook
+      <span class="pill-counter violet" *ngIf="filteredSubmissionsList.length">{{ filteredSubmissionsList.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'content'" (click)="activeTab = 'content'">
+      <i class="bi bi-folder-symlink-fill"></i> Resource Publisher
+      <span class="pill-counter teal" *ngIf="filteredContentList.length">{{ filteredContentList.length }}</span>
+    </button>
+  </nav>
 
-    <button type="button" class="stat-card green" routerLink="/dashboard/trainer/students">
-      <i class="bi bi-people"></i>
-      <h3>{{ stats.totalStudents }}</h3>
-      <p>Registered Students</p>
-    </button>
-
-    <button type="button" class="stat-card teal" routerLink="/dashboard/trainer/assessments">
-      <i class="bi bi-clipboard-data"></i>
-      <h3><i class="bi bi-arrow-right-circle"></i></h3>
-      <p>View Assessments</p>
-    </button>
-
-    <button type="button" class="stat-card purple" routerLink="/dashboard/trainer/mock-interviews">
-      <i class="bi bi-camera-video"></i>
-      <h3>{{ stats.requestedMocks || pendingMockRequests.length }}</h3>
-      <p>Mock Requests</p>
-    </button>
-
-    <button type="button" class="stat-card gold" routerLink="/dashboard/trainer/assessments">
-      <i class="bi bi-list-check"></i>
-      <h3>{{ stats.assignmentsSubmitted }}</h3>
-      <p>Submissions</p>
-    </button>
-
-    <button type="button" class="stat-card cyan" routerLink="/dashboard/trainer/content">
-      <i class="bi bi-folder2-open"></i>
-      <h3>{{ stats.contentUploaded || contentItems.length }}</h3>
-      <p>Learning Content</p>
-    </button>
-
-    <button type="button" class="stat-card teal" routerLink="/dashboard/trainer/pseudo-challenges">
-      <i class="bi bi-code-square"></i>
-      <h3><i class="bi bi-arrow-right-circle"></i></h3>
-      <p>Pseudo Challenges</p>
-    </button>
+  <!-- Global Loading Indicator -->
+  <div class="loader-container" *ngIf="loading">
+    <div class="loader-spinner"></div>
+    <p>Loading trainer workspace metrics...</p>
   </div>
 
-  <div class="dashboard-grid">
-    <div class="panel batches-panel">
-      <div class="panel courses-panel">
-        <div class="panel-head">
+  <!-- WORKSPACE TAB PANES -->
+  <div class="tab-panes-container" *ngIf="!loading">
+    
+    <!-- 1. OVERVIEW CONSOLE TAB -->
+    <div class="tab-pane-content" *ngIf="activeTab === 'overview'">
+      
+      <!-- Top dynamic stats badges row -->
+      <div class="stats-cards-bar">
+        <div class="stat-badge-card blue">
+          <div class="card-icon"><i class="bi bi-people"></i></div>
+          <div class="card-core">
+            <small>Active Learners</small>
+            <h3>{{ filteredStudentsList.length }}</h3>
+            <span>Enrolled in workspace</span>
+          </div>
+        </div>
+
+        <div class="stat-badge-card orange">
+          <div class="card-icon"><i class="bi bi-clock-history"></i></div>
+          <div class="card-core">
+            <small>Pending Reviews</small>
+            <h3>{{ pendingReviewsList.length }}</h3>
+            <span>Submissions to grade</span>
+          </div>
+        </div>
+
+        <div class="stat-badge-card violet">
+          <div class="card-icon"><i class="bi bi-camera-video"></i></div>
+          <div class="card-core">
+            <small>Scheduled Mocks</small>
+            <h3>{{ scheduledMockRequests.length }}</h3>
+            <span>Upcoming sessions</span>
+          </div>
+        </div>
+
+        <div class="stat-badge-card teal">
+          <div class="card-icon"><i class="bi bi-award"></i></div>
+          <div class="card-core">
+            <small>Average Grade</small>
+            <h3>{{ averageGrade }}%</h3>
+            <span>Submissions pass average</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workspace main controls -->
+
+      <!-- Main Overview Grid Split -->
+      <div class="overview-layout-grid">
+        
+        <!-- Left Side: Interactive Roadmap checklist, Grading inbox, Leaderboard -->
+        <div class="layout-col-left">
+
+          <!-- My Batches / Classrooms Filter Card -->
+          <div class="panel glass-card batches-panel-card">
+            <div class="panel-header-badge">
+              <span>Classrooms</span>
+              <h4>My Batches (Click to Filter Dashboard)</h4>
+            </div>
+
+            <div class="batches-items-list scroll-bar-styled">
+              <!-- All Batches Reset row if filter is active -->
+              <div class="batch-row-card interactive" 
+                *ngIf="filterBatchId" 
+                (click)="filterBatchId = ''; onBatchFilterChange()">
+                <div class="batch-icon-sphere blue">
+                  <i class="bi bi-grid-fill"></i>
+                </div>
+                <div class="batch-details">
+                  <strong>All Batches</strong>
+                  <span>Reset workspace filter context</span>
+                </div>
+              </div>
+
+              <div class="batch-row-card interactive" 
+                *ngFor="let b of batches" 
+                [class.active]="filterBatchId == b.id" 
+                (click)="toggleBatchSelection(b.id)">
+                <div class="batch-icon-sphere">
+                  <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div class="batch-details">
+                  <strong>{{ b.name }}</strong>
+                  <span>{{ b.course || 'Training Course' }} · {{ b.students || 0 }} Learners</span>
+                </div>
+                <button class="btn-manage-batch" [routerLink]="['/dashboard/trainer/batches', b.id]" (click)="$event.stopPropagation()">
+                  Manage
+                </button>
+                <div class="active-pulse-dot" *ngIf="filterBatchId == b.id"></div>
+              </div>
+              <div class="empty-list-state small" *ngIf="!batches.length">
+                <i class="bi bi-mortarboard"></i>
+                <p>No batches assigned to trainer context.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Dynamic Leaderboard of top performing students -->
+          <div class="panel glass-card leaderboard-panel">
+            <div class="panel-header-badge">
+              <span>Performance</span>
+              <h4>Top Performers (Batch Leaderboard)</h4>
+            </div>
+
+            <div class="leaderboard-list">
+              <div class="leaderboard-row interactive-row" *ngFor="let student of batchLeaderboard; let rank = index" (click)="selectedStudent = students.find(s => s.name === student.name)">
+                <span class="rank-badge" [class]="'rank-' + (rank + 1)">
+                  <i class="bi bi-award-fill" *ngIf="rank < 3"></i>
+                  <span *ngIf="rank >= 3">#{{ rank + 1 }}</span>
+                </span>
+                <div class="leaderboard-avatar">{{ getInitials(student.name) }}</div>
+                <div class="leaderboard-info">
+                  <strong>{{ student.name }}</strong>
+                  <span>{{ student.email }} · {{ student.submissionsCount }} submissions</span>
+                </div>
+                <div class="leaderboard-percentage">
+                  <small>Grade Avg</small>
+                  <strong [class.grade-high]="student.averageMark >= 80" [class.grade-mid]="student.averageMark >= 60 && student.averageMark < 80" [class.grade-low]="student.averageMark < 60">{{ student.averageMark }}%</strong>
+                </div>
+              </div>
+              
+              <div class="empty-list-state" *ngIf="!batchLeaderboard.length">
+                <i class="bi bi-trophy"></i>
+                <p>No graded submissions available to rank learners.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Reviews Grade desk -->
+          <div class="panel glass-card pending-inbox-panel">
+            <div class="panel-header-badge">
+              <span>Inbox Desk</span>
+              <h4>Pending Reviews & Quick Grading</h4>
+            </div>
+
+            <div class="inbox-list">
+              <div class="inbox-row" *ngFor="let item of pendingReviewsList | slice:0:3">
+                <div class="inbox-item-meta">
+                  <strong>{{ item.student }}</strong>
+                  <span class="task-title">{{ item.title }}</span>
+                  <span class="type-pill">{{ item.type }}</span>
+                </div>
+                <div class="inbox-grading-controls" *ngIf="reviewDraft[item.id]">
+                  <input type="number" [(ngModel)]="reviewDraft[item.id].marks" placeholder="Score" min="0" max="100" />
+                  <input type="text" [(ngModel)]="reviewDraft[item.id].feedback" placeholder="Evaluation feedback comments..." />
+                  <button type="button" class="btn-quick-grade" (click)="review(item)">Grade</button>
+                </div>
+              </div>
+
+              <div class="empty-list-state" *ngIf="!pendingReviewsList.length">
+                <i class="bi bi-check-all text-success"></i>
+                <p>All student submissions graded and reviewed!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Curriculum Syllabus checkpoints -->
+          <div class="panel glass-card syllabus-outline-panel">
+            <div class="panel-header-badge">
+              <span>Roadmap Tracker</span>
+              <h4>Curriculum Syllabus Roadmap Outline</h4>
+            </div>
+
+            <div class="curriculum-roadmap-content">
+              <!-- Syllabus Progress Indicator bar -->
+              <div class="syllabus-progress-wrapper" *ngIf="!loadingCurriculum && curriculumList.length && filterBatchId">
+                <div class="progress-info-row">
+                  <span>Batch Syllabus Delivery</span>
+                  <strong>{{ curriculumProgressPercentage }}% Delivered</strong>
+                </div>
+                <div class="syllabus-progress-track">
+                  <div class="syllabus-progress-fill" [style.width.%]="curriculumProgressPercentage"></div>
+                </div>
+              </div>
+
+              <!-- Syllabus list loader spinner -->
+              <div class="curriculum-loader" *ngIf="loadingCurriculum">
+                <div class="small-spinner"></div>
+                <p>Retrieving syllabus outline...</p>
+              </div>
+
+              <div class="syllabus-checklist" *ngIf="!loadingCurriculum && curriculumList.length && filterBatchId">
+                <p class="syllabus-caption"><i class="bi bi-info-circle"></i> Check off topics taught in class to update the batch progress timeline.</p>
+                <div class="syllabus-checkbox-row" *ngFor="let topic of curriculumList" [class.taught]="isTopicTaught(topic.name || topic.title)">
+                  <div class="taught-check-box" (click)="toggleTopicTaught(topic.name || topic.title)">
+                    <i class="bi" [class.bi-check-square-fill]="isTopicTaught(topic.name || topic.title)" [class.bi-square]="!isTopicTaught(topic.name || topic.title)"></i>
+                  </div>
+                  <div class="topic-info">
+                    <h5>{{ topic.name || topic.title }}</h5>
+                    <p>{{ topic.description || 'Topic breakdown outline details.' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Instruct to filter by batch -->
+              <div class="syllabus-prompt" *ngIf="!curriculumList.length && !filterBatchId">
+                <i class="bi bi-signpost-split-fill"></i>
+                <h5>Syllabus outline inactive</h5>
+                <p>Select a batch filter context at the top to view and track curriculum syllabus outline outlines.</p>
+              </div>
+
+              <!-- Empty roadmap details -->
+              <div class="syllabus-prompt" *ngIf="!curriculumList.length && filterBatchId">
+                <i class="bi bi-inbox"></i>
+                <h5>No curriculum roadmap uploaded</h5>
+                <p>No syllabus is published for this batch. Upload a syllabus timeline spreadsheet.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Side: Trainer Planner checklist, Activities feed, Agendas, Assigned courses -->
+        <div class="layout-col-right">
+
+          <!-- Quick Operations Shortcuts panel -->
+          <div class="panel glass-card shortcuts-panel-card">
+            <div class="panel-header-badge">
+              <span>Launchpad</span>
+              <h4>Quick Navigation Shortcuts</h4>
+            </div>
+
+            <div class="shortcuts-actions-grid">
+              <button class="action-shortcut-btn blue" routerLink="/dashboard/trainer/create-assessment">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Create Assessment</span>
+              </button>
+              <button class="action-shortcut-btn purple" routerLink="/dashboard/trainer/assessments">
+                <i class="bi bi-bar-chart-line-fill"></i>
+                <span>Assessments History</span>
+              </button>
+              <button class="action-shortcut-btn green" routerLink="/dashboard/trainer/students">
+                <i class="bi bi-people-fill"></i>
+                <span>Students Registry</span>
+              </button>
+              <button class="action-shortcut-btn orange" routerLink="/dashboard/trainer/pseudo-challenges">
+                <i class="bi bi-code-square"></i>
+                <span>Pseudo Challenges</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Trainer Todo Planner checklists -->
+          <div class="panel glass-card planner-card">
+            <div class="panel-header-badge">
+              <span>Planner checklist</span>
+              <h4>Training To-Do Planner</h4>
+            </div>
+
+            <form (submit)="addLocalTask(); $event.preventDefault();" class="todo-add-form">
+              <input type="text" [(ngModel)]="newTaskText" name="plannerInput" placeholder="Add custom action checklist..." required />
+              <button type="submit"><i class="bi bi-plus-lg"></i></button>
+            </form>
+
+            <div class="todo-items-list">
+              <div class="todo-item-row" *ngFor="let task of localTasks" [class.completed]="task.done">
+                <div class="checkbox-box-todo" (click)="toggleLocalTask(task)">
+                  <i class="bi" [class.bi-check-square-fill]="task.done" [class.bi-square]="!task.done"></i>
+                </div>
+                <span class="todo-item-text">{{ task.text }}</span>
+                <button type="button" class="btn-todo-delete" (click)="deleteLocalTask(task.id)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+              <div class="empty-list-state small" *ngIf="!localTasks.length">
+                <p>No daily tasks added to planner checklist.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Student Activities Feed -->
+          <div class="panel glass-card activities-feed-panel">
+            <div class="panel-header-badge">
+              <span>Real-time Log</span>
+              <h4>Recent Student Activity Log</h4>
+            </div>
+
+            <div class="activities-items-list scroll-bar-styled">
+              <div class="activity-row-item" *ngFor="let item of studentActivities | slice:0:5">
+                <div class="activity-bullet"></div>
+                <div class="activity-details">
+                  <p>
+                    <strong>{{ item.student || item.studentName || 'Learner' }}</strong> 
+                    {{ item.activity || item.action || item.description || 'updated submissions' }}
+                  </p>
+                  <span class="activity-time-stamp"><i class="bi bi-clock-history"></i> {{ item.time || item.timestamp || 'Just now' }}</span>
+                </div>
+              </div>
+              
+              <div class="empty-list-state small" *ngIf="!studentActivities.length">
+                <i class="bi bi-broadcast"></i>
+                <p>No student actions logged in feed context.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's session agendas calendar -->
+          <div class="panel glass-card sessions-agenda-card">
+            <div class="panel-header-badge">
+              <span>Calendar</span>
+              <h4>Today's Sessions Agenda</h4>
+            </div>
+
+            <div class="agenda-items-list">
+              <div class="agenda-row" *ngFor="let session of filteredUpcomingSessionsList">
+                <div class="agenda-time-pill">
+                  <i class="bi bi-clock"></i>
+                  <span>{{ session.time || '10:00 AM' }}</span>
+                </div>
+                <div class="agenda-topic">
+                  <strong>{{ session.topic }}</strong>
+                  <span>Batch: {{ session.batchName || 'Default Batch' }}</span>
+                </div>
+              </div>
+              <div class="empty-list-state small" *ngIf="!filteredUpcomingSessionsList.length">
+                <i class="bi bi-calendar-event"></i>
+                <p>No scheduled classroom sessions today.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Course lists directory -->
+          <div class="panel glass-card courses-panel-card">
+            <div class="panel-header-badge">
+              <span>Catalog</span>
+              <h4>Assigned Curriculums</h4>
+            </div>
+
+            <div class="catalog-list">
+              <div class="catalog-item-row" *ngFor="let c of courses">
+                <div class="catalog-thumb">
+                  <img *ngIf="c.thumbnailUrl" [src]="courseImage(c.thumbnailUrl)" alt="" />
+                  <i *ngIf="!c.thumbnailUrl" class="bi bi-journal-code"></i>
+                </div>
+                <div class="catalog-desc">
+                  <strong>{{ c.title }}</strong>
+                  <span>{{ c.code || 'COURSE' }} · {{ c.durationHours || 0 }} hrs</span>
+                </div>
+              </div>
+              <div class="empty-list-state small" *ngIf="!courses.length">
+                <p>No courses assigned to trainer context.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Batches panel moved to overview left column -->
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. STUDENT DIRECTORY SPREADSHEET TABLE -->
+    <div class="tab-pane-content" *ngIf="activeTab === 'students'">
+      <div class="panel spreadsheet-panel glass-card">
+        <div class="panel-spreadsheet-header">
           <div>
-            <span>Courses</span>
-            <h4>Assigned Courses</h4>
+            <span>Directory</span>
+            <h2>Registered Learners</h2>
           </div>
-          <strong>{{ courses.length }}</strong>
-        </div>
-
-        <div class="course-item" *ngFor="let course of courses">
-          <div class="course-icon">
-            <img *ngIf="course.thumbnailUrl" [src]="courseImage(course.thumbnailUrl)" alt="" />
-            <i *ngIf="!course.thumbnailUrl" class="bi bi-journal-code"></i>
-          </div>
-
-          <div class="course-info">
-            <strong>{{ course.title }}</strong>
-            <p>{{ course.code || 'COURSE' }} · {{ course.level || 'Level' }}</p>
-
-            <div class="course-meta">
-              <span>{{ course.durationHours || 0 }} hrs</span>
-              <span>Rs. {{ formatPrice(course.price) }}</span>
-              <span *ngIf="course.autoMonthlyBatchEnabled">Auto Monthly</span>
-            </div>
+          <div class="spreadsheet-search">
+            <i class="bi bi-search"></i>
+            <input type="text" [(ngModel)]="studentSearch" placeholder="Search by student name, email, batch..." />
           </div>
         </div>
 
-        <div class="empty" *ngIf="!courses.length && !loading">No assigned courses yet.</div>
-      </div>
-      <div class="panel-head">
-        <div>
-          <span>Batches</span>
-          <h4>Assigned Batches</h4>
+        <div class="spreadsheet-table-wrapper">
+          <table class="spreadsheet-table" *ngIf="filteredStudentsList.length">
+            <thead>
+              <tr>
+                <th class="col-avatar">ID</th>
+                <th class="col-name">Student name</th>
+                <th class="col-contact">Contact details</th>
+                <th class="col-batch">Assigned Batch</th>
+                <th class="col-course">Course Title</th>
+                <th class="col-status">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of filteredStudentsList" (click)="selectedStudent = s" class="interactive-row">
+                <td class="col-avatar">
+                  <div class="spreadsheet-avatar">{{ getInitials(s.name) }}</div>
+                </td>
+                <td class="col-name">
+                  <strong class="student-name-bold">{{ s.name }}</strong>
+                  <span class="student-id-sub">Learner #{{ s.id }}</span>
+                </td>
+                <td class="col-contact">
+                  <span class="contact-email"><i class="bi bi-envelope"></i> {{ s.email || 'No email' }}</span>
+                  <span class="contact-phone"><i class="bi bi-phone"></i> {{ s.phone || 'No phone' }}</span>
+                </td>
+                <td class="col-batch">
+                  <span class="sheet-batch-name">{{ s.batch || 'Unassigned' }}</span>
+                </td>
+                <td class="col-course">
+                  <span class="sheet-course-name">{{ s.course || 'Not enrolled' }}</span>
+                </td>
+                <td class="col-status">
+                  <span class="spreadsheet-status-badge active">{{ s.status || 'Active' }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="empty-search-state" *ngIf="!filteredStudentsList.length">
+            <i class="bi bi-people-fill"></i>
+            <h5>No students located</h5>
+            <p>We couldn't find any student items matching your query "{{ studentSearch }}".</p>
+          </div>
         </div>
-        <button routerLink="/dashboard/trainer/batches">
-          <i class="bi bi-arrow-right"></i>
-        </button>
       </div>
-
-      <div class="batch-item" *ngFor="let batch of batches">
-        <div class="batch-icon">
-          <i class="bi bi-mortarboard"></i>
-        </div>
-
-        <div>
-          <strong>{{ batch.name }}</strong>
-          <p>{{ batch.course || 'Course' }} · {{ batch.students }} Students</p>
-        </div>
-
-        <button class="manage-btn" [routerLink]="['/dashboard/trainer/batches', batch.id]">
-          Manage
-        </button>
-      </div>
-
-      <div class="empty" *ngIf="!batches.length && !loading">No assigned batches yet.</div>
     </div>
 
-    <div class="panel mock-panel">
-      <div class="panel-head">
-        <div>
-          <span>Interviews</span>
-          <h4>Mock Interview Requests</h4>
-        </div>
-        <strong>{{ mockRequests.length }}</strong>
-      </div>
+    <!-- 3. MOCK INTERVIEWS KANBAN SATELLITE BOARD -->
+    <div class="tab-pane-content" *ngIf="activeTab === 'mocks'">
+      <div class="kanban-workspace">
+        
+        <!-- Column 1: Requested mock interviews -->
+        <div class="kanban-column requested">
+          <div class="kanban-column-header">
+            <div class="header-indicator"></div>
+            <h4>Requests Inbox</h4>
+            <span class="kanban-count-tag">{{ pendingMockRequests.length }}</span>
+          </div>
 
-      <div class="session-list">
-        <div class="session-item" *ngFor="let item of mockRequests">
-          <div class="mock-head">
-            <div>
-              <strong>{{ item.student }}</strong>
-              <p>{{ item.topic }}</p>
+          <div class="kanban-cards-scroller scroll-bar-styled">
+            <div class="kanban-card" *ngFor="let mock of mockRequests">
+              <div class="card-node" *ngIf="mock.status === 'REQUESTED'">
+                <div class="card-meta">
+                  <span class="date-chip"><i class="bi bi-calendar3"></i> {{ mock.preferredDate }}</span>
+                  <span class="time-chip"><i class="bi bi-clock"></i> {{ mock.preferredTime }}</span>
+                </div>
+                <h5>{{ mock.student }}</h5>
+                <p class="topic-desc">{{ mock.topic || 'Interview practice topic outline' }}</p>
+                <span class="batch-desc">{{ mock.batch }} · {{ mock.email }}</span>
+                
+                <div class="scheduling-input-controls">
+                  <div class="icon-input">
+                    <i class="bi bi-camera-video"></i>
+                    <input type="text" [(ngModel)]="mock.meetingLink" placeholder="Zoom/Meet URL Link..." />
+                  </div>
+                  <div class="icon-input">
+                    <i class="bi bi-chat-dots"></i>
+                    <textarea [(ngModel)]="mock.trainerRemarks" placeholder="Add evaluation parameters..."></textarea>
+                  </div>
+                </div>
+
+                <div class="kanban-card-actions">
+                  <button type="button" class="btn-kanban-schedule" (click)="updateMock(mock, 'SCHEDULED')">
+                    <i class="bi bi-calendar-check"></i> Schedule
+                  </button>
+                  <button type="button" class="btn-kanban-reject" (click)="updateMock(mock, 'REJECTED')">
+                    Reject
+                  </button>
+                </div>
+              </div>
             </div>
-            <span class="status-pill" [class]="item.status">{{ item.status }}</span>
+
+            <div class="empty-column-card" *ngIf="!pendingMockRequests.length">
+              <i class="bi bi-inbox"></i>
+              <p>No pending mock interview requests.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Scheduled / Active mocks -->
+        <div class="kanban-column scheduled">
+          <div class="kanban-column-header">
+            <div class="header-indicator"></div>
+            <h4>Scheduled Sessions</h4>
+            <span class="kanban-count-tag">{{ scheduledMockRequests.length }}</span>
           </div>
 
-          <div class="mock-meta">
-            <small><i class="bi bi-calendar3"></i> {{ item.preferredDate }}</small>
-            <small><i class="bi bi-clock"></i> {{ item.preferredTime }}</small>
-            <small><i class="bi bi-collection"></i> {{ item.batch }}</small>
+          <div class="kanban-cards-scroller scroll-bar-styled">
+            <div class="kanban-card" *ngFor="let mock of mockRequests">
+              <div class="card-node" *ngIf="mock.status === 'SCHEDULED'">
+                <div class="card-meta">
+                  <span class="date-chip"><i class="bi bi-calendar3"></i> {{ mock.preferredDate }}</span>
+                  <span class="time-chip"><i class="bi bi-clock"></i> {{ mock.preferredTime }}</span>
+                </div>
+                <h5>{{ mock.student }}</h5>
+                <p class="topic-desc">{{ mock.topic }}</p>
+                
+                <div class="scheduled-meta-box">
+                  <a [href]="mock.meetingLink" target="_blank" class="zoom-btn" *ngIf="mock.meetingLink">
+                    <i class="bi bi-camera-video-fill"></i> Launch Video Call
+                  </a>
+                  <p class="remarks-box-preview" *ngIf="mock.trainerRemarks">
+                    <strong>Remarks:</strong> {{ mock.trainerRemarks }}
+                  </p>
+                </div>
+
+                <div class="kanban-card-actions">
+                  <button type="button" class="btn-kanban-complete" (click)="updateMock(mock, 'COMPLETED')">
+                    <i class="bi bi-patch-check"></i> Mark Complete
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-column-card" *ngIf="!scheduledMockRequests.length">
+              <i class="bi bi-calendar-x"></i>
+              <p>No active scheduled interviews.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 3: History mocks -->
+        <div class="kanban-column history">
+          <div class="kanban-column-header">
+            <div class="header-indicator"></div>
+            <h4>Evaluation History</h4>
+            <span class="kanban-count-tag">{{ completedMockRequests.length }}</span>
           </div>
 
-          <input [(ngModel)]="item.meetingLink" placeholder="Meeting link required for schedule" />
-          <textarea [(ngModel)]="item.trainerRemarks" placeholder="Trainer remarks"></textarea>
+          <div class="kanban-cards-scroller scroll-bar-styled">
+            <div class="kanban-card historical" *ngFor="let mock of mockRequests">
+              <div class="card-node" *ngIf="mock.status === 'COMPLETED' || mock.status === 'REJECTED'">
+                <div class="card-meta">
+                  <span class="status-badge-kanban" [class.completed]="mock.status==='COMPLETED'" [class.rejected]="mock.status==='REJECTED'">
+                    {{ mock.status }}
+                  </span>
+                  <span class="date-chip">{{ mock.preferredDate }}</span>
+                </div>
+                <h5>{{ mock.student }}</h5>
+                <p class="topic-desc">{{ mock.topic }}</p>
+                <p class="historical-remarks-text" *ngIf="mock.trainerRemarks">
+                  <em>"{{ mock.trainerRemarks }}"</em>
+                </p>
+              </div>
+            </div>
 
-          <a
-            *ngIf="item.meetingLink"
-            [href]="item.meetingLink"
-            target="_blank"
-            class="meeting-link"
-          >
-            <i class="bi bi-box-arrow-up-right"></i>
-            Open Meeting
-          </a>
+            <div class="empty-column-card" *ngIf="!completedMockRequests.length">
+              <i class="bi bi-clipboard2"></i>
+              <p>No history logs in desk.</p>
+            </div>
+          </div>
+        </div>
 
-          <div class="actions">
-            <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
-            <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
-            <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
+      </div>
+    </div>
+
+    <!-- 4. SUBMISSIONS GRADEBOOK EVALUATIONS -->
+    <div class="tab-pane-content" *ngIf="activeTab === 'submissions'">
+      <div class="panel gradebook-panel glass-card">
+        <div class="panel-spreadsheet-header">
+          <div class="title-wrap">
+            <span>Gradebook</span>
+            <h2>Submissions Review Suite</h2>
+          </div>
+          
+          <div class="header-filters-wrap">
+            <div class="filter-segmented-control">
+              <button type="button" [class.active]="submissionFilterState === 'all'" (click)="submissionFilterState = 'all'">
+                All Submissions
+              </button>
+              <button type="button" [class.active]="submissionFilterState === 'pending'" (click)="submissionFilterState = 'pending'">
+                Pending Review
+              </button>
+              <button type="button" [class.active]="submissionFilterState === 'reviewed'" (click)="submissionFilterState = 'reviewed'">
+                Graded
+              </button>
+            </div>
+            
+            <div class="spreadsheet-search">
+              <i class="bi bi-search"></i>
+              <input type="text" [(ngModel)]="submissionSearch" placeholder="Search by student name, task..." />
+            </div>
+          </div>
+        </div>
+
+        <div class="gradebook-table-wrapper">
+          <table class="gradebook-table" *ngIf="filteredSubmissionsList.length">
+            <thead>
+              <tr>
+                <th class="col-student">Student profile</th>
+                <th class="col-task">Task Title</th>
+                <th class="col-type">Task Type</th>
+                <th class="col-status">Status</th>
+                <th class="col-evaluate">Grade Evaluation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let sub of filteredSubmissionsList">
+                <td class="col-student">
+                  <strong class="gradebook-student-name">{{ sub.student }}</strong>
+                  <span class="gradebook-batch-id">Batch #{{ sub.batchId || sub.batch || 'N/A' }}</span>
+                </td>
+                <td class="col-task">
+                  <strong class="gradebook-task-title">{{ sub.title }}</strong>
+                </td>
+                <td class="col-type">
+                  <span class="type-badge">{{ sub.type }}</span>
+                </td>
+                <td class="col-status">
+                  <span class="status-badge" [class.submitted]="sub.status==='SUBMITTED' || !sub.marks" [class.reviewed]="sub.status==='REVIEWED' || sub.marks">
+                    {{ sub.marks ? 'REVIEWED' : sub.status }}
+                  </span>
+                </td>
+                <td class="col-evaluate">
+                  <div class="grade-evaluation-controls" *ngIf="reviewDraft[sub.id]">
+                    <div class="eval-input-marks">
+                      <label>Marks</label>
+                      <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" min="0" max="100" />
+                    </div>
+                    <div class="eval-input-feedback">
+                      <label>Feedback</label>
+                      <input type="text" [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Add comments..." />
+                    </div>
+                    <button type="button" class="btn-grade-save" (click)="review(sub)">
+                      <i class="bi bi-check2"></i> Grade
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="empty-search-state" *ngIf="!filteredSubmissionsList.length">
+            <i class="bi bi-journal-check"></i>
+            <h5>No submissions located</h5>
+            <p>We couldn't locate any task submissions matching "{{ submissionSearch }}".</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. CONTENT HUBS PUBLISHER -->
+    <div class="tab-pane-content" *ngIf="activeTab === 'content'">
+      <div class="resources-split-layout">
+        
+        <!-- Publishing form editor panel -->
+        <div class="publishing-form-panel panel glass-card">
+          <div class="panel-header-badge">
+            <span>Console</span>
+            <h4>Publish Resources</h4>
+          </div>
+
+          <form (submit)="uploadContent(); $event.preventDefault();" class="uploader-form">
+            <div class="form-row">
+              <label for="uploaderBatch">Target Batch Class</label>
+              <select id="uploaderBatch" [(ngModel)]="contentForm.batchId" name="contentBatch">
+                <option value="">Select Batch Context...</option>
+                <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} (Batch #{{ b.id }})</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label>Resource Classification</label>
+              <div class="resource-pill-selector">
+                <button type="button" [class.active]="contentForm.type === 'PRACTICE'" (click)="contentForm.type = 'PRACTICE'">
+                  <i class="bi bi-lightning-charge"></i> Practice
+                </button>
+                <button type="button" [class.active]="contentForm.type === 'MATERIAL'" (click)="contentForm.type = 'MATERIAL'">
+                  <i class="bi bi-folder2"></i> Materials
+                </button>
+                <button type="button" [class.active]="contentForm.type === 'NOTE'" (click)="contentForm.type = 'NOTE'">
+                  <i class="bi bi-journal-text"></i> Notes
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="uploaderTitle">Resource Title</label>
+              <input type="text" id="uploaderTitle" [(ngModel)]="contentForm.title" name="contentTitle" placeholder="e.g. Java OOP Polymorphism practice" required />
+            </div>
+
+            <div class="form-row">
+              <label for="uploaderDesc">Outline Summary</label>
+              <textarea id="uploaderDesc" [(ngModel)]="contentForm.description" name="contentDesc" placeholder="Enter setup guides or descriptions..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <label>Source Medium</label>
+              <div class="medium-tabs-selector">
+                <button type="button" [class.active]="contentMode === 'file'" (click)="setContentMode('file')">
+                  <i class="bi bi-file-earmark-arrow-up"></i> Attach File
+                </button>
+                <button type="button" [class.active]="contentMode === 'json'" (click)="setContentMode('json')">
+                  <i class="bi bi-braces"></i> JSON Schema
+                </button>
+                <button type="button" [class.active]="contentMode === 'link'" (click)="setContentMode('link')">
+                  <i class="bi bi-link-45deg"></i> External Links
+                </button>
+              </div>
+            </div>
+
+            <div class="medium-attachment-container">
+              <div class="medium-file-picker" *ngIf="contentMode === 'file'">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <span>Select file to attach</span>
+                <input type="file" (change)="onContentFileSelected($event)" />
+                <small class="selected-file-label" *ngIf="selectedContentFile">{{ selectedContentFile.name }}</small>
+              </div>
+
+              <div class="medium-json-editor" *ngIf="contentMode === 'json'">
+                <textarea [(ngModel)]="contentJsonText" name="contentJson" rows="5" placeholder='{"tasks": [{"title": "Practice lab exercises"}]}'></textarea>
+                <small>Attach a raw valid JSON schema.</small>
+              </div>
+
+              <div class="medium-link-picker" *ngIf="contentMode === 'link'">
+                <div class="dynamic-links-list">
+                  <div class="link-input-row" *ngFor="let link of contentLinks; let idx = index; trackBy: trackByIndex">
+                    <i class="bi bi-link"></i>
+                    <input type="url" [(ngModel)]="contentLinks[idx]" name="link-{{idx}}" placeholder="https://example.com/resource..." />
+                    <button type="button" class="btn-remove-link" (click)="removeLink(idx)" *ngIf="contentLinks.length > 1">
+                      <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                  </div>
+                </div>
+                <button type="button" class="btn-add-link" (click)="addLink()">
+                  <i class="bi bi-plus-circle"></i> Add Another Link
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-publish-submit">
+              <i class="bi bi-send-check"></i> Publish Material
+            </button>
+          </form>
+        </div>
+
+        <!-- Resources list view catalog -->
+        <div class="resources-catalogue-panel panel glass-card">
+          <div class="panel-header-badge">
+            <span>Catalogue</span>
+            <h4>Published Resources Logs</h4>
+          </div>
+
+          <div class="catalogue-cards-scroller">
+            <div class="catalogue-card" *ngFor="let item of filteredContentList">
+              <div class="catalogue-card-head">
+                <span class="catalogue-type-badge" [class]="item.type">{{ item.type }}</span>
+                <small>Batch #{{ item.batchId }}</small>
+              </div>
+              <h5>{{ item.title }}</h5>
+              <p class="catalogue-desc">{{ item.description || 'No description notes.' }}</p>
+              
+              <div class="catalogue-actions">
+                <a *ngIf="item.fileName" [href]="'/api/trainer/content/' + item.id + '/file'" target="_blank" class="download-btn">
+                  <i class="bi bi-download"></i> Download {{ item.fileName }}
+                </a>
+                <span class="json-badge-chip" *ngIf="item.jsonData || item.hasJson">
+                  <i class="bi bi-braces"></i> JSON Outline Included
+                </span>
+                
+                <!-- Dynamic external links display list -->
+                <div class="catalogue-links-list" *ngIf="getItemLinks(item).length">
+                  <a *ngFor="let url of getItemLinks(item)" [href]="url" target="_blank" class="catalogue-link-item">
+                    <i class="bi bi-link-45deg"></i> {{ url }}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-list-prompt" *ngIf="!filteredContentList.length">
+              <i class="bi bi-folder-x"></i>
+              <p>No catalogue files published.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Curriculum Upload Popup Modal -->
+  <div class="modal-overlay animate-fade-in" *ngIf="showCurriculumPopup">
+    <div class="modal-box glass-modal animate-slide-up">
+      <button class="modal-close-btn" type="button" (click)="closeCurriculumPopup()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      
+      <div class="modal-header">
+        <i class="bi bi-cloud-arrow-up-fill"></i>
+        <h3>Upload Batch Curriculum</h3>
+        <p>Integrate a standard JSON syllabus outline or upload a batch training roadmap.</p>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="modalBatch">Select Target Batch</label>
+          <select id="modalBatch" [(ngModel)]="selectedBatchId">
+            <option value="">Choose Batch...</option>
+            <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} (Batch #{{ b.id }})</option>
+          </select>
+        </div>
+
+        <div class="modal-tabs">
+          <button type="button" (click)="mode = 'file'" [class.active]="mode === 'file'">
+            <i class="bi bi-file-earmark-code"></i> File Upload
+          </button>
+          <button type="button" (click)="mode = 'paste'" [class.active]="mode === 'paste'">
+            <i class="bi bi-clipboard-data"></i> Paste JSON Text
+          </button>
+        </div>
+
+        <div class="modal-input-container">
+          <div class="modal-file-box" *ngIf="mode === 'file'">
+            <i class="bi bi-file-earmark-zip"></i>
+            <span>Choose Curriculum Spreadsheet / JSON</span>
+            <input type="file" (change)="onFileSelected($event)" />
+            <small class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</small>
+          </div>
+
+          <div class="modal-paste-box" *ngIf="mode === 'paste'">
+            <textarea [(ngModel)]="jsonText" rows="8" placeholder="Paste clean JSON structure here..."></textarea>
+            <small><i class="bi bi-question-circle"></i> Requires correct schema format validation.</small>
           </div>
         </div>
       </div>
 
-      <div class="empty" *ngIf="!mockRequests.length">No mock interview requests.</div>
+      <div class="modal-footer">
+        <button class="btn-primary" type="button" (click)="submitCurriculum()">
+          <i class="bi bi-send"></i> Submit Curriculum
+        </button>
+        <button class="btn-secondary" type="button" (click)="closeCurriculumPopup()">Cancel</button>
+      </div>
     </div>
   </div>
 
-  <div class="dashboard-grid second">
-    <div class="panel">
-      <div class="panel-head">
-        <div>
-          <span>Reviews</span>
-          <h4>Submissions & Results</h4>
-        </div>
-        <strong>{{ submissions.length }}</strong>
-      </div>
-
-      <div class="activity-item" *ngFor="let sub of submissions">
-        <div class="submission-main">
-          <strong>{{ sub.student }}</strong>
-          <p>{{ sub.title }} · {{ sub.type }} · {{ sub.status }}</p>
-        </div>
-
-        <div class="review-grid">
-          <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="Marks" />
-          <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Feedback" />
-          <button (click)="review(sub)">Save</button>
-        </div>
-      </div>
-
-      <div class="empty" *ngIf="!submissions.length">No submissions yet.</div>
-    </div>
-
-    <div class="panel content-panel">
-      <div class="panel-head">
-        <div>
-          <span>Resources</span>
-          <h4>Practice, Materials & Notes</h4>
-        </div>
-        <strong>{{ contentItems.length }}</strong>
-      </div>
-
-      <select [(ngModel)]="contentForm.batchId">
-        <option value="">Select Batch</option>
-        <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} - Batch #{{ b.id }}</option>
-      </select>
-
-      <div class="content-type-grid">
-        <button
-          type="button"
-          [class.active]="contentForm.type === 'PRACTICE'"
-          (click)="contentForm.type = 'PRACTICE'"
-        >
-          <i class="bi bi-lightning-charge"></i>
-          Practice
-        </button>
-
-        <button
-          type="button"
-          [class.active]="contentForm.type === 'MATERIAL'"
-          (click)="contentForm.type = 'MATERIAL'"
-        >
-          <i class="bi bi-folder2-open"></i>
-          Materials
-        </button>
-
-        <button
-          type="button"
-          [class.active]="contentForm.type === 'NOTE'"
-          (click)="contentForm.type = 'NOTE'"
-        >
-          <i class="bi bi-journal-text"></i>
-          Notes
-        </button>
-      </div>
-
-      <input [(ngModel)]="contentForm.title" placeholder="Title" />
-      <textarea [(ngModel)]="contentForm.description" placeholder="Description or notes"></textarea>
-
-      <div class="content-source-tabs">
-        <button
-          type="button"
-          [class.active]="contentMode === 'file'"
-          (click)="setContentMode('file')"
-        >
-          <i class="bi bi-paperclip"></i>
-          Upload File
-        </button>
-
-        <button
-          type="button"
-          [class.active]="contentMode === 'json'"
-          (click)="setContentMode('json')"
-        >
-          <i class="bi bi-braces"></i>
-          Paste JSON
-        </button>
-      </div>
-
-      <div class="content-source-box" *ngIf="contentMode === 'file'">
-        <input type="file" (change)="onContentFileSelected($event)" />
-      </div>
-
-      <div class="json-editor-wrap" *ngIf="contentMode === 'json'">
-        <div class="json-editor-head">
-          <span>JSON Content</span>
-          <small>Valid JSON only</small>
-        </div>
-
-        <textarea
-          class="json-editor"
-          [(ngModel)]="contentJsonText"
-          rows="10"
-          placeholder='{"topic":"Java Basics","tasks":[{"title":"OOP Practice"}]}'
-        ></textarea>
-      </div>
-
-      <button class="upload-btn" type="button" (click)="uploadContent()">
-        <i class="bi bi-cloud-arrow-up"></i>
-        Upload Content
+  <!-- Student Details Overlay Modal -->
+  <div class="modal-overlay animate-fade-in" *ngIf="selectedStudent" (click)="selectedStudent = null">
+    <div class="modal-box glass-modal student-detail-modal animate-slide-up" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" type="button" (click)="selectedStudent = null">
+        <i class="bi bi-x-lg"></i>
       </button>
 
-      <div class="content-list">
-        <div class="activity-item content-item" *ngFor="let item of contentItems.slice(0, 4)">
-          <span class="content-badge">{{ item.type }}</span>
-          <strong>{{ item.title }}</strong>
-          <p>Batch #{{ item.batchId }}</p>
-          <small>{{ item.description }}</small>
+      <div class="modal-header student-profile-header">
+        <div class="student-avatar-big">{{ getInitials(selectedStudent.name) }}</div>
+        <h3>{{ selectedStudent.name }}</h3>
+        <span class="batch-pill">Batch: {{ selectedStudent.batch || 'Unassigned' }}</span>
+      </div>
 
-          <a
-            *ngIf="item.fileName"
-            [href]="'/api/trainer/content/' + item.id + '/file'"
-            target="_blank"
-          >
-            Download {{ item.fileName }}
-          </a>
+      <div class="modal-body student-profile-body">
+        <div class="student-contact-card">
+          <div class="info-block">
+            <label><i class="bi bi-envelope-fill"></i> Email</label>
+            <span>{{ selectedStudent.email || 'N/A' }}</span>
+          </div>
+          <div class="info-block">
+            <label><i class="bi bi-telephone-fill"></i> Phone</label>
+            <span>{{ selectedStudent.phone || 'N/A' }}</span>
+          </div>
+          <div class="info-block">
+            <label><i class="bi bi-book-half"></i> Course</label>
+            <span>{{ selectedStudent.course || 'Not Enrolled' }}</span>
+          </div>
+          <div class="info-block">
+            <label><i class="bi bi-info-circle-fill"></i> Status</label>
+            <span class="spreadsheet-status-badge active">{{ selectedStudent.status || 'Active' }}</span>
+          </div>
+        </div>
 
-          <span class="json-chip" *ngIf="item.jsonData || item.hasJson">
-            <i class="bi bi-braces"></i>
-            JSON Added
-          </span>
+        <div class="student-stats-summary">
+          <div class="profile-stat-box">
+            <span class="value">{{ getStudentSubmissions(selectedStudent?.name).length }}</span>
+            <span class="label">Total Tasks</span>
+          </div>
+          <div class="profile-stat-box">
+            <span class="value">
+              {{ getStudentSubmissions(selectedStudent?.name).filter(s => s.status === 'REVIEWED' || s.marks).length }}
+            </span>
+            <span class="label">Graded</span>
+          </div>
+          <div class="profile-stat-box">
+            <span class="value">
+              {{ getStudentSubmissions(selectedStudent?.name).filter(s => s.status === 'SUBMITTED' && !s.marks).length }}
+            </span>
+            <span class="label">Ungraded</span>
+          </div>
+        </div>
+
+        <div class="student-detail-sections">
+          <!-- Submissions Logs -->
+          <div class="detail-subsection">
+            <h5>Submissions History</h5>
+            <div class="mini-scroll-list scroll-bar-styled">
+              <div class="mini-item-row" *ngFor="let s of getStudentSubmissions(selectedStudent?.name)">
+                <div class="item-title-desc">
+                  <strong>{{ s.title }}</strong>
+                  <span class="type">{{ s.type }}</span>
+                </div>
+                <div class="item-grade-status">
+                  <span class="score-badge" *ngIf="s.marks || s.percentage">
+                    {{ s.marks || s.percentage }}/100
+                  </span>
+                  <span class="score-badge ungraded" *ngIf="!s.marks && !s.percentage">Ungraded</span>
+                  <span class="status-badge" [class.submitted]="s.status === 'SUBMITTED' || !s.marks" [class.reviewed]="s.status === 'REVIEWED' || s.marks">
+                    {{ s.marks ? 'REVIEWED' : s.status }}
+                  </span>
+                </div>
+              </div>
+              <div class="empty-list-state small" *ngIf="!getStudentSubmissions(selectedStudent?.name).length">
+                <p>No submissions recorded for this learner.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mock Interviews Logs -->
+          <div class="detail-subsection">
+            <h5>Mock Interview History</h5>
+            <div class="mini-scroll-list scroll-bar-styled">
+              <div class="mini-item-row" *ngFor="let m of getStudentMocks(selectedStudent?.name)">
+                <div class="item-title-desc">
+                  <strong>{{ m.topic || 'Interview Practice' }}</strong>
+                  <span class="time-meta"><i class="bi bi-calendar-event"></i> {{ m.preferredDate }} · {{ m.preferredTime }}</span>
+                </div>
+                <div class="item-grade-status">
+                  <span class="status-badge-kanban" [class.completed]="m.status === 'COMPLETED'" [class.rejected]="m.status === 'REJECTED'">
+                    {{ m.status }}
+                  </span>
+                </div>
+              </div>
+              <div class="empty-list-state small" *ngIf="!getStudentMocks(selectedStudent?.name).length">
+                <p>No mock history recorded.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="empty" *ngIf="!contentItems.length">
-        No practice, materials, or notes uploaded yet.
-      </div>
-    </div>
-  </div>
-  <div class="quick-section">
-    <div class="panel quick-panel">
-      <div class="panel-head">
-        <div>
-          <span>Shortcuts</span>
-          <h4>Quick Actions</h4>
-        </div>
-      </div>
-
-      <div class="quick-grid">
-        <button (click)="openCurriculumPopup()">
-          <i class="bi bi-cloud-upload"></i>
-          Upload Curriculum
-        </button>
-        <button routerLink="/dashboard/trainer/create-assessment">
-          <i class="bi bi-plus-circle"></i>
-          Create Assessment
-        </button>
-        <button routerLink="/dashboard/trainer/assessments">
-          <i class="bi bi-bar-chart"></i>
-          View Results
-        </button>
-        <button routerLink="/dashboard/trainer/students">
-          <i class="bi bi-people"></i>
-          Students
-        </button>
-        <button routerLink="/dashboard/trainer/content">
-          <i class="bi bi-folder2-open"></i>
-          Content
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" *ngIf="showCurriculumPopup">
-    <div class="modal-box">
-      <button class="close" type="button" (click)="closeCurriculumPopup()">x</button>
-      <h3>Upload Curriculum</h3>
-
-      <select [(ngModel)]="selectedBatchId">
-        <option value="">Select Batch</option>
-        <option *ngFor="let b of batches" [value]="b.id">{{ b.name }} - Batch #{{ b.id }}</option>
-      </select>
-
-      <div class="tabs">
-        <button type="button" (click)="mode = 'file'" [class.active]="mode === 'file'">
-          Upload File
-        </button>
-        <button type="button" (click)="mode = 'paste'" [class.active]="mode === 'paste'">
-          Paste JSON
-        </button>
-      </div>
-
-      <input *ngIf="mode === 'file'" type="file" (change)="onFileSelected($event)" />
-      <textarea
-        *ngIf="mode === 'paste'"
-        [(ngModel)]="jsonText"
-        rows="10"
-        placeholder="Paste JSON here..."
-      ></textarea>
-
-      <div class="actions">
-        <button class="primary-btn" type="button" (click)="submitCurriculum()">Submit</button>
-        <button class="cancel-btn" type="button" (click)="closeCurriculumPopup()">Cancel</button>
+      <div class="modal-footer">
+        <button class="btn-secondary" type="button" (click)="selectedStudent = null">Close Profile</button>
       </div>
     </div>
   </div>

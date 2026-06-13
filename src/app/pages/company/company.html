@@ -1,444 +1,629 @@
 <main class="company-page" [class.reader-mode]="readerMode">
-  <header class="hero">
-    <button type="button" class="back-button" (click)="backToPreparation()">
-      <span aria-hidden="true">←</span>
-      <span>All Companies</span>
-    </button>
+  <!-- Dynamic Background Grid & Radial Glows for premium modern aesthetic -->
+  <div class="company-bg-grid"></div>
+  <div class="radial-glow glow-primary"></div>
+  <div class="radial-glow glow-secondary"></div>
+  <div class="radial-glow glow-tertiary"></div>
 
-    <section class="hero-grid">
-      <div class="brand-block">
-        <div class="logo-shell">
-          <img [src]="logo" [alt]="companyName + ' logo'" />
+  <header class="hero-glass-card">
+    <div class="hero-header-top">
+      <button type="button" class="back-button-pill" (click)="backToPreparation()">
+        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        <span>Library</span>
+      </button>
+
+      <div class="workspace-badge">
+        <span class="live-dot"></span>
+        <span>Active Workspace</span>
+      </div>
+    </div>
+
+    <section class="hero-layout">
+      <div class="brand-showcase">
+        <div class="logo-container-3d">
+          <div class="logo-inner">
+            <img [src]="logo" [alt]="companyName + ' logo'" />
+          </div>
         </div>
 
-        <div>
-          <span class="eyebrow">Premium Placement Workspace</span>
-          <h1>{{ companyName }}</h1>
+        <div class="brand-text">
+          <span class="premium-tag">Comprehensive Career Path</span>
+          <h1>{{ companyName }} <span class="accent-text">Workspace</span></h1>
           <p>
-            Mock tests, coding labs, interview answers, filters, hot picks and reader-first study
-            mode in one focused preparation dashboard.
+            Master technical rounds with targeted mock assessments, interactive coding challenges,
+            and curated Q&As tailored to {{ companyName }}'s recruitment criteria.
           </p>
         </div>
       </div>
 
-      <aside class="score-panel">
-        <span>Readiness Score</span>
-        <strong>{{ completionScore }}%</strong>
-        <div class="score-track">
-          <i [style.width.%]="completionScore"></i>
+      <div class="gauge-showcase">
+        <div class="readiness-gauge">
+          <svg viewBox="0 0 100 100">
+            <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+            <circle
+              class="gauge-fill"
+              cx="50"
+              cy="50"
+              r="40"
+              [style.stroke-dashoffset]="251.2 - (251.2 * completionScore) / 100"
+            ></circle>
+          </svg>
+          <div class="gauge-text">
+            <span class="score-number">{{ completionScore }}%</span>
+            <span class="score-label">Readiness</span>
+          </div>
         </div>
-      </aside>
+      </div>
     </section>
 
-    <section class="hero-stats">
-      <article>
-        <strong>{{ assessments.length }}</strong>
-        <span>Mock Tests</span>
+    <div class="hero-stats-dock">
+      <article class="dock-item">
+        <div class="icon-box ib-blue">
+          <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+        </div>
+        <div class="dock-info">
+          <strong>{{ assessments.length }}</strong>
+          <span>Mock Tests</span>
+        </div>
       </article>
-      <article>
-        <strong>{{ challenges.length }}</strong>
-        <span>Coding Labs</span>
+
+      <article class="dock-item">
+        <div class="icon-box ib-teal"><i class="fa-solid fa-code" aria-hidden="true"></i></div>
+        <div class="dock-info">
+          <strong>{{ challenges.length }}</strong>
+          <span>Coding Labs</span>
+        </div>
       </article>
-      <article>
-        <strong>{{ totalInterviewItems }}</strong>
-        <span>Interview Qs</span>
+
+      <article class="dock-item">
+        <div class="icon-box ib-amber"><i class="fa-solid fa-comments" aria-hidden="true"></i></div>
+        <div class="dock-info">
+          <strong>{{ totalInterviewItems }}</strong>
+          <span>Interview Qs</span>
+        </div>
       </article>
-      <article>
-        <strong>{{ totalPracticeItems }}</strong>
-        <span>Total Items</span>
+
+      <article class="dock-item">
+        <div class="icon-box ib-purple"><i class="fa-solid fa-cubes" aria-hidden="true"></i></div>
+        <div class="dock-info">
+          <strong>{{ totalPracticeItems }}</strong>
+          <span>Total Practice</span>
+        </div>
       </article>
-    </section>
+    </div>
   </header>
 
-  <nav class="workspace-tabs" aria-label="Company preparation sections">
-    <button
-      type="button"
-      *ngFor="let tab of tabs"
-      [class.active]="activeTab === tab.key"
-      (click)="setTab(tab.key)"
-    >
-      <span>{{ tab.label }}</span>
-      <small *ngIf="tab.key === 'ASSESSMENTS'">{{ assessments.length }}</small>
-      <small *ngIf="tab.key === 'CHALLENGES'">{{ challenges.length }}</small>
-      <small *ngIf="tab.key === 'INTERVIEW'">{{ totalInterviewItems }}</small>
-    </button>
+  <nav class="workspace-tabs-bar" aria-label="Workspace sections">
+    <div class="tabs-container">
+      <button
+        type="button"
+        *ngFor="let tab of tabs"
+        [class.active]="activeTab === tab.key"
+        (click)="setTab(tab.key)"
+      >
+        <i *ngIf="tab.key === 'OVERVIEW'" class="fa-solid fa-house-laptop" aria-hidden="true"></i>
+        <i
+          *ngIf="tab.key === 'ASSESSMENTS'"
+          class="fa-solid fa-file-signature"
+          aria-hidden="true"
+        ></i>
+        <i *ngIf="tab.key === 'CHALLENGES'" class="fa-solid fa-laptop-code" aria-hidden="true"></i>
+        <i
+          *ngIf="tab.key === 'INTERVIEW'"
+          class="fa-solid fa-question-circle"
+          aria-hidden="true"
+        ></i>
+        <span>{{ tab.label }}</span>
+        <span class="tab-badge" *ngIf="tab.key !== 'OVERVIEW'">
+          {{
+            tab.key === 'ASSESSMENTS'
+              ? assessments.length
+              : tab.key === 'CHALLENGES'
+                ? challenges.length
+                : totalInterviewItems
+          }}
+        </span>
+      </button>
+    </div>
   </nav>
 
   <section class="feedback-state" *ngIf="loadingPractice">
-    <div class="loader"></div>
-    <strong>Loading {{ companyName }} library</strong>
-    <p>Preparing practice items and hot recommendations.</p>
+    <div class="loader-ring"></div>
+    <strong>Syncing Workspace Data</strong>
+    <p>Retrieving practice schedules, coding tasks and verification datasets...</p>
   </section>
 
-  <section class="feedback-state error" *ngIf="!loadingPractice && practiceError">
-    <strong>{{ practiceError }}</strong>
-    <button type="button" class="secondary-button" (click)="loadPracticeItems()">Retry</button>
+  <section class="feedback-state error-state" *ngIf="!loadingPractice && practiceError">
+    <div class="error-icon">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    </div>
+    <strong>Connection Outage</strong>
+    <p>{{ practiceError }}</p>
+    <button type="button" class="action-btn-primary" (click)="loadPracticeItems()">
+      <i class="fa-solid fa-rotate" aria-hidden="true"></i> Retry Sync
+    </button>
   </section>
 
   <ng-container *ngIf="!loadingPractice && !practiceError">
+    <!-- OVERVIEW TAB -->
     <section class="overview-panel" *ngIf="activeTab === 'OVERVIEW'">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Live Workspace</span>
-          <h2>{{ totalPracticeItems }} active practice items</h2>
-          <p>Pick a path, review hot items, then continue into tests, labs or interviews.</p>
-        </div>
+      <div class="tab-intro">
+        <h2>Select Your Training Round</h2>
+        <p>Advance through focused preparation stages. Choose a section below to begin.</p>
       </div>
 
-      <div class="path-grid">
-        <button type="button" class="path-card assessment" (click)="setTab('ASSESSMENTS')">
-          <span class="path-icon">MT</span>
-          <small>{{ assessments.length }} available</small>
-          <h3>Mock Tests</h3>
-          <p>Timed company-style assessments with marks, question counts and quick access.</p>
-        </button>
-
-        <button type="button" class="path-card challenge" (click)="setTab('CHALLENGES')">
-          <span class="path-icon">CL</span>
-          <small>{{ challenges.length }} available</small>
-          <h3>Coding Labs</h3>
-          <p>Programming challenges designed for technical screening preparation.</p>
-        </button>
-
-        <button type="button" class="path-card interview" (click)="setTab('INTERVIEW')">
-          <span class="path-icon">IQ</span>
-          <small>{{ totalInterviewItems }} ready</small>
-          <h3>Interview Bank</h3>
-          <p>Role-wise answers with definition, explanation, examples and interview tips.</p>
-        </button>
-      </div>
-
-      <section class="hot-panel" *ngIf="hotPracticeItems.length">
-        <div class="section-heading compact">
-          <div>
-            <span class="eyebrow">Hot Right Now</span>
-            <h2>Best starting points for {{ companyName }}</h2>
+      <div class="stage-cards-grid">
+        <button type="button" class="stage-card card-assessment" (click)="setTab('ASSESSMENTS')">
+          <div class="stage-top">
+            <span class="stage-badge">Phase 01</span>
+            <span class="stage-count">{{ assessments.length }} tests</span>
           </div>
+          <h3>Mock Assessments</h3>
+          <p>Simulated technical and aptitude exams modeled on actual recruitment papers.</p>
+          <div class="stage-footer">
+            <span>Launch Tests</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </div>
+        </button>
+
+        <button type="button" class="stage-card card-challenge" (click)="setTab('CHALLENGES')">
+          <div class="stage-top">
+            <span class="stage-badge">Phase 02</span>
+            <span class="stage-count">{{ challenges.length }} labs</span>
+          </div>
+          <h3>Coding Challenges</h3>
+          <p>Interactive compiler playgrounds containing system design and algorithmic tasks.</p>
+          <div class="stage-footer">
+            <span>Launch Labs</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </div>
+        </button>
+
+        <button type="button" class="stage-card card-interview" (click)="setTab('INTERVIEW')">
+          <div class="stage-top">
+            <span class="stage-badge">Phase 03</span>
+            <span class="stage-count">{{ totalInterviewItems }} QA</span>
+          </div>
+          <h3>Interview Question Bank</h3>
+          <p>Concept deep-dives, detailed walkthroughs, and HR mock answers.</p>
+          <div class="stage-footer">
+            <span>Open Vault</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- HOT PANEL -->
+      <section class="hot-panel" *ngIf="hotPracticeItems.length">
+        <div class="tab-intro compact">
+          <span class="spotlight-tag"
+            ><i class="fa-solid fa-bolt" aria-hidden="true"></i> Spotlight</span
+          >
+          <h2>Recommended Core Tasks</h2>
+          <p>Top-rated practice items based on recruiter trends and student feedback.</p>
         </div>
 
         <div class="hot-grid">
           <button
             type="button"
-            class="hot-card"
+            class="hot-spotlight-card"
             *ngFor="let item of hotPracticeItems; trackBy: trackByPractice"
             (click)="openPractice(item)"
           >
-            <span class="hot-badge">Hot</span>
-            <strong>{{ item.title }}</strong>
-            <p>{{ item.skill || item.type }}</p>
-            <div>
-              <span>{{ item.questionCount }} Qs</span>
-              <span>{{ item.durationMinutes }} min</span>
-              <span>{{ item.totalMarks }} marks</span>
-            </div>
+            <header class="hsc-header">
+              <span class="hsc-accent-bar"></span>
+              <span class="hsc-type-pill">{{ item.skill || item.type }}</span>
+              <span class="hsc-fire"
+                ><i class="fa-solid fa-fire-flame-curved" aria-hidden="true"></i> Hot</span
+              >
+            </header>
+
+            <strong class="hsc-title">{{ item.title }}</strong>
+
+            <footer class="hsc-footer">
+              <div class="hsc-meta">
+                <span
+                  ><i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                  {{ item.questionCount }} Qs</span
+                >
+                <span
+                  ><i class="fa-solid fa-clock" aria-hidden="true"></i>
+                  {{ item.durationMinutes }}m</span
+                >
+                <span
+                  ><i class="fa-solid fa-trophy" aria-hidden="true"></i>
+                  {{ item.totalMarks }} pts</span
+                >
+              </div>
+              <div class="hsc-arrow">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </div>
+            </footer>
           </button>
         </div>
       </section>
 
-      <section class="content-empty" *ngIf="!totalPracticeItems">
-        <h2>No active practice items yet</h2>
-        <p>Interview resources may still be available for {{ companyName }}.</p>
-        <button type="button" class="primary-button" (click)="setTab('INTERVIEW')">
-          Open Interview Bank
+      <section class="content-empty-state" *ngIf="!totalPracticeItems">
+        <div class="empty-icon"><i class="fa-solid fa-folder-open" aria-hidden="true"></i></div>
+        <h2>No resources registered</h2>
+        <p>Interview preparation modules may still be available for this employer.</p>
+        <button type="button" class="action-btn-primary" (click)="setTab('INTERVIEW')">
+          Access Interview Bank
         </button>
       </section>
     </section>
 
+    <!-- ASSESSMENTS / CHALLENGES TAB -->
     <section
       class="content-panel"
       *ngIf="activeTab === 'ASSESSMENTS' || activeTab === 'CHALLENGES'"
     >
-      <div class="section-heading">
+      <div class="panel-heading-row">
         <div>
-          <span class="eyebrow">
-            {{ activeTab === 'ASSESSMENTS' ? 'Mock Test Library' : 'Coding Practice Library' }}
-          </span>
           <h2>
+            {{
+              activeTab === 'ASSESSMENTS'
+                ? 'Mock Assessment Catalogs'
+                : 'Coding Laboratory Catalogs'
+            }}
+          </h2>
+          <p>
+            Found
             {{
               activeTab === 'ASSESSMENTS' ? filteredAssessments.length : filteredChallenges.length
             }}
-            results for {{ companyName }}
-          </h2>
-          <p>Search, sort and filter by skill or duration before starting.</p>
+            curated prep paths.
+          </p>
         </div>
 
-        <div class="view-toggle">
+        <div class="view-switches">
           <button type="button" [class.active]="cardView === 'GRID'" (click)="cardView = 'GRID'">
-            Grid
+            <i class="fa-solid fa-grip" aria-hidden="true"></i>
           </button>
           <button type="button" [class.active]="cardView === 'LIST'" (click)="cardView = 'LIST'">
-            List
+            <i class="fa-solid fa-list" aria-hidden="true"></i>
           </button>
         </div>
       </div>
 
-      <section class="filter-toolbar practice-toolbar">
-        <label class="search-field">
-          <span>Search</span>
-          <input [(ngModel)]="practiceSearch" placeholder="Search title, skill or description" />
-        </label>
+      <section class="control-filter-bar">
+        <div class="input-glow-group">
+          <span>Keywords</span>
+          <div class="filter-input-wrap">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input [(ngModel)]="practiceSearch" placeholder="Filter by title, skill, role..." />
+          </div>
+        </div>
 
-        <label>
-          <span>Skill</span>
+        <div class="input-glow-group">
+          <span>Technology Focus</span>
           <select [(ngModel)]="selectedSkill">
-            <option value="">All Skills</option>
+            <option value="">All Tech / Subjects</option>
             <option *ngFor="let skill of allSkills" [value]="skill">{{ skill }}</option>
           </select>
-        </label>
+        </div>
 
-        <label>
-          <span>Duration</span>
+        <div class="input-glow-group">
+          <span>Round Duration</span>
           <select [(ngModel)]="selectedDuration">
             <option value="">Any Duration</option>
-            <option value="SHORT">Under 30 min</option>
-            <option value="MEDIUM">31 - 60 min</option>
-            <option value="LONG">Above 60 min</option>
+            <option value="SHORT">Quick (&le; 30m)</option>
+            <option value="MEDIUM">Standard (31 - 60m)</option>
+            <option value="LONG">Extensive (&gt; 60m)</option>
           </select>
-        </label>
+        </div>
 
-        <label>
-          <span>Sort</span>
+        <div class="input-glow-group">
+          <span>Sort By</span>
           <select [(ngModel)]="practiceSort">
-            <option value="POPULAR">Popular</option>
-            <option value="NEWEST">Newest</option>
-            <option value="MARKS">Highest Marks</option>
+            <option value="POPULAR">Recommended</option>
+            <option value="NEWEST">Latest Release</option>
+            <option value="MARKS">Highest Score</option>
             <option value="DURATION">Shortest First</option>
-            <option value="QUESTIONS">Most Questions</option>
+            <option value="QUESTIONS">Total Tasks</option>
           </select>
-        </label>
+        </div>
 
-        <button type="button" class="secondary-button" (click)="clearPracticeFilters()">
-          Clear
+        <button type="button" class="reset-filter-btn" (click)="clearPracticeFilters()">
+          <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
         </button>
       </section>
 
+      <!-- 3-COLUMN MODERN GRID -->
       <div
-        class="practice-grid"
-        [class.list-view]="cardView === 'LIST'"
+        class="custom-practice-grid"
+        [class.list-layout]="cardView === 'LIST'"
         *ngIf="activePracticeItems.length"
       >
         <article
-          class="practice-card"
+          class="modern-practice-card"
           *ngFor="let item of activePracticeItems; trackBy: trackByPractice"
-          [class.hot]="isHotItem(item)"
+          [class.highlighted-hot]="isHotItem(item)"
         >
-          <div class="card-header">
-            <span class="card-badge" [class.challenge]="item.type === 'CHALLENGE'">
+          <div class="mpc-top">
+            <span class="mpc-badge" [class.badge-teal]="item.type === 'CHALLENGE'">
               {{ item.skill || (item.type === 'ASSESSMENT' ? 'Assessment' : 'Coding') }}
             </span>
-            <span class="hot-label" *ngIf="isHotItem(item)">Live Hot</span>
+            <span class="mpc-hot-tag" *ngIf="isHotItem(item)">
+              <i class="fa-solid fa-fire" aria-hidden="true"></i> Hot Picks
+            </span>
           </div>
 
-          <h3>{{ item.title }}</h3>
-          <p class="description">
+          <h3 class="mpc-title">{{ item.title }}</h3>
+          <p class="mpc-desc">
             {{
               item.description ||
-                'Premium company preparation item designed for placement readiness.'
+                'Premium testing module structured to mirror standard recruitment tests.'
             }}
           </p>
 
-          <div class="metric-grid">
-            <div>
+          <div class="mpc-stats-grid">
+            <div class="mpc-stat">
               <strong>{{ item.questionCount }}</strong>
               <span>{{ item.type === 'ASSESSMENT' ? 'Questions' : 'Tests' }}</span>
             </div>
-            <div>
-              <strong>{{ item.durationMinutes }}</strong>
-              <span>Minutes</span>
+            <div class="mpc-stat">
+              <strong>{{ item.durationMinutes }}m</strong>
+              <span>Duration</span>
             </div>
-            <div>
+            <div class="mpc-stat">
               <strong>{{ item.totalMarks }}</strong>
               <span>Marks</span>
             </div>
           </div>
 
-          <button type="button" class="primary-button" (click)="openPractice(item)">
-            {{ item.type === 'ASSESSMENT' ? 'Start Mock Test' : 'Open Coding Lab' }}
+          <button type="button" class="mpc-action-btn" (click)="openPractice(item)">
+            <span>{{
+              item.type === 'ASSESSMENT' ? 'Attempt Assessment' : 'Open Lab compiler'
+            }}</span>
+            <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
           </button>
         </article>
       </div>
 
-      <section class="content-empty" *ngIf="!activePracticeItems.length">
-        <h2>No matching items found</h2>
-        <p>Try clearing filters or changing the sort option.</p>
-        <button type="button" class="secondary-button" (click)="clearPracticeFilters()">
-          Reset Filters
+      <section class="content-empty-state" *ngIf="!activePracticeItems.length">
+        <div class="empty-icon">
+          <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+        </div>
+        <h2>No paths match your filters</h2>
+        <p>Try resetting the skill selects or search queries.</p>
+        <button type="button" class="action-btn-secondary" (click)="clearPracticeFilters()">
+          Clear Filters
         </button>
       </section>
     </section>
   </ng-container>
 
+  <!-- LEETCODE LAYOUT FOR INTERVIEWS -->
   <section class="leetcode-panel" *ngIf="activeTab === 'INTERVIEW'">
-    <div class="leetcode-header">
-      <div>
-        <span class="eyebrow">Interview Problems</span>
-        <h2>{{ companyName }} Question Bank</h2>
-        <p>Practice like a coding platform: filter, scan, open, read, revise.</p>
+    <header class="leetcode-hero-bar">
+      <div class="lhb-info">
+        <span class="eyebrow-small">Curated Repository</span>
+        <h2>Employer Interview Vault</h2>
+        <p>Practice with interactive filters. Select a card, expand the answer dock.</p>
       </div>
 
-      <div class="difficulty-strip">
-        <span class="easy">Easy {{ difficultySummary.easy }}</span>
-        <span class="medium">Medium {{ difficultySummary.medium }}</span>
-        <span class="hard">Hard {{ difficultySummary.hard }}</span>
+      <div class="lhb-summary">
+        <span class="status-indicator easy"
+          >Easy <strong>{{ difficultySummary.easy }}</strong></span
+        >
+        <span class="status-indicator medium"
+          >Medium <strong>{{ difficultySummary.medium }}</strong></span
+        >
+        <span class="status-indicator hard"
+          >Hard <strong>{{ difficultySummary.hard }}</strong></span
+        >
       </div>
-    </div>
+    </header>
 
-    <section class="leetcode-filters">
-      <input
-        [(ngModel)]="questionSearch"
-        placeholder="Search questions, concepts, topics"
-        (keyup.enter)="applyQuestionFilters()"
-      />
+    <div class="search-sort-panel">
+      <div class="search-input-shell custom-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input
+          [(ngModel)]="questionSearch"
+          placeholder="Filter questions, definitions, topics..."
+          (keyup.enter)="applyQuestionFilters()"
+        />
+      </div>
 
-      <select [(ngModel)]="selectedType">
-        <option value="">All Types</option>
-        <option value="SCENARIO">Scenario</option>
-        <option value="CONCEPTUAL">Conceptual</option>
-        <option value="IMPLEMENTATION">Implementation</option>
+      <select [(ngModel)]="selectedType" (change)="applyQuestionFilters()">
+        <option value="">All Question Types</option>
+        <option value="SCENARIO">Scenario Based</option>
+        <option value="CONCEPTUAL">Conceptual Theory</option>
+        <option value="IMPLEMENTATION">Coding Implementation</option>
       </select>
 
-      <select [(ngModel)]="selectedDifficulty">
-        <option value="">All Difficulty</option>
+      <select [(ngModel)]="selectedDifficulty" (change)="applyQuestionFilters()">
+        <option value="">All Difficulties</option>
         <option value="EASY">Easy</option>
         <option value="MEDIUM">Medium</option>
         <option value="HARD">Hard</option>
       </select>
 
-      <select [(ngModel)]="questionSort">
-        <option value="DEFAULT">Default</option>
+      <select [(ngModel)]="questionSort" (change)="applyQuestionFilters()">
+        <option value="DEFAULT">Sequence Order</option>
         <option value="EASY_FIRST">Easy First</option>
         <option value="HARD_FIRST">Hard First</option>
         <option value="TOPIC">Topic A-Z</option>
       </select>
 
-      <button type="button" class="ghost-btn" (click)="clearQuestionFilters()">Clear</button>
-      <button type="button" class="solid-btn" (click)="applyQuestionFilters()">Apply</button>
-    </section>
+      <div class="button-set">
+        <button type="button" class="action-btn-secondary" (click)="clearQuestionFilters()">
+          Reset
+        </button>
+        <button type="button" class="action-btn-primary" (click)="applyQuestionFilters()">
+          Apply
+        </button>
+      </div>
+    </div>
 
-    <nav class="leetcode-roles">
-      <button type="button" [class.active]="selectedRole === ''" (click)="changeRole('')">
-        All
+    <div class="leetcode-filter-tags">
+      <button
+        type="button"
+        class="role-tag"
+        [class.active]="selectedRole === ''"
+        (click)="changeRole('')"
+      >
+        All Questions
       </button>
-
       <button
         type="button"
         *ngFor="let role of availableInterviewRoles"
+        class="role-tag"
         [class.active]="selectedRole === role"
         (click)="changeRole(role)"
       >
         {{ role }}
       </button>
-    </nav>
+    </div>
 
-    <section class="feedback-state compact" *ngIf="loadingQuestions">
-      <div class="loader"></div>
-      <strong>Loading questions</strong>
+    <section class="feedback-state compact-loader" *ngIf="loadingQuestions">
+      <div class="loader-ring small"></div>
+      <strong>Syncing Qs...</strong>
     </section>
 
-    <section class="feedback-state compact error" *ngIf="!loadingQuestions && questionError">
+    <section class="feedback-state error-state compact" *ngIf="!loadingQuestions && questionError">
       <strong>{{ questionError }}</strong>
-      <button type="button" class="ghost-btn" (click)="loadInterviewQuestions()">Retry</button>
+      <button type="button" class="action-btn-secondary" (click)="loadInterviewQuestions()">
+        Retry Load
+      </button>
     </section>
 
-    <div class="leetcode-shell" *ngIf="!loadingQuestions && !questionError">
-      <section class="problem-list">
-        <div class="problem-head">
+    <div class="leetcode-workspace" *ngIf="!loadingQuestions && !questionError">
+      <section class="problem-list-panel">
+        <div class="plp-header">
           <span>#</span>
-          <span>Title</span>
-          <span>Topic</span>
+          <span>Problem Title</span>
+          <span>Topic Domain</span>
           <span>Difficulty</span>
         </div>
 
-        <button
-          type="button"
-          class="problem-row"
-          *ngFor="let question of sortedQuestions; let i = index; trackBy: trackByQuestion"
-          [class.active]="selectedQuestion?.id === question.id"
-          (click)="selectQuestion(question)"
-        >
-          <span class="problem-index">{{ questionPage * questionSize + i + 1 }}</span>
-
-          <span class="problem-title">
-            <strong>{{ question.question }}</strong>
-            <small>{{ question.type }}</small>
-          </span>
-
-          <span class="problem-topic">{{ question.topic }}</span>
-
-          <span
-            class="difficulty-pill"
-            [class.easy]="question.difficulty === 'EASY'"
-            [class.medium]="question.difficulty === 'MEDIUM'"
-            [class.hard]="question.difficulty === 'HARD'"
+        <div class="plp-list">
+          <button
+            type="button"
+            class="plp-row"
+            *ngFor="let question of sortedQuestions; let i = index; trackBy: trackByQuestion"
+            [class.row-selected]="selectedQuestion?.id === question.id"
+            (click)="selectQuestion(question)"
           >
-            {{ question.difficulty }}
-          </span>
-        </button>
+            <span class="plp-index">{{ questionPage * questionSize + i + 1 }}</span>
 
-        <section class="content-empty" *ngIf="!questions.length">
-          <h2>No questions found</h2>
-          <p>Try another role or clear filters.</p>
-        </section>
+            <span class="plp-main">
+              <strong>{{ question.question }}</strong>
+              <span class="plp-sub-type">{{ question.type }}</span>
+            </span>
 
-        <nav class="leetcode-pagination" *ngIf="questionTotalPages > 1">
-          <button type="button" [disabled]="questionPage === 0" (click)="previousQuestionPage()">
-            Previous
+            <span class="plp-topic">{{ question.topic || 'General' }}</span>
+
+            <span
+              class="diff-badge"
+              [class.db-easy]="question.difficulty === 'EASY'"
+              [class.db-medium]="question.difficulty === 'MEDIUM'"
+              [class.db-hard]="question.difficulty === 'HARD'"
+            >
+              {{ question.difficulty }}
+            </span>
           </button>
-          <span>{{ pageLabel }}</span>
+        </div>
+
+        <div class="plp-empty" *ngIf="!questions.length">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <p>No questions matched your active filters.</p>
+        </div>
+
+        <footer class="plp-pagination" *ngIf="questionTotalPages > 1">
+          <button
+            type="button"
+            [disabled]="questionPage === 0"
+            (click)="previousQuestionPage()"
+            class="pg-btn"
+          >
+            <i class="fa-solid fa-angle-left" aria-hidden="true"></i> Prev
+          </button>
+          <span class="pg-info">{{ pageLabel }}</span>
           <button
             type="button"
             [disabled]="questionPage >= questionTotalPages - 1"
             (click)="nextQuestionPage()"
+            class="pg-btn"
           >
-            Next
+            Next <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
           </button>
-        </nav>
+        </footer>
       </section>
 
-      <aside class="answer-reader" *ngIf="selectedQuestion">
-        <div class="reader-top">
-          <span>Question {{ selectedQuestionIndex + 1 }}</span>
-          <button type="button" (click)="closeQuestionReader()">Close</button>
-        </div>
+      <!-- ACP ANSWER CONSOLE -->
+      <aside class="answer-console-panel" *ngIf="selectedQuestion">
+        <header class="acp-header">
+          <div class="acp-meta-info">
+            <span class="acp-index-tag">Problem Index #{{ selectedQuestionIndex + 1 }}</span>
+          </div>
+          <button type="button" class="acp-close-btn" (click)="closeQuestionReader()">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </header>
 
-        <h3>{{ selectedQuestion.question }}</h3>
+        <h3 class="acp-title">{{ selectedQuestion.question }}</h3>
 
-        <div class="reader-tags">
-          <span>{{ selectedQuestion.type }}</span>
-          <span>{{ selectedQuestion.topic }}</span>
+        <div class="acp-badge-dock">
+          <span class="acp-pill">{{ selectedQuestion.type }}</span>
+          <span class="acp-pill">{{ selectedQuestion.topic }}</span>
           <span
-            [class.easy]="selectedQuestion.difficulty === 'EASY'"
-            [class.medium]="selectedQuestion.difficulty === 'MEDIUM'"
-            [class.hard]="selectedQuestion.difficulty === 'HARD'"
+            class="diff-badge"
+            [class.db-easy]="selectedQuestion.difficulty === 'EASY'"
+            [class.db-medium]="selectedQuestion.difficulty === 'MEDIUM'"
+            [class.db-hard]="selectedQuestion.difficulty === 'HARD'"
           >
             {{ selectedQuestion.difficulty }}
           </span>
         </div>
 
-        <article>
-          <h4>Definition</h4>
-          <p>{{ getSection(selectedQuestion.answer, 'Definition:', 'Explanation:') }}</p>
-        </article>
+        <div class="acp-scroll-content">
+          <article class="acp-section-block">
+            <h4>Definition</h4>
+            <p>{{ getSection(selectedQuestion.answer, 'Definition:', 'Explanation:') }}</p>
+          </article>
 
-        <article>
-          <h4>Explanation</h4>
-          <p>{{ getSection(selectedQuestion.answer, 'Explanation:', 'Example:') }}</p>
-        </article>
+          <article class="acp-section-block">
+            <h4>Explanation</h4>
+            <p>{{ getSection(selectedQuestion.answer, 'Explanation:', 'Example:') }}</p>
+          </article>
 
-        <article class="code-block">
-          <h4>Example</h4>
-          <pre>{{ getSection(selectedQuestion.answer, 'Example:', 'Real-world Scenario:') }}</pre>
-        </article>
+          <article class="acp-section-block code-editor-block">
+            <div class="editor-header">
+              <span class="editor-dot"></span>
+              <span class="editor-dot"></span>
+              <span class="editor-dot"></span>
+              <span class="editor-lang">code_example.cpp</span>
+            </div>
+            <pre><code>{{ getSection(selectedQuestion.answer, 'Example:', 'Real-world Scenario:') }}</code></pre>
+          </article>
 
-        <article>
-          <h4>Real-world Scenario</h4>
-          <p>{{ getSection(selectedQuestion.answer, 'Real-world Scenario:', 'Interview Tip:') }}</p>
-        </article>
+          <article class="acp-section-block">
+            <h4>Real-world Scenario</h4>
+            <p>
+              {{ getSection(selectedQuestion.answer, 'Real-world Scenario:', 'Interview Tip:') }}
+            </p>
+          </article>
 
-        <article class="tip-block">
-          <h4>Interview Tip</h4>
-          <p>{{ getSection(selectedQuestion.answer, 'Interview Tip:', '') }}</p>
-        </article>
+          <article class="acp-section-block tip-callout">
+            <h4 class="tip-title">
+              <i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Expert Interview Advice
+            </h4>
+            <p>{{ getSection(selectedQuestion.answer, 'Interview Tip:', '') }}</p>
+          </article>
+        </div>
+      </aside>
+
+      <aside class="answer-console-panel empty-selection" *ngIf="!selectedQuestion">
+        <div class="selection-prompt">
+          <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+          <h3>Select a problem</h3>
+          <p>
+            Pick a question from the repository table list on the left side to load its analysis
+            report terminal.
+          </p>
+        </div>
       </aside>
     </div>
   </section>

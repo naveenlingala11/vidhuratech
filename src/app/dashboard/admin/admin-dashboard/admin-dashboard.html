@@ -1,207 +1,431 @@
 <div class="dashboard-page" [class.dark]="darkMode">
   <div class="dashboard-bg"></div>
+
+  <!-- Top Navigation Header -->
   <header class="top-header">
-    <div>
-      <span class="kicker">Vidhura Tech Admin</span>
-      <h1>Executive Dashboard</h1>
-      <p>{{ todayDate }} · Revenue, leads, users, modules, and platform activity</p>
+    <div class="header-intro">
+      <span class="kicker">
+        <i class="bi bi-shield-lock-fill me-1"></i> Vidhura Tech Control Room
+      </span>
+      <h1>{{ greetingMessage }}, Admin</h1>
+      <p class="subtitle">
+        <i class="bi bi-calendar3 me-1"></i> {{ todayDate }} &bull; System health: <span
+          class="text-success fw-bold">Optimal Uptime</span>
+      </p>
     </div>
     <div class="header-actions">
-      <button type="button" class="btn-soft" (click)="refreshDashboard()">Refresh</button>
-      <button type="button" class="btn-primary" (click)="toggleTheme()">
-        {{ darkMode ? 'Light Mode' : 'Dark Mode' }}
+      <button type="button" class="btn-action btn-refresh" (click)="refreshDashboard()" title="Refresh Dashboard Stats">
+        <i class="bi bi-arrow-clockwise me-2" [class.spin-loader]="loading"></i>
+        <span>Sync Live Data</span>
+      </button>
+      <button type="button" class="btn-action btn-theme" (click)="toggleTheme()" title="Switch Color Palette">
+        <i class="bi" [class.bi-sun-fill]="darkMode" [class.bi-moon-stars-fill]="!darkMode"></i>
+        <span>{{ darkMode ? 'Light Mode' : 'Dark Mode' }}</span>
       </button>
     </div>
   </header>
-  <div class="loader" *ngIf="loading">
-    <span></span>
+
+  <!-- Live Loading indicator -->
+  <div class="loader-bar" *ngIf="loading">
+    <div class="loader-progress"></div>
   </div>
+
+  <!-- Core Highlights Hero Card -->
   <section class="hero-section">
     <div class="hero-main">
-      <span class="live-badge">Live Control Room</span>
-      <h2>₹{{ revenueDisplay }}</h2>
-      <p>Total revenue tracked from invoices, admissions, payments, and business operations.</p>
+      <div class="live-pulse-container">
+        <span class="live-pulse-dot"></span>
+        <span class="live-badge">Live System Telemetry Active</span>
+      </div>
+      <div class="revenue-hero-metric">
+        <span class="metric-label">Consolidated Net Revenue</span>
+        <h2>₹{{ revenueDisplay }}</h2>
+      </div>
+      <p class="hero-description">
+        Real-time financial performance, lead generation conduits, active certificate registries, and LMS system
+        allocations.
+      </p>
       <div class="hero-actions">
-        <button type="button" (click)="navigate('/admin/leads')">Manage Leads</button>
-        <button type="button" (click)="navigate('/admin/invoice')">Create Invoice</button>
-        <button type="button" (click)="navigate('/invoice-analytics')">Open Analytics</button>
-        <button type="button" routerLink="/dashboard/admin/plan-access" routerLinkActive="active">
-          <i class="fa-solid fa-shield-halved"></i>
-          <span>Plan Access</span>
+        <button type="button" class="btn-hero btn-leads" (click)="navigate('/dashboard/admin/leads')">
+          <i class="bi bi-funnel-fill me-1"></i> Lead Pipeline
+        </button>
+        <button type="button" class="btn-hero btn-invoice" (click)="navigate('/dashboard/admin/invoice')">
+          <i class="bi bi-receipt me-1"></i> Issue Invoice
+        </button>
+        <button type="button" class="btn-hero btn-analytics" (click)="navigate('/dashboard/admin/invoice-analytics')">
+          <i class="bi bi-bar-chart-line-fill me-1"></i> Revenue Analytics
+        </button>
+        <button type="button" class="btn-hero btn-certificates" (click)="navigate('/dashboard/admin/certificates')">
+          <i class="bi bi-patch-check-fill me-1"></i> Credentials
+        </button>
+        <button type="button" class="btn-hero btn-plan" routerLink="/dashboard/admin/plan-access"
+          routerLinkActive="active">
+          <i class="bi bi-shield-shaded me-1"></i> Access Matrix
         </button>
       </div>
     </div>
+
     <div class="hero-side">
-      <div class="hero-mini-card highlight">
-        <span>Conversion</span>
-        <strong>{{ extraStats.conversionRate }}%</strong>
+      <div class="hero-metric-box conversion-glow">
+        <span class="metric-subtitle">Conversion Index</span>
+        <div class="metric-percentage">
+          <strong>{{ extraStats.conversionRate }}%</strong>
+          <span class="trend-badge positive">
+            <i class="bi bi-arrow-up-right me-1"></i>Optimal
+          </span>
+        </div>
       </div>
-      <div class="hero-mini-grid">
-        <div>
-          <span>Leads</span>
+      <div class="hero-metric-grid">
+        <div class="hero-grid-item">
+          <span>Inbound Enquiries</span>
           <strong>{{ stats.leads }}</strong>
         </div>
-        <div>
-          <span>Modules</span>
+        <div class="hero-grid-item">
+          <span>Active Modules</span>
           <strong>{{ activeModules }}</strong>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- KPI Cards Grid Deck -->
   <section class="kpi-grid">
-    <div class="kpi-card teal">
-      <span>Total Leads</span>
-      <strong>{{ stats.leads }}</strong>
-      <p>{{ extraStats.todayFollowups }} follow-ups today</p>
+    <div class="kpi-card-v2 lead-card">
+      <div class="card-icon-wrapper">
+        <i class="bi bi-funnel"></i>
+      </div>
+      <div class="card-details">
+        <span>Inbound Enquiries</span>
+        <h3>{{ stats.leads }}</h3>
+        <p>
+          <span class="highlight-info">{{ extraStats.todayFollowups }}</span> follow-ups pending today
+        </p>
+      </div>
     </div>
-    <div class="kpi-card gold">
-      <span>Revenue</span>
-      <strong>₹{{ revenueDisplay }}</strong>
-      <p>{{ revenueGrowth }}% growth this cycle</p>
+    <div class="kpi-card-v2 revenue-card">
+      <div class="card-icon-wrapper">
+        <i class="bi bi-currency-rupee"></i>
+      </div>
+      <div class="card-details">
+        <span>Cumulative Revenue</span>
+        <h3>₹{{ revenueDisplay }}</h3>
+        <p>
+          <span class="highlight-info">+{{ revenueGrowth }}%</span> cycle growth rate
+        </p>
+      </div>
     </div>
-    <div class="kpi-card blue">
-      <span>Jobs</span>
-      <strong>{{ stats.jobs }}</strong>
-      <p>Active job listings</p>
+    <div class="kpi-card-v2 job-card">
+      <div class="card-icon-wrapper">
+        <i class="bi bi-briefcase"></i>
+      </div>
+      <div class="card-details">
+        <span>Published Jobs</span>
+        <h3>{{ stats.jobs }}</h3>
+        <p>
+          <span class="highlight-info">Active</span> recruitment campaigns
+        </p>
+      </div>
     </div>
-    <div class="kpi-card violet">
-      <span>Certificates</span>
-      <strong>{{ stats.certificates }}</strong>
-      <p>Generated certificates</p>
+    <div class="kpi-card-v2 cert-card">
+      <div class="card-icon-wrapper">
+        <i class="bi bi-patch-check"></i>
+      </div>
+      <div class="card-details">
+        <span>Issued Credentials</span>
+        <h3>{{ stats.certificates }}</h3>
+        <p>
+          <span class="highlight-info">Verified</span> blockchain certificates
+        </p>
+      </div>
     </div>
   </section>
-  <section class="command-grid">
-    <div class="panel module-panel">
-      <div class="panel-head">
+
+  <!-- Interactive Modules & User Distribution Chart -->
+  <section class="layout-split-grid">
+    <!-- Module Launcher Grid -->
+    <div class="glass-panel main-panel">
+      <div class="panel-header-row">
         <div>
-          <span>Workspace</span>
-          <h3>Module Launcher</h3>
+          <span class="panel-kicker">Workspace Center</span>
+          <h3 class="panel-title">LMS & CRM Module Launcher</h3>
         </div>
-        <div class="module-search">
-          <input type="text" placeholder="Search module" [(ngModel)]="moduleSearch" />
+        <div class="module-search-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" placeholder="Search operational modules..." [(ngModel)]="moduleSearch" />
         </div>
       </div>
-      <div class="module-grid">
-        <button
-          type="button"
-          class="module-card"
-          *ngFor="let m of filteredModules"
-          [class]="m.accent"
-          (click)="navigate(m.route)"
-        >
-          <b>{{ m.code }}</b>
-          <strong>{{ m.title }}</strong>
-          <small>{{ m.desc }}</small>
+      <div class="module-cards-grid">
+        <button type="button" class="module-card-v2" *ngFor="let m of filteredModules" [class]="m.accent"
+          (click)="navigate(m.route)">
+          <div class="module-accent-badge">
+            <span>{{ m.code }}</span>
+          </div>
+          <div class="module-info">
+            <h4 class="module-title">{{ m.title }}</h4>
+            <p class="module-desc">{{ m.desc }}</p>
+          </div>
+          <i class="bi bi-arrow-right-short launch-arrow"></i>
         </button>
       </div>
     </div>
-    <div class="panel health-panel">
-      <div class="panel-head">
+
+    <!-- Platform User Pulse Panel with Doughnut Chart -->
+    <div class="glass-panel sidebar-panel">
+      <div class="panel-header-row">
         <div>
-          <span>Health</span>
-          <h3>Platform Pulse</h3>
+          <span class="panel-kicker">User Ratios</span>
+          <h3 class="panel-title">Role Distribution</h3>
         </div>
-        <b class="status-chip">Online</b>
+        <span class="status-indicator-badge live">
+          <i class="bi bi-broadcast me-1"></i> Live
+        </span>
       </div>
-      <div class="pulse-score">
-        <div>
-          <strong>{{ extraStats.conversionRate }}%</strong>
-          <span>Conversion</span>
-        </div>
+
+      <!-- Chart Display Area -->
+      <div class="doughnut-chart-wrapper">
+        <canvas baseChart
+                [data]="userDistributionChartData"
+                [options]="chartOptions"
+                [type]="'doughnut'">
+        </canvas>
       </div>
-      <div class="progress-item">
-        <div>
-          <span>Lead Conversion</span>
-          <b>{{ extraStats.conversionRate }}%</b>
+
+      <!-- Ratio Statistics Progress Bars -->
+      <div class="ratios-progress-deck">
+        <div class="progress-ratio-row">
+          <div class="ratio-header">
+            <span>Lead Conversion Velocity</span>
+            <span class="text-teal font-bold">{{ extraStats.conversionRate }}%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill fill-teal" [style.width.%]="conversionWidth"></div>
+          </div>
         </div>
-        <div class="track">
-          <i class="fill-teal" [style.width.%]="conversionWidth"></i>
+
+        <div class="progress-ratio-row">
+          <div class="ratio-header">
+            <span>Student Proportion</span>
+            <span class="text-indigo font-bold">{{ studentRatio }}%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill fill-indigo" [style.width.%]="studentRatio"></div>
+          </div>
         </div>
-      </div>
-      <div class="progress-item">
-        <div>
-          <span>Student Ratio</span>
-          <b>{{ studentRatio }}%</b>
-        </div>
-        <div class="track">
-          <i class="fill-gold" [style.width.%]="studentRatio"></i>
-        </div>
-      </div>
-      <div class="progress-item">
-        <div>
-          <span>Mentor Ratio</span>
-          <b>{{ mentorRatio }}%</b>
-        </div>
-        <div class="track">
-          <i class="fill-blue" [style.width.%]="mentorRatio"></i>
+
+        <div class="progress-ratio-row">
+          <div class="ratio-header">
+            <span>Mentor Matrix Allocation</span>
+            <span class="text-orange font-bold">{{ mentorRatio }}%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill fill-orange" [style.width.%]="mentorRatio"></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
-  <section class="role-grid">
-    <div class="role-card">
-      <span>Total Users</span>
+
+  <!-- User Role Distribution Counter Deck -->
+  <section class="role-counter-grid">
+    <div class="role-count-card shadow-sm student-theme">
+      <div class="role-header">
+        <span class="role-label">Total Registered Users</span>
+        <i class="bi bi-people-fill icon-color"></i>
+      </div>
       <strong>{{ stats.totalUsers }}</strong>
+      <div class="role-bar-track">
+        <div class="role-bar-fill" style="width: 100%"></div>
+      </div>
     </div>
-    <div class="role-card">
-      <span>Students</span>
+
+    <div class="role-count-card shadow-sm student-theme">
+      <div class="role-header">
+        <span class="role-label">Active Students</span>
+        <i class="bi bi-mortarboard-fill icon-color"></i>
+      </div>
       <strong>{{ stats.totalStudents }}</strong>
+      <div class="role-bar-track">
+        <div class="role-bar-fill" [style.width.%]="studentRatio"></div>
+      </div>
     </div>
-    <div class="role-card">
-      <span>Trainers</span>
+
+    <div class="role-count-card shadow-sm trainer-theme">
+      <div class="role-header">
+        <span class="role-label">Platform Trainers</span>
+        <i class="bi bi-person-workspace icon-color"></i>
+      </div>
       <strong>{{ stats.trainers }}</strong>
+      <div class="role-bar-track">
+        <div class="role-bar-fill" style="width: 15%"></div>
+      </div>
     </div>
-    <div class="role-card">
-      <span>Admins</span>
+
+    <div class="role-count-card shadow-sm admin-theme">
+      <div class="role-header">
+        <span class="role-label">System Admins</span>
+        <i class="bi bi-shield-fill-check icon-color"></i>
+      </div>
       <strong>{{ stats.admins }}</strong>
+      <div class="role-bar-track">
+        <div class="role-bar-fill" style="width: 8%"></div>
+      </div>
     </div>
-    <div class="role-card">
-      <span>Mentors</span>
+
+    <div class="role-count-card shadow-sm mentor-theme">
+      <div class="role-header">
+        <span class="role-label">Assigned Mentors</span>
+        <i class="bi bi-hand-thumbs-up-fill icon-color"></i>
+      </div>
       <strong>{{ stats.mentors }}</strong>
+      <div class="role-bar-track">
+        <div class="role-bar-fill" [style.width.%]="mentorRatio"></div>
+      </div>
     </div>
   </section>
-  <section class="bottom-grid">
-    <div class="panel intelligence-panel">
-      <div class="panel-head">
+
+  <!-- Secondary Grid: System Telemetry & Sticky Task checklist -->
+  <section class="layout-split-grid secondary-grid">
+    <!-- System Telemetry Health Deck -->
+    <div class="glass-panel main-panel">
+      <div class="panel-header-row">
         <div>
-          <span>Insights</span>
-          <h3>Business Intelligence</h3>
+          <span class="panel-kicker">Telemetry Nodes</span>
+          <h3 class="panel-title">System Infrastructure Status</h3>
         </div>
-        <b class="status-chip">Updated</b>
+        <span class="status-indicator-badge live">
+          <i class="bi bi-heart-pulse-fill me-1"></i> Active
+        </span>
       </div>
-      <div class="insight-list">
+      <div class="system-health-grid">
+        <div class="health-node-card" *ngFor="let node of systemHealth">
+          <div class="node-icon-row">
+            <div class="node-icon-bg">
+              <i class="bi" [class]="node.icon"></i>
+            </div>
+            <div class="node-status-indicator">
+              <span class="pulse-dot-green"></span>
+              <span class="status-text text-success">{{ node.status }}</span>
+            </div>
+          </div>
+          <div class="node-info">
+            <h4>{{ node.name }}</h4>
+            <div class="node-latency">
+              <span>Ping Uptime:</span>
+              <strong>{{ node.latency }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Tasks Board checklist -->
+    <div class="glass-panel sidebar-panel">
+      <div class="panel-header-row">
         <div>
-          <span>Companies Registered</span>
+          <span class="panel-kicker">Todo Registry</span>
+          <h3 class="panel-title">Sticky Tasks Board</h3>
+        </div>
+        <span class="task-count-badge">
+          {{ tasks.length }} Tasks Pending
+        </span>
+      </div>
+
+      <!-- Add Task Input Form -->
+      <form class="task-input-form" (submit)="addTask(); $event.preventDefault()">
+        <input type="text" placeholder="Write new admin directive..." [(ngModel)]="newTaskText" name="newTask"
+          required />
+        <button type="submit" class="btn-add-task" [disabled]="!newTaskText.trim()">
+          <i class="bi bi-plus-lg"></i> Add
+        </button>
+      </form>
+
+      <!-- Task Checklist List -->
+      <div class="tasks-checklist-container">
+        <div class="task-item-row" *ngFor="let t of tasks" [class.completed]="t.completed">
+          <label class="task-checkbox-wrapper">
+            <input type="checkbox" [checked]="t.completed" (change)="toggleTask(t.id)" />
+            <span class="custom-checkbox">
+              <i class="bi bi-check-lg"></i>
+            </span>
+          </label>
+          <span class="task-label-text">{{ t.text }}</span>
+          <button type="button" class="btn-delete-task" (click)="deleteTask(t.id)" title="Dismiss directive">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
+
+        <div class="tasks-empty-state" *ngIf="tasks.length === 0">
+          <i class="bi bi-journal-check empty-icon"></i>
+          <p>No operational directives pending. All administrative tasks completed successfully!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Insights & Activity Logs Grid -->
+  <section class="layout-split-grid bottom-grid">
+    <!-- Business Intelligence Panel -->
+    <div class="glass-panel main-panel">
+      <div class="panel-header-row">
+        <div>
+          <span class="panel-kicker">BI Metrics</span>
+          <h3 class="panel-title">Business Intelligence Insights</h3>
+        </div>
+        <span class="status-indicator-badge info">
+          <i class="bi bi-lightning-charge-fill me-1"></i> Auto-Sync
+        </span>
+      </div>
+      <div class="bi-insights-deck">
+        <div class="bi-metric-row">
+          <div class="bi-label">
+            <i class="bi bi-building me-2 text-indigo"></i>
+            <span>Hiring Partners (Companies)</span>
+          </div>
           <strong>{{ extraStats.companies }}</strong>
         </div>
-        <div>
-          <span>Deleted Leads</span>
+        <div class="bi-metric-row">
+          <div class="bi-label">
+            <i class="bi bi-trash3-fill me-2 text-rose"></i>
+            <span>Lead Bin Records</span>
+          </div>
           <strong>{{ extraStats.deletedLeads }}</strong>
         </div>
-        <div>
-          <span>Conversion Rate</span>
+        <div class="bi-metric-row">
+          <div class="bi-label">
+            <i class="bi bi-arrow-repeat me-2 text-teal"></i>
+            <span>Enrollment Conversion</span>
+          </div>
           <strong>{{ extraStats.conversionRate }}%</strong>
         </div>
-        <div>
-          <span>Revenue Growth</span>
+        <div class="bi-metric-row">
+          <div class="bi-label">
+            <i class="bi bi-graph-up-arrow me-2 text-orange"></i>
+            <span>Revenue Cycle Growth</span>
+          </div>
           <strong>{{ revenueGrowth }}%</strong>
         </div>
       </div>
     </div>
-    <div class="panel activity-panel">
-      <div class="panel-head">
+
+    <!-- Recent Activity log timeline -->
+    <div class="glass-panel sidebar-panel">
+      <div class="panel-header-row">
         <div>
-          <span>Timeline</span>
-          <h3>Recent Activity</h3>
+          <span class="panel-kicker">Security & Logs</span>
+          <h3 class="panel-title">Recent Activity Timeline</h3>
         </div>
-        <b class="status-chip">Latest</b>
+        <span class="status-indicator-badge warning">
+          <i class="bi bi-shield-check me-1"></i> Secure
+        </span>
       </div>
-      <div class="activity-list">
-        <div class="activity-item" *ngFor="let a of recentActivities">
-          <i></i>
-          <div>
-            <strong>{{ a }}</strong>
-            <span>System updated recently</span>
+      <div class="timeline-activity-deck">
+        <div class="timeline-log-item" *ngFor="let act of recentActivities">
+          <div class="timeline-connector">
+            <div class="timeline-node-dot"></div>
+          </div>
+          <div class="timeline-log-content">
+            <strong>{{ act }}</strong>
+            <span>System Uptime Updated &bull; Just now</span>
           </div>
         </div>
       </div>

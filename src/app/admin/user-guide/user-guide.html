@@ -1,0 +1,219 @@
+<div class="guide-container">
+  <!-- Glowing meshes -->
+  <div class="bg-radial-mesh-1"></div>
+  <div class="bg-radial-mesh-2"></div>
+  <div class="bg-grid-overlay"></div>
+
+  <!-- Header Banner -->
+  <header class="control-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to Operations</span>
+      </button>
+      <h2>Platform Operations & System Manual</h2>
+      <p class="subtitle">Reference manual detailing every platform capability, system workflow, role authorization, and operational tool</p>
+    </div>
+
+    <!-- Search Tool -->
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <i class="bi bi-search search-icon"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          placeholder="Search components (Monaco, LMS, Coupon)..." 
+          class="search-input"
+        />
+        <i class="bi bi-x-circle clear-icon" *ngIf="searchQuery" (click)="searchQuery = ''"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Two-Column Layout -->
+  <div class="guide-layout">
+    <!-- Left Navigation Index Sidebar -->
+    <aside class="sidebar-index">
+      <div class="sidebar-header">
+        <i class="bi bi-journal-bookmark-fill icon-purple"></i>
+        <span>System Index</span>
+      </div>
+
+      <nav class="category-menu">
+        <button 
+          *ngFor="let cat of categories" 
+          type="button" 
+          class="category-btn"
+          [class.active]="activeCategory === cat.key && !searchQuery"
+          (click)="selectCategory(cat.key); searchQuery = ''"
+        >
+          <span class="cat-icon-wrap">
+            <i [class]="cat.icon"></i>
+          </span>
+          <div class="cat-text-wrap">
+            <strong>{{ cat.title }}</strong>
+            <small>{{ cat.items.length }} operational guides</small>
+          </div>
+          <span class="cat-count-badge">{{ cat.items.length }}</span>
+          <i class="bi bi-chevron-right chevron"></i>
+        </button>
+      </nav>
+
+      <!-- Security Oath Warning -->
+      <div class="advisory-card">
+        <div class="advisory-title">
+          <i class="bi bi-shield-fill-exclamation"></i>
+          <span>Operations Oath</span>
+        </div>
+        <p>All administrative actions are logged and audited in real-time. Unauthorized overrides of subscription grants, pricing models, or sandbox environments violate compliance standards.</p>
+      </div>
+    </aside>
+
+    <!-- Right Content Panel -->
+    <main class="content-panel">
+      
+      <!-- Interactive Platform Architecture Diagram -->
+      <div class="architecture-diagram-container" *ngIf="activeCategory === 'OVERVIEW' && !searchQuery">
+        <div class="diagram-header">
+          <i class="bi bi-diagram-3-fill text-gradient"></i>
+          <h3>VidhuraTech Core Architecture Map</h3>
+        </div>
+        <p class="diagram-subtitle">Click and hover nodes to understand request lifecycles, execution guards, and asynchronous database pipelines.</p>
+        
+        <div class="diagram-grid">
+          <!-- Portals Column -->
+          <div class="diagram-node student-node">
+            <div class="node-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            <div class="node-info">
+              <h4>Student Portal</h4>
+              <span class="node-badge">STUDENT</span>
+            </div>
+            <p>Monaco Compiler Sandbox, video player milestones, and ATS resumes builder.</p>
+            <div class="arrow-indicator"></div>
+          </div>
+          
+          <div class="diagram-node trainer-node">
+            <div class="node-icon"><i class="bi bi-person-workspace"></i></div>
+            <div class="node-info">
+              <h4>Trainer Panel</h4>
+              <span class="node-badge">TRAINER</span>
+            </div>
+            <p>Syllabus managers, test creators, proctor loggers, and pseudocode labs.</p>
+            <div class="arrow-indicator"></div>
+          </div>
+
+          <div class="diagram-node admin-node">
+            <div class="node-icon"><i class="bi bi-gear-fill"></i></div>
+            <div class="node-info">
+              <h4>Admin Actions</h4>
+              <span class="node-badge">ADMIN</span>
+            </div>
+            <p>Plan grants registers, coupon campaign dispatchers, and diagnostics.</p>
+            <div class="arrow-indicator"></div>
+          </div>
+
+          <!-- Guards Center Node -->
+          <div class="diagram-node guard-node">
+            <div class="node-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <div class="node-info">
+              <h4>Route Security Gate</h4>
+              <span class="node-badge guard-badge">GUARDS</span>
+            </div>
+            <p>Executes JWT validations, role authentication, and flags telemetry alerts.</p>
+            <div class="pulse-ring"></div>
+            <div class="arrow-indicator-split"></div>
+          </div>
+
+          <!-- Sandbox / Backend Engines -->
+          <div class="diagram-node engine-node compiler-engine">
+            <div class="node-icon"><i class="bi bi-code-slash"></i></div>
+            <div class="node-info">
+              <h4>Compiler Sandbox</h4>
+              <span class="node-badge engine-badge">EXECUTION</span>
+            </div>
+            <p>Compiles student codebase in Docker containers, returning error sheets.</p>
+          </div>
+
+          <div class="diagram-node engine-node parser-engine">
+            <div class="node-icon"><i class="bi bi-file-earmark-person-fill"></i></div>
+            <div class="node-info">
+              <h4>ATS Parser Engine</h4>
+              <span class="node-badge engine-badge">PARSING</span>
+            </div>
+            <p>Strips contact indicators, scans skills tags, and generates ready indices.</p>
+          </div>
+
+          <div class="diagram-node engine-node billing-engine">
+            <div class="node-icon"><i class="bi bi-receipt-cutoff"></i></div>
+            <div class="node-info">
+              <h4>Billing Ledger Hub</h4>
+              <span class="node-badge engine-badge">BILLING</span>
+            </div>
+            <p>Processes invoice receipts, overrides subscription grants, and validates coupon codes.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search State Header -->
+      <div class="search-state-header" *ngIf="searchQuery">
+        <i class="bi bi-filter-square-fill icon-blue"></i>
+        <span>Filtered results for "{{ searchQuery }}" (Found matching blocks across categories)</span>
+      </div>
+
+      <!-- No Results State -->
+      <div class="empty-guide-state" *ngIf="filteredCategories.length === 0">
+        <i class="bi bi-folder-x"></i>
+        <h4>No matching guide contents found</h4>
+        <p>Try searching for core systems like "Monaco", "LMS player", "coupon", "ATS parser", or "Super Admin".</p>
+        <button class="clear-btn" (click)="searchQuery = ''">Reset Search</button>
+      </div>
+
+      <!-- Accordion Grid -->
+      <div class="categories-wrap" *ngIf="filteredCategories.length > 0">
+        <div 
+          class="category-block" 
+          *ngFor="let cat of filteredCategories"
+          [class.hidden-cat]="activeCategory !== cat.key && !searchQuery"
+        >
+          <div class="category-block-header" *ngIf="searchQuery">
+            <i [class]="cat.icon"></i>
+            <span>{{ cat.title }}</span>
+          </div>
+
+          <div class="items-list">
+            <article 
+              class="accordion-card" 
+              *ngFor="let item of cat.items"
+              [class.open]="isExpanded(item.id)"
+            >
+              <!-- Card Header Bar -->
+              <header class="card-header-bar" (click)="toggleAccordion(item.id)">
+                <span class="item-icon-wrap">
+                  <i [class]="item.icon"></i>
+                </span>
+                <div class="item-header-copy">
+                  <h3>{{ item.title }}</h3>
+                  <p>{{ item.description }}</p>
+                </div>
+                <button type="button" class="toggle-icon-btn">
+                  <i class="bi bi-chevron-down caret-icon"></i>
+                </button>
+              </header>
+
+              <!-- Card Details Expansion Panel -->
+              <div class="card-details-panel" *ngIf="isExpanded(item.id)">
+                <ul class="details-list">
+                  <li *ngFor="let detail of item.details">
+                    <i class="bi bi-arrow-right-short bullet-marker"></i>
+                    <span [innerHTML]="detail"></span>
+                  </li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+

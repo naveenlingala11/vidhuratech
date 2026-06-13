@@ -1,3 +1,4 @@
+// Verified Placements Component
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
@@ -7,6 +8,7 @@ import {
 import { Router } from '@angular/router';
 import { ModalService } from '../../services/modal';
 import { Job, JobService } from '../../services/job';
+import { AuthService } from '../../features/auth/services/auth.service';
 @Component({
   selector: 'app-placements',
   standalone: true,
@@ -62,8 +64,9 @@ export class Placements implements OnInit {
     private jobService: JobService,
     private cd: ChangeDetectorRef,
     private modalService: ModalService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private authService: AuthService
+  ) { }
   ngOnInit(): void {
     this.loadPlacementData();
   }
@@ -72,7 +75,6 @@ export class Placements implements OnInit {
     this.jobService.getJobs(0).subscribe({
       next: (res) => {
         const jobs = res.content || [];
-        this.recentPlacements = jobs.slice(0, 6);
         this.placedStudents = jobs.length * 12;
         this.interviewsScheduled = jobs.length * 40;
         this.hiringCompanies = new Set(
@@ -81,13 +83,43 @@ export class Placements implements OnInit {
         this.companies = [...new Set(
           jobs.map(j => j.companyName)
         )]
-        .filter(Boolean)
-        .map(name => ({ name }));
+          .filter(Boolean)
+          .map(name => ({ name }));
+
+        if (this.authService.isLoggedIn()) {
+          this.recentPlacements = jobs.slice(0, 6);
+        } else {
+          const distinctJobs: Job[] = [];
+          const seenCompanies = new Set<string>();
+          for (const job of jobs) {
+            const company = job.companyName || '';
+            if (!seenCompanies.has(company)) {
+              seenCompanies.add(company);
+              distinctJobs.push(job);
+            }
+            if (distinctJobs.length === 3) {
+              break;
+            }
+          }
+          if (distinctJobs.length < 3 && jobs.length > 0) {
+            for (const job of jobs) {
+              if (!distinctJobs.includes(job)) {
+                distinctJobs.push(job);
+              }
+              if (distinctJobs.length === 3) {
+                break;
+              }
+            }
+          }
+          this.recentPlacements = distinctJobs;
+        }
+
         this.loading = false;
         this.cd.detectChanges();
       },
       error: () => {
         this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
@@ -96,8 +128,18 @@ export class Placements implements OnInit {
       course: 'Placement Assistance Program'
     });
   }
+  goToJobsHome() {
+    this.handleJobsNavigation();
+  }
   goToJobs() {
-    this.router.navigate(['/jobs']);
+    this.handleJobsNavigation();
+  }
+  private handleJobsNavigation() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/jobs']);
+    } else {
+      this.router.navigate(['/jobs-home']);
+    }
   }
   getCompanyLogo(company: string | undefined): string {
     if (!company) {

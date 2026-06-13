@@ -1,147 +1,295 @@
-<div class="analytics-page">
-    <!-- LOADING -->
+<div class="analytics-page" id="analyticsDashboard">
+    <!-- LOADING OVERLAY -->
     <div class="loading-overlay" *ngIf="loading">
         <div class="spinner"></div>
-        <p>Refreshing Analytics...</p>
+        <p>Refreshing Intelligence Console...</p>
     </div>
-    <!-- HEADER -->
-    <div class="analytics-header">
-        <div>
-            <h1>Revenue Intelligence Dashboard</h1>
-            <p>Real-time financial analytics & business insights</p>
-            <small>
-                Last Updated:
-                {{lastUpdated | date:'dd MMM yyyy hh:mm:ss a'}}
-            </small>
+
+    <!-- PAGE HEADER -->
+    <div class="analytics-header-section">
+        <div class="analytics-title-area">
+            <div class="analytics-icon-badge">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div>
+                <h2>Revenue Intelligence Console</h2>
+                <p class="sub">Real-time financial analytics, collection ratios, and business performance metrics.</p>
+                <small class="timestamp-badge">
+                    <i class="bi bi-clock-history"></i> Last Synchronized: {{ lastUpdated | date:'dd MMM yyyy hh:mm:ss a' }}
+                </small>
+            </div>
         </div>
-        <button class="refresh-btn" [class.refreshing]="loading" (click)="loadAnalytics()">
-            Refresh Data
+        <button class="refresh-action-btn" [class.refreshing]="loading" (click)="loadAnalytics()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Metrics
         </button>
     </div>
-    <div class="export-toolbar">
-        <button (click)="exportDashboardPdf()">
-            Export PDF
+
+    <!-- ACTION TOOLBAR -->
+    <div class="export-toolbar-deck">
+        <button class="toolbar-btn pdf-btn" (click)="exportDashboardPdf()">
+            <i class="bi bi-file-earmark-pdf"></i> Export PDF Report
         </button>
-        <button (click)="exportRevenueExcel()">
-            Export Excel
+        <button class="toolbar-btn excel-btn" (click)="exportRevenueExcel()">
+            <i class="bi bi-file-earmark-excel"></i> Export XLSX Sheets
         </button>
-        <button (click)="exportInvoicesCsv()">
-            Export CSV
+        <button class="toolbar-btn csv-btn" (click)="exportInvoicesCsv()">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV Roster
         </button>
-        <button (click)="printDashboard()">
-            Print
+        <button class="toolbar-btn print-btn" (click)="printDashboard()">
+            <i class="bi bi-printer"></i> Print Summary
         </button>
     </div>
-    <!-- MAIN KPI CARDS -->
-    <div class="analytics-grid">
-        <div class="metric-card total">
-            <span>Total Revenue</span>
-            <h2>₹{{summary.totalRevenue || 0}}</h2>
-            <small>{{summary.totalInvoices || 0}} Invoices</small>
+
+    <!-- MAIN KPI METRIC CARDS -->
+    <div class="analytics-metric-grid">
+        <!-- TOTAL REVENUE -->
+        <div class="metric-card-v2 total">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="card-icon-wrapper">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+                <span>Total Booked Revenue</span>
+                <h2>₹{{ summary.totalRevenue || 0 | number:'1.0-0' }}</h2>
+                <div class="card-footer-meta">
+                    <i class="bi bi-receipt"></i>
+                    <span>{{ summary.totalInvoices || 0 }} Invoices issued</span>
+                </div>
+            </div>
         </div>
-        <div class="metric-card paid">
-            <span>Paid Revenue</span>
-            <h2>₹{{summary.paidRevenue || 0}}</h2>
-            <small>{{collectionRate | number:'1.0-1'}}% Collected</small>
+
+        <!-- PAID REVENUE -->
+        <div class="metric-card-v2 paid">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="card-icon-wrapper">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <span>Paid & Cleared</span>
+                <h2>₹{{ summary.paidRevenue || 0 | number:'1.0-0' }}</h2>
+                <div class="card-footer-meta">
+                    <div class="progress-bar-track">
+                        <div class="progress-fill" [style.width.%]="collectionRate"></div>
+                    </div>
+                    <span>{{ collectionRate | number:'1.0-1' }}% Collected</span>
+                </div>
+            </div>
         </div>
-        <div class="metric-card pending">
-            <span>Pending Revenue</span>
-            <h2>₹{{summary.pendingRevenue || 0}}</h2>
-            <small>{{pendingRate | number:'1.0-1'}}% Outstanding</small>
+
+        <!-- PENDING REVENUE -->
+        <div class="metric-card-v2 pending">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="card-icon-wrapper">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <span>Pending Collections</span>
+                <h2>₹{{ summary.pendingRevenue || 0 | number:'1.0-0' }}</h2>
+                <div class="card-footer-meta">
+                    <div class="progress-bar-track warning">
+                        <div class="progress-fill warning" [style.width.%]="pendingRate"></div>
+                    </div>
+                    <span>{{ pendingRate | number:'1.0-1' }}% Outstanding</span>
+                </div>
+            </div>
         </div>
-        <div class="metric-card partial">
-            <span>Average Invoice</span>
-            <h2>₹{{averageInvoiceValue | number:'1.0-0'}}</h2>
-            <small>Per Invoice Avg</small>
+
+        <!-- AVERAGE INVOICE VALUE -->
+        <div class="metric-card-v2 average">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="card-icon-wrapper">
+                    <i class="bi bi-pie-chart-fill"></i>
+                </div>
+                <span>Average Invoice Ticket</span>
+                <h2>₹{{ averageInvoiceValue || 0 | number:'1.0-0' }}</h2>
+                <div class="card-footer-meta">
+                    <i class="bi bi-arrow-up-right-circle"></i>
+                    <span>Per candidate average</span>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- MINI KPI STRIP -->
-    <div class="mini-kpi-grid">
-        <div class="mini-kpi-card">
-            <span>Collection Rate</span>
-            <h4>{{collectionRate | number:'1.0-1'}}%</h4>
+
+    <!-- METRIC STATS RATIO STRIP -->
+    <div class="kpi-strip-grid">
+        <div class="strip-kpi-card">
+            <div class="card-header-icon border-emerald">
+                <i class="bi bi-percent text-emerald"></i>
+            </div>
+            <div class="strip-kpi-meta">
+                <span>Collection Rate</span>
+                <h4>{{ collectionRate | number:'1.0-1' }}%</h4>
+            </div>
         </div>
-        <div class="mini-kpi-card">
-            <span>Pending Ratio</span>
-            <h4>{{pendingRate | number:'1.0-1'}}%</h4>
+        
+        <div class="strip-kpi-card">
+            <div class="card-header-icon border-amber">
+                <i class="bi bi-clock-history text-amber"></i>
+            </div>
+            <div class="strip-kpi-meta">
+                <span>Outstanding Ratio</span>
+                <h4>{{ pendingRate | number:'1.0-1' }}%</h4>
+            </div>
         </div>
-        <div class="mini-kpi-card">
-            <span>Total Courses Sold</span>
-            <h4>{{courseBreakdown.length}}</h4>
+
+        <div class="strip-kpi-card">
+            <div class="card-header-icon border-indigo">
+                <i class="bi bi-book-half text-indigo"></i>
+            </div>
+            <div class="strip-kpi-meta">
+                <span>Active Course Portfolios</span>
+                <h4>{{ courseBreakdown.length }}</h4>
+            </div>
         </div>
-        <div class="mini-kpi-card">
-            <span>Payment Methods Used</span>
-            <h4>{{paymentMethods.length}}</h4>
+
+        <div class="strip-kpi-card">
+            <div class="card-header-icon border-violet">
+                <i class="bi bi-wallet2 text-violet"></i>
+            </div>
+            <div class="strip-kpi-meta">
+                <span>Payment Gateways Active</span>
+                <h4>{{ paymentMethods.length }}</h4>
+            </div>
         </div>
     </div>
-    <!-- CHARTS ROW 1 -->
-    <div class="chart-grid">
-        <div class="analytics-card chart-card">
-            <h3>Monthly Revenue Trend</h3>
-            <div class="chart-wrapper">
+
+    <!-- VISUAL CHARTS GRID ROW 1 -->
+    <div class="dashboard-chart-grid">
+        <!-- MONTHLY TREND -->
+        <div class="premium-chart-card">
+            <div class="chart-header">
+                <div class="chart-header-title">
+                    <i class="bi bi-calendar3 header-icon text-indigo"></i>
+                    <h3>Monthly Cashflow Trends</h3>
+                </div>
+                <span class="badge-tint indigo"><i class="bi bi-bar-chart"></i> Bar Chart</span>
+            </div>
+            <div class="chart-box-wrapper">
                 <canvas baseChart [data]="monthlyRevenueChartData" [options]="chartOptions" [type]="'bar'">
                 </canvas>
             </div>
         </div>
-        <div class="analytics-card chart-card">
-            <h3>Payment Method Distribution</h3>
-            <div class="chart-wrapper">
+
+        <!-- PAYMENT METHODS -->
+        <div class="premium-chart-card">
+            <div class="chart-header">
+                <div class="chart-header-title">
+                    <i class="bi bi-wallet2 header-icon text-violet"></i>
+                    <h3>Payment Mode Distribution</h3>
+                </div>
+                <span class="badge-tint violet"><i class="bi bi-pie-chart"></i> Doughnut</span>
+            </div>
+            <div class="chart-box-wrapper">
                 <canvas baseChart [data]="paymentMethodChartData" [options]="chartOptions" [type]="'doughnut'">
                 </canvas>
             </div>
         </div>
     </div>
-    <!-- CHARTS ROW 2 -->
-    <div class="chart-grid">
-        <div class="analytics-card chart-card">
-            <h3>Course Revenue Share</h3>
-            <div class="chart-wrapper">
+
+    <!-- VISUAL CHARTS GRID ROW 2 -->
+    <div class="dashboard-chart-grid">
+        <!-- COURSE SHARE -->
+        <div class="premium-chart-card">
+            <div class="chart-header">
+                <div class="chart-header-title">
+                    <i class="bi bi-award header-icon text-amber"></i>
+                    <h3>Course Enrollment Share</h3>
+                </div>
+                <span class="badge-tint amber"><i class="bi bi-pie-chart-fill"></i> Pie Chart</span>
+            </div>
+            <div class="chart-box-wrapper">
                 <canvas baseChart [data]="courseRevenueChartData" [options]="chartOptions" [type]="'pie'">
                 </canvas>
             </div>
         </div>
-        <div class="analytics-card">
-            <h3>Top Highest Invoices</h3>
-            <div class="trend-list">
-                <div class="trend-item" *ngFor="let item of topInvoices">
-                    <div>
-                        <strong>{{item.name}}</strong>
-                        <small style="display:block;color:#64748b">
-                            {{item.course}}
-                        </small>
+
+        <!-- TOP HIGHEST INVOICES -->
+        <div class="premium-chart-card">
+            <div class="chart-header">
+                <div class="chart-header-title">
+                    <i class="bi bi-trophy header-icon text-rose"></i>
+                    <h3>Top Realized Invoices</h3>
+                </div>
+                <span class="badge-tint rose"><i class="bi bi-star"></i> High Value</span>
+            </div>
+            <div class="trend-list-deck">
+                <div class="trend-item-row" *ngFor="let item of topInvoices">
+                    <div class="trend-item-profile">
+                        <span class="trend-avatar-badge bg-rose-light text-rose"><i class="bi bi-person-fill"></i></span>
+                        <div class="trend-meta">
+                            <strong>{{ item.name }}</strong>
+                            <small>{{ item.course }}</small>
+                        </div>
                     </div>
-                    <strong>₹{{item.amount}}</strong>
+                    <div class="trend-value text-rose">
+                        <strong>₹{{ item.amount | number:'1.0-0' }}</strong>
+                    </div>
+                </div>
+                <div class="trend-empty" *ngIf="!topInvoices.length">
+                    <i class="bi bi-receipt"></i>
+                    <p>No transactions registered for auditing.</p>
                 </div>
             </div>
         </div>
     </div>
-    <!-- BOTTOM DETAILED INSIGHT PANELS -->
-    <div class="chart-grid">
-        <div class="analytics-card">
-            <h3>Top Performing Courses</h3>
-            <div class="trend-list">
-                <div class="trend-item" *ngFor="let item of courseBreakdown">
-                    <div>
-                        <strong>{{item.course}}</strong>
-                        <small style="display:block;color:#64748b">
-                            {{item.count}} Enrollments
-                        </small>
+
+    <!-- BOTTOM DETAILED PERFORMANCE INSIGHTS -->
+    <div class="dashboard-chart-grid">
+        <!-- COURSE PERFORMANCE -->
+        <div class="premium-chart-card">
+            <div class="chart-header">
+                <div class="chart-header-title">
+                    <i class="bi bi-fire header-icon text-orange"></i>
+                    <h3>Top Performing Courses</h3>
+                </div>
+                <span class="badge-tint orange"><i class="bi bi-sort-down"></i> Ranking</span>
+            </div>
+            <div class="trend-list-deck">
+                <div class="trend-item-row" *ngFor="let item of courseBreakdown">
+                    <div class="trend-item-profile">
+                        <span class="trend-avatar-badge bg-orange-light text-orange"><i class="bi bi-book-half"></i></span>
+                        <div class="trend-meta">
+                            <strong>{{ item.course }}</strong>
+                            <small>{{ item.count }} Active Enrollments</small>
+                        </div>
                     </div>
-                    <strong>₹{{item.revenue}}</strong>
+                    <div class="trend-value text-orange">
+                        <strong>₹{{ item.revenue | number:'1.0-0' }}</strong>
+                    </div>
+                </div>
+                <div class="trend-empty" *ngIf="!courseBreakdown.length">
+                    <i class="bi bi-book"></i>
+                    <p>No enrollment revenue distribution recorded.</p>
                 </div>
             </div>
         </div>
-        <div class="analytics-card">
-            <h3>Payment Method Stats</h3>
-            <div class="trend-list">
-                <div class="trend-item" *ngFor="let item of paymentMethods">
-                    <div>
-                        <strong>{{item.paymentMethod}}</strong>
-                        <small style="display:block;color:#64748b">
-                            {{item.count}} Transactions
-                        </small>
+
+        <!-- PAYMENT METHOD STATS -->
+        <div class="premium-chart-card">
+            <div class="chart-header">
+                <div class="chart-header-title">
+                    <i class="bi bi-wallet-fill header-icon text-emerald"></i>
+                    <h3>Gateway Revenue Statistics</h3>
+                </div>
+                <span class="badge-tint emerald"><i class="bi bi-wallet2"></i> Gateway</span>
+            </div>
+            <div class="trend-list-deck">
+                <div class="trend-item-row" *ngFor="let item of paymentMethods">
+                    <div class="trend-item-profile">
+                        <span class="trend-avatar-badge bg-emerald-light text-emerald"><i class="bi bi-credit-card-2-front"></i></span>
+                        <div class="trend-meta">
+                            <strong>{{ item.paymentMethod }}</strong>
+                            <small>{{ item.count }} Cleared Transactions</small>
+                        </div>
                     </div>
-                    <strong>₹{{item.revenue}}</strong>
+                    <div class="trend-value text-emerald">
+                        <strong>₹{{ item.revenue | number:'1.0-0' }}</strong>
+                    </div>
+                </div>
+                <div class="trend-empty" *ngIf="!paymentMethods.length">
+                    <i class="bi bi-credit-card"></i>
+                    <p>No gateway transactions recorded.</p>
                 </div>
             </div>
         </div>

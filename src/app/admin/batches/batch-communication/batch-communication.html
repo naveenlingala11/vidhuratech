@@ -1,52 +1,228 @@
 <div class="bc-page">
-  <div class="bc-card">
-    <h2>Batch Communication Manager</h2>
-    <p class="sub">Manage Zoom + WhatsApp links for payment success and reminders.</p>
-    <div class="row">
-      <label>Batch</label>
-      <select [(ngModel)]="selectedBatchId" (change)="onBatchChange()">
-        <option [ngValue]="null">Select batch</option>
-        <option *ngFor="let b of batches" [ngValue]="b.id">{{ b.name }}</option>
-      </select>
-    </div>
-    <div class="grid">
-      <div class="row">
-        <label>WhatsApp Group Link</label>
-        <input [(ngModel)]="form.whatsappGroupLink" placeholder="https://chat.whatsapp.com/..." />
+  <!-- PAGE HEADER -->
+  <div class="bc-header-section">
+    <div class="bc-title-area">
+      <div class="bc-icon-badge">
+        <i class="bi bi-chat-left-text-fill"></i>
       </div>
-      <div class="row">
-        <label>Zoom Join Link *</label>
-        <input [(ngModel)]="form.zoomJoinLink" placeholder="https://us06web.zoom.us/j/..." />
-      </div>
-      <div class="row">
-        <label>Zoom Meeting ID *</label>
-        <input [(ngModel)]="form.zoomMeetingId" placeholder="871 1437 5458" />
-      </div>
-      <div class="row">
-        <label>Zoom Passcode</label>
-        <input [(ngModel)]="form.zoomPasscode" placeholder="278110" />
-      </div>
-      <div class="row">
-        <label>Zoom Time</label>
-        <input [(ngModel)]="form.zoomTime" placeholder="07:30 PM IST" />
-      </div>
-      <div class="row">
-        <label>Zoom Schedule</label>
-        <input [(ngModel)]="form.zoomSchedule" placeholder="Every day till Jun 15, 2026" />
-      </div>
-      <div class="row full">
-        <label>Zoom Calendar Link (.ics)</label>
-        <input [(ngModel)]="form.zoomCalendarLink" placeholder="https://us06web.zoom.us/meeting/.../ics?..." />
+      <div>
+        <h2>Batch Communication Manager</h2>
+        <p class="sub">Deliver instant live links and WhatsApp groups to student portals upon enrollment.</p>
       </div>
     </div>
-    <div class="actions">
-      <button class="soft" (click)="applySampleInvite()">Apply Sample Invite</button>
-      <button class="primary" [disabled]="saving || loading" (click)="save()">
-        {{ saving ? 'Saving...' : 'Save Communication' }}
+    <div class="bc-header-actions">
+      <button class="soft-btn" (click)="applySampleInvite()">
+        <i class="bi bi-lightning-charge"></i> Apply Sample Invite
       </button>
     </div>
-    <div *ngIf="message" class="msg" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
-      {{ message }}
+  </div>
+
+  <div class="bc-workspace-grid">
+    
+    <!-- LEFT PANEL: BATCH & WHATSAPP & PREVIEW -->
+    <div class="bc-panel-column">
+      
+      <!-- BATCH PICKER CARD -->
+      <div class="bc-glass-card">
+        <div class="card-head">
+          <i class="bi bi-layers-half text-primary"></i>
+          <h3>Select Target Cohort</h3>
+        </div>
+        <p class="card-desc">Choose which batch you want to configure or update links for.</p>
+        
+        <div class="row-control">
+          <label for="batchSelect">Active Batch</label>
+          <div class="select-wrapper">
+            <i class="bi bi-people select-icon"></i>
+            <select id="batchSelect" [(ngModel)]="selectedBatchId" (change)="onBatchChange()">
+              <option [ngValue]="null">Select an active batch...</option>
+              <option *ngFor="let b of batches" [ngValue]="b.id">{{ b.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- WHATSAPP INTEGRATION CARD -->
+      <div class="bc-glass-card whatsapp-theme">
+        <div class="card-head">
+          <i class="bi bi-whatsapp text-whatsapp"></i>
+          <h3>WhatsApp Group Integration</h3>
+        </div>
+        <p class="card-desc">Auto-display this chat invite on the student's homepage for immediate peer interaction.</p>
+        
+        <div class="row-control">
+          <label>WhatsApp Invite URL</label>
+          <div class="input-icon-group">
+            <span class="addon-icon"><i class="bi bi-link-45deg"></i></span>
+            <input [(ngModel)]="form.whatsappGroupLink" placeholder="https://chat.whatsapp.com/invite/..." />
+          </div>
+        </div>
+
+        <div class="link-validator" *ngIf="form.whatsappGroupLink">
+          <span class="status-indicator active"></span>
+          <span class="status-text">Link active and ready for student dashboard</span>
+        </div>
+      </div>
+
+      <!-- LIVE STUDENT DASHBOARD PREVIEW -->
+      <div class="bc-glass-card preview-theme">
+        <div class="card-head">
+          <i class="bi bi-eye text-indigo"></i>
+          <h3>Live Student Hub Preview</h3>
+        </div>
+        <p class="card-desc">Here is how these details appear in the student's classroom panel.</p>
+        
+        <div class="student-mock-container" [class.empty-preview]="!selectedBatchId">
+          <div *ngIf="!selectedBatchId" class="preview-empty-state">
+            <i class="bi bi-cursor-fill"></i>
+            <p>Select a batch above to load a live visualization preview.</p>
+          </div>
+
+          <div *ngIf="selectedBatchId" class="mock-dashboard-inner">
+            <div class="mock-header">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+              <span class="mock-title">Cohort: {{ selectedBatchName || 'Default Batch' }}</span>
+            </div>
+            
+            <div class="mock-content">
+              <div class="mock-welcome">
+                <h4>Welcome back, Learner! 👋</h4>
+                <p>Access your live classroom portal links below.</p>
+              </div>
+
+              <!-- Zoom Announcement Box -->
+              <div class="mock-alert-box zoom-mock-alert">
+                <div class="alert-icon-side">
+                  <i class="bi bi-camera-video-fill"></i>
+                </div>
+                <div class="alert-body-side">
+                  <span class="live-pill">LIVE SESSION</span>
+                  <h5>Daily Live Training Session</h5>
+                  <p class="alert-timing">
+                    <i class="bi bi-clock"></i> {{ form.zoomTime || '07:30 PM IST' }} &nbsp;•&nbsp; 
+                    <i class="bi bi-calendar2-check"></i> {{ form.zoomSchedule || 'Daily Program' }}
+                  </p>
+                  <div class="mock-actions">
+                    <a [href]="form.zoomJoinLink" target="_blank" class="mock-btn mock-btn-zoom" [class.disabled]="!form.zoomJoinLink">
+                      <i class="bi bi-box-arrow-up-right"></i> Launch Zoom Room
+                    </a>
+                    <span class="mock-credentials">
+                      ID: <strong>{{ form.zoomMeetingId || 'None' }}</strong> &nbsp;|&nbsp; Pass: <strong>{{ form.zoomPasscode || 'None' }}</strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Announcement Box -->
+              <div class="mock-alert-box whatsapp-mock-alert" *ngIf="form.whatsappGroupLink">
+                <div class="alert-icon-side">
+                  <i class="bi bi-whatsapp"></i>
+                </div>
+                <div class="alert-body-side">
+                  <h5>Official Peer discussion Group</h5>
+                  <p class="alert-desc">Interact with peers, coordinate study groups, and connect with mentors.</p>
+                  <a [href]="form.whatsappGroupLink" target="_blank" class="mock-btn mock-btn-wa">
+                    <i class="bi bi-chat-dots-fill"></i> Join Cohort Group
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: ZOOM MEETING SETTINGS -->
+    <div class="bc-panel-column">
+      <div class="bc-glass-card zoom-theme">
+        <div class="card-head justify-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-camera-video-fill text-zoom"></i>
+            <h3>Zoom Meeting Workspace</h3>
+          </div>
+          <button class="copy-invite-btn" (click)="copyZoomInvite()" *ngIf="selectedBatchId" title="Copy Full Zoom Invitation Text">
+            <i class="bi bi-clipboard"></i> Copy Invite
+          </button>
+        </div>
+        <p class="card-desc">Set credentials and schedule details for this batch's live webinar sessions.</p>
+
+        <div class="zoom-form-grid">
+          <!-- JOIN LINK -->
+          <div class="row-control full-col">
+            <label>Zoom Invitation / Join URL <span class="required">*</span></label>
+            <div class="input-icon-group">
+              <span class="addon-icon"><i class="bi bi-link-45deg text-zoom"></i></span>
+              <input [(ngModel)]="form.zoomJoinLink" placeholder="https://us06web.zoom.us/j/meetingId?pwd=..." />
+            </div>
+            <span class="input-help">The direct link learners click to join the webinar room.</span>
+          </div>
+
+          <!-- MEETING ID -->
+          <div class="row-control">
+            <label>Meeting ID <span class="required">*</span></label>
+            <div class="input-icon-group">
+              <span class="addon-icon"><i class="bi bi-hash text-zoom"></i></span>
+              <input [(ngModel)]="form.zoomMeetingId" placeholder="871 1437 5458" />
+            </div>
+          </div>
+
+          <!-- PASSCODE -->
+          <div class="row-control">
+            <label>Passcode</label>
+            <div class="input-icon-group">
+              <span class="addon-icon"><i class="bi bi-key-fill text-zoom"></i></span>
+              <input [(ngModel)]="form.zoomPasscode" placeholder="278110" />
+            </div>
+          </div>
+
+          <!-- TIME -->
+          <div class="row-control">
+            <label>Time / Slot Label</label>
+            <div class="input-icon-group">
+              <span class="addon-icon"><i class="bi bi-clock-fill"></i></span>
+              <input [(ngModel)]="form.zoomTime" placeholder="07:30 PM IST" />
+            </div>
+          </div>
+
+          <!-- SCHEDULE -->
+          <div class="row-control">
+            <label>Schedule / Recurrence</label>
+            <div class="input-icon-group">
+              <span class="addon-icon"><i class="bi bi-calendar-range-fill"></i></span>
+              <input [(ngModel)]="form.zoomSchedule" placeholder="Every day till Jun 15, 2026" />
+            </div>
+          </div>
+
+          <!-- CALENDAR LINK -->
+          <div class="row-control full-col">
+            <label>Zoom Calendar Event Link (.ics)</label>
+            <div class="input-icon-group">
+              <span class="addon-icon"><i class="bi bi-calendar2-week"></i></span>
+              <input [(ngModel)]="form.zoomCalendarLink" placeholder="https://us06web.zoom.us/meeting/.../ics?..." />
+            </div>
+            <span class="input-help">Direct link to download the ICS file so students can add this to Google Calendar / Outlook.</span>
+          </div>
+        </div>
+
+        <div class="form-action-footer">
+          <button class="primary-btn" [disabled]="saving || loading || !selectedBatchId" (click)="save()">
+            <span *ngIf="!saving"><i class="bi bi-save2-fill"></i> Save Communication Details</span>
+            <span *ngIf="saving"><span class="spinner-inline"></span> Saving Cohort...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOAST NOTIFICATION MESSAGE -->
+  <div *ngIf="message" class="bc-toast" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+    <div class="toast-body">
+      <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-triangle-fill]="messageType === 'error'"></i>
+      <span>{{ message }}</span>
     </div>
   </div>
 </div>

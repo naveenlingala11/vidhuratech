@@ -1,223 +1,420 @@
-<section class="premium-leaderboard">
-  <div class="leaderboard-bg-grid"></div>
-  <div class="leaderboard-glow glow-one"></div>
-  <div class="leaderboard-glow glow-two"></div>
-  <div class="leaderboard-glow glow-three"></div>
+<section class="premium-leaderboard-v3 vidhura-light-hub">
+  <!-- Glowing Background Mesh Atmosphere -->
+  <div class="hud-mesh-grid"></div>
+  <div class="hud-glow-orb orb-primary"></div>
+  <div class="hud-glow-orb orb-secondary"></div>
 
-  <div class="leaderboard-hero">
-    <div>
-      <p class="leaderboard-kicker">Competitive Rankings</p>
-      <h2>{{ displayTitle }}</h2>
-      <span>{{ subtitle }}</span>
-    </div>
-
-    <div class="hero-actions">
-      <button type="button" (click)="showOverall()">Overall</button>
-      <button type="button" class="soft" (click)="resetTable()">Reset</button>
-    </div>
-  </div>
-
-  <div class="leaderboard-tabs">
-    <button
-      type="button"
-      [class.active]="scope === 'period' && period === 'daily'"
-      (click)="changePeriod('daily')"
-    >
-      <b>D</b>
-      Daily
-    </button>
-
-    <button
-      type="button"
-      [class.active]="scope === 'period' && period === 'weekly'"
-      (click)="changePeriod('weekly')"
-    >
-      <b>W</b>
-      Weekly
-    </button>
-
-    <button
-      type="button"
-      [class.active]="scope === 'period' && period === 'monthly'"
-      (click)="changePeriod('monthly')"
-    >
-      <b>M</b>
-      Monthly
-    </button>
-
-    <button
-      type="button"
-      *ngIf="showChallengeTab"
-      [class.active]="scope === 'challenge'"
-      [disabled]="!selectedChallenge"
-      (click)="showChallenge()"
-    >
-      <b>C</b>
-      Challenge
-    </button>
-  </div>
-
-  <div class="podium-grid" *ngIf="podiumEntries.length">
-    <article
-      class="podium-card"
-      *ngFor="let winner of podiumEntries; trackBy: trackByEntry"
-      [ngClass]="rankClass(winner)"
-    >
-      <div class="podium-line"></div>
-
-      <div class="podium-rank">#{{ rankValue(winner) }}</div>
-
-      <ng-container *ngIf="avatarUrl(winner); else podiumInitial">
-        <img
-          class="podium-avatar avatar-img"
-          [src]="avatarUrl(winner)"
-          [alt]="nameValue(winner)"
-          referrerpolicy="no-referrer"
-          (error)="markAvatarFailed(winner)"
-        />
-      </ng-container>
-
-      <ng-template #podiumInitial>
-        <div class="podium-avatar">
-          {{ avatarInitial(winner) }}
-        </div>
-      </ng-template>
-
-      <div class="podium-info">
-        <span>{{ rankBadge(winner) }}</span>
-        <strong>{{ nameValue(winner) }}</strong>
-        <p>{{ scoreValue(winner) }}/{{ totalValue(winner) }} marks</p>
+  <!-- Header Section with Live Status & Metric Bento Cards -->
+  <header class="hud-header-block">
+    <div class="hud-brand-header">
+      <div class="hud-pulse-status">
+        <span class="hud-pulse-dot"></span>
+        <span class="hud-pulse-text">Competitive Standings</span>
       </div>
-    </article>
+      <h2 class="hud-main-title">{{ title }}</h2>
+      <p class="hud-main-subtitle">{{ subtitle }}</p>
+    </div>
+
+    <!-- Quick Stats Bento Deck (Light Mode) -->
+    <div class="hud-bento-deck" *ngIf="!isLoading">
+      <div class="bento-stat-card">
+        <div class="bento-card-bg-glow"></div>
+        <span class="bento-label">Competitors</span>
+        <strong class="bento-value">{{ filteredEntries.length }}</strong>
+      </div>
+      <div class="bento-stat-card highlight-glow">
+        <div class="bento-card-bg-glow purple-glow"></div>
+        <span class="bento-label">Current Division</span>
+        <strong class="bento-value text-accent-purple">{{
+          scope === 'challenge' ? 'Challenge' : periodLabel || 'Daily'
+        }}</strong>
+      </div>
+      <div class="bento-stat-card">
+        <div class="bento-card-bg-glow"></div>
+        <span class="bento-label">Console Page</span>
+        <strong class="bento-value"
+          >{{ page }} <span class="pager-slash">/</span> {{ totalPages }}</strong
+        >
+      </div>
+    </div>
+  </header>
+
+  <!-- Segmented Tab Dock and Control Console Actions -->
+  <div class="control-console-bar">
+    <nav class="console-tabs-dock">
+      <button
+        type="button"
+        class="tab-item-btn"
+        [class.is-active]="scope === 'period' && period === 'daily'"
+        (click)="changePeriod('daily')"
+      >
+        <span class="tab-badge-circle">D</span>
+        <span class="tab-badge-label">Daily Sprint</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-item-btn"
+        [class.is-active]="scope === 'period' && period === 'weekly'"
+        (click)="changePeriod('weekly')"
+      >
+        <span class="tab-badge-circle">W</span>
+        <span class="tab-badge-label">Weekly Sprint</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-item-btn"
+        [class.is-active]="scope === 'period' && period === 'monthly'"
+        (click)="changePeriod('monthly')"
+      >
+        <span class="tab-badge-circle">M</span>
+        <span class="tab-badge-label">Monthly League</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-item-btn"
+        *ngIf="showChallengeTab"
+        [class.is-active]="scope === 'challenge'"
+        [disabled]="!selectedChallenge"
+        (click)="showChallenge()"
+      >
+        <span class="tab-badge-circle">C</span>
+        <span class="tab-badge-label">Target Challenge</span>
+      </button>
+    </nav>
+
+    <div class="console-action-triggers">
+      <button type="button" class="btn-console btn-primary-gradient" (click)="showOverall()">
+        <span class="svg-wrapper" style="width: 16px; height: 16px; margin-right: 8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path
+              d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+            ></path>
+          </svg>
+        </span>
+        <span>Overall Division</span>
+      </button>
+
+      <button
+        type="button"
+        class="btn-console btn-white-border"
+        (click)="resetTable()"
+        aria-label="Reset filters"
+      >
+        <span class="svg-wrapper" style="width: 16px; height: 16px; margin-right: 6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+        </span>
+        <span>Reset Console</span>
+      </button>
+    </div>
   </div>
 
-  <section class="leaderboard-board">
-    <div class="board-toolbar">
-      <label class="leaderboard-search">
+  <!-- Interactive physical 3D Podium Pedestal Stage -->
+  <div class="podium-stage-wrapper" *ngIf="podiumEntries && podiumEntries.length && !isLoading">
+    <div class="podium-pedestals-container">
+      <article
+        class="podium-hero-column"
+        *ngFor="let winner of podiumEntries; trackBy: trackByEntry"
+        [ngClass]="rankClass(winner)"
+      >
+        <!-- Floating Gold Crown overlay for Rank 1 -->
+        <div class="podium-crown-crown" *ngIf="rankValue(winner) === 1">
+          <div class="glow-halo-amber"></div>
+          <span class="svg-wrapper" style="width: 34px; height: 34px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2">
+              <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"></path>
+              <path d="M3 20h18v2H3z"></path>
+            </svg>
+          </span>
+        </div>
+
+        <!-- Avatar sphere with rank badge indicator -->
+        <div class="podium-avatar-wrapper">
+          <div class="avatar-ring-glow"></div>
+          <div class="podium-avatar-sphere">
+            <ng-container *ngIf="avatarUrl(winner); else podiumInitial">
+              <img
+                class="podium-avatar-img"
+                [src]="avatarUrl(winner)"
+                [alt]="nameValue(winner)"
+                referrerpolicy="no-referrer"
+                (error)="markAvatarFailed(winner)"
+              />
+            </ng-container>
+            <ng-template #podiumInitial>
+              <div class="podium-avatar-fallback">
+                {{ avatarInitial(winner) }}
+              </div>
+            </ng-template>
+          </div>
+          <div class="podium-rank-badge">#{{ rankValue(winner) }}</div>
+        </div>
+
+        <!-- Pedestal body meta-information -->
+        <div class="pedestal-card-info">
+          <span class="pedestal-rank-tag">{{ rankBadge(winner) }}</span>
+          <h3 class="pedestal-user-name" [title]="nameValue(winner)">{{ nameValue(winner) }}</h3>
+
+          <div class="pedestal-score-pill">
+            <span class="svg-wrapper" style="width: 13px; height: 13px; margin-right: 4px">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+            </span>
+            <strong class="pill-score-text">{{ scoreValue(winner) }}</strong>
+            <span class="pill-total-text">/ {{ totalValue(winner) || 100 }} Pts</span>
+          </div>
+        </div>
+
+        <!-- Physical Gradient 3D Step Block -->
+        <div class="pedestal-3d-block">
+          <span class="pedestal-step-number">{{ rankValue(winner) }}</span>
+          <div class="pedestal-glass-sheen"></div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <!-- Listings Panel Console -->
+  <div class="hud-listings-card">
+    <!-- Filters Toolbar -->
+    <div class="hud-toolbar-filters">
+      <!-- Search Field -->
+      <label class="hud-search-input-wrapper">
+        <span class="svg-wrapper search-icon-wrap" style="width: 16px; height: 16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
         <input
           type="text"
           [(ngModel)]="search"
           (ngModelChange)="onFilterChange()"
-          placeholder="Search participant, email, phone, language..."
+          placeholder="Filter developers by name, email, language..."
         />
       </label>
 
-      <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()">
-        <option value="rank">Rank</option>
-        <option value="score">Score</option>
-        <option value="latest">Latest</option>
-        <option value="name">Name A-Z</option>
-      </select>
-
-      <select [(ngModel)]="pageSize" (ngModelChange)="onFilterChange()">
-        <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }} rows</option>
-      </select>
-    </div>
-
-    <div class="board-summary">
-      <article>
-        <span>Total</span>
-        <strong>{{ filteredEntries.length }}</strong>
-      </article>
-
-      <article>
-        <span>Scope</span>
-        <strong>{{ scope === 'challenge' ? 'Challenge' : periodLabel }}</strong>
-      </article>
-
-      <article>
-        <span>Page</span>
-        <strong>{{ page }}/{{ totalPages }}</strong>
-      </article>
-    </div>
-
-    <div class="leaderboard-loading" *ngIf="isLoading">Loading leaderboard...</div>
-
-    <div class="rank-table" *ngIf="!isLoading && pagedEntries.length; else emptyState">
-      <div class="rank-row rank-head">
-        <span>Rank</span>
-        <span>Participant</span>
-        <span>Badge</span>
-        <span>Solved</span>
-        <span>Score</span>
-        <span>Language</span>
-        <span>Submitted</span>
+      <!-- Sort Selection -->
+      <div class="hud-custom-select-wrapper">
+        <span class="svg-wrapper select-prefix-icon" style="width: 16px; height: 16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+          </svg>
+        </span>
+        <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()">
+          <option value="rank">Order by Rank</option>
+          <option value="score">Order by Marks</option>
+          <option value="latest">Order by Submitted</option>
+          <option value="name">Order by Name A-Z</option>
+        </select>
+        <span class="svg-wrapper select-arrow-icon" style="width: 14px; height: 14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
       </div>
 
-      <div
-        class="rank-row"
+      <!-- Page Size Selection -->
+      <div class="hud-custom-select-wrapper compact">
+        <span class="svg-wrapper select-prefix-icon" style="width: 16px; height: 16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </span>
+        <select [(ngModel)]="pageSize" (ngModelChange)="onFilterChange()">
+          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }} Entries</option>
+        </select>
+        <span class="svg-wrapper select-arrow-icon" style="width: 14px; height: 14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- High-Fidelity Skeleton Loading State -->
+    <div class="console-skeleton-container" *ngIf="isLoading">
+      <div class="skeleton-row-item" *ngFor="let item of [1, 2, 3, 4, 5]">
+        <div class="skeleton-shimmer-effect"></div>
+        <div class="skeleton-circle-avatar"></div>
+        <div class="skeleton-bar-element width-med"></div>
+        <div class="skeleton-bar-element width-sml"></div>
+        <div class="skeleton-bar-element width-med"></div>
+        <div class="skeleton-bar-element width-sml"></div>
+      </div>
+    </div>
+
+    <!-- Bento-Style Standing Rows Grid -->
+    <div
+      class="hud-dev-rows-container"
+      *ngIf="!isLoading && pagedEntries && pagedEntries.length; else emptyCatalog"
+    >
+      <!-- Grid Column Header Labels -->
+      <div class="dev-grid-headers">
+        <span class="header-lbl col-rank">Rank</span>
+        <span class="header-lbl col-dev">Developer</span>
+        <span class="header-lbl col-grade">Grade</span>
+        <span class="header-lbl col-solved">Solved Stats</span>
+        <span class="header-lbl col-score">Score Track</span>
+        <span class="header-lbl col-tech">Language</span>
+        <span class="header-lbl col-date">Submitted</span>
+      </div>
+
+      <!-- Standing Card Rows -->
+      <article
+        class="standing-row-card"
         *ngFor="let row of pagedEntries; trackBy: trackByEntry"
         [ngClass]="rankClass(row)"
       >
-        <div class="rank-pill">#{{ rankValue(row) }}</div>
+        <!-- Rank Badge Pin -->
+        <div class="standing-rank-badge-col">
+          <span class="rank-tag-badge">#{{ rankValue(row) }}</span>
+        </div>
 
-        <div class="rank-user">
-          <ng-container *ngIf="avatarUrl(row); else rankInitial">
-            <img
-              class="rank-avatar avatar-img"
-              [src]="avatarUrl(row)"
-              [alt]="nameValue(row)"
-              referrerpolicy="no-referrer"
-              (error)="markAvatarFailed(row)"
-            />
-          </ng-container>
-
-          <ng-template #rankInitial>
-            <div class="rank-avatar">{{ avatarInitial(row) }}</div>
-          </ng-template>
-
-          <div>
-            <strong>{{ nameValue(row) }}</strong>
-            <small>{{ row.email || row.phone || 'Contest participant' }}</small>
+        <!-- Dev Profile Info -->
+        <div class="standing-profile-col">
+          <div class="standing-avatar-sphere">
+            <ng-container *ngIf="avatarUrl(row); else rowInitial">
+              <img
+                class="standing-avatar-img"
+                [src]="avatarUrl(row)"
+                [alt]="nameValue(row)"
+                referrerpolicy="no-referrer"
+                (error)="markAvatarFailed(row)"
+              />
+            </ng-container>
+            <ng-template #rowInitial>
+              <div class="standing-avatar-initial-bg">{{ avatarInitial(row) }}</div>
+            </ng-template>
+          </div>
+          <div class="standing-name-wrapper">
+            <h4 class="standing-user-name">{{ nameValue(row) }}</h4>
+            <span
+              class="standing-user-email"
+              [title]="row.email || row.phone || 'Arena Competitor'"
+            >
+              {{ row.email || row.phone || 'Arena Competitor' }}
+            </span>
           </div>
         </div>
 
-        <div class="rank-badge">{{ rankBadge(row) }}</div>
-
-        <div class="rank-solved">
-          {{
-            row.solvedSummary || (row.solvedChallenges || 0) + '/' + (row.attemptedChallenges || 0)
-          }}
+        <!-- Grade Pill -->
+        <div class="standing-grade-col">
+          <span class="grade-badge-chip">{{ rankBadge(row) }}</span>
         </div>
 
-        <div class="rank-score">
-          <strong>{{ scoreValue(row) }}</strong>
-          <span>/{{ totalValue(row) }}</span>
+        <!-- Solved Summary -->
+        <div class="standing-solved-col">
+          <span class="solved-metric-text">{{
+            row.solvedSummary ||
+              (row.solvedChallenges || 0) + ' / ' + (row.attemptedChallenges || 0)
+          }}</span>
         </div>
 
-        <div class="rank-language">{{ row.language || 'Multiple' }}</div>
+        <!-- Dynamic Score Progress Track Bar -->
+        <div class="standing-score-col">
+          <div class="score-numeric-details">
+            <strong class="score-primary-val">{{ scoreValue(row) }}</strong>
+            <span class="score-limit-val">/ {{ totalValue(row) || 100 }}</span>
+          </div>
+          <div class="score-track-container">
+            <div
+              class="score-track-fill"
+              [style.width.%]="(scoreValue(row) / (totalValue(row) || 100)) * 100"
+              [class.has-perfect-score]="scoreValue(row) === totalValue(row)"
+            ></div>
+          </div>
+        </div>
 
-        <div class="rank-time">
-          <ng-container *ngIf="submittedAt(row); else noDate">
-            {{ submittedAt(row) | date: 'medium' : 'Asia/Kolkata' }}
+        <!-- Technology Language Pill Tag -->
+        <div class="standing-tech-col">
+          <span
+            class="language-badge-chip"
+            [attr.data-language]="(row.language || 'Multiple').toLowerCase()"
+          >
+            {{ row.language || 'Multiple' }}
+          </span>
+        </div>
+
+        <!-- Date and Time -->
+        <div class="standing-date-col">
+          <ng-container *ngIf="submittedAt(row); else noSubmitDate">
+            <span class="submit-timestamp">{{
+              submittedAt(row) | date: 'medium' : 'Asia/Kolkata'
+            }}</span>
           </ng-container>
-          <ng-template #noDate>-</ng-template>
+          <ng-template #noSubmitDate>
+            <span class="submit-timestamp-placeholder">-</span>
+          </ng-template>
         </div>
-      </div>
+      </article>
     </div>
 
-    <ng-template #emptyState>
-      <div class="leaderboard-empty" *ngIf="!isLoading">
-        <strong>No leaderboard entries found</strong>
-        <span>Submissions will appear here after participants complete challenges.</span>
+    <!-- Bulletproof and Premium Empty State Fallback -->
+    <ng-template #emptyCatalog>
+      <div class="hud-empty-state-card" *ngIf="!isLoading">
+        <div class="empty-state-icon-box">
+          <span class="svg-wrapper" style="width: 36px; height: 36px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+        </div>
+        <h3 class="empty-state-header">No Competitors Located</h3>
+        <p class="empty-state-paragraph">
+          Alter your search query, change filters, or reset the standings console to see results.
+        </p>
       </div>
     </ng-template>
 
-    <div class="leaderboard-pagination" *ngIf="totalPages > 1">
-      <button type="button" [disabled]="page === 1" (click)="setPage(page - 1)">Previous</button>
+    <!-- Pagination Panels -->
+    <footer class="hud-pager-footer" *ngIf="totalPages > 1 && !isLoading">
+      <button
+        type="button"
+        class="pager-nav-btn"
+        [disabled]="page === 1"
+        (click)="setPage(page - 1)"
+      >
+        Previous
+      </button>
+
+      <div class="pager-numeric-group">
+        <button
+          type="button"
+          class="pager-number-btn"
+          *ngFor="let item of pages"
+          [class.is-active-page]="item === page"
+          (click)="setPage(item)"
+        >
+          {{ item }}
+        </button>
+      </div>
 
       <button
         type="button"
-        *ngFor="let item of pages"
-        [class.active]="item === page"
-        (click)="setPage(item)"
+        class="pager-nav-btn"
+        [disabled]="page === totalPages"
+        (click)="setPage(page + 1)"
       >
-        {{ item }}
-      </button>
-
-      <button type="button" [disabled]="page === totalPages" (click)="setPage(page + 1)">
         Next
       </button>
-    </div>
-  </section>
+    </footer>
+  </div>
 </section>

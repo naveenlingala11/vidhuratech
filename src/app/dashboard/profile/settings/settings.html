@@ -1,285 +1,339 @@
 <div class="settings-page">
-  <div class="toast success" *ngIf="message">
-    <i class="bi bi-check-circle-fill"></i>
-    <span>{{ message }}</span>
-    <button type="button" (click)="message = ''" aria-label="Close"><i class="bi bi-x"></i></button>
+  <!-- Premium Floating Toast notifications -->
+  <div class="toast success-toast" *ngIf="message">
+    <div class="toast-indicator"></div>
+    <i class="bi bi-check-circle-fill icon-success"></i>
+    <span class="toast-text">{{ message }}</span>
+    <button type="button" class="toast-close-btn" (click)="message = ''" aria-label="Close">
+      <i class="bi bi-x"></i>
+    </button>
   </div>
 
-  <div class="toast error" *ngIf="error">
-    <i class="bi bi-exclamation-triangle-fill"></i>
-    <span>{{ error }}</span>
-    <button type="button" (click)="error = ''" aria-label="Close"><i class="bi bi-x"></i></button>
+  <div class="toast error-toast" *ngIf="error">
+    <div class="toast-indicator"></div>
+    <i class="bi bi-exclamation-triangle-fill icon-error"></i>
+    <span class="toast-text">{{ error }}</span>
+    <button type="button" class="toast-close-btn" (click)="error = ''" aria-label="Close">
+      <i class="bi bi-x"></i>
+    </button>
   </div>
 
+  <!-- Frosted Glass Hero Banner -->
   <section class="settings-hero">
-    <div>
-      <span>Dashboard Settings</span>
-      <h1>Control your workspace</h1>
-      <p>Manage account details, notifications, appearance, and security preferences.</p>
+    <div class="hero-left">
+      <span class="hero-eyebrow">
+        <i class="bi bi-sliders"></i>
+        System Configuration
+      </span>
+      <h1>Control Workspace</h1>
+      <p>Manage profile credentials, adjust notification alerts, configure UI theme display settings, and verify passwords.</p>
     </div>
 
-    <button class="profile-chip" type="button" (click)="goToProfile()">
-      <b>{{ initials }}</b>
-      <span>
+    <!-- Active Profile Widget -->
+    <button class="profile-preview-card" type="button" (click)="goToProfile()" title="Go to Profile">
+      <div class="avatar-bubble">{{ initials }}</div>
+      <div class="profile-info">
         <strong>{{ user?.name || 'User' }}</strong>
-        <small>{{ roleLabel }} | {{ accountStatus }}</small>
-      </span>
-      <i class="bi bi-arrow-right"></i>
+        <span class="profile-tags">
+          <span class="tag-role">{{ roleLabel }}</span>
+          <span class="tag-divider">•</span>
+          <span class="tag-status" [class.active-user]="user?.active !== false">{{ accountStatus }}</span>
+        </span>
+      </div>
+      <div class="action-chevron">
+        <i class="bi bi-arrow-right-short"></i>
+      </div>
     </button>
   </section>
 
-  <div class="loading-card" *ngIf="loading">
-    <div class="spinner"></div>
-    <h3>Loading Settings</h3>
-    <p>Syncing your dashboard preferences...</p>
+  <!-- Loading settings spinner -->
+  <div class="loading-preference-card" *ngIf="loading">
+    <div class="loader-spinner"></div>
+    <h3>Syncing preferences</h3>
+    <p>Please wait while we sync your secure user preferences...</p>
   </div>
 
+  <!-- Settings Console Workspace Layout -->
   <section class="settings-layout" *ngIf="!loading">
+    <!-- Sidebar navigation deck -->
     <aside class="settings-nav">
       <button
         type="button"
+        class="nav-tab-btn"
         *ngFor="let section of sections"
         [class.active]="activeSection === section.id"
         (click)="setSection(section.id)"
       >
-        <i [class]="section.icon"></i>
+        <div class="tab-accent"></div>
+        <i [class]="section.icon" class="tab-icon"></i>
         <span>{{ section.label }}</span>
       </button>
     </aside>
 
+    <!-- Settings Main Panel -->
     <main class="settings-main">
+      <!-- 1. Account Details Section -->
       <section class="settings-panel" *ngIf="activeSection === 'account'">
         <div class="panel-heading">
-          <span>Account</span>
-          <h2>Profile Information</h2>
-          <p>Update the account details shown across your dashboard.</p>
+          <span class="panel-eyebrow"><i class="bi bi-person-fill"></i> Personal Identity</span>
+          <h2>Account Profile Information</h2>
+          <p>Verify or modify the personal details shared across your learning and mentor directories.</p>
         </div>
 
-        <div class="account-grid">
-          <label>
-            <span>Full Name</span>
-            <input type="text" [(ngModel)]="accountForm.name" placeholder="Enter full name" />
-          </label>
+        <div class="account-input-grid">
+          <div class="input-card">
+            <span class="field-label">Full Name</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-person-circle field-icon"></i>
+              <input type="text" [(ngModel)]="accountForm.name" placeholder="Enter full name" class="settings-input" />
+            </div>
+          </div>
 
-          <label>
-            <span>Phone Number</span>
-            <input type="tel" [(ngModel)]="accountForm.phone" placeholder="Enter phone number" />
-          </label>
+          <div class="input-card">
+            <span class="field-label">Phone Number</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-telephone-fill field-icon"></i>
+              <input type="tel" [(ngModel)]="accountForm.phone" placeholder="Enter phone number" class="settings-input" />
+            </div>
+          </div>
 
-          <label>
-            <span>Email Address</span>
-            <input type="email" [value]="user?.email || ''" disabled />
-          </label>
+          <div class="input-card disabled-card">
+            <span class="field-label">Email Address</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-envelope-fill field-icon"></i>
+              <input type="email" [value]="user?.email || ''" disabled class="settings-input" />
+            </div>
+            <span class="disabled-tag"><i class="bi bi-lock-fill"></i> Read Only</span>
+          </div>
 
-          <label>
-            <span>Role</span>
-            <input type="text" [value]="roleLabel" disabled />
-          </label>
-        </div>
-
-        <div class="actions">
-          <button class="primary-btn" type="button" (click)="saveAccount()" [disabled]="saving">
-            <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check2-circle'"></i>
-            {{ saving ? 'Saving...' : 'Save Account' }}
-          </button>
-          <button class="soft-btn" type="button" (click)="resetAccount()">Reset</button>
-        </div>
-      </section>
-
-      <section class="settings-panel" *ngIf="activeSection === 'notifications'">
-        <div class="panel-heading split">
-          <div>
-            <span>Notifications</span>
-            <h2>Communication Preferences</h2>
-            <p>
-              {{ enabledNotifications }} of {{ notifications.length }} notification channels
-              enabled.
-            </p>
+          <div class="input-card disabled-card">
+            <span class="field-label">Workspace Role</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-shield-lock-fill field-icon"></i>
+              <input type="text" [value]="roleLabel" disabled class="settings-input" />
+            </div>
+            <span class="disabled-tag"><i class="bi bi-lock-fill"></i> System Locked</span>
           </div>
         </div>
 
-        <div class="toggle-list">
+        <div class="panel-actions">
+          <button class="btn-action btn-submit" type="button" (click)="saveAccount()" [disabled]="saving">
+            <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-check2-circle'"></i>
+            <span>{{ saving ? 'Saving Profile...' : 'Save Settings' }}</span>
+          </button>
+          <button class="btn-action btn-reset" type="button" (click)="resetAccount()">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>Reset Form</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. Notifications Panel -->
+      <section class="settings-panel" *ngIf="activeSection === 'notifications'">
+        <div class="panel-heading">
+          <span class="panel-eyebrow"><i class="bi bi-bell-fill"></i> Communication feeds</span>
+          <h2>Notification Settings</h2>
+          <p>{{ enabledNotifications }} of {{ notifications.length }} notification alerts currently active.</p>
+        </div>
+
+        <div class="preferences-toggles-list">
           <button
-            class="toggle-row"
+            class="preference-toggle-card"
             type="button"
             *ngFor="let item of notifications"
             (click)="toggleNotification(item)"
           >
-            <i [class]="item.icon"></i>
-            <span>
+            <div class="preference-icon-bubble">
+              <i [class]="item.icon"></i>
+            </div>
+            <div class="preference-details">
               <strong>{{ item.title }}</strong>
-              <small>{{ item.desc }}</small>
-            </span>
-            <label class="switch" (click)="$event.stopPropagation()">
+              <span>{{ item.desc }}</span>
+            </div>
+            <label class="switch-control" (click)="$event.stopPropagation()">
               <input
                 type="checkbox"
                 [ngModel]="item.enabled"
                 (ngModelChange)="setNotification(item, $event)"
               />
-              <i></i>
+              <span class="switch-slider"></span>
             </label>
           </button>
         </div>
       </section>
 
+      <!-- 3. Appearance Workspace Panel -->
       <section class="settings-panel" *ngIf="activeSection === 'appearance'">
         <div class="panel-heading">
-          <span>Appearance</span>
-          <h2>Workspace Display</h2>
-          <p>Choose how the dashboard feels on this device.</p>
+          <span class="panel-eyebrow"><i class="bi bi-palette-fill"></i> Visual branding</span>
+          <h2>Workspace Theme</h2>
+          <p>Choose the color mode that is best for your eyes and device setup.</p>
         </div>
 
-        <div class="theme-card">
-          <div>
-            <i
-              class="bi"
-              [ngClass]="themeService.isDark() ? 'bi-moon-stars-fill' : 'bi-sun-fill'"
-            ></i>
-            <span>
-              <strong>{{ themeService.isDark() ? 'Dark Theme' : 'Light Theme' }}</strong>
-              <small>Switch dashboard theme instantly.</small>
-            </span>
+        <!-- Solar / Lunar Theme Card -->
+        <div class="visual-theme-card">
+          <div class="theme-info-block">
+            <div class="theme-icon-orb" [class.dark-active]="themeService.isDark()">
+              <i class="bi" [ngClass]="themeService.isDark() ? 'bi-moon-stars-fill' : 'bi-sun-fill'"></i>
+            </div>
+            <div class="theme-copy-block">
+              <strong>{{ themeService.isDark() ? 'Dark Theme Active' : 'Light Theme Active' }}</strong>
+              <span>Toggle between standard light display and sleek developer dark mode.</span>
+            </div>
           </div>
-          <button class="primary-btn" type="button" (click)="toggleTheme()">Toggle Theme</button>
+          <button class="btn-theme-switcher" type="button" (click)="toggleTheme()">
+            <i class="bi bi-arrow-repeat me-1"></i> Switch Mode
+          </button>
         </div>
 
-        <div class="toggle-list">
+        <!-- Dense layout options list -->
+        <div class="preferences-toggles-list mt-4">
           <button
-            class="toggle-row"
+            class="preference-toggle-card"
             type="button"
             *ngFor="let item of workspaceSettings"
             (click)="toggleWorkspace(item)"
           >
-            <i [class]="item.icon"></i>
-            <span>
+            <div class="preference-icon-bubble bg-sky-blue">
+              <i [class]="item.icon"></i>
+            </div>
+            <div class="preference-details">
               <strong>{{ item.title }}</strong>
-              <small>{{ item.desc }}</small>
-            </span>
-            <label class="switch" (click)="$event.stopPropagation()">
+              <span>{{ item.desc }}</span>
+            </div>
+            <label class="switch-control" (click)="$event.stopPropagation()">
               <input
                 type="checkbox"
                 [ngModel]="item.enabled"
                 (ngModelChange)="setWorkspace(item, $event)"
               />
-              <i></i>
+              <span class="switch-slider"></span>
             </label>
           </button>
         </div>
       </section>
 
+      <!-- 4. Security Change Password Panel -->
       <section class="settings-panel" *ngIf="activeSection === 'security'">
         <div class="panel-heading">
-          <span>Security</span>
-          <h2>Change Password</h2>
-          <p>Confirm your current password, then set a stronger new password for this account.</p>
+          <span class="panel-eyebrow"><i class="bi bi-shield-lock-fill"></i> Privacy & Access</span>
+          <h2>Security Credentials</h2>
+          <p>Confirm your current workspace password, then setup new access credentials.</p>
         </div>
 
-        <div class="security-grid">
-          <label
-            class="password-field"
-            [class.valid]="currentPasswordValid"
-            [class.invalid]="currentPasswordError"
+        <div class="password-fields-grid">
+          <!-- Current password field -->
+          <div
+            class="password-field-card"
+            [class.state-valid]="currentPasswordValid"
+            [class.state-invalid]="currentPasswordError"
           >
-            <span>Current Password</span>
-            <div class="password-input">
-              <i class="bi bi-lock"></i>
+            <span class="field-label">Current Password</span>
+            <div class="password-input-group">
+              <i class="bi bi-key-fill field-icon"></i>
               <input
                 [type]="showCurrentPassword ? 'text' : 'password'"
                 [(ngModel)]="securityForm.currentPassword"
                 (input)="onCurrentPasswordInput()"
-                placeholder="Current password"
+                placeholder="Verify current password"
+                class="settings-input"
               />
-              <b class="status-icon checking" *ngIf="currentPasswordChecking"></b>
-              <i class="bi bi-check-circle-fill status-icon ok" *ngIf="currentPasswordValid"></i>
+              <div class="spinner-verify" *ngIf="currentPasswordChecking"></div>
+              <i class="bi bi-check-circle-fill validation-status ok" *ngIf="currentPasswordValid"></i>
               <i
-                class="bi bi-exclamation-circle-fill status-icon bad"
+                class="bi bi-exclamation-circle-fill validation-status bad"
                 *ngIf="currentPasswordError && !currentPasswordChecking"
               ></i>
-              <button type="button" class="eye-btn" (click)="toggleCurrentPassword()">
-                <i class="bi" [ngClass]="showCurrentPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              <button type="button" class="password-visibility-btn" (click)="toggleCurrentPassword()">
+                <i class="bi" [ngClass]="showCurrentPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
               </button>
             </div>
-            <small class="field-success" *ngIf="currentPasswordValid"
-              >Current password verified</small
-            >
-            <small class="field-error" *ngIf="currentPasswordError">{{
-              currentPasswordError
-            }}</small>
-          </label>
+            <span class="validation-helper success" *ngIf="currentPasswordValid">Verified successfully</span>
+            <span class="validation-helper error" *ngIf="currentPasswordError">{{ currentPasswordError }}</span>
+          </div>
 
-          <label class="password-field">
-            <span>New Password</span>
-            <div class="password-input">
-              <i class="bi bi-shield-lock"></i>
+          <!-- New password field -->
+          <div class="password-field-card">
+            <span class="field-label">New Password</span>
+            <div class="password-input-group">
+              <i class="bi bi-shield-fill-plus field-icon"></i>
               <input
                 [type]="showNewPassword ? 'text' : 'password'"
                 [(ngModel)]="securityForm.newPassword"
-                placeholder="New password"
+                placeholder="Enter new password"
+                class="settings-input"
               />
-              <button type="button" class="eye-btn" (click)="toggleNewPassword()">
-                <i class="bi" [ngClass]="showNewPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              <button type="button" class="password-visibility-btn" (click)="toggleNewPassword()">
+                <i class="bi" [ngClass]="showNewPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
               </button>
             </div>
-          </label>
+          </div>
 
-          <label
-            class="password-field"
-            [class.valid]="confirmPasswordValid"
-            [class.invalid]="confirmPasswordInvalid"
+          <!-- Confirm password field -->
+          <div
+            class="password-field-card"
+            [class.state-valid]="confirmPasswordValid"
+            [class.state-invalid]="confirmPasswordInvalid"
           >
-            <span>Confirm Password</span>
-            <div class="password-input">
-              <i class="bi bi-shield-check"></i>
+            <span class="field-label">Confirm Password</span>
+            <div class="password-input-group">
+              <i class="bi bi-shield-fill-check field-icon"></i>
               <input
                 [type]="showConfirmPassword ? 'text' : 'password'"
                 [(ngModel)]="securityForm.confirmPassword"
-                placeholder="Confirm password"
+                placeholder="Re-type new password"
+                class="settings-input"
               />
-              <i class="bi bi-check-circle-fill status-icon ok" *ngIf="confirmPasswordValid"></i>
+              <i class="bi bi-check-circle-fill validation-status ok" *ngIf="confirmPasswordValid"></i>
               <i
-                class="bi bi-exclamation-circle-fill status-icon bad"
+                class="bi bi-exclamation-circle-fill validation-status bad"
                 *ngIf="confirmPasswordInvalid"
               ></i>
-              <button type="button" class="eye-btn" (click)="toggleConfirmPassword()">
-                <i class="bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              <button type="button" class="password-visibility-btn" (click)="toggleConfirmPassword()">
+                <i class="bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
               </button>
             </div>
-            <small class="field-success" *ngIf="confirmPasswordValid">Passwords match</small>
-            <small class="field-error" *ngIf="confirmPasswordInvalid">Passwords do not match</small>
-          </label>
+            <span class="validation-helper success" *ngIf="confirmPasswordValid">Passwords match</span>
+            <span class="validation-helper error" *ngIf="confirmPasswordInvalid">Passwords do not match</span>
+          </div>
         </div>
 
-        <div class="password-strength" *ngIf="securityForm.newPassword">
-          <div>
-            <span>Password Strength</span>
+        <!-- Password Strength indicator track -->
+        <div class="password-strength-telemetry" *ngIf="securityForm.newPassword">
+          <div class="strength-telemetry-header">
+            <span>Password Complexity:</span>
             <strong [class]="newPasswordStrengthClass">{{ newPasswordStrengthText }}</strong>
           </div>
-          <div class="strength-track">
-            <i [class]="newPasswordStrengthClass" [style.width.%]="newPasswordStrength * 20"></i>
+          <div class="strength-track-bar">
+            <div class="strength-fill" [class]="newPasswordStrengthClass" [style.width.%]="newPasswordStrength * 20"></div>
           </div>
         </div>
 
-        <div class="password-rules">
-          <div *ngFor="let rule of newPasswordRules" [class.ok]="rule.ok">
-            <i class="bi" [ngClass]="rule.ok ? 'bi-check2-circle' : 'bi-circle'"></i>
+        <!-- Password validation checklist rules -->
+        <div class="password-rules-deck">
+          <div class="rule-card" *ngFor="let rule of newPasswordRules" [class.rule-ok]="rule.ok">
+            <div class="rule-icon">
+              <i class="bi" [ngClass]="rule.ok ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+            </div>
             <span>{{ rule.label }}</span>
           </div>
         </div>
 
-        <div class="security-note">
-          <i class="bi bi-shield-lock"></i>
-          <span>Your current password is verified securely before the new password is saved.</span>
+        <!-- Safety card note -->
+        <div class="security-information-note">
+          <i class="bi bi-shield-lock-fill"></i>
+          <span>Password checks are verified securely. Your password is encrypted before synchronization.</span>
         </div>
 
-        <div class="actions">
+        <div class="panel-actions mt-4">
           <button
-            class="primary-btn"
+            class="btn-action btn-submit"
             type="button"
             (click)="saveSecurity()"
             [disabled]="!canChangePassword"
           >
-            <i class="bi" [ngClass]="securitySaving ? 'bi-arrow-repeat' : 'bi-shield-check'"></i>
-            {{ securitySaving ? 'Changing...' : 'Change Password' }}
+            <i class="bi" [ngClass]="securitySaving ? 'bi-arrow-repeat spin-icon' : 'bi-shield-check'"></i>
+            <span>{{ securitySaving ? 'Changing Password...' : 'Update Password' }}</span>
           </button>
         </div>
       </section>

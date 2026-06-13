@@ -51,12 +51,18 @@ export class LeadsComponent implements OnInit {
   leads: LeadRow[] = [];
   filteredLeads: LeadRow[] = [];
   binLeads: LeadRow[] = [];
+  groupedLeadsList: any[] = [];
+  drawerInquiries: LeadRow[] = [];
 
   loading = false;
   binLoading = false;
   actionBusy = false;
   bulkBusy = false;
   addLeadSaving = false;
+  showQuickCapture = false;
+  showAdvancedFilters = false;
+  showHistory = false;
+  expandedDuplicateEmails: { [email: string]: boolean } = {};
 
   error = '';
   binError = '';
@@ -224,6 +230,105 @@ export class LeadsComponent implements OnInit {
     return `${hot} hot leads, ${overdue} overdue follow-ups, ${this.filteredLeads.length} visible records.`;
   }
 
+  generateGroupedLeads(): void {
+    const result: any[] = [];
+    const emailGroups = new Map<string, LeadRow[]>();
+    
+    // Group active leads by email
+    this.filteredLeads.forEach(lead => {
+      const email = lead.Email?.trim().toLowerCase() || '';
+      if (email) {
+        if (!emailGroups.has(email)) {
+          emailGroups.set(email, []);
+        }
+        emailGroups.get(email)!.push(lead);
+      }
+    });
+    
+    const processedEmails = new Set<string>();
+    
+    this.filteredLeads.forEach(lead => {
+      const email = lead.Email?.trim().toLowerCase() || '';
+      if (!email) {
+        // Leads without emails are added as independent master rows
+        result.push({
+          lead,
+          isMaster: true,
+          isChild: false,
+          hasDuplicates: false,
+          duplicateCount: 1,
+          isExpanded: false,
+          masterEmail: ''
+        });
+      } else {
+        if (processedEmails.has(email)) return;
+        
+        const groupLeads = emailGroups.get(email) || [];
+        if (groupLeads.length <= 1) {
+          result.push({
+            lead,
+            isMaster: true,
+            isChild: false,
+            hasDuplicates: false,
+            duplicateCount: 1,
+            isExpanded: false,
+            masterEmail: email
+          });
+        } else {
+          // Master row for the duplicate group (show the first lead)
+          const isExpanded = !!this.expandedDuplicateEmails[email];
+          result.push({
+            lead: groupLeads[0],
+            isMaster: true,
+            isChild: false,
+            hasDuplicates: true,
+            duplicateCount: groupLeads.length,
+            isExpanded,
+            masterEmail: email
+          });
+          
+          // If expanded, add the other child rows
+          if (isExpanded) {
+            for (let i = 1; i < groupLeads.length; i++) {
+              result.push({
+                lead: groupLeads[i],
+                isMaster: false,
+                isChild: true,
+                hasDuplicates: false,
+                duplicateCount: groupLeads.length,
+                isExpanded: false,
+                masterEmail: email
+              });
+            }
+          }
+        }
+        processedEmails.add(email);
+      }
+    });
+    
+    this.groupedLeadsList = result;
+  }
+
+  toggleEmailGroup(email: string, event: Event): void {
+    event.stopPropagation();
+    this.expandedDuplicateEmails[email] = !this.expandedDuplicateEmails[email];
+    this.generateGroupedLeads();
+  }
+
+  getInquiriesForLead(lead: LeadRow | null): LeadRow[] {
+    if (!lead) return [];
+    if (!lead.Email && !lead.Phone) return [lead];
+    // Find all leads with the same phone or email
+    return this.leads.filter(l => 
+      (lead.Email && l.Email && l.Email.toLowerCase() === lead.Email.toLowerCase()) ||
+      (lead.Phone && l.Phone && l.Phone === lead.Phone)
+    );
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+  }
+
   loadLeads(): void {
     this.loading = true;
     this.error = '';
@@ -361,6 +466,7 @@ export class LeadsComponent implements OnInit {
 
     this.syncSelectionWithFilteredRows();
     this.calculatePageStats();
+    this.generateGroupedLeads();
   }
 
   clearFilters(): void {
@@ -680,12 +786,16 @@ export class LeadsComponent implements OnInit {
 
   openLeadDrawer(lead: LeadRow): void {
     this.selectedLead = lead;
+    this.drawerInquiries = this.getInquiriesForLead(lead);
     this.showLeadDrawer = true;
+    this.showHistory = false;
   }
 
   closeLeadDrawer(): void {
     this.showLeadDrawer = false;
     this.selectedLead = null;
+    this.drawerInquiries = [];
+    this.showHistory = false;
   }
 
   openWhatsAppLead(lead: LeadRow): void {
@@ -709,7 +819,32 @@ export class LeadsComponent implements OnInit {
   getWhatsappLink(lead: LeadRow): string {
     const phone = this.cleanPhone(lead.Phone);
     const normalized = phone.length === 10 ? `91${phone}` : phone;
-    return `https://api.whatsapp.com/send?phone=${normalized}`;
+    
+    const name = lead.Name ? lead.Name.trim() : 'there';
+    const course = lead.Course ? lead.Course.trim() : 'our training program';
+    const source = lead.Source ? lead.Source.trim() : 'our website';
+    
+    const message = `Hello *${name}*! 👋\n\n` +
+      `Thank you for contacting *Vidhura Tech*! 🚀 We received your inquiry regarding the *${course}* track (Source: ${source}). 📚\n\n` +
+      `To help you get started immediately, here are details on our courses and coding practice subscriptions:\n\n` +
+      `📘 *1. Comprehensive Course Tracks:*\n` +
+      `• Industry-aligned curriculum & modules\n` +
+      `• Live interactive classes with expert trainers\n` +
+      `• Real-world projects & case studies\n\n` +
+      `💻 *2. Coding Practice & Mock Test Subscriptions:*\n` +
+      `• Unlimited access to our coding playgrounds & mock tests\n` +
+      `• Automated evaluation dashboard with instant feedback\n` +
+      `• Flexible subscription pricing plans (Individual Mock Tests / Practice Packages)\n\n` +
+      `📥 *What would you like to receive?*\n` +
+      `👉 Reply with *1* to get the *Detailed Course Syllabus & Batch Timings*\n` +
+      `👉 Reply with *2* to get the *Practice Portal Trial & Subscription Pricing Plans*\n` +
+      `👉 Reply with *3* to chat directly with a *Support Representative*\n\n` +
+      `We look forward to helping you master your skills! 🌟\n\n` +
+      `Best regards,\n` +
+      `*Support & Admissions Team*\n` +
+      `*Vidhura Tech* 🏛️`;
+      
+    return `https://api.whatsapp.com/send?phone=${normalized}&text=${encodeURIComponent(message)}`;
   }
 
   exportCSV(): void {
@@ -781,12 +916,11 @@ export class LeadsComponent implements OnInit {
     );
   }
 
-  getStatusClass(status: string): any {
-    return {
-      'status-new': status === 'New',
-      'status-contacted': status === 'Contacted',
-      'status-joined': status === 'Joined',
-    };
+  getStatusClass(status: string): string {
+    if (status === 'New') return 'status-new';
+    if (status === 'Contacted') return 'status-contacted';
+    if (status === 'Joined') return 'status-joined';
+    return '';
   }
 
   getFollowUpClass(lead: LeadRow): string {
@@ -796,7 +930,8 @@ export class LeadsComponent implements OnInit {
     return 'follow-upcoming';
   }
 
-  getLeadTemperature(lead: LeadRow): 'Hot' | 'Warm' | 'Cold' {
+  getLeadTemperature(lead: LeadRow | null): 'Hot' | 'Warm' | 'Cold' {
+    if (!lead) return 'Cold';
     if (lead.Status === 'Joined') return 'Hot';
     if (lead.FollowUp && lead.FollowUp <= this.todayDate) return 'Hot';
     if (lead.Source?.includes('PUBLIC_')) return 'Warm';
@@ -804,7 +939,8 @@ export class LeadsComponent implements OnInit {
     return 'Cold';
   }
 
-  getLeadScore(lead: LeadRow): number {
+  getLeadScore(lead: LeadRow | null): number {
+    if (!lead) return 0;
     let score = 35;
 
     if (lead.Name) score += 8;
@@ -821,7 +957,7 @@ export class LeadsComponent implements OnInit {
     return Math.min(score, 100);
   }
 
-  getTemperatureClass(lead: LeadRow): string {
+  getTemperatureClass(lead: LeadRow | null): string {
     return `temp-${this.getLeadTemperature(lead).toLowerCase()}`;
   }
 

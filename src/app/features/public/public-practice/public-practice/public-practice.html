@@ -1,195 +1,239 @@
 <section class="public-practice-page">
-  <div class="sunrise-glow"></div>
-  <div class="ocean-wave wave-one"></div>
-  <div class="ocean-wave wave-two"></div>
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <div class="ambient-glow">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
 
-  <section class="practice-hero contest-hero">
+  <div class="toast" *ngIf="toast">
+    <i class="fa-solid fa-circle-info"></i>
+    <span>{{ toast }}</span>
+  </div>
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <section class="practice-hero" *ngIf="mode === 'LIBRARY'">
     <div class="hero-mesh"></div>
-    <div class="hero-grid"></div>
+    <div class="hero-grid-lines"></div>
     <div class="hero-shine"></div>
 
-    <div class="contest-hero-main">
-      <div class="hero-copy">
-        <span class="hero-chip">Free Coding Arena</span>
+    <div class="floating-lang lang-1"><i class="fa-brands fa-python"></i></div>
+    <div class="floating-lang lang-2"><i class="fa-brands fa-java"></i></div>
+    <div class="floating-lang lang-3"><i class="fa-brands fa-js"></i></div>
+
+    <div class="hero-layout">
+      <div class="hero-copy animate-slide-up">
+        <span class="hero-chip">
+          <i class="fa-solid fa-bolt"></i>
+          Free Coding Arena
+        </span>
 
         <h1>
           Placement Practice
-          <span>Mock Tests & Coding Battles</span>
+          <span class="hero-gradient-text">Mock Tests & Coding Battles</span>
         </h1>
 
         <p>
-          Attempt company-wise mock tests, solve coding challenges, and track your readiness with
+          Master algorithms, attempt company-wise mock tests, solve coding challenges, and track your readiness with
           instant scores before joining a full placement program.
         </p>
 
         <div class="hero-actions">
-          <button type="button" (click)="backToLibrary()" class="primary-btn">
+          <button type="button" routerLink="/coding-contests" class="btn-primary-glow">
+            <i class="fa-solid fa-rocket"></i>
             Start Practicing
           </button>
 
-          <button type="button" routerLink="/coding-contests" class="ghost-btn">
+          <button type="button" routerLink="/leaderboard" class="btn-ghost-light">
+            <i class="fa-solid fa-trophy"></i>
             View Leaderboard
           </button>
         </div>
       </div>
 
-      <div class="arena-card">
-        <div class="arena-card-top">
+      <div class="hero-stats-card animate-slide-up" style="animation-delay: 0.1s;">
+        <div class="stats-card-header">
           <span>Live Arena</span>
-          <b>2026 Prep</b>
+          <b class="live-pulse"><span></span> 2026 Prep</b>
         </div>
 
-        <div class="arena-score">
-          <strong>{{ challenges.length || 'Live' }}</strong>
-          <span>Coding Challenges</span>
+        <div class="stats-card-body">
+          <strong>{{ challenges.length || '350+' }}</strong>
+          <span>Premium Challenges</span>
         </div>
 
-        <div class="arena-progress">
-          <i></i>
-          <i></i>
-          <i></i>
-        </div>
-
-        <div class="arena-companies">
+        <div class="stats-company-row">
           <img src="logos/tcs.svg" alt="TCS" />
           <img src="logos/infosys.svg" alt="Infosys" />
           <img src="logos/wipro.svg" alt="Wipro" />
           <img src="logos/deloitte.svg" alt="Deloitte" />
-          <img src="logos/accenture.svg" alt="Accenture" />
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ═══════════════════ LOADING ═══════════════════ -->
   <section class="loading-state" *ngIf="loading">
-    <div class="loader"></div>
+    <div class="loader-ring">
+      <div class="loader-spinner"></div>
+    </div>
     <h2>Loading practice workspace</h2>
-    <p>Please wait while we prepare your tests and challenges.</p>
+    <p>Preparing your premium challenges...</p>
   </section>
 
+  <!-- ═══════════════════ LIBRARY ═══════════════════ -->
   <ng-container *ngIf="!loading && mode === 'LIBRARY'">
-    <section class="featured-strip" *ngIf="featuredItems.length">
-      <div class="section-title">
-        <span>Recommended</span>
-        <h2>Start with high-demand company practice</h2>
-      </div>
 
-      <div class="featured-grid">
-        <button
-          type="button"
-          class="featured-card"
-          *ngFor="let item of featuredItems"
-          (click)="openLeadModal(item)"
-        >
-          <img [src]="companyLogo(item.company)" [alt]="item.company" />
+    <!-- Marquee Strip (Top Companies) -->
+    <section class="marquee-section animate-fade-in">
+      <div class="marquee-track">
+        <span><img src="logos/tcs.svg" alt="TCS" /> TCS NQT</span>
+        <span><img src="logos/infosys.svg" alt="Infosys" /> Infosys SP</span>
+        <span><img src="logos/wipro.svg" alt="Wipro" /> Wipro Elite</span>
+        <span><img src="logos/accenture.svg" alt="Accenture" /> Accenture</span>
+        <span><img src="logos/deloitte.svg" alt="Deloitte" /> Deloitte</span>
+        <span><img src="logos/cognizant.svg" alt="Cognizant" /> Cognizant GenC</span>
+        <!-- Duplicate for loop -->
+        <span><img src="logos/tcs.svg" alt="TCS" /> TCS NQT</span>
+        <span><img src="logos/infosys.svg" alt="Infosys" /> Infosys SP</span>
+        <span><img src="logos/wipro.svg" alt="Wipro" /> Wipro Elite</span>
+        <span><img src="logos/accenture.svg" alt="Accenture" /> Accenture</span>
+        <span><img src="logos/deloitte.svg" alt="Deloitte" /> Deloitte</span>
+        <span><img src="logos/cognizant.svg" alt="Cognizant" /> Cognizant GenC</span>
+      </div>
+    </section>
+
+    <!-- Daily Streak / Progress Mock -->
+    <section class="daily-streak-section animate-slide-up" style="animation-delay: 0.15s;">
+      <div class="streak-card">
+        <div class="streak-info">
+          <div class="streak-icon"><i class="fa-solid fa-fire"></i></div>
           <div>
-            <span>{{ item.company }}</span>
-            <strong>{{ item.title }}</strong>
+            <h3>3 Day Streak</h3>
+            <p>Solve 1 more challenge today to keep your streak alive!</p>
           </div>
-          <b>{{ item.type === 'ASSESSMENT' ? 'Mock Test' : 'Code Lab' }}</b>
-        </button>
+        </div>
+        <div class="streak-days">
+          <div class="streak-day active"><span>M</span><i class="fa-solid fa-check"></i></div>
+          <div class="streak-day active"><span>T</span><i class="fa-solid fa-check"></i></div>
+          <div class="streak-day active"><span>W</span><i class="fa-solid fa-check"></i></div>
+          <div class="streak-day current"><span>T</span><i></i></div>
+          <div class="streak-day"><span>F</span><i></i></div>
+          <div class="streak-day"><span>S</span><i></i></div>
+          <div class="streak-day"><span>S</span><i></i></div>
+        </div>
       </div>
     </section>
 
-    <section class="toolbar">
-      <label class="search-box">
-        <i class="bi bi-search"></i>
-        <input
-          [(ngModel)]="search"
-          (ngModelChange)="resetPage()"
-          placeholder="Search TCS, aptitude, coding, verbal..."
-        />
-      </label>
-
-      <select [(ngModel)]="selectedCompany" (ngModelChange)="resetPage()">
-        <option value="ALL">All Companies</option>
-        <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
-      </select>
-
-      <select [(ngModel)]="selectedSkill" (ngModelChange)="resetPage()">
-        <option value="ALL">All Skills</option>
-        <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
-      </select>
-
-      <select [(ngModel)]="selectedType" (ngModelChange)="resetPage()">
-        <option value="ALL">All Types</option>
-        <option value="ASSESSMENT">Mock Tests</option>
-        <option value="CHALLENGE">Coding Challenges</option>
-      </select>
+    <!-- Trending Topics -->
+    <section class="trending-topics-section animate-slide-up" style="animation-delay: 0.2s;">
+      <div class="section-label">
+        <i class="fa-solid fa-arrow-trend-up"></i>
+        <span>Trending Topics</span>
+      </div>
+      <div class="topics-scroll">
+        <button class="topic-pill"><i class="fa-solid fa-layer-group" style="color: #2563eb;"></i> Arrays</button>
+        <button class="topic-pill"><i class="fa-solid fa-font" style="color: #dc2626;"></i> Strings</button>
+        <button class="topic-pill"><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Two Pointers</button>
+        <button class="topic-pill"><i class="fa-solid fa-brain" style="color: #7c3aed;"></i> Dynamic
+          Programming</button>
+        <button class="topic-pill"><i class="fa-solid fa-code-branch" style="color: #059669;"></i> Trees</button>
+        <button class="topic-pill"><i class="fa-solid fa-chart-network" style="color: #0ea5e9;"></i> Graphs</button>
+        <button class="topic-pill"><i class="fa-solid fa-database" style="color: #ec4899;"></i> SQL</button>
+      </div>
     </section>
 
-    <section class="trust-strip">
-      <article>
-        <strong>Real Exam Feel</strong>
-        <span>Time-bound practice and instant score analysis</span>
-      </article>
+    <!-- Toolbar -->
+    <section class="toolbar-strip animate-slide-up" style="animation-delay: 0.25s;">
+      <div class="search-input-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input [(ngModel)]="search" (ngModelChange)="resetPage()"
+          placeholder="Search for problems, mock tests, companies..." />
+        <div class="search-shortcut">Ctrl+K</div>
+      </div>
 
-      <article>
-        <strong>Company Wise</strong>
-        <span>TCS, Deloitte, Infosys, Wipro and more</span>
-      </article>
+      <div class="filter-group">
+        <select [(ngModel)]="selectedCompany" (ngModelChange)="resetPage()" class="premium-select">
+          <option value="ALL">All Companies</option>
+          <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+        </select>
 
-      <article>
-        <strong>Lead Capture</strong>
-        <span>Students enter basic details before attempting</span>
-      </article>
+        <select [(ngModel)]="selectedSkill" (ngModelChange)="resetPage()" class="premium-select">
+          <option value="ALL">All Skills</option>
+          <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
+        </select>
+
+        <select [(ngModel)]="selectedType" (ngModelChange)="resetPage()" class="premium-select">
+          <option value="ALL">All Types</option>
+          <option value="ASSESSMENT">Mock Tests</option>
+          <option value="CHALLENGE">Coding Challenges</option>
+        </select>
+      </div>
     </section>
 
-    <section class="result-count">
+    <!-- Result Count -->
+    <section class="result-count-bar animate-fade-in" style="animation-delay: 0.3s;">
       <div>
         <strong>{{ filteredItems.length }}</strong>
         <span>practice items available</span>
       </div>
-
       <div>Page {{ currentPage }} of {{ totalPages }}</div>
     </section>
 
+    <!-- Practice Grid -->
     <section class="practice-grid" *ngIf="pagedItems.length">
-      <article class="practice-card" *ngFor="let item of pagedItems">
-        <div class="card-top">
-          <span class="company-chip">
-            <img [src]="companyLogo(item.company)" [alt]="item.company" />
+      <article class="practice-card animate-slide-up" *ngFor="let item of pagedItems; let i = index"
+        [style.animation-delay]="(0.1 * i) + 's'">
+        <div class="card-glass-bg"></div>
+        <div class="card-accent" [attr.data-level]="getChallengeDifficulty(item.totalMarks)"></div>
+
+        <div class="card-header">
+          <span class="company-tag">
+            <img *ngIf="companyLogo(item.company)" [src]="companyLogo(item.company)" [alt]="item.company" />
+            <i *ngIf="!companyLogo(item.company)" class="fa-solid fa-building"></i>
             {{ item.company }}
           </span>
 
-          <span class="type-chip" [class.challenge]="item.type === 'CHALLENGE'">
-            {{ item.type === 'ASSESSMENT' ? 'Mock Test' : 'Coding Challenge' }}
+          <span class="difficulty-tag" [attr.data-level]="getChallengeDifficulty(item.totalMarks)">
+            <span class="diff-dot"></span>
+            {{ getChallengeDifficulty(item.totalMarks) }}
           </span>
         </div>
 
-        <h2>{{ item.title }}</h2>
-        <p>{{ item.description || 'Practice item prepared by Frontlines EduTech trainers.' }}</p>
+        <div class="card-type-badge" [class.challenge]="item.type === 'CHALLENGE'">
+          <i [class]="item.type === 'ASSESSMENT' ? 'fa-solid fa-file-lines' : 'fa-solid fa-code'"></i>
+          {{ item.type === 'ASSESSMENT' ? 'Mock Test' : 'Coding Challenge' }}
+        </div>
 
-        <div class="meta-grid">
+        <h2>{{ item.title }}</h2>
+        <p>{{ item.description || 'Premium practice item prepared by industry experts.' }}</p>
+
+        <div class="meta-strip">
           <div>
+            <i class="fa-solid fa-bullseye" style="color: #ec4899;"></i>
             <span>Skill</span>
             <strong>{{ item.skill }}</strong>
           </div>
-
           <div>
+            <i class="fa-regular fa-clock" style="color: #0ea5e9;"></i>
             <span>Duration</span>
-            <strong>{{ item.durationMinutes || 0 }} min</strong>
+            <strong>{{ item.durationMinutes || 0 }}m</strong>
           </div>
-
           <div>
+            <i class="fa-solid fa-star" style="color: #f59e0b;"></i>
             <span>Marks</span>
             <strong>{{ item.totalMarks || 0 }}</strong>
           </div>
-
           <div>
-            <span>{{ item.type === 'ASSESSMENT' ? 'Questions' : 'Tests' }}</span>
+            <i class="fa-solid fa-list-ol" style="color: #8b5cf6;"></i>
+            <span>{{ item.type === 'ASSESSMENT' ? 'Qns' : 'Tests' }}</span>
             <strong>{{ item.questionCount || 0 }}</strong>
           </div>
         </div>
 
-        <button
-          class="attempt-btn"
-          [class.disabled]="!isLeadRequired(item)"
-          [disabled]="!isLeadRequired(item)"
-          (click)="openLeadModal(item)"
-        >
-          {{ isLeadRequired(item) ? 'Attempt Now' : 'Preview Only' }}
+        <button class="attempt-btn" [class.disabled]="!isLeadRequired(item)" [disabled]="!isLeadRequired(item)"
+          (click)="openLeadModal(item)">
+          <span>{{ isLeadRequired(item) ? 'Attempt Now' : 'Premium Lock' }}</span>
+          <i [class]="isLeadRequired(item) ? 'fa-solid fa-arrow-right' : 'fa-solid fa-lock'"></i>
         </button>
         <small class="policy-note" *ngIf="!isLeadRequired(item)">
           {{ accessPolicyMessage(item) }}
@@ -197,699 +241,322 @@
       </article>
     </section>
 
+    <!-- Pagination -->
     <nav class="pagination" *ngIf="totalPages > 1">
       <button type="button" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
-        Previous
+        <i class="fa-solid fa-chevron-left"></i>
       </button>
 
-      <button
-        type="button"
-        *ngFor="let page of pages"
-        [class.active]="page === currentPage"
-        (click)="setPage(page)"
-      >
+      <button type="button" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="setPage(page)">
         {{ page }}
       </button>
 
-      <button
-        type="button"
-        [disabled]="currentPage === totalPages"
-        (click)="setPage(currentPage + 1)"
-      >
-        Next
+      <button type="button" [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">
+        <i class="fa-solid fa-chevron-right"></i>
       </button>
     </nav>
 
+    <!-- Empty State -->
     <section class="empty-state" *ngIf="!filteredItems.length">
-      <h2>No practice items found</h2>
-      <p>Try changing company, skill, type, or search filters.</p>
+      <div class="empty-icon-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+      <h2>No challenges found</h2>
+      <p>Try adjusting your search or filters to find what you're looking for.</p>
     </section>
   </ng-container>
 
+  <!-- ═══════════════════ ASSESSMENT MODE ═══════════════════ -->
   <ng-container *ngIf="!loading && mode === 'ASSESSMENT' && assessment && workspaceUnlocked">
-    <section class="attempt-shell" *ngIf="!assessmentResult">
-      <div class="attempt-head">
-        <button type="button" class="ghost-btn" (click)="backToLibrary()">Back</button>
+    <section class="assessment-shell" *ngIf="!assessmentResult">
+      <header class="assessment-header">
+        <button type="button" class="back-btn" (click)="backToLibrary()">
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </button>
 
-        <div>
-          <span>{{ assessment.company }} Mock Test</span>
+        <div class="assessment-title">
+          <span class="assessment-company-tag">{{ assessment.company }} Mock Test</span>
           <h2>{{ assessment.title }}</h2>
           <p>{{ assessment.description }}</p>
         </div>
 
-        <strong>{{ answeredCount }}/{{ assessment.questions.length }} Answered</strong>
-      </div>
-
-      <div class="attempt-progress">
-        <div>
-          <span>Progress</span>
-          <strong>{{ assessmentProgress }}%</strong>
+        <div class="assessment-progress-card">
+          <div class="progress-info">
+            <span>Progress</span>
+            <strong>{{ assessmentProgress }}%</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="assessmentProgress"></div>
+          </div>
+          <small>{{ answeredCount }}/{{ assessment.questions.length }} Answered</small>
         </div>
-        <i><em [style.width.%]="assessmentProgress"></em></i>
-      </div>
+      </header>
 
-      <div class="attempt-layout">
-        <aside class="question-map">
-          <button
-            type="button"
-            *ngFor="let answer of answers; let i = index"
-            [class.active]="currentQuestionIndex === i"
-            [class.done]="answer.selectedAnswer"
-            (click)="goToQuestion(i)"
-          >
-            {{ i + 1 }}
-          </button>
-        </aside>
-
-        <article class="question-card" *ngIf="currentQuestion as q">
-          <div class="question-top">
-            <span>Question {{ currentQuestionIndex + 1 }}</span>
-            <strong>{{ q.marks }} Marks</strong>
+      <div class="assessment-layout">
+        <aside class="question-sidebar">
+          <h3>Questions</h3>
+          <div class="question-grid-map">
+            <button type="button" *ngFor="let answer of answers; let i = index"
+              [class.active]="currentQuestionIndex === i" [class.answered]="answer.selectedAnswer"
+              (click)="goToQuestion(i)">
+              {{ i + 1 }}
+            </button>
           </div>
 
-          <h3>{{ q.question }}</h3>
+          <div class="question-legend">
+            <span><i class="dot active"></i> Current</span>
+            <span><i class="dot answered"></i> Answered</span>
+            <span><i class="dot"></i> Unanswered</span>
+          </div>
+        </aside>
 
-          <div class="options">
-            <label
-              class="option"
-              *ngFor="let key of optionKeys"
-              [class.selected]="answers[currentQuestionIndex].selectedAnswer === key"
-            >
-              <input
-                type="radio"
-                [name]="'q' + currentQuestionIndex"
-                [value]="key"
-                [(ngModel)]="answers[currentQuestionIndex].selectedAnswer"
-              />
-              <b>{{ key }}</b>
-              <span>{{ getOptionValue(q.options, key) }}</span>
+        <article class="question-main" *ngIf="currentQuestion as q">
+          <div class="question-header">
+            <span class="question-number">Question {{ currentQuestionIndex + 1 }}</span>
+            <span class="question-marks">
+              <i class="fa-solid fa-star"></i>
+              {{ q.marks }} Marks
+            </span>
+          </div>
+
+          <h3 class="question-text">{{ q.question }}</h3>
+
+          <div class="options-grid">
+            <label class="option-card" *ngFor="let key of optionKeys"
+              [class.selected]="answers[currentQuestionIndex].selectedAnswer === key">
+              <input type="radio" [name]="'q' + currentQuestionIndex" [value]="key"
+                [(ngModel)]="answers[currentQuestionIndex].selectedAnswer" />
+              <div class="option-key">{{ key }}</div>
+              <span class="option-text">{{ getOptionValue(q.options, key) }}</span>
+              <i class="fa-solid fa-circle-check option-check"></i>
             </label>
           </div>
 
-          <div class="question-actions">
-            <button type="button" class="ghost-btn" (click)="clearAnswer()">Clear</button>
-            <button type="button" class="ghost-btn" (click)="goToNextUnanswered()">
-              Next Unanswered
-            </button>
-            <button
-              type="button"
-              class="ghost-btn"
-              [disabled]="currentQuestionIndex === 0"
-              (click)="goPrevious()"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              class="ghost-btn"
-              [disabled]="currentQuestionIndex === assessment.questions.length - 1"
-              (click)="goNext()"
-            >
-              Next
-            </button>
-            <button
-              type="button"
-              class="primary-btn"
-              [disabled]="submitting"
-              (click)="submitAssessment()"
-            >
-              {{ submitting ? 'Submitting...' : 'Submit Test' }}
-            </button>
+          <div class="question-nav-bar">
+            <div class="question-nav-left">
+              <button type="button" class="btn-ghost" (click)="clearAnswer()">
+                <i class="fa-solid fa-eraser"></i> Clear
+              </button>
+              <button type="button" class="btn-ghost" (click)="goToNextUnanswered()">
+                <i class="fa-solid fa-forward"></i> Next Unanswered
+              </button>
+            </div>
+
+            <div class="question-nav-right">
+              <button type="button" class="btn-ghost" [disabled]="currentQuestionIndex === 0" (click)="goPrevious()">
+                <i class="fa-solid fa-chevron-left"></i> Previous
+              </button>
+              <button type="button" class="btn-ghost"
+                [disabled]="currentQuestionIndex === assessment.questions.length - 1" (click)="goNext()">
+                Next <i class="fa-solid fa-chevron-right"></i>
+              </button>
+              <button type="button" class="btn-submit" [disabled]="submitting" (click)="submitAssessment()">
+                <i class="fa-solid fa-paper-plane"></i>
+                {{ submitting ? 'Submitting...' : 'Submit Test' }}
+              </button>
+            </div>
           </div>
         </article>
       </div>
     </section>
 
+    <!-- Assessment Result -->
     <section class="result-shell" *ngIf="assessmentResult">
-      <div class="result-hero" [ngClass]="getScoreClass(assessmentResult.status)">
+      <div class="result-hero-card" [ngClass]="getScoreClass(assessmentResult.status)">
+        <div class="result-badge">
+          <i [class]="assessmentResult.status === 'PASS' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+        </div>
         <span>Mock Test Completed</span>
-        <h2>{{ assessmentResult.status === 'PASS' ? 'You Passed' : 'Keep Practicing' }}</h2>
-        <strong>{{ assessmentResult.percentage }}%</strong>
+        <h2>{{ assessmentResult.status === 'PASS' ? 'You Passed!' : 'Keep Practicing' }}</h2>
+        <strong class="result-percentage">{{ assessmentResult.percentage }}%</strong>
         <p>{{ assessmentResult.score }}/{{ assessmentResult.totalMarks }} Marks</p>
       </div>
 
       <div class="review-list">
-        <article
-          class="review-card"
-          *ngFor="let item of assessmentResult.questionResults; let i = index"
-          [class.correct]="item.isCorrect"
-        >
-          <div class="review-top">
+        <article class="review-card" *ngFor="let item of assessmentResult.questionResults; let i = index"
+          [class.correct]="item.isCorrect" [class.wrong]="!item.isCorrect">
+          <div class="review-header">
             <strong>Q{{ i + 1 }}. {{ item.question }}</strong>
-            <span>{{ item.marksObtained }}/{{ item.marks }}</span>
+            <span class="review-score">{{ item.marksObtained }}/{{ item.marks }}</span>
           </div>
 
-          <p>Your Answer: {{ item.selectedAnswer || 'Not Answered' }}</p>
-          <p>Correct Answer: {{ item.correctAnswer }}</p>
-          <small>{{ item.explanation || 'No explanation available.' }}</small>
+          <div class="review-answers">
+            <p>
+              <span>Your Answer:</span>
+              <b>{{ item.selectedAnswer || 'Not Answered' }}</b>
+            </p>
+            <p>
+              <span>Correct Answer:</span>
+              <b>{{ item.correctAnswer }}</b>
+            </p>
+          </div>
+          <small class="review-explanation">{{ item.explanation || 'No explanation available.' }}</small>
         </article>
       </div>
 
-      <button type="button" class="primary-btn" (click)="backToLibrary()">
+      <button type="button" class="btn-primary-glow" (click)="backToLibrary()">
+        <i class="fa-solid fa-arrow-rotate-left"></i>
         Explore More Tests
       </button>
     </section>
   </ng-container>
 
-  <section
-    class="workspace-locked-state"
-    *ngIf="!loading && mode === 'ASSESSMENT' && assessment && !workspaceUnlocked && !showLeadModal"
-  >
-    <div class="lock-mark">VT</div>
+  <!-- Assessment Locked -->
+  <section class="workspace-locked"
+    *ngIf="!loading && mode === 'ASSESSMENT' && assessment && !workspaceUnlocked && !showLeadModal">
+    <div class="lock-icon-ring">
+      <i class="fa-solid fa-lock"></i>
+    </div>
     <span>Registration Required</span>
     <h2>Unlock {{ assessment.company }} Mock Test</h2>
     <p>
       Complete the registration form to access questions, submit your answers, and receive your
       instant score report.
     </p>
-
-    <button
-      type="button"
-      class="primary-btn"
-      (click)="requestWorkspaceAccess('Please register to start this mock test')"
-    >
-      Register to Start Test
+    <button type="button" class="btn-primary-glow"
+      (click)="requestWorkspaceAccess('Please register to start this mock test')">
+      <i class="fa-solid fa-key"></i> Register to Start Test
     </button>
   </section>
 
+  <!-- ═══════════════════ CHALLENGE MODE ═══════════════════ -->
   <ng-container *ngIf="!loading && mode === 'CHALLENGE' && challenge && workspaceUnlocked">
-    <section class="premium-challenge-shell">
-      <header class="challenge-command-center">
-        <button type="button" class="challenge-back-btn" (click)="backToLibrary()">
-          <span>←</span>
-          Back
+    <section class="challenge-workspace">
+      <!-- Challenge Command Bar -->
+      <header class="challenge-command-bar">
+        <button type="button" class="back-btn" (click)="backToLibrary()">
+          <i class="fa-solid fa-arrow-left"></i> Back
         </button>
 
-        <div class="challenge-title-block">
+        <div class="challenge-title-area">
           <div class="challenge-kicker">
             <span>{{ challenge.company || 'General' }}</span>
             <b>Coding Challenge</b>
           </div>
-
           <h1>{{ challenge.title }}</h1>
         </div>
 
-        <div class="challenge-score-card">
-          <span>Total Marks</span>
-          <strong>{{ challenge.totalMarks }}</strong>
+        <div class="challenge-meta-pills">
+          <span class="difficulty-pill" [attr.data-level]="getChallengeDifficulty(challenge.totalMarks)">
+            {{ getChallengeDifficulty(challenge.totalMarks) }}
+          </span>
+          <span class="marks-pill">
+            <i class="fa-solid fa-star"></i>
+            {{ challenge.totalMarks }} pts
+          </span>
+          <span class="duration-pill">
+            <i class="fa-regular fa-clock"></i>
+            {{ challenge.durationMinutes || '-' }} min
+          </span>
         </div>
       </header>
 
-      <div class="challenge-workbench">
-        <aside class="challenge-problem-panel">
-          <div class="panel-title-row">
-            <div>
-              <span>Problem Pack</span>
-              <h2>Formats & Rules</h2>
-            </div>
+      <!-- Dual Pane Workbench -->
+      <div class="workbench">
+        <!-- ══════ LEFT PANE ══════ -->
+        <aside class="left-pane">
+          <nav class="pane-tabs">
+            <button type="button" [class.active]="leftTab === 'problem'" (click)="switchLeftTab('problem')">
+              <i class="fa-solid fa-file-lines"></i> Problem
+            </button>
+            <button type="button" [class.active]="leftTab === 'submissions'" (click)="switchLeftTab('submissions')">
+              <i class="fa-solid fa-code"></i> Submissions
+            </button>
+            <button type="button" [class.active]="leftTab === 'discussions'" (click)="switchLeftTab('discussions')">
+              <i class="fa-solid fa-comments"></i> Discussion
+            </button>
+          </nav>
 
-            <b>{{ challenge.durationMinutes || '-' }} min</b>
-          </div>
+          <!-- Problem Tab -->
+          <div class="pane-content" *ngIf="leftTab === 'problem'">
+            <section class="problem-section">
+              <h3>
+                <i class="fa-solid fa-align-left"></i>
+                Problem Statement
+              </h3>
+              <p>{{ challenge.problemStatement || 'No problem statement provided.' }}</p>
+            </section>
 
-          <section class="challenge-statement-card">
-            <div class="statement-head">
-              <div>
-                <span>Problem Statement</span>
-                <strong>Read the challenge carefully</strong>
-              </div>
-              <b>Task</b>
-            </div>
+            <section class="problem-section">
+              <h3>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                Input Format
+              </h3>
+              <pre>{{ challenge.inputFormat || 'No input format provided.' }}</pre>
+            </section>
 
-            <p>{{ challenge.problemStatement || 'No problem statement provided.' }}</p>
-          </section>
+            <section class="problem-section">
+              <h3>
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Output Format
+              </h3>
+              <pre>{{ challenge.outputFormat || 'No output format provided.' }}</pre>
+            </section>
 
-          <section class="challenge-info-card">
-            <div class="info-head">
-              <span>Input Format</span>
-            </div>
-            <pre>{{ challenge.inputFormat || 'No input format provided.' }}</pre>
-          </section>
+            <section class="problem-section">
+              <h3>
+                <i class="fa-solid fa-sliders"></i>
+                Constraints
+              </h3>
+              <pre>{{ challenge.constraintsText || 'No constraints provided.' }}</pre>
+            </section>
 
-          <section class="challenge-info-card">
-            <div class="info-head">
-              <span>Output Format</span>
-            </div>
-            <pre>{{ challenge.outputFormat || 'No output format provided.' }}</pre>
-          </section>
-
-          <section class="challenge-info-card constraints-card">
-            <div class="info-head">
-              <span>Constraints</span>
-            </div>
-            <pre>{{ challenge.constraintsText || 'No constraints provided.' }}</pre>
-          </section>
-
-          <section class="challenge-hint-card">
-            <div class="hint-top">
-              <div>
-                <span>Smart Hint</span>
-                <strong>Unlock guidance</strong>
-              </div>
-
-              <button type="button" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
-                {{ hintButtonLabel }}
-              </button>
-            </div>
-
-            <p *ngIf="!hintUnlocked">
-              Hint unlocks after the timer. Try reading formats and samples first.
-            </p>
-
-            <ol *ngIf="hintUnlocked && showHintPanel && hintSteps.length">
-              <li *ngFor="let step of hintSteps">{{ step }}</li>
-            </ol>
-
-            <p *ngIf="hintUnlocked && showHintPanel && !hintSteps.length">
-              No hint added for this challenge.
-            </p>
-          </section>
-        </aside>
-
-        <main class="challenge-editor-panel">
-          <div class="editor-frame">
-            <div class="editor-topbar-premium">
-              <div>
-                <span>Solution Editor</span>
-                <strong>{{ language }}</strong>
-              </div>
-
-              <div class="editor-status">
-                <b *ngIf="hasUnsavedChanges">Saving draft...</b>
-                <b class="saved" *ngIf="!hasUnsavedChanges && draftSavedAt">
-                  Saved {{ draftSavedAt }}
-                </b>
-              </div>
-            </div>
-
-            <div class="editor-toolbar-premium">
-              <select [(ngModel)]="language" (ngModelChange)="onLanguageChange()">
-                <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
-              </select>
-
-              <div class="editor-actions-premium">
-                <button type="button" class="soft-action danger" (click)="clearCode()">
-                  <i class="fas fa-trash-alt"></i>
-                  Clear
-                </button>
-
-                <button type="button" class="soft-action" (click)="resetCode()">
-                  <i class="fas fa-undo"></i>
-                  Reset
-                </button>
-
-                <button
-                  type="button"
-                  class="run-action"
-                  [disabled]="submitting || !!editorSecurityWarning"
-                  (click)="runChallenge()"
-                >
-                  <i class="fas fa-play"></i>
-                  {{ submitting ? 'Running...' : 'Run' }}
+            <!-- Hint Card -->
+            <section class="hint-section">
+              <div class="hint-header">
+                <div>
+                  <i class="fa-solid fa-lightbulb"></i>
+                  <span>Smart Hint</span>
+                </div>
+                <button type="button" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
+                  {{ hintButtonLabel }}
                 </button>
               </div>
-            </div>
 
-            <div class="editor-security-strip" [class.danger]="editorSecurityWarning">
-              <div>
-                <i
-                  class="fa-solid"
-                  [ngClass]="editorSecurityWarning ? 'fa-shield-halved' : 'fa-lock'"
-                ></i>
-                <span>
-                  {{
-                    editorSecurityWarning
-                      ? editorSecurityWarning
-                      : 'Secure editor: file, network, process, reflection, and unsafe APIs are blocked.'
-                  }}
-                </span>
-              </div>
+              <p *ngIf="!hintUnlocked">
+                Hint unlocks after the timer. Try reading formats and samples first.
+              </p>
 
-              <small
-                >{{ sourceCharCount }}/{{ maxSourceChars }} chars • {{ sourceLineCount }}/{{
-                  maxSourceLines
-                }}
-                lines</small
-              >
-            </div>
+              <ol *ngIf="hintUnlocked && showHintPanel && hintSteps.length">
+                <li *ngFor="let step of hintSteps">{{ step }}</li>
+              </ol>
 
-            <div class="editor-validation-panel" *ngIf="editorValidationErrors.length">
-              <div class="editor-validation-head">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <strong>Fix before running</strong>
-              </div>
+              <p *ngIf="hintUnlocked && showHintPanel && !hintSteps.length">
+                No hint added for this challenge.
+              </p>
+            </section>
 
-              <ul>
-                <li *ngFor="let error of editorValidationErrors">{{ error }}</li>
-              </ul>
-            </div>
-
-            <div class="editor-error-premium" *ngIf="editorError">
-              {{ editorError }}
-            </div>
-
-            <textarea
-              class="premium-code-editor"
-              [(ngModel)]="sourceCode"
-              (ngModelChange)="onCodeChange()"
-              (keydown)="handleCodeEditorKeydown($event)"
-              spellcheck="false"
-              autocomplete="off"
-              autocapitalize="off"
-              autocorrect="off"
-            ></textarea>
-          </div>
-        </main>
-      </div>
-
-      <section class="challenge-test-console">
-        <div class="console-panel samples-console">
-          <div class="console-head">
-            <div>
-              <span>Sample Test Cases</span>
-              <strong>Visible trainer samples</strong>
-            </div>
-
-            <b>{{ visibleSampleTestCases.length }}</b>
-          </div>
-
-          <div class="compact-test-grid" *ngIf="visibleSampleTestCases.length; else noSamples">
-            <article
-              class="compact-test-card"
-              *ngFor="let tc of visibleSampleTestCases; let i = index"
-            >
-              <header>
-                <strong>Sample {{ i + 1 }}</strong>
-                <span>{{ tc.marks || 0 }}M</span>
-              </header>
-
-              <label>Input</label>
-              <pre>{{ tc.inputData }}</pre>
-
-              <label>Expected</label>
-              <pre>{{ tc.expectedOutput }}</pre>
-            </article>
-          </div>
-
-          <ng-template #noSamples>
-            <div class="console-empty">No visible samples. Hidden tests will run after submit.</div>
-          </ng-template>
-        </div>
-
-        <div class="console-panel results-console">
-          <div class="console-head results-head-premium">
-            <div>
-              <span>Results & Output</span>
-              <strong>Evaluated test cases</strong>
-            </div>
-
-            <div class="inline-score-card" *ngIf="challengeResult">
-              <span [class.pass]="challengeResult.status === 'PASS'">
-                {{ challengeResult.status }}
-              </span>
-              <strong>{{ challengeResult.percentage }}%</strong>
-              <small>{{ challengeResult.score }}/{{ challengeResult.totalMarks }} marks</small>
-            </div>
-          </div>
-
-          <div class="compiler-strip" *ngIf="challengeResult?.compileError">
-            {{ challengeResult.compileError }}
-          </div>
-
-          <div class="result-tests-wrap" *ngIf="resultTestCases.length; else noResults">
-            <div class="compact-test-grid result-visible-grid">
-              <article
-                class="compact-test-card result-card"
-                *ngFor="let item of visibleResultCards; let i = index"
-                [class.pass]="item.status === 'PASS'"
-                [class.fail]="item.status !== 'PASS'"
-              >
+            <!-- Sample Test Cases (in problem tab) -->
+            <section class="sample-cases-section" *ngIf="visibleSampleTestCases.length">
+              <h3>
+                <i class="fa-solid fa-flask"></i>
+                Sample Test Cases
+              </h3>
+              <div class="sample-case-card" *ngFor="let tc of visibleSampleTestCases; let i = index">
                 <header>
-                  <strong>Test {{ i + 1 }}</strong>
-                  <span>{{ item.status }}</span>
+                  <strong>Sample {{ i + 1 }}</strong>
+                  <span>{{ tc.marks || 0 }}M</span>
                 </header>
-
-                <label>Input</label>
-                <pre>{{ item.inputData }}</pre>
-
-                <label>Your Output</label>
-                <pre>{{ item.actualOutput || '-' }}</pre>
-
-                <small *ngIf="item.errorMessage">{{ item.errorMessage }}</small>
-              </article>
-            </div>
-
-            <div class="hidden-test-strip" *ngIf="hiddenResultPills.length">
-              <article
-                class="hidden-test-pill"
-                *ngFor="let item of hiddenResultPills; let i = index"
-                [class.pass]="item.status === 'PASS'"
-                [class.fail]="item.status !== 'PASS'"
-              >
-                <b>Test {{ i + 4 }}</b>
-                <span>{{ hiddenTestStatusIcon(item) }}</span>
-                <strong>{{ item.status }}</strong>
-              </article>
-            </div>
-          </div>
-
-          <ng-template #noResults>
-            <div class="console-empty">Submit code to view output test cases.</div>
-          </ng-template>
-        </div>
-      </section>
-
-      <section class="challenge-community-console">
-        <div class="community-panel discussion-panel" (click)="closeDiscussionMenu()">
-          <div class="community-head">
-            <div>
-              <span>Discussions</span>
-              <strong>Talk about this coding challenge</strong>
-            </div>
-
-            <b>{{ challengeDiscussions.length }}</b>
-          </div>
-
-          <div class="discussion-composer">
-            <textarea
-              [(ngModel)]="discussionText"
-              maxlength="1200"
-              placeholder="Share an idea, edge case, approach, or doubt about this challenge..."
-            ></textarea>
-
-            <div>
-              <small>{{ discussionText.length }}/1200</small>
-              <button
-                type="button"
-                [disabled]="discussionPosting"
-                (click)="postChallengeDiscussion()"
-              >
-                {{ discussionPosting ? 'Posting...' : 'Post Comment' }}
-              </button>
-            </div>
-          </div>
-
-          <div class="community-loading" *ngIf="discussionLoading">Loading discussions...</div>
-
-          <div
-            class="discussion-list premium-discussions"
-            *ngIf="!discussionLoading && challengeDiscussions.length"
-          >
-            <article
-              class="discussion-card premium-thread"
-              *ngFor="let item of challengeDiscussions"
-            >
-              <ng-container *ngIf="discussionAvatarUrl(item); else threadInitial">
-                <img
-                  class="thread-avatar discussion-avatar-img"
-                  [src]="discussionAvatarUrl(item)"
-                  [alt]="item.authorName || 'Learner'"
-                  referrerpolicy="no-referrer"
-                  (error)="markDiscussionAvatarFailed(item)"
-                />
-              </ng-container>
-
-              <ng-template #threadInitial>
-                <div class="thread-avatar">
-                  <span>{{ discussionInitial(item) }}</span>
+                <div class="case-io">
+                  <label>Input</label>
+                  <pre>{{ tc.inputData }}</pre>
                 </div>
-              </ng-template>
-
-              <div class="thread-content">
-                <div class="thread-top">
-                  <div>
-                    <strong>{{ item.authorName || 'Learner' }}</strong>
-                    <span>{{ formatDiscussionTime(item.createdAt) }}</span>
-                  </div>
-
-                  <div class="discussion-menu-wrap" (click)="$event.stopPropagation()">
-                    <button
-                      type="button"
-                      class="thread-more-btn"
-                      (click)="toggleDiscussionMenu(item)"
-                    >
-                      <i class="fa-solid fa-ellipsis"></i>
-                    </button>
-
-                    <div
-                      class="discussion-menu premium-menu"
-                      *ngIf="activeDiscussionMenuId === item.id"
-                    >
-                      <button
-                        type="button"
-                        (click)="reportDiscussion(item)"
-                        [disabled]="reportingDiscussionIds[item.id]"
-                      >
-                        <i class="fa-regular fa-flag"></i>
-                        <span>{{
-                          reportingDiscussionIds[item.id] ? 'Reporting...' : 'Report comment'
-                        }}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        (click)="blockDiscussionAuthor(item)"
-                        [disabled]="blockingDiscussionIds[item.id]"
-                      >
-                        <i class="fa-solid fa-user-slash"></i>
-                        <span>{{
-                          blockingDiscussionIds[item.id]
-                            ? 'Blocking...'
-                            : 'Block @' + (item.authorName || 'user')
-                        }}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <p class="thread-text">{{ item.comment }}</p>
-
-                <div class="thread-actions">
-                  <button
-                    type="button"
-                    class="thread-action like"
-                    [class.active]="item.likedByMe"
-                    (click)="toggleDiscussionLike(item)"
-                  >
-                    <i class="fa-solid fa-star"></i>
-                    <span>{{ item.likeCount || 0 }}</span>
-                  </button>
-
-                  <button type="button" class="thread-action" (click)="startDiscussionReply(item)">
-                    <i class="fa-regular fa-message"></i>
-                    <span>{{ item.replyCount || 0 }} Replies</span>
-                  </button>
-
-                  <button type="button" class="thread-action" (click)="startDiscussionReply(item)">
-                    <i class="fa-solid fa-reply"></i>
-                    <span>Reply</span>
-                  </button>
-
-                  <button type="button" class="thread-action" (click)="shareDiscussion(item)">
-                    <i class="fa-solid fa-share-nodes"></i>
-                    <span>Share</span>
-                  </button>
-                </div>
-
-                <div class="premium-reply-box" *ngIf="replyingToDiscussionId === item.id">
-                  <textarea
-                    [(ngModel)]="discussionReplyText"
-                    maxlength="1200"
-                    placeholder="Write a thoughtful reply..."
-                  ></textarea>
-
-                  <div class="reply-footer">
-                    <small>{{ discussionReplyText.length }}/1200</small>
-                    <button type="button" class="reply-cancel" (click)="cancelDiscussionReply()">
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      class="reply-send"
-                      [disabled]="discussionPosting"
-                      (click)="postDiscussionReply(item)"
-                    >
-                      {{ discussionPosting ? 'Posting...' : 'Post Reply' }}
-                    </button>
-                  </div>
-                </div>
-
-                <div class="premium-replies" *ngIf="item.replies?.length">
-                  <article class="premium-reply" *ngFor="let reply of item.replies">
-                    <ng-container *ngIf="discussionAvatarUrl(reply); else replyInitial">
-                      <img
-                        class="reply-avatar reply-avatar-img"
-                        [src]="discussionAvatarUrl(reply)"
-                        [alt]="reply.authorName || 'Learner'"
-                        referrerpolicy="no-referrer"
-                        (error)="markDiscussionAvatarFailed(reply)"
-                      />
-                    </ng-container>
-
-                    <ng-template #replyInitial>
-                      <div class="reply-avatar">
-                        {{ discussionInitial(reply) }}
-                      </div>
-                    </ng-template>
-
-                    <div class="reply-content">
-                      <div class="reply-top">
-                        <strong>{{ reply.authorName || 'Learner' }}</strong>
-                        <span>{{ formatDiscussionTime(reply.createdAt) }}</span>
-                      </div>
-
-                      <p>{{ reply.comment }}</p>
-
-                      <div class="thread-actions compact">
-                        <button
-                          type="button"
-                          class="thread-action like"
-                          [class.active]="reply.likedByMe"
-                          (click)="toggleDiscussionLike(reply)"
-                        >
-                          <i class="fa-solid fa-star"></i>
-                          <span>{{ reply.likeCount || 0 }}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          class="thread-action"
-                          (click)="shareDiscussion(reply)"
-                        >
-                          <i class="fa-solid fa-share-nodes"></i>
-                          <span>Share</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          class="thread-action danger"
-                          (click)="reportDiscussion(reply)"
-                        >
-                          <i class="fa-regular fa-flag"></i>
-                          <span>Report</span>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
+                <div class="case-io">
+                  <label>Expected Output</label>
+                  <pre>{{ tc.expectedOutput }}</pre>
                 </div>
               </div>
-            </article>
+            </section>
           </div>
 
-          <div class="community-empty" *ngIf="!discussionLoading && !challengeDiscussions.length">
-            No comments yet. Start the first discussion for this challenge.
-          </div>
-        </div>
-
-        <div class="community-panel submissions-panel">
-          <div class="community-head">
-            <div class="premium-best-lock" *ngIf="!planAccessLoading && !canViewBestAnswers()">
-              <div class="best-lock-glow"></div>
-
+          <!-- Submissions Tab -->
+          <div class="pane-content" *ngIf="leftTab === 'submissions'">
+            <!-- Locked State -->
+            <div class="best-lock-card" *ngIf="!planAccessLoading && !canViewBestAnswers()">
               <div class="best-lock-icon">
                 <i class="fa-solid fa-lock"></i>
               </div>
-
-              <div class="best-lock-copy">
+              <div class="best-lock-info">
                 <span>Premium Access</span>
                 <strong>Best Answers Locked</strong>
                 <p>
@@ -897,278 +564,583 @@
                   from top learners.
                 </p>
               </div>
-
               <div class="best-lock-features">
                 <span><i class="fa-solid fa-code"></i> Answer code</span>
                 <span><i class="fa-solid fa-star"></i> 80%+ submissions</span>
                 <span><i class="fa-solid fa-crown"></i> Any active plan</span>
               </div>
-
-              <a routerLink="/pricing-plans" class="best-lock-action">
+              <a routerLink="/pricing-plans" class="best-lock-btn">
                 <span>Unlock with Any Plan</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </a>
             </div>
+
+            <!-- Loading -->
+            <div class="pane-loading" *ngIf="canViewBestAnswers() && submissionsLoading">
+              <div class="loader-spinner"></div>
+              <span>Loading submissions...</span>
+            </div>
+
+            <!-- Submission List -->
+            <div class="submission-list"
+              *ngIf="canViewBestAnswers() && !submissionsLoading && challengeSubmissions.length">
+              <article class="submission-card" *ngFor="let row of challengeSubmissions; let i = index"
+                [class.expanded]="isSubmissionExpanded(row)">
+                <button type="button" class="submission-header" (click)="toggleSubmissionAnswer(row)">
+                  <div class="submission-rank">#{{ row.rank || i + 1 }}</div>
+                  <div class="submission-info">
+                    <strong>{{ row.name || 'Participant' }}</strong>
+                    <span>{{ row.language || 'Code' }} • {{ row.percentage || 0 }}%</span>
+                  </div>
+                  <div class="submission-score">
+                    <strong>{{ row.score || 0 }}</strong>
+                    <small>/ {{ row.totalMarks || challenge.totalMarks || 0 }}</small>
+                  </div>
+                  <i class="fa-solid fa-chevron-down submission-chevron"></i>
+                </button>
+
+                <div class="submission-code-block" *ngIf="isSubmissionExpanded(row)">
+                  <div class="submission-code-head">
+                    <span>Submitted Answer</span>
+                    <strong>{{ row.language || 'CODE' }}</strong>
+                  </div>
+                  <pre>{{ row.sourceCode || 'Source code is not available.' }}</pre>
+                </div>
+              </article>
+            </div>
+
+            <!-- Empty -->
+            <div class="pane-empty" *ngIf="canViewBestAnswers() && !submissionsLoading && !challengeSubmissions.length">
+              <i class="fa-solid fa-inbox"></i>
+              <span>No best answers yet. Submissions with 80% or above will appear here.</span>
+            </div>
           </div>
 
-          <div class="community-loading" *ngIf="canViewBestAnswers() && submissionsLoading">
-            Loading submissions...
-          </div>
-          <div
-            class="submission-list"
-            *ngIf="canViewBestAnswers() && !submissionsLoading && challengeSubmissions.length"
-          >
-            <article
-              class="submission-card best-answer-card"
-              *ngFor="let row of challengeSubmissions; let i = index"
-              [class.expanded]="isSubmissionExpanded(row)"
-            >
-              <button
-                type="button"
-                class="submission-summary"
-                (click)="toggleSubmissionAnswer(row)"
-              >
-                <div class="submission-rank">#{{ row.rank || i + 1 }}</div>
-
-                <div>
-                  <strong>{{ row.name || 'Participant' }}</strong>
-                  <span>
-                    Best Answer • {{ row.language || 'Code' }} • {{ row.percentage || 0 }}%
-                  </span>
-                </div>
-
-                <div class="submission-score">
-                  <strong>{{ row.score || 0 }}</strong>
-                  <small>/ {{ row.totalMarks || challenge.totalMarks || 0 }}</small>
-                </div>
-              </button>
-
-              <div class="best-answer-code" *ngIf="isSubmissionExpanded(row)">
-                <div class="best-answer-code-head">
-                  <span>Submitted Answer</span>
-                  <strong>{{ row.language || 'CODE' }}</strong>
-                </div>
-
-                <pre>{{ row.sourceCode || 'Source code is not available.' }}</pre>
+          <!-- Discussion Tab -->
+          <div class="pane-content" *ngIf="leftTab === 'discussions'" (click)="closeDiscussionMenu()">
+            <div class="discussion-composer">
+              <textarea [(ngModel)]="discussionText" maxlength="9999"
+                placeholder="Share an idea, edge case, approach, or doubt..."></textarea>
+              <div class="composer-footer">
+                <small>{{ discussionText.length }}/9999</small>
+                <button type="button" [disabled]="discussionPosting" (click)="postChallengeDiscussion()">
+                  <i class="fa-solid fa-paper-plane"></i>
+                  {{ discussionPosting ? 'Posting...' : 'Post' }}
+                </button>
               </div>
-            </article>
+            </div>
+
+            <div class="pane-loading" *ngIf="discussionLoading">
+              <div class="loader-spinner"></div>
+              <span>Loading discussions...</span>
+            </div>
+
+            <div class="discussion-list" *ngIf="!discussionLoading && challengeDiscussions.length">
+              <article class="discussion-card" *ngFor="let item of challengeDiscussions">
+                <ng-container *ngIf="discussionAvatarUrl(item); else threadInitial">
+                  <img class="disc-avatar disc-avatar-img" [src]="discussionAvatarUrl(item)"
+                    [alt]="item.authorName || 'Learner'" referrerpolicy="no-referrer"
+                    (error)="markDiscussionAvatarFailed(item)" />
+                </ng-container>
+
+                <ng-template #threadInitial>
+                  <div class="disc-avatar">
+                    <span>{{ discussionInitial(item) }}</span>
+                  </div>
+                </ng-template>
+
+                <div class="disc-body">
+                  <div class="disc-top">
+                    <div>
+                      <strong>{{ item.authorName || 'Learner' }}</strong>
+                      <span>{{ formatDiscussionTime(item.createdAt) }}</span>
+                    </div>
+
+                    <div class="disc-menu-wrap" (click)="$event.stopPropagation()">
+                      <button type="button" class="disc-menu-btn" (click)="toggleDiscussionMenu(item)">
+                        <i class="fa-solid fa-ellipsis"></i>
+                      </button>
+
+                      <div class="disc-menu" *ngIf="activeDiscussionMenuId === item.id">
+                        <button type="button" (click)="reportDiscussion(item)"
+                          [disabled]="reportingDiscussionIds[item.id]">
+                          <i class="fa-regular fa-flag"></i>
+                          {{ reportingDiscussionIds[item.id] ? 'Reporting...' : 'Report' }}
+                        </button>
+                        <button type="button" (click)="blockDiscussionAuthor(item)"
+                          [disabled]="blockingDiscussionIds[item.id]">
+                          <i class="fa-solid fa-user-slash"></i>
+                          {{ blockingDiscussionIds[item.id] ? 'Blocking...' : 'Block' }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="disc-text">{{ item.comment }}</p>
+
+                  <div class="disc-actions">
+                    <button type="button" [class.active]="item.likedByMe" (click)="toggleDiscussionLike(item)">
+                      <i class="fa-solid fa-star"></i>
+                      {{ item.likeCount || 0 }}
+                    </button>
+                    <button type="button" (click)="startDiscussionReply(item)">
+                      <i class="fa-regular fa-message"></i>
+                      {{ item.replyCount || 0 }}
+                    </button>
+                    <button type="button" (click)="startDiscussionReply(item)">
+                      <i class="fa-solid fa-reply"></i> Reply
+                    </button>
+                    <button type="button" (click)="shareDiscussion(item)">
+                      <i class="fa-solid fa-share-nodes"></i> Share
+                    </button>
+                  </div>
+
+                  <!-- Reply Composer -->
+                  <div class="reply-composer" *ngIf="replyingToDiscussionId === item.id">
+                    <textarea [(ngModel)]="discussionReplyText" maxlength="1200"
+                      placeholder="Write a thoughtful reply..."></textarea>
+                    <div class="reply-composer-footer">
+                      <small>{{ discussionReplyText.length }}/1200</small>
+                      <button type="button" class="reply-cancel-btn" (click)="cancelDiscussionReply()">
+                        Cancel
+                      </button>
+                      <button type="button" class="reply-send-btn" [disabled]="discussionPosting"
+                        (click)="postDiscussionReply(item)">
+                        {{ discussionPosting ? 'Posting...' : 'Reply' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Replies -->
+                  <div class="reply-thread" *ngIf="item.replies?.length">
+                    <article class="reply-card" *ngFor="let reply of item.replies">
+                      <ng-container *ngIf="discussionAvatarUrl(reply); else replyInit">
+                        <img class="disc-avatar disc-avatar-img reply-size" [src]="discussionAvatarUrl(reply)"
+                          [alt]="reply.authorName || 'Learner'" referrerpolicy="no-referrer"
+                          (error)="markDiscussionAvatarFailed(reply)" />
+                      </ng-container>
+                      <ng-template #replyInit>
+                        <div class="disc-avatar reply-size">
+                          {{ discussionInitial(reply) }}
+                        </div>
+                      </ng-template>
+
+                      <div class="reply-body">
+                        <div class="reply-top">
+                          <strong>{{ reply.authorName || 'Learner' }}</strong>
+                          <span>{{ formatDiscussionTime(reply.createdAt) }}</span>
+                        </div>
+                        <p>{{ reply.comment }}</p>
+                        <div class="disc-actions compact">
+                          <button type="button" [class.active]="reply.likedByMe" (click)="toggleDiscussionLike(reply)">
+                            <i class="fa-solid fa-star"></i>
+                            {{ reply.likeCount || 0 }}
+                          </button>
+                          <button type="button" (click)="shareDiscussion(reply)">
+                            <i class="fa-solid fa-share-nodes"></i>
+                          </button>
+                          <button type="button" class="danger-btn" (click)="reportDiscussion(reply)">
+                            <i class="fa-regular fa-flag"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="pane-empty" *ngIf="!discussionLoading && !challengeDiscussions.length">
+              <i class="fa-regular fa-comment-dots"></i>
+              <span>No comments yet. Start the first discussion.</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ══════ RIGHT PANE ══════ -->
+        <main class="right-pane">
+          <!-- Editor Area -->
+          <div class="editor-container">
+            <div class="editor-topbar">
+              <div class="editor-topbar-left">
+                <i class="fa-solid fa-terminal"></i>
+                <span>Solution Editor</span>
+                <strong>{{ language }}</strong>
+              </div>
+
+              <div class="editor-topbar-right">
+                <b *ngIf="hasUnsavedChanges" class="draft-saving">Saving draft...</b>
+                <b class="draft-saved" *ngIf="!hasUnsavedChanges && draftSavedAt">
+                  <i class="fa-solid fa-circle-check"></i> Saved {{ draftSavedAt }}
+                </b>
+              </div>
+            </div>
+
+            <div class="editor-toolbar">
+              <select [(ngModel)]="language" (ngModelChange)="onLanguageChange()">
+                <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+              </select>
+
+              <div class="editor-tool-actions">
+                <button type="button" class="tool-btn danger" (click)="clearCode()">
+                  <i class="fa-solid fa-trash-can"></i> Clear
+                </button>
+                <button type="button" class="tool-btn" (click)="resetCode()">
+                  <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button type="button" class="run-btn" [disabled]="submitting || !!editorSecurityWarning"
+                  (click)="runChallenge()">
+                  <i class="fa-solid fa-play"></i>
+                  {{ submitting ? 'Running...' : 'Run Code' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Security Strip -->
+            <div class="security-strip" [class.danger]="editorSecurityWarning">
+              <div>
+                <i class="fa-solid" [ngClass]="editorSecurityWarning ? 'fa-shield-halved' : 'fa-lock'"></i>
+                <span>
+                  {{
+                  editorSecurityWarning
+                  ? editorSecurityWarning
+                  : 'Secure editor: file, network, process, reflection, and unsafe APIs are blocked.'
+                  }}
+                </span>
+              </div>
+              <small>{{ sourceCharCount }}/{{ maxSourceChars }} chars • {{ sourceLineCount }}/{{ maxSourceLines }}
+                lines</small>
+            </div>
+
+            <!-- Validation Panel -->
+            <div class="validation-panel" *ngIf="editorValidationErrors.length">
+              <div class="validation-head">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <strong>Fix before running</strong>
+              </div>
+              <ul>
+                <li *ngFor="let error of editorValidationErrors">{{ error }}</li>
+              </ul>
+            </div>
+
+            <!-- Compiler Error -->
+            <div class="compiler-error-bar" *ngIf="editorError">
+              <i class="fa-solid fa-bug"></i>
+              {{ editorError }}
+            </div>
+
+            <!-- Running Overlay with Wave Animation and Blur -->
+            <div class="editor-running-overlay" *ngIf="submitting">
+              <div class="running-wave wave--1"></div>
+              <div class="running-wave wave--2"></div>
+              <div class="running-wave wave--3"></div>
+              <div class="running-content">
+                <div class="wave-container">
+                  <div class="wave-bar wave-bar--1"></div>
+                  <div class="wave-bar wave-bar--2"></div>
+                  <div class="wave-bar wave-bar--3"></div>
+                  <div class="wave-bar wave-bar--4"></div>
+                  <div class="wave-bar wave-bar--5"></div>
+                </div>
+                <div class="running-status">
+                  <i class="fa-solid fa-spinner fa-spin status-spinner"></i>
+                  <span>Executing Code...</span>
+                </div>
+                <p>Running solution against sample and hidden test cases. Please wait.</p>
+              </div>
+            </div>
+
+            <!-- The Monaco Editor -->
+            <ngx-monaco-editor class="code-editor premium-code-editor" [options]="editorOptions"
+              [(ngModel)]="sourceCode" (onInit)="onEditorInit($event)">
+            </ngx-monaco-editor>
           </div>
 
-          <div
-            class="community-empty"
-            *ngIf="canViewBestAnswers() && !submissionsLoading && !challengeSubmissions.length"
-          >
-            No best answers yet. Submissions with 80% or above will appear here.
+          <!-- Console Area -->
+          <div class="console-container" [class.collapsed]="!consoleExpanded">
+            <div class="console-toggle-bar" (click)="toggleConsole()">
+              <div class="console-tabs" (click)="$event.stopPropagation()">
+                <button type="button" [class.active]="activeConsoleTab === 'samples'"
+                  (click)="switchConsoleTab('samples')">
+                  <i class="fa-solid fa-flask"></i> Samples
+                </button>
+                <button type="button" [class.active]="activeConsoleTab === 'results'"
+                  (click)="switchConsoleTab('results')">
+                  <i class="fa-solid fa-chart-column"></i> Results
+                  <span class="result-dot" *ngIf="challengeResult"
+                    [class.pass]="challengeResult.status === 'PASS'"></span>
+                </button>
+              </div>
+
+              <button type="button" class="console-collapse-btn">
+                <i [class]="consoleExpanded ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i>
+              </button>
+            </div>
+
+            <div class="console-body" *ngIf="consoleExpanded">
+              <!-- Samples Console -->
+              <div class="console-content" *ngIf="activeConsoleTab === 'samples'">
+                <div class="sample-test-grid" *ngIf="visibleSampleTestCases.length; else noSamplesConsole">
+                  <article class="sample-test-item" *ngFor="let tc of visibleSampleTestCases; let i = index">
+                    <header>
+                      <strong>Sample {{ i + 1 }}</strong>
+                      <span>{{ tc.marks || 0 }}M</span>
+                    </header>
+                    <div class="case-row">
+                      <label>Input</label>
+                      <pre>{{ tc.inputData }}</pre>
+                    </div>
+                    <div class="case-row">
+                      <label>Expected</label>
+                      <pre>{{ tc.expectedOutput }}</pre>
+                    </div>
+                  </article>
+                </div>
+                <ng-template #noSamplesConsole>
+                  <div class="console-empty">
+                    <i class="fa-solid fa-eye-slash"></i>
+                    No visible samples. Hidden tests will run after submit.
+                  </div>
+                </ng-template>
+              </div>
+
+              <!-- Results Console -->
+              <div class="console-content" *ngIf="activeConsoleTab === 'results'">
+                <!-- Compile Errors or Diagnostic Alerts -->
+                <div class="console-diagnostics-section" *ngIf="compilerDiagnostics.length">
+                  <div class="diagnostics-header error">
+                    <i class="fa-solid fa-bug"></i>
+                    <h3>Compiler & Diagnostic Warnings</h3>
+                  </div>
+                  <div class="diagnostics-grid">
+                    <div class="diagnostic-card" *ngFor="let error of compilerDiagnostics"
+                      (click)="goToDiagnostic(error)" [class.clickable]="error.line">
+                      <div class="diag-meta">
+                        <span class="badge-line" *ngIf="error.line">Line {{ error.line }}</span>
+                        <span class="badge-line" *ngIf="!error.line">General Compiler</span>
+                        <span class="badge-col" *ngIf="error.column">Col {{ error.column }}</span>
+                      </div>
+                      <pre class="diag-msg">{{ error.message }}</pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="result-summary-strip" *ngIf="challengeResult">
+                  <span class="result-status" [class.pass]="challengeResult.status === 'PASS'">
+                    <i
+                      [class]="challengeResult.status === 'PASS' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                    {{ challengeResult.status }}
+                  </span>
+                  <strong>{{ challengeResult.percentage }}%</strong>
+                  <small>{{ challengeResult.score }}/{{ challengeResult.totalMarks }} marks</small>
+                </div>
+
+                <div class="compiler-output" *ngIf="challengeResult?.compileError">
+                  <i class="fa-solid fa-bug"></i>
+                  {{ challengeResult.compileError }}
+                </div>
+
+                <div class="result-test-grid" *ngIf="resultTestCases.length; else noResultsConsole">
+                  <article class="result-test-item" *ngFor="let item of visibleResultCards; let i = index"
+                    [class.pass]="item.status === 'PASS'" [class.fail]="item.status !== 'PASS'">
+                    <header>
+                      <strong>Test {{ i + 1 }}</strong>
+                      <span>{{ item.status }}</span>
+                    </header>
+                    <div class="case-row">
+                      <label>Input</label>
+                      <pre>{{ item.inputData }}</pre>
+                    </div>
+                    <div class="case-row">
+                      <label>Your Output</label>
+                      <pre>{{ item.actualOutput || '-' }}</pre>
+                    </div>
+                    <small *ngIf="item.errorMessage" class="test-error">{{ item.errorMessage }}</small>
+                  </article>
+
+                  <!-- Hidden test pills -->
+                  <div class="hidden-tests-bar" *ngIf="hiddenResultPills.length">
+                    <article class="hidden-test-pill" *ngFor="let item of hiddenResultPills; let i = index"
+                      [class.pass]="item.status === 'PASS'" [class.fail]="item.status !== 'PASS'">
+                      <b>Test {{ i + 4 }}</b>
+                      <span>{{ hiddenTestStatusIcon(item) }}</span>
+                      <strong>{{ item.status }}</strong>
+                    </article>
+                  </div>
+                </div>
+
+                <ng-template #noResultsConsole>
+                  <div class="console-empty" *ngIf="!challengeResult">
+                    <i class="fa-solid fa-terminal"></i>
+                    Run your code to see test results here.
+                  </div>
+                </ng-template>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </main>
+      </div>
     </section>
   </ng-container>
 
-  <section
-    class="workspace-locked-state"
-    *ngIf="!loading && mode === 'CHALLENGE' && challenge && !workspaceUnlocked && !showLeadModal"
-  >
-    <div class="lock-mark">VT</div>
+  <!-- Challenge Locked -->
+  <section class="workspace-locked"
+    *ngIf="!loading && mode === 'CHALLENGE' && challenge && !workspaceUnlocked && !showLeadModal">
+    <div class="lock-icon-ring">
+      <i class="fa-solid fa-lock"></i>
+    </div>
     <span>Registration Required</span>
     <h2>Unlock {{ challenge.company }} Coding Challenge</h2>
     <p>
       Complete the registration form to access the coding editor, execute your solution, and receive
       evaluated test-case results.
     </p>
-
-    <button
-      type="button"
-      class="primary-btn"
-      (click)="requestWorkspaceAccess('Please register to start this coding challenge')"
-    >
-      Register to Open Lab
+    <button type="button" class="btn-primary-glow"
+      (click)="requestWorkspaceAccess('Please register to start this coding challenge')">
+      <i class="fa-solid fa-key"></i> Register to Open Lab
     </button>
   </section>
 </section>
 
-<div class="practice-register-backdrop" *ngIf="showLeadModal">
-  <section
-    class="practice-register-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="practice-register-title"
-  >
-    <button
-      type="button"
-      class="practice-register-close"
-      (click)="closeLeadModal()"
-      aria-label="Close registration popup"
-    >
-      &times;
+<!-- ═══════════════════ LEAD REGISTRATION MODAL ═══════════════════ -->
+<div class="lead-backdrop" *ngIf="showLeadModal">
+  <section class="lead-modal" role="dialog" aria-modal="true" aria-labelledby="lead-modal-title">
+    <button type="button" class="lead-close-btn" (click)="closeLeadModal()" aria-label="Close registration popup">
+      <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <div class="practice-register-body">
-      <aside class="practice-register-side">
-        <div class="practice-register-brand">
-          <div class="practice-register-logo visual-brand">
+    <div class="lead-modal-body">
+      <!-- Side Panel -->
+      <aside class="lead-side-panel">
+        <div class="lead-brand">
+          <div class="lead-logo">
             <img src="VidhuraTechLogo.png" alt="VidhuraTech" />
           </div>
-
           <div>
             <strong>VidhuraTech</strong>
             <span>Practice Gateway</span>
           </div>
         </div>
 
-        <div class="practice-register-copy">
-          <span class="practice-register-kicker">Free Placement Practice</span>
-
+        <div class="lead-side-copy">
+          <span class="lead-kicker">Free Placement Practice</span>
           <h2>Unlock your practice workspace.</h2>
-
           <p>
             Register once to access company-wise mock tests, coding challenges, instant scoring and
             detailed review reports.
           </p>
         </div>
 
-        <div class="practice-register-stats">
+        <div class="lead-side-stats">
           <article>
             <strong>Free</strong>
             <span>Practice Access</span>
           </article>
-
           <article>
             <strong>Instant</strong>
             <span>Score Report</span>
           </article>
-
           <article>
             <strong>2026</strong>
             <span>Hiring Pattern</span>
           </article>
         </div>
 
-        <div class="practice-register-flow">
-          <div>
-            <b>01</b>
-            <span>Enter your details</span>
-          </div>
-
-          <div>
-            <b>02</b>
-            <span>Attempt selected practice</span>
-          </div>
-
-          <div>
-            <b>03</b>
-            <span>View instant result</span>
-          </div>
+        <div class="lead-side-flow">
+          <div><b>01</b><span>Enter your details</span></div>
+          <div><b>02</b><span>Attempt selected practice</span></div>
+          <div><b>03</b><span>View instant result</span></div>
         </div>
       </aside>
 
-      <form class="practice-register-form" (ngSubmit)="continueAfterLead()" novalidate>
-        <header class="practice-register-head">
+      <!-- Form -->
+      <form class="lead-form" (ngSubmit)="continueAfterLead()" novalidate>
+        <header class="lead-form-header">
           <span>Registration Required</span>
-
-          <h2 id="practice-register-title">Register for Free Practice</h2>
-
+          <h2 id="lead-modal-title">Register for Free Practice</h2>
           <p>Enter your details to continue to the selected mock test or coding challenge.</p>
         </header>
 
-        <div class="practice-register-alert" *ngIf="redirectMessage" role="alert">
+        <div class="lead-alert" *ngIf="redirectMessage" role="alert">
+          <i class="fa-solid fa-circle-info"></i>
           {{ redirectMessage }}
         </div>
 
-        <div class="practice-register-grid">
-          <label [class.invalid]="leadErrors.name">
+        <div class="lead-form-grid">
+          <label [class.invalid]="leadErrors.name" [class.valid]="lead.name.trim().length >= 2 && !leadErrors.name">
             <span>Full Name <b>*</b></span>
-
-            <input
-              type="text"
-              name="leadName"
-              [(ngModel)]="lead.name"
-              placeholder="Enter full name"
-              autocomplete="name"
-              [disabled]="submitting"
-              required
-            />
-
+            <div class="input-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" name="leadName" [(ngModel)]="lead.name" (ngModelChange)="onLeadFieldChange('name')"
+                placeholder="Enter full name" autocomplete="name" [disabled]="submitting" required />
+              <i class="fa-solid fa-circle-check check-icon"
+                *ngIf="lead.name.trim().length >= 2 && !leadErrors.name"></i>
+              <i class="fa-solid fa-circle-exclamation error-icon" *ngIf="leadErrors.name"></i>
+            </div>
             <small *ngIf="leadErrors.name">{{ leadErrors.name }}</small>
           </label>
 
-          <label [class.invalid]="leadErrors.phone">
+          <label [class.invalid]="leadErrors.phone"
+            [class.valid]="lead.phone.replace(/\\D/g,'').length >= 10 && !leadErrors.phone">
             <span>Phone Number <b>*</b></span>
-
-            <input
-              type="tel"
-              name="leadPhone"
-              [(ngModel)]="lead.phone"
-              placeholder="Enter mobile number"
-              autocomplete="tel"
-              inputmode="numeric"
-              maxlength="15"
-              [disabled]="submitting"
-              required
-            />
-
+            <div class="input-wrap">
+              <i class="fa-solid fa-phone"></i>
+              <input type="tel" name="leadPhone" [(ngModel)]="lead.phone" (ngModelChange)="onLeadFieldChange('phone')"
+                placeholder="Enter mobile number" autocomplete="tel" inputmode="numeric" maxlength="15"
+                [disabled]="submitting" required />
+              <i class="fa-solid fa-circle-check check-icon"
+                *ngIf="lead.phone.replace(/\\D/g,'').length >= 10 && !leadErrors.phone"></i>
+              <i class="fa-solid fa-circle-exclamation error-icon" *ngIf="leadErrors.phone"></i>
+            </div>
             <small *ngIf="leadErrors.phone">{{ leadErrors.phone }}</small>
           </label>
 
-          <label [class.invalid]="leadErrors.email">
+          <label [class.invalid]="leadErrors.email" [class.valid]="lead.email.trim() && !leadErrors.email">
             <span>Email Address</span>
-
-            <input
-              type="email"
-              name="leadEmail"
-              [(ngModel)]="lead.email"
-              placeholder="you@example.com"
-              autocomplete="email"
-              [disabled]="submitting"
-            />
-
+            <div class="input-wrap">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" name="leadEmail" [(ngModel)]="lead.email" (ngModelChange)="onLeadFieldChange('email')"
+                placeholder="you@example.com" autocomplete="email" [disabled]="submitting" />
+              <i class="fa-solid fa-circle-check check-icon" *ngIf="lead.email.trim() && !leadErrors.email"></i>
+              <i class="fa-solid fa-circle-exclamation error-icon" *ngIf="leadErrors.email"></i>
+            </div>
             <small *ngIf="leadErrors.email">{{ leadErrors.email }}</small>
           </label>
 
           <label>
             <span>City</span>
-
-            <input
-              type="text"
-              name="leadCity"
-              [(ngModel)]="lead.city"
-              placeholder="Enter your city"
-              autocomplete="address-level2"
-              [disabled]="submitting"
-            />
+            <div class="input-wrap">
+              <i class="fa-solid fa-location-dot"></i>
+              <input type="text" name="leadCity" [(ngModel)]="lead.city" placeholder="Enter your city"
+                autocomplete="address-level2" [disabled]="submitting" />
+            </div>
           </label>
         </div>
 
-        <label class="practice-register-message">
+        <label class="lead-message-field">
           <span>Goal / Interest</span>
-
-          <textarea
-            name="leadMessage"
-            [(ngModel)]="lead.message"
-            placeholder="Example: TCS NQT, aptitude, coding, placement preparation"
-            [disabled]="submitting"
-          ></textarea>
+          <textarea name="leadMessage" [(ngModel)]="lead.message"
+            placeholder="Example: TCS NQT, aptitude, coding, placement preparation" [disabled]="submitting"></textarea>
         </label>
 
-        <div class="selected-practice" *ngIf="lead.interest">
+        <div class="selected-practice-tag" *ngIf="lead.interest">
+          <i class="fa-solid fa-bookmark"></i>
           <span>Selected Practice</span>
           <strong>{{ lead.interest }}</strong>
         </div>
 
-        <footer class="practice-register-actions">
-          <button type="submit" class="practice-register-submit" [disabled]="submitting">
-            <span>
-              {{ submitting ? 'Saving Details...' : 'Continue to Free Practice' }}
-            </span>
-            <i aria-hidden="true">&rarr;</i>
+        <footer class="lead-form-footer">
+          <button type="submit" class="lead-submit-btn" [disabled]="submitting || hasLeadErrors">
+            <span>{{ submitting ? 'Saving Details...' : 'Continue to Free Practice' }}</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </button>
 
-          <div class="practice-register-login">
+          <div class="lead-login-link">
             <span>Already registered?</span>
             <a routerLink="/login" (click)="closeLeadModal()">Login to continue</a>
           </div>
 
-          <p>Your details are used only for practice access and training guidance.</p>
+          <p class="lead-privacy">Your details are used only for practice access and training guidance.</p>
         </footer>
       </form>
     </div>

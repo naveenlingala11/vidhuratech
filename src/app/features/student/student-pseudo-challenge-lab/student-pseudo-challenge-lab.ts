@@ -31,6 +31,8 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   saving = false;
   submitting = false;
   toast = '';
+  leftTab: 'description' | 'samples' | 'hint' = 'description';
+  consoleExpanded = false;
 
   selectedChallenge: any = null;
   result: any = null;
@@ -47,6 +49,182 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
   private readonly maxSourceChars = 20000;
   private readonly maxSourceLines = 600;
+
+  readonly blockedCodePatterns: Record<string, string[]> = {
+    PYTHON: [
+      '\\bimport\\s+os\\b',
+      '\\bfrom\\s+os\\s+import\\b',
+      '\\bimport\\s+subprocess\\b',
+      '\\bfrom\\s+subprocess\\s+import\\b',
+      '\\bimport\\s+socket\\b',
+      '\\bfrom\\s+socket\\s+import\\b',
+      '\\bimport\\s+requests\\b',
+      '\\bimport\\s+urllib\\b',
+      '\\bfrom\\s+urllib\\s+import\\b',
+      '\\bimport\\s+pathlib\\b',
+      '\\bfrom\\s+pathlib\\s+import\\b',
+      '\\bimport\\s+shutil\\b',
+      '\\bfrom\\s+shutil\\s+import\\b',
+      '\\bimport\\s+pickle\\b',
+      '\\bfrom\\s+pickle\\s+import\\b',
+      '\\bopen\\s*\\(',
+      '\\beval\\s*\\(',
+      '\\bexec\\s*\\(',
+      '\\bcompile\\s*\\(',
+      '\\b__import__\\s*\\(',
+      '\\bglobals\\s*\\(',
+      '\\blocals\\s*\\(',
+      '\\bvars\\s*\\(',
+      '\\bsys\\s*\\.\\s*modules\\b',
+      '\\bsys\\s*\\.\\s*path\\b',
+      '\\bsys\\s*\\.\\s*argv\\b',
+      '\\bsys\\s*\\.\\s*exit\\s*\\(',
+      '__dict__',
+      '__class__',
+      '__mro__',
+      '__subclasses__'
+    ],
+    JAVA: [
+      '\\bimport\\s+java\\.io\\.File\\b',
+      '\\bimport\\s+java\\.io\\.FileInputStream\\b',
+      '\\bimport\\s+java\\.io\\.FileOutputStream\\b',
+      '\\bimport\\s+java\\.io\\.RandomAccessFile\\b',
+      '\\bimport\\s+java\\.nio\\.file\\.',
+      '\\bimport\\s+java\\.net\\.',
+      '\\bimport\\s+java\\.lang\\.reflect\\.',
+      '\\bRuntime\\s*\\.\\s*getRuntime\\s*\\(',
+      '\\bProcessBuilder\\b',
+      '\\bSystem\\s*\\.\\s*exit\\s*\\(',
+      '\\bClass\\s*\\.\\s*forName\\s*\\(',
+      '\\bgetDeclaredMethod\\s*\\(',
+      '\\bgetDeclaredField\\s*\\(',
+      '\\bsetAccessible\\s*\\(',
+      '\\bThread\\s*\\.\\s*sleep\\s*\\(',
+      '\\bwhile\\s*\\(\\s*true\\s*\\)',
+      '\\bfor\\s*\\(\\s*;\\s*;\\s*\\)'
+    ],
+    C: [
+      '#\\s*include\\s*<\\s*unistd\\.h\\s*>',
+      '#\\s*include\\s*<\\s*sys/',
+      '#\\s*include\\s*<\\s*dirent\\.h\\s*>',
+      '\\bsystem\\s*\\(',
+      '\\bpopen\\s*\\(',
+      '\\bfopen\\s*\\(',
+      '\\bfreopen\\s*\\(',
+      '\\bremove\\s*\\(',
+      '\\brename\\s*\\(',
+      '\\bwhile\\s*\\(\\s*1\\s*\\)',
+      '\\bwhile\\s*\\(\\s*true\\s*\\)',
+      '\\bfor\\s*\\(\\s*;\\s*;\\s*\\)'
+    ],
+    CPP: [
+      '#\\s*include\\s*<\\s*fstream\\s*>',
+      '#\\s*include\\s*<\\s*filesystem\\s*>',
+      '#\\s*include\\s*<\\s*unistd\\.h\\s*>',
+      '#\\s*include\\s*<\\s*sys/',
+      '#\\s*include\\s*<\\s*dirent\\.h\\s*>',
+      '\\bsystem\\s*\\(',
+      '\\bpopen\\s*\\(',
+      '\\bfopen\\s*\\(',
+      '\\bfreopen\\s*\\(',
+      '\\bremove\\s*\\(',
+      '\\brename\\s*\\(',
+      '\\bwhile\\s*\\(\\s*true\\s*\\)',
+      '\\bfor\\s*\\(\\s*;\\s*;\\s*\\)'
+    ],
+    CSHARP: [
+      '\\busing\\s+System\\.IO\\b',
+      '\\busing\\s+System\\.Net\\b',
+      '\\busing\\s+System\\.Reflection\\b',
+      '\\busing\\s+System\\.Diagnostics\\b',
+      '\\bFile\\s*\\.',
+      '\\bDirectory\\s*\\.',
+      '\\bProcess\\s*\\.',
+      '\\bEnvironment\\s*\\.\\s*Exit\\s*\\(',
+      '\\bwhile\\s*\\(\\s*true\\s*\\)',
+      '\\bfor\\s*\\(\\s*;\\s*;\\s*\\)'
+    ],
+    FSHARP: [
+      '\\bopen\\s+System\\.IO\\b',
+      '\\bopen\\s+System\\.Net\\b',
+      '\\bopen\\s+System\\.Reflection\\b',
+      '\\bopen\\s+System\\.Diagnostics\\b',
+      '\\bFile\\.',
+      '\\bDirectory\\.',
+      '\\bProcess\\.',
+      '\\bwhile\\s+true\\s+do\\b'
+    ],
+    PHP: [
+      '\\bshell_exec\\s*\\(',
+      '\\bexec\\s*\\(',
+      '\\bsystem\\s*\\(',
+      '\\bpassthru\\s*\\(',
+      '\\bproc_open\\s*\\(',
+      '\\bpopen\\s*\\(',
+      '\\bfopen\\s*\\(',
+      '\\bfile_get_contents\\s*\\(',
+      '\\bfile_put_contents\\s*\\(',
+      '\\bunlink\\s*\\(',
+      '\\beval\\s*\\('
+    ],
+    RUBY: [
+      '\\brequire\\s+[\'"]socket[\'"]',
+      '\\brequire\\s+[\'"]open-uri[\'"]',
+      '\\brequire\\s+[\'"]fileutils[\'"]',
+      '\\bFile\\.',
+      '\\bDir\\.',
+      '\\bIO\\.',
+      '\\bKernel\\.system\\s*\\(',
+      '\\bsystem\\s*\\(',
+      '\\bexec\\s*\\(',
+      '`[^`]*`',
+      '\\beval\\s*\\(',
+      '\\bloop\\s+do\\b'
+    ],
+    HASKELL: [
+      '\\bimport\\s+System\\.Process\\b',
+      '\\bimport\\s+System\\.Directory\\b',
+      '\\bimport\\s+System\\.IO\\b',
+      '\\bimport\\s+Network\\b',
+      '\\bunsafePerformIO\\b'
+    ],
+    GO: [
+      '"os/exec"',
+      '"net"',
+      '"net/http"',
+      '"syscall"',
+      '\\bos\\.Open\\s*\\(',
+      '\\bos\\.Create\\s*\\(',
+      '\\bos\\.Remove\\s*\\(',
+      '\\bexec\\.Command\\s*\\(',
+      '\\bfor\\s*\\{'
+    ],
+    RUST: [
+      '\\bstd::fs\\b',
+      '\\bstd::net\\b',
+      '\\bstd::process\\b',
+      '\\bstd::env\\b',
+      '\\bunsafe\\b',
+      '\\bloop\\s*\\{'
+    ],
+    TYPESCRIPT: [
+      '\\bimport\\s+.*\\bfrom\\b',
+      '\\brequire\\s*\\(',
+      '\\bprocess\\b',
+      '\\bchild_process\\b',
+      '\\bDeno\\.Command\\b',
+      '\\bDeno\\.run\\b',
+      '\\bDeno\\.readTextFile\\b',
+      '\\bDeno\\.writeTextFile\\b',
+      '\\bDeno\\.remove\\b',
+      '\\bDeno\\.env\\b',
+      '\\bfetch\\s*\\(',
+      '\\beval\\s*\\(',
+      '\\bFunction\\s*\\(',
+      '\\bwhile\\s*\\(\\s*true\\s*\\)',
+      '\\bfor\\s*\\(\\s*;\\s*;\\s*\\)'
+    ]
+  };
 
   private readonly shellCommandPattern =
     /^(find|cat|ls|pwd|whoami|id|uname|ps|env|printenv|curl|wget|nc|netcat|bash|sh|zsh|python|python3|perl|ruby)\b/i;
@@ -216,6 +394,56 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     );
   }
 
+  get computedPercentage(): number {
+    if (!this.result) return 0;
+    if (this.result.testResults && this.result.testResults.length > 0) {
+      const allPassed = this.result.testResults.every((test: any) => test.status === 'PASS');
+      if (allPassed) {
+        return 100;
+      }
+
+      let totalMarks = 0;
+      let obtainedMarks = 0;
+      let hasMarksField = false;
+
+      this.result.testResults.forEach((test: any) => {
+        if (typeof test.marks === 'number' || (test.marks && !isNaN(Number(test.marks)))) {
+          const m = Number(test.marks);
+          totalMarks += m;
+          obtainedMarks += test.status === 'PASS' ? m : Number(test.marksObtained || 0);
+          hasMarksField = true;
+        }
+      });
+
+      if (hasMarksField && totalMarks > 0) {
+        return Math.round((obtainedMarks / totalMarks) * 100);
+      }
+
+      const passedCount = this.result.testResults.filter((test: any) => test.status === 'PASS').length;
+      return Math.round((passedCount / this.result.testResults.length) * 100);
+    }
+    return this.result.percentage || 0;
+  }
+
+  get isWorkspacePass(): boolean {
+    if (!this.result) return false;
+    if (this.result.status === 'PASS' || this.result.allTestsPassed === true) return true;
+    const percentage = this.computedPercentage;
+    if (this.selectedChallenge && typeof percentage === 'number') {
+      return percentage >= this.selectedChallenge.passPercentage;
+    }
+    return false;
+  }
+
+  get hasFailedTests(): boolean {
+    if (!this.result?.testResults) return false;
+    return this.result.testResults.some((test: any) => test.status !== 'PASS');
+  }
+
+  get hasCompilerErrors(): boolean {
+    return !!this.result?.compileError || this.compilerDiagnostics.length > 0;
+  }
+
   get hintButtonLabel(): string {
     if (!this.hintUnlocked) {
       return `Unlocks in ${this.hintUnlockSeconds}s`;
@@ -232,6 +460,8 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     this.languageDrafts = {};
     this.showMoreLanguages = false;
     this.applyCompilerErrors('');
+    this.leftTab = 'description';
+    this.consoleExpanded = false;
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -426,6 +656,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
           }
 
           this.result = data;
+          this.consoleExpanded = true;
           const compilerError = this.result?.compileError || this.firstExecutionError(this.result);
 
           if (compilerError) this.result = { ...this.result, compileError: compilerError };
@@ -447,6 +678,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
             percentage: 0,
             testResults: [],
           };
+          this.consoleExpanded = true;
           this.applyCompilerErrors(this.result.compileError);
 
           if (error.status === 0) this.showToast('Unable to connect to compiler server');
@@ -549,6 +781,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
           const data = res?.data || res;
           this.result = data;
+          this.consoleExpanded = true;
 
           const compilerError = data?.compileError || this.firstExecutionError(data);
 
@@ -577,6 +810,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
           console.error('Submit challenge error:', error);
           const compileError =
             error?.error?.message || error?.error?.error || 'Failed to submit challenge';
+          this.consoleExpanded = true;
           this.applyCompilerErrors(compileError);
 
           if (error.status === 0) this.showToast('Unable to connect to server');
@@ -636,9 +870,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     const errors: string[] = [];
     const code = this.sourceCode || '';
     const trimmed = code.trim();
+    const language = String(this.language || '').toUpperCase();
 
     if (!trimmed) {
-      errors.push('Write your solution before running, saving, or submitting.');
+      errors.push('Source code is required');
       return errors;
     }
 
@@ -646,30 +881,90 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       errors.push('Unsupported language selected.');
     }
 
-    if (code.length > this.maxSourceChars) {
-      errors.push(`Code is too large. Maximum ${this.maxSourceChars} characters allowed.`);
-    }
-
-    const lineCount = code.split(/\r?\n/).length;
-    if (lineCount > this.maxSourceLines) {
-      errors.push(`Code has too many lines. Maximum ${this.maxSourceLines} lines allowed.`);
-    }
-
-    if (this.containsInvalidControlCharacters(code)) {
-      errors.push('Code contains invalid control characters.');
-    }
-
-    const shellError = this.detectShellCommand(code);
-    if (shellError) {
-      errors.push(shellError);
-    }
-
-    const unsafeError = this.detectUnsafeCode(code);
-    if (unsafeError) {
-      errors.push(unsafeError);
+    const security = this.collectSecurityDiagnostics(code, language);
+    for (const diag of security) {
+      errors.push(diag.message);
     }
 
     return [...new Set(errors)];
+  }
+
+  private collectSecurityDiagnostics(code: string, language: string): CompilerDiagnostic[] {
+    const diagnostics: CompilerDiagnostic[] = [];
+    const trimmed = (code || '').trim();
+    if (!trimmed) {
+      return diagnostics;
+    }
+
+    if (code.length > this.maxSourceChars) {
+      diagnostics.push({
+        line: 1,
+        column: 1,
+        message: `Code is too large. Maximum ${this.maxSourceChars} characters allowed.`,
+        raw: ''
+      });
+    }
+
+    if (code.split(/\r?\n/).length > this.maxSourceLines) {
+      diagnostics.push({
+        line: 1,
+        column: 1,
+        message: `Code has too many lines. Maximum ${this.maxSourceLines} lines allowed.`,
+        raw: ''
+      });
+    }
+
+    for (let i = 0; i < code.length; i++) {
+      const ch = code.charCodeAt(i);
+      if (ch === 10 || ch === 13 || ch === 9) {
+        continue;
+      }
+      if ((ch >= 0 && ch <= 31) || (ch >= 127 && ch <= 159)) {
+        const pos = this.getLineAndColumn(code, i);
+        diagnostics.push({
+          line: pos.line,
+          column: pos.column,
+          message: 'Code contains invalid control characters.',
+          raw: String.fromCharCode(ch)
+        });
+        break;
+      }
+    }
+
+    if (this.looksLikeShellCommand(code)) {
+      diagnostics.push({
+        line: 1,
+        column: 1,
+        message: 'Shell commands are not allowed in code editor.',
+        raw: ''
+      });
+    }
+
+    const lang = this.normalizeLanguage(language);
+    const patterns = this.blockedCodePatterns[lang] || [];
+    for (const patternStr of patterns) {
+      const regex = new RegExp(patternStr, 'im');
+      const match = regex.exec(code);
+      if (match) {
+        const pos = this.getLineAndColumn(code, match.index);
+        diagnostics.push({
+          line: pos.line,
+          column: pos.column,
+          message: `Blocked unsafe code pattern: ${this.readable(patternStr)}`,
+          raw: match[0]
+        });
+      }
+    }
+
+    return diagnostics;
+  }
+
+  private getLineAndColumn(code: string, index: number): { line: number; column: number } {
+    const lines = code.slice(0, index).split(/\r?\n/);
+    return {
+      line: lines.length,
+      column: lines[lines.length - 1].length + 1
+    };
   }
 
   private validateBeforeAction(action: 'run' | 'save' | 'submit'): boolean {
@@ -716,73 +1011,69 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     ].includes(language);
   }
 
-  private containsInvalidControlCharacters(code: string): boolean {
-    for (const char of code) {
-      if (char === '\n' || char === '\r' || char === '\t') continue;
-      if (char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127) {
+  private containsControlCharacters(code: string): boolean {
+    for (let i = 0; i < code.length; i++) {
+      const ch = code.charCodeAt(i);
+      if (ch === 10 || ch === 13 || ch === 9) {
+        continue;
+      }
+      if ((ch >= 0 && ch <= 31) || (ch >= 127 && ch <= 159)) {
         return true;
       }
     }
-
     return false;
   }
 
-  private detectShellCommand(code: string): string {
-    const firstMeaningfulLine =
-      code
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .find((line) => line && !line.startsWith('//') && !line.startsWith('#')) || '';
-
-    if (this.shellCommandPattern.test(firstMeaningfulLine)) {
-      return 'Shell commands are not allowed in this code editor. Write only program code.';
+  private normalizeLanguage(language: string): string {
+    const value = String(language || '').trim().toUpperCase().replace(/[-_]/g, '');
+    switch (value) {
+      case 'C++':
+      case 'CPLUSPLUS':
+        return 'CPP';
+      case 'C#':
+      case 'CS':
+        return 'CSHARP';
+      case 'F#':
+      case 'FS':
+        return 'FSHARP';
+      case 'TS':
+        return 'TYPESCRIPT';
+      default:
+        return value;
     }
-
-    const lowered = code.toLowerCase();
-
-    if (
-      lowered.includes('2>/dev/null') ||
-      lowered.includes('/etc/passwd') ||
-      lowered.includes('/home') ||
-      lowered.includes('/root') ||
-      lowered.includes('/proc')
-    ) {
-      return 'Accessing server files or OS paths is not allowed.';
-    }
-
-    return '';
   }
 
-  private detectUnsafeCode(code: string): string {
-    const checks: Array<{ pattern: RegExp; message: string }> = [
-      {
-        pattern: /\bRuntime\s*\.\s*getRuntime\s*\(/i,
-        message: 'Runtime execution is blocked.',
-      },
-      {
-        pattern: /\bProcessBuilder\b/i,
-        message: 'Process execution is blocked.',
-      },
-      {
-        pattern: /\bsubprocess\b|\bos\.system\s*\(|\beval\s*\(|\bexec\s*\(/i,
-        message: 'Unsafe Python execution APIs are blocked.',
-      },
-      {
-        pattern: /\bchild_process\b|\brequire\s*\(\s*['"]fs['"]|\brequire\s*\(\s*['"]net['"]/i,
-        message: 'Node.js system modules are blocked.',
-      },
-      {
-        pattern: /\bsystem\s*\(|\bpopen\s*\(|\bfork\s*\(|\bsocket\s*\(/i,
-        message: 'System, process, and network calls are blocked.',
-      },
-      {
-        pattern: /\bDeno\.(run|readTextFile|writeTextFile|readDir|remove)\b/i,
-        message: 'Deno file/process APIs are blocked.',
-      },
-    ];
+  private looksLikeShellCommand(code: string): boolean {
+    const trimmed = code == null ? '' : code.trim();
+    if (!trimmed) {
+      return false;
+    }
 
-    const match = checks.find((item) => item.pattern.test(code));
-    return match?.message || '';
+    const firstLine = trimmed.split(/\r?\n/)[0].trim().toLowerCase();
+    const pattern = /^(find|cat|ls|pwd|whoami|id|uname|ps|env|printenv|curl|wget|nc|netcat|bash|sh|zsh|python|python3|perl|ruby)\b.*/;
+
+    return pattern.test(firstLine)
+      || firstLine.includes('2>/dev/null')
+      || firstLine.includes('/etc/passwd')
+      || firstLine.includes('/home')
+      || firstLine.includes('/proc')
+      || firstLine.includes('/root')
+      || firstLine.includes('&&')
+      || firstLine.includes('||')
+      || firstLine.includes(';')
+      || firstLine.includes('|');
+  }
+
+  private readable(pattern: string): string {
+    return pattern
+      .replace(/\\b/g, '')
+      .replace(/\\s\*/g, ' ')
+      .replace(/\\s\+/g, ' ')
+      .replace(/\\\(/g, '(')
+      .replace(/\\\./g, '.')
+      .replace(/\\s/g, ' ')
+      .replace(/\\/g, '')
+      .trim();
   }
 
   getTestPercentage(test: any): number {
@@ -854,12 +1145,14 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       const lineNumber = item.line || 1;
       const lineText = sourceLines[lineNumber - 1] || '';
       const startColumn = item.column || 1;
+      const matchLength = item.raw ? item.raw.length : (lineText.length - startColumn + 1);
+      const endColumn = Math.max(startColumn + 1, Math.min(startColumn + matchLength, lineText.length + 1));
 
       return {
         startLineNumber: lineNumber,
         endLineNumber: lineNumber,
         startColumn,
-        endColumn: Math.max(startColumn + 1, lineText.length + 1),
+        endColumn,
         message: item.message,
         severity: this.monacoInstance.MarkerSeverity.Error,
         source: 'Compiler Diagnostics',
@@ -926,6 +1219,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     const lines = this.sourceCode.split('\n');
     if (this.language === 'PYTHON') this.collectPythonDiagnostics(lines, diagnostics);
     if (this.language === 'JAVA') this.collectJavaDiagnostics(lines, diagnostics);
+
+    const security = this.collectSecurityDiagnostics(this.sourceCode, this.language);
+    diagnostics.push(...security);
+
     return diagnostics;
   }
 

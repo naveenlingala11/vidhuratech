@@ -1,25 +1,38 @@
 <ng-container *ngIf="course; else notFound">
+  <!-- Detail Hero Header -->
   <section class="detail-hero">
-    <div class="hero-grid"></div>
-    <div class="hero-orbit orbit-one"></div>
-    <div class="hero-orbit orbit-two"></div>
+    <div class="hero-grid-pattern"></div>
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
 
-    <div class="hero-surface">
-      <a routerLink="/courses" class="back-link">
-        <i class="fa-solid fa-arrow-left"></i>
-        Back to Courses
-      </a>
+    <div class="hero-container">
+      <div class="navigation-bar">
+        <a routerLink="/courses" class="back-link-btn">
+          <i class="fa-solid fa-arrow-left-long"></i>
+          Back to Course Catalog
+        </a>
+      </div>
 
-      <div class="hero-layout">
-        <div class="detail-course-image" *ngIf="backendCourse?.thumbnailUrl">
-          <img [src]="courseImage(backendCourse.thumbnailUrl)" [alt]="course.title" />
+      <div class="hero-grid-layout">
+        <!-- Thumbnail Frame -->
+        <div class="thumbnail-wrapper" *ngIf="backendCourse?.thumbnailUrl">
+          <div class="image-inner">
+            <img [src]="courseImage(backendCourse.thumbnailUrl)" [alt]="course.title" />
+            <span class="image-overlay-glow"></span>
+          </div>
         </div>
-        <div class="hero-copy">
-          <span class="hero-badge">{{ course.badge }}</span>
-          <h1>{{ course.title }}</h1>
-          <p>{{ course.subtitle }}</p>
 
-          <div class="hero-actions">
+        <!-- Copy Meta Block -->
+        <div class="hero-copy-block">
+          <span class="eyebrow-badge">
+            <i class="fa-solid fa-graduation-cap"></i>
+            {{ course.badge }}
+          </span>
+          
+          <h1 class="hero-title">{{ course.title }}</h1>
+          <p class="hero-subtitle">{{ course.subtitle }}</p>
+
+          <div class="cta-actions-row">
             <a
               *ngIf="backendCourse?.id && activeBatch?.id"
               [routerLink]="['/checkout']"
@@ -30,133 +43,167 @@
                 batchId: activeBatch?.id,
                 batch: activeBatch?.name,
               }"
-              class="primary-cta"
+              class="primary-btn-cta shadow-lift"
             >
-              <i class="fa-solid fa-graduation-cap"></i>
-              Enroll Now
+              <i class="fa-solid fa-circle-check"></i>
+              Enroll in Batch Now
             </a>
 
-            <span *ngIf="backendCourse?.id && !activeBatch?.id" class="batch-unavailable">
-              Enrollment opens when an active batch is available.
+            <span *ngIf="backendCourse?.id && !activeBatch?.id" class="cohort-status-alert">
+              <i class="fa-solid fa-calendar-minus"></i>
+              Cohort planning in progress. Enrolling opens soon.
             </span>
-            <a href="javascript:void(0)" class="ghost-cta" (click)="scrollToRoadmap()">
+            
+            <button type="button" class="glass-btn-cta" (click)="scrollToRoadmap()">
               <i class="fa-solid fa-route"></i>
-              View Roadmap
-            </a>
+              View Learning path
+            </button>
           </div>
         </div>
 
-        <div class="hero-card">
-          <div class="hero-card-top">
-            <i class="fa-solid fa-bolt"></i>
-            <span>Career Track Snapshot</span>
+        <!-- Snapshot Statistics Card -->
+        <div class="snapshot-card">
+          <div class="snapshot-header">
+            <i class="fa-solid fa-bolt-lightning"></i>
+            <h3>Track Snapshot</h3>
           </div>
-          <div *ngFor="let stat of course.heroStats" class="stat-row">
-            <span>{{ stat.label }}</span>
-            <strong>{{ stat.value }}</strong>
+          <div class="snapshot-stats-list">
+            <div *ngFor="let stat of course.heroStats" class="snapshot-row">
+              <span class="label">{{ stat.label }}</span>
+              <strong class="value">{{ stat.value }}</strong>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="hero-facts">
-        <div>
-          <i class="fa-solid fa-signal"></i>
-          <span>Level</span>
-          <b>{{ course.level }}</b>
+      <!-- Quick Facts Panel -->
+      <div class="quick-facts-panel">
+        <div class="fact-tile">
+          <div class="fact-icon-wrapper blue">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div class="fact-info">
+            <span>Course Level</span>
+            <b>{{ course.level }}</b>
+          </div>
         </div>
-        <div>
-          <i class="fa-solid fa-clock"></i>
-          <span>Duration</span>
-          <b>{{ displayDuration }}</b>
+
+        <div class="fact-tile">
+          <div class="fact-icon-wrapper emerald">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div class="fact-info">
+            <span>Duration Scope</span>
+            <b>{{ displayDuration }}</b>
+          </div>
         </div>
-        <div>
-          <i class="fa-solid fa-tag"></i>
-          <span>Fee</span>
-          <b>{{ displayPrice }}</b>
+
+        <div class="fact-tile">
+          <div class="fact-icon-wrapper amber">
+            <i class="fa-solid fa-tag"></i>
+          </div>
+          <div class="fact-info">
+            <span>Tuition Fee</span>
+            <b>{{ displayPrice }}</b>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <main class="detail-page">
-    <section class="premium-banner">
-      <div>
-        <span>Premium Learning Path</span>
-        <h2>
-          Concepts, projects, interview prep, roadmap, and company usage in one complete plan.
-        </h2>
+  <!-- Main Details Page Workspace -->
+  <main class="details-workspace">
+    <!-- Premium Roadmap Banner -->
+    <section class="overview-highlight-banner">
+      <div class="banner-left">
+        <span class="banner-subtitle"><i class="fa-solid fa-shield-halved"></i> Mentor Guided Syllabus</span>
+        <h2>Unified curriculum path designed for real career readiness.</h2>
       </div>
-      <i class="fa-solid fa-arrow-trend-up"></i>
+      <div class="banner-right">
+        <div class="banner-badge-icon">
+          <i class="fa-solid fa-chart-pie"></i>
+        </div>
+      </div>
     </section>
 
+    <!-- Overview & Importance Section -->
     <section class="overview-grid">
-      <article class="content-panel lead-panel">
-        <span class="section-kicker">About</span>
-        <h2>What is {{ course.title }}?</h2>
+      <article class="info-details-card lead-card">
+        <span class="section-subtitle">Program Overview</span>
+        <h2>What is this track about?</h2>
         <p>{{ course.overview }}</p>
       </article>
 
-      <article class="content-panel">
-        <span class="section-kicker">Importance</span>
-        <h2>Why this skill matters</h2>
-        <ul class="check-list">
-          <li *ngFor="let item of course.importance">{{ item }}</li>
+      <article class="info-details-card">
+        <span class="section-subtitle">Market Demand</span>
+        <h2>Why this track matters</h2>
+        <ul class="checklist-items">
+          <li *ngFor="let item of course.importance">
+            <i class="fa-solid fa-circle-check"></i>
+            {{ item }}
+          </li>
         </ul>
       </article>
     </section>
 
-    <section class="content-band dark-band">
-      <div class="section-title light">
-        <span class="section-kicker">Important Concepts</span>
-        <h2>Concepts you must master</h2>
-        <p>
-          Every topic below is selected to make your learning practical, interview-ready, and useful
-          in real company projects.
+    <!-- Master Concepts Section -->
+    <section class="content-segment dark-theme-segment">
+      <div class="segment-header-block text-center">
+        <span class="section-subtitle text-emerald">Knowledge Matrix</span>
+        <h2>Core Concepts You Will Master</h2>
+        <p class="segment-header-desc">
+          Every concept in this curriculum is mapped to real-world software expectations, production API design, and team standards.
         </p>
       </div>
 
-      <div class="concept-grid">
-        <article *ngFor="let concept of concepts" class="concept-card">
-          <i [class]="concept.icon"></i>
+      <div class="concepts-grid">
+        <article *ngFor="let concept of concepts" class="concept-card-block">
+          <div class="concept-card-icon">
+            <i [class]="concept.icon"></i>
+          </div>
           <h3>{{ concept.title }}</h3>
           <p>{{ concept.text }}</p>
         </article>
       </div>
     </section>
 
-    <section class="content-band">
-      <div class="section-title">
-        <span class="section-kicker">Deep Learning</span>
-        <h2>Detailed learning layers for {{ course.title }}</h2>
-        <p>
-          This section expands the course into foundation, implementation, and production-ready
-          thinking.
-        </p>
+    <!-- Deep Learning Layers -->
+    <section class="content-segment">
+      <div class="segment-header-block text-center">
+        <span class="section-subtitle">Deep Learning Model</span>
+        <h2>Practical Progression Layers</h2>
+        <p class="segment-header-desc">We structure our tracks into active foundation layers, project-building modules, and job-readiness checkpoints.</p>
       </div>
 
-      <div class="deep-grid">
-        <article *ngFor="let block of deepDiveBlocks" class="deep-card">
-          <div class="deep-card-head">
-            <i class="fa-solid fa-layer-group"></i>
+      <div class="progression-layers-grid">
+        <article *ngFor="let block of deepDiveBlocks" class="progression-layer-card">
+          <div class="layer-header">
+            <i class="fa-solid fa-cubes-stacked"></i>
             <h3>{{ block.title }}</h3>
           </div>
-          <p>{{ block.intro }}</p>
-          <ul>
-            <li *ngFor="let point of block.points">{{ point }}</li>
+          <p class="layer-intro">{{ block.intro }}</p>
+          <ul class="layer-points-list">
+            <li *ngFor="let point of block.points">
+              <i class="fa-solid fa-check"></i>
+              {{ point }}
+            </li>
           </ul>
         </article>
       </div>
     </section>
 
-    <section class="content-band">
-      <div class="section-title">
-        <span class="section-kicker">Company Usage</span>
-        <h2>Where companies use {{ course.title }}</h2>
+    <!-- Company Usage & Real Scenarios -->
+    <section class="content-segment">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Industry Deployment</span>
+        <h2>Where Companies Deploy These Skills</h2>
       </div>
       <div class="usage-grid">
-        <article *ngFor="let item of companyUsage" class="usage-card">
-          <i [class]="item.icon"></i>
-          <div>
+        <article *ngFor="let item of companyUsage" class="usage-item-card">
+          <div class="usage-icon">
+            <i [class]="item.icon"></i>
+          </div>
+          <div class="usage-info">
             <h3>{{ item.title }}</h3>
             <p>{{ item.description }}</p>
           </div>
@@ -164,15 +211,17 @@
       </div>
     </section>
 
-    <section class="content-band muted">
-      <div class="section-title">
-        <span class="section-kicker">Real Company Scenarios</span>
-        <h2>Practical situations you should understand</h2>
+    <section class="content-segment bg-light-mesh">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Workplace Simulation</span>
+        <h2>Real Production Scenarios Encountered</h2>
       </div>
-      <div class="scenario-track">
-        <article *ngFor="let item of companyScenarios" class="scenario-card">
-          <i [class]="item.icon"></i>
-          <div>
+      <div class="scenarios-grid">
+        <article *ngFor="let item of companyScenarios" class="scenario-item-card">
+          <div class="scenario-icon">
+            <i [class]="item.icon"></i>
+          </div>
+          <div class="scenario-info">
             <h3>{{ item.title }}</h3>
             <p>{{ item.text }}</p>
           </div>
@@ -180,210 +229,235 @@
       </div>
     </section>
 
-    <section class="content-band muted">
-      <div class="section-title">
-        <span class="section-kicker">Future Scope</span>
-        <h2>Career growth after learning {{ course.title }}</h2>
+    <!-- Future Scope Grid -->
+    <section class="content-segment bg-light-mesh">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Career Longevity</span>
+        <h2>Career Growth and Trajectory</h2>
       </div>
-      <div class="scope-grid">
-        <article *ngFor="let item of course.future" class="scope-card">
-          <i class="fa-solid fa-arrow-trend-up"></i>
+      <div class="longevity-grid">
+        <article *ngFor="let item of course.future" class="longevity-card">
+          <div class="growth-arrow-icon">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
           <p>{{ item }}</p>
         </article>
       </div>
     </section>
 
-    <section class="content-band">
-      <div class="section-title">
-        <span class="section-kicker">Skill Matrix</span>
-        <h2>Skills you will build</h2>
+    <!-- Skill Matrix Progress Bars -->
+    <section class="content-segment">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Competency Map</span>
+        <h2>Detailed Skill Development Matrix</h2>
       </div>
-      <div class="skill-matrix">
-        <article *ngFor="let skill of skillMatrix" class="skill-row">
-          <div>
+      <div class="skills-matrix-block">
+        <article *ngFor="let skill of skillMatrix" class="skill-row-item">
+          <div class="skill-meta-label">
             <strong>{{ skill.name }}</strong>
-            <span>{{ skill.focus }}</span>
+            <span class="skill-focus-tag">{{ skill.focus }}</span>
           </div>
-          <div class="skill-track">
-            <span [style.width.%]="skill.level"></span>
+          <div class="skill-progress-bar-wrapper">
+            <span class="skill-progress-fill" [style.width.%]="skill.level"></span>
           </div>
-          <b>{{ skill.level }}%</b>
+          <b class="skill-pct-label">{{ skill.level }}%</b>
         </article>
       </div>
     </section>
 
-    <section class="content-band planner-band">
-      <div class="section-title light">
-        <span class="section-kicker">Practice Planner</span>
-        <h2>How to practice every week</h2>
-        <p>
-          A premium course page should tell learners exactly how to move from watching to doing.
-        </p>
+    <!-- Practice Planner Band -->
+    <section class="content-segment practice-schedule-band">
+      <div class="segment-header-block text-center text-white">
+        <span class="section-subtitle text-yellow">Structured Routine</span>
+        <h2>Weekly Actionable Practice Planner</h2>
+        <p class="segment-header-desc text-white-50">Build high-impact coding habits. Match your theory classes with structured daily assignments.</p>
       </div>
-      <div class="practice-grid">
-        <article *ngFor="let item of practiceTracks" class="practice-card">
-          <span>{{ item.day }}</span>
+      <div class="practice-planner-grid">
+        <article *ngFor="let item of practiceTracks" class="practice-schedule-card">
+          <span class="schedule-day-badge">{{ item.day }}</span>
           <h3>{{ item.focus }}</h3>
           <p>{{ item.activity }}</p>
         </article>
       </div>
     </section>
 
-    <section class="content-band muted">
-      <div class="section-title">
-        <span class="section-kicker">Roles</span>
-        <h2>Roles and expected packages</h2>
-        <p>
-          Actual package depends on skill, city, company, interview performance, and project
-          quality.
-        </p>
+    <!-- Roles & Packages -->
+    <section class="content-segment bg-light-mesh">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Employment Market</span>
+        <h2>Target Roles & Placement Packages</h2>
+        <p class="segment-header-desc">Estimated salary ranges depending on portfolio strength, live project quality, and interview performance.</p>
       </div>
-      <div class="role-grid">
-        <article *ngFor="let role of course.roles" class="role-card">
-          <i class="fa-solid fa-user-tie"></i>
-          <h3>{{ role.title }}</h3>
-          <strong>{{ role.package }}</strong>
-          <span>{{ role.skills }}</span>
-          <p>{{ role.note }}</p>
+      <div class="employment-roles-grid">
+        <article *ngFor="let role of course.roles" class="employment-role-card">
+          <div class="role-card-top">
+            <i class="fa-solid fa-user-tie"></i>
+            <h3>{{ role.title }}</h3>
+          </div>
+          <strong class="package-estimate">{{ role.package }}</strong>
+          <span class="expected-skills-pill"><i class="fa-solid fa-screwdriver-wrench"></i> {{ role.skills }}</span>
+          <p class="role-market-note">{{ role.note }}</p>
         </article>
       </div>
     </section>
 
-    <section class="content-band">
-      <div class="section-title">
-        <span class="section-kicker">Capstone Blueprint</span>
-        <h2>Final project plan for portfolio impact</h2>
+    <!-- Capstone Blueprints -->
+    <section class="content-segment">
+      <div class="segment-header-block text-center">
+        <span class="section-subtitle">Portfolio Capstone</span>
+        <h2>Capstone Project Implementation Path</h2>
       </div>
-      <div class="blueprint">
-        <div *ngFor="let step of capstoneBlueprint; let i = index" class="blueprint-step">
-          <span>{{ i + 1 }}</span>
-          <p>{{ step }}</p>
+      <div class="capstone-blueprint-flow">
+        <div *ngFor="let step of capstoneBlueprint; let i = index" class="blueprint-step-tile">
+          <span class="step-num">{{ i + 1 }}</span>
+          <p class="step-detail">{{ step }}</p>
         </div>
       </div>
     </section>
 
-    <section id="course_roadmap" class="roadmap-section">
-      <div class="section-title">
-        <span class="section-kicker">Detailed Roadmap</span>
-        <h2>Step-by-step premium learning path</h2>
+    <!-- Roadmap Timeline Section -->
+    <section id="course_roadmap" class="roadmap-timeline-section">
+      <div class="segment-header-block text-center">
+        <span class="section-subtitle">Step-By-Step Path</span>
+        <h2>Detailed Program Roadmap</h2>
       </div>
 
-      <div class="roadmap">
-        <article *ngFor="let phase of detailedRoadmap; let i = index" class="roadmap-item">
-          <span class="step-number">{{ i + 1 }}</span>
-          <div>
-            <small>{{ phase.week }}</small>
-            <h3>{{ phase.title }}</h3>
-            <p>{{ phase.goal }}</p>
-            <div class="skill-tags">
-              <span *ngFor="let item of phase.deliverables">{{ item }}</span>
+      <div class="timeline-roadmap-line">
+        <article *ngFor="let phase of detailedRoadmap; let i = index" class="timeline-roadmap-item">
+          <span class="roadmap-node-badge">{{ i + 1 }}</span>
+          <div class="roadmap-content-card">
+            <small class="phase-week-tag">{{ phase.week }}</small>
+            <h3 class="phase-title">{{ phase.title }}</h3>
+            <p class="phase-goal">{{ phase.goal }}</p>
+            <div class="deliverables-tags-cloud">
+              <span class="deliv-tag" *ngFor="let item of phase.deliverables">
+                <i class="fa-solid fa-cube"></i> {{ item }}
+              </span>
             </div>
           </div>
         </article>
       </div>
     </section>
 
-    <section class="two-column">
-      <article class="content-panel">
-        <span class="section-kicker">Fast Learning</span>
-        <h2>How to learn quickly</h2>
-        <ul class="check-list">
-          <li *ngFor="let tip of course.fastLearning">{{ tip }}</li>
+    <!-- Fast Learning & Outcomes Grid -->
+    <section class="outcomes-checklist-grid">
+      <article class="checklist-panel-card">
+        <span class="section-subtitle">Efficiency Hacks</span>
+        <h2>How to Learn Faster</h2>
+        <ul class="checklist-list-items">
+          <li *ngFor="let tip of course.fastLearning">
+            <i class="fa-solid fa-circle-check icon-green"></i>
+            {{ tip }}
+          </li>
         </ul>
       </article>
 
-      <article class="content-panel">
-        <span class="section-kicker">Outcomes</span>
-        <h2>What you can do after this course</h2>
-        <ul class="check-list">
-          <li *ngFor="let outcome of course.outcomes">{{ outcome }}</li>
+      <article class="checklist-panel-card">
+        <span class="section-subtitle">Skills Outcomes</span>
+        <h2>What You Can Build After</h2>
+        <ul class="checklist-list-items">
+          <li *ngFor="let outcome of course.outcomes">
+            <i class="fa-solid fa-circle-check icon-blue"></i>
+            {{ outcome }}
+          </li>
         </ul>
       </article>
     </section>
 
-    <section class="content-band muted">
-      <div class="section-title">
-        <span class="section-kicker">Avoid These Mistakes</span>
-        <h2>Common learning mistakes that slow students down</h2>
+    <!-- Learning Mistakes Section -->
+    <section class="content-segment bg-light-mesh">
+      <div class="segment-header-block">
+        <span class="section-subtitle text-rose">Pitfalls to Avoid</span>
+        <h2>Common Mistakes that Slow Learners Down</h2>
       </div>
-      <div class="mistake-grid">
-        <article *ngFor="let mistake of mistakes" class="mistake-card">
+      <div class="pitfalls-grid">
+        <article *ngFor="let mistake of mistakes" class="pitfall-item-card">
           <i class="fa-solid fa-triangle-exclamation"></i>
           <p>{{ mistake }}</p>
         </article>
       </div>
     </section>
 
-    <section class="content-band dark-band">
-      <div class="section-title light">
-        <span class="section-kicker">Projects</span>
-        <h2>Portfolio projects that make your resume stronger</h2>
+    <!-- Portfolio Projects Section -->
+    <section class="content-segment dark-theme-segment">
+      <div class="segment-header-block text-center">
+        <span class="section-subtitle text-emerald">Practical Proof</span>
+        <h2>Resume-Defining Portfolio Projects</h2>
       </div>
-      <div class="project-grid">
-        <article *ngFor="let project of course.projects" class="project-card">
-          <i class="fa-solid fa-folder-open"></i>
-          <h3>{{ project.title }}</h3>
+      <div class="portfolio-projects-grid">
+        <article *ngFor="let project of course.projects" class="portfolio-project-card">
+          <div class="project-card-header">
+            <i class="fa-solid fa-folder-closed"></i>
+            <h3>{{ project.title }}</h3>
+          </div>
           <p>{{ project.description }}</p>
         </article>
       </div>
     </section>
 
-    <section class="content-band">
-      <div class="section-title">
-        <span class="section-kicker">Interview Prep</span>
-        <h2>Topics to prepare before interviews</h2>
+    <!-- Interview Preparation Grid -->
+    <section class="content-segment">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Technical Interviews</span>
+        <h2>Key Interview Topics Covered</h2>
       </div>
-      <div class="interview-grid">
-        <div *ngFor="let topic of interviewTopics; let i = index">
-          <span>{{ i + 1 }}</span>
+      <div class="interview-topics-grid">
+        <div class="interview-topic-tile" *ngFor="let topic of interviewTopics; let i = index">
+          <span class="topic-counter">{{ i + 1 }}</span>
           <p>{{ topic }}</p>
         </div>
       </div>
     </section>
 
-    <section class="content-band muted">
-      <div class="section-title">
-        <span class="section-kicker">Mastery Checklist</span>
-        <h2>You are ready when you can prove these</h2>
+    <!-- Mastery Checklist -->
+    <section class="content-segment bg-light-mesh">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Skills Validation</span>
+        <h2>Program Mastery Checklist</h2>
       </div>
-      <div class="mastery-grid">
-        <div *ngFor="let item of masteryChecklist">
+      <div class="mastery-checklist-grid">
+        <div class="mastery-check-item" *ngFor="let item of masteryChecklist">
           <i class="fa-solid fa-circle-check"></i>
           <span>{{ item }}</span>
         </div>
       </div>
     </section>
 
-    <section class="proof-band">
-      <div class="proof-copy">
-        <span class="section-kicker">Proof of Skill</span>
-        <h2>What you should show on your resume</h2>
+    <!-- Proof of Skill Section -->
+    <section class="proof-of-skill-banner">
+      <div class="banner-copy">
+        <span class="section-subtitle text-yellow">Evidence of Mastery</span>
+        <h2>Items to Include on Your Professional Resume</h2>
       </div>
-      <div class="proof-list">
-        <div *ngFor="let item of proofItems">
+      <div class="proof-checklist-column">
+        <div class="proof-item-tile" *ngFor="let item of proofItems">
           <i class="fa-solid fa-circle-check"></i>
           <span>{{ item }}</span>
         </div>
       </div>
     </section>
 
-    <section class="content-band">
-      <div class="section-title">
-        <span class="section-kicker">Tools</span>
-        <h2>Technologies covered</h2>
+    <!-- Technologies Cover Block -->
+    <section class="content-segment text-center">
+      <div class="segment-header-block">
+        <span class="section-subtitle">Tool Stack</span>
+        <h2>Technologies Covered in This Track</h2>
       </div>
-      <div class="tool-cloud">
-        <span *ngFor="let tool of course.tools">{{ tool }}</span>
+      <div class="technology-badges-cloud">
+        <span class="tech-badge" *ngFor="let tool of course.tools">
+          <i class="fa-solid fa-screwdriver-wrench"></i> {{ tool }}
+        </span>
       </div>
     </section>
 
-    <section class="content-band faq-section">
-      <div class="section-title">
-        <span class="section-kicker">FAQ</span>
-        <h2>Questions students usually ask</h2>
+    <!-- FAQs Section -->
+    <section class="content-segment faq-accordion-section">
+      <div class="segment-header-block text-center">
+        <span class="section-subtitle">Common Inquiries</span>
+        <h2>Frequently Asked Questions</h2>
       </div>
-      <div class="faq-grid">
-        <article *ngFor="let faq of faqItems">
+      <div class="faq-details-grid">
+        <article class="faq-card-item" *ngFor="let faq of faqItems">
           <h3>{{ faq.question }}</h3>
           <p>{{ faq.answer }}</p>
         </article>
@@ -392,10 +466,12 @@
   </main>
 </ng-container>
 
+<!-- 404 Course Not Found State -->
 <ng-template #notFound>
-  <section class="not-found">
-    <h1>Course details coming soon</h1>
-    <p>This course detail page is being prepared.</p>
-    <a routerLink="/courses">Back to Courses</a>
+  <section class="course-not-found-state">
+    <i class="fa-solid fa-compass-drafting empty-icon"></i>
+    <h1>Course Details Under Development</h1>
+    <p>We are currently designing and structuring this course detail console layout. Please check back shortly.</p>
+    <a routerLink="/courses" class="primary-btn"><i class="fa-solid fa-arrow-left"></i> Back to Courses</a>
   </section>
 </ng-template>

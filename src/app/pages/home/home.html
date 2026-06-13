@@ -1,271 +1,260 @@
 <main class="home-page">
-  <section class="hero-section">
-    <div class="mesh-bg"></div>
-    <div class="grid-layer"></div>
-    <div class="floating-shape shape-one"></div>
-    <div class="floating-shape shape-two"></div>
-    <div class="floating-shape shape-three"></div>
-    <div class="container hero-layout">
-      <div class="hero-copy reveal">
-        <div class="hero-badge">
-          <span class="pulse-dot"></span>
-          {{ heroCourse?.title || 'Live Career Program' }} Batch Starts
+  <!-- BACKGROUND ANIMATED GLOWS -->
+  <div class="home-bg-grid"></div>
+  <div class="radial-glow glow-primary"></div>
+  <div class="radial-glow glow-secondary"></div>
 
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="container hero-layout">
+      <!-- HERO TEXT COLUMN -->
+      <div class="hero-copy">
+        <span class="hero-badge">
+          <span class="pulse-dot"></span>
+          {{ heroCourse?.title || 'Live Career Program' }} Batch starts
           <ng-container *ngIf="heroCourse?.upcomingBatch?.startDate; else noBatchDate">
             {{ heroCourse.upcomingBatch.startDate | date: 'MMMM d, y' }}
           </ng-container>
-
           <ng-template #noBatchDate>soon</ng-template>
-        </div>
+        </span>
 
-        <!-- ADD THIS HERE -->
+        <!-- COURSE SWITCHER TABS -->
         <div class="hero-course-switcher" *ngIf="featuredCourses.length > 1">
-          <button
-            type="button"
-            *ngFor="let course of featuredCourses; let i = index"
-            [class.active]="heroCourseIndex === i"
-            (click)="setHeroCourse(course, i)"
-          >
+          <button type="button" *ngFor="let course of featuredCourses; let i = index"
+            [class.active]="heroCourseIndex === i" (click)="setHeroCourse(course, i)">
+            <i class="fa-solid" [class.fa-code]="course.title.toLowerCase().includes('python')"
+              [class.fa-coffee]="course.title.toLowerCase().includes('java')"></i>
             <span>{{ course.title }}</span>
-            <small>Rs. {{ formatPrice(course.price) }}</small>
+            <small>₹{{ formatPrice(course.price) }}</small>
           </button>
         </div>
 
         <h1>
-          Learn {{ heroCourse?.title || 'Software Skills' }}.
-          <span>Build Projects.</span>
-          Become Job Ready.
+          Master {{ heroCourse?.title || 'Software Skills' }} <br />
+          <span class="gradient-text">Build Projects, Get Hired.</span>
         </h1>
+
         <p class="hero-subtitle">
           {{
-            heroCourse?.desc ||
-              'A complete live career program with mentor-led practical training, projects, resume support, and interview preparation.'
+          heroCourse?.desc ||
+          'A complete live career program with mentor-led practical training, real-time projects, resume polishing, and
+          mock interview preparation.'
           }}
         </p>
+
+        <!-- CTA BUTTONS -->
         <div class="hero-actions">
-          <button class="primary-action" (click)="openEnrollModal(heroCourse)">
+          <button class="btn btn-primary" (click)="openEnrollModal(heroCourse)">
+            <i class="fa-regular fa-calendar-check"></i>
             Join Free Demo
           </button>
-          <a
-            class="secondary-action"
-            *ngIf="heroCourse"
-            [routerLink]="['/checkout']"
-            [queryParams]="{
-              courseId: heroCourse?.id,
-              course: heroCourse?.title,
-              amount: heroCourse?.price,
-              batch: heroCourse?.activeBatch?.name,
-              batchId: heroCourse?.activeBatch?.id,
-            }"
-          >
-            Purchase Course
-          </a>
         </div>
+
+        <!-- STATS / METRICS -->
         <div class="hero-metrics">
-          <div>
+          <div class="metric-item">
             <strong>45</strong>
-            <span>Days live track</span>
+            <span>Days Live Track</span>
           </div>
-          <div>
-            <strong>4.8</strong>
-            <span>Student rating</span>
+          <div class="metric-item">
+            <strong>4.8 <i class="fa-solid fa-star text-gold"></i></strong>
+            <span>Student Rating</span>
           </div>
-          <div>
+          <div class="metric-item">
             <strong>500+</strong>
-            <span>Learners trained</span>
+            <span>Learners Trained</span>
           </div>
         </div>
       </div>
-      <div class="hero-stage reveal delay-one">
+
+      <!-- HERO VISUAL COLUMN (PREMIUM MAC-EDITOR CARD) -->
+      <div class="hero-stage">
         <div class="orbit-ring ring-one"></div>
         <div class="orbit-ring ring-two"></div>
+
         <div class="premium-card">
+          <!-- MAC HEADER -->
           <div class="premium-header">
             <div class="dots">
               <span class="dot red"></span>
               <span class="dot yellow"></span>
               <span class="dot green"></span>
             </div>
-            <span class="file-name">career_track.py</span>
-            <span class="live-indicator">Live</span>
+            <span class="file-name"><i class="fa-solid fa-code"></i> career_track.py</span>
+            <span class="live-indicator"><span class="pulse-indicator"></span> Live Batch</span>
           </div>
+
+          <!-- CARD HEADER INFO -->
           <div class="hero-course-image" *ngIf="heroCourse?.thumbnailUrl">
             <img [src]="courseImage(heroCourse.thumbnailUrl)" [alt]="heroCourse.title" />
-            <div>
-              <span>{{ heroCourse.level || 'Live Program' }}</span>
-              <strong>{{ heroCourse.title }}</strong>
+            <div class="course-meta-overlay">
+              <span class="meta-level">{{ heroCourse.level || 'Live Program' }}</span>
+              <strong class="meta-title">{{ heroCourse.title }}</strong>
             </div>
           </div>
+
+          <!-- MOCK EDITOR CODE SECTION -->
           <div class="premium-code">
-            <p><span>course</span> = "{{ heroCourse?.title || 'Live Career Program' }}"</p>
-            <p><span>level</span> = "{{ heroCourse?.level || 'Beginner Friendly' }}"</p>
-            <p><span>duration</span> = "{{ heroCourse?.duration || 'Live Track' }}"</p>
-            <p><span>price</span> = "Rs. {{ formatPrice(heroCourse?.price) }}"</p>
             <p>
-              <span>focus</span> = "{{
-                heroCourse?.highlights?.[0] ||
-                  heroCourse?.outcomes?.[0] ||
-                  'Projects + Career Support'
+              <span class="code-kw">course</span> = "{{
+              heroCourse?.title || 'Live Career Program'
+              }}"
+            </p>
+            <p>
+              <span class="code-kw">level</span> = "{{ heroCourse?.level || 'Beginner Friendly' }}"
+            </p>
+            <p>
+              <span class="code-kw">duration</span> = "{{ heroCourse?.duration || 'Live Track' }}"
+            </p>
+            <p><span class="code-kw">price</span> = "₹{{ formatPrice(heroCourse?.price) }}"</p>
+            <p>
+              <span class="code-kw">focus</span> = "{{
+              heroCourse?.highlights?.[0] ||
+              heroCourse?.outcomes?.[0] ||
+              'Projects + Career Support'
               }}"
             </p>
             <p class="run"><span class="typing-text"></span><span class="cursor">|</span></p>
           </div>
+
+          <!-- PRICING & OFFER INFO -->
           <div class="premium-offer">
             <div class="offer-tags">
-              <span>Current live course</span>
-              <span> only a few seats left</span>
+              <span class="tag-status"><i class="fa-solid fa-fire-flame-curved"></i> Best Seller</span>
+              <span class="tag-seats"><i class="fa-solid fa-chair"></i> Only few seats left!</span>
             </div>
-            <h2>{{ heroCourse?.title || 'Career Track' }}</h2>
-            <p>
-              {{
-                heroCourse?.desc ||
-                  'Live training, project building, mock interviews, and complete career support.'
-              }}
-            </p>
 
             <div class="price-box">
-              <span class="new">Rs. {{ formatPrice(heroCourse?.price) }}</span>
-              <span class="old" *ngIf="heroCourse?.oldPrice"
-                >Rs. {{ formatPrice(heroCourse.oldPrice) }}</span
-              >
+              <span class="new">₹{{ formatPrice(heroCourse?.price) }}</span>
+              <span class="old" *ngIf="heroCourse?.oldPrice">₹{{ formatPrice(heroCourse.oldPrice) }}</span>
               <span class="off" *ngIf="heroCourse?.discountLabel">{{
                 heroCourse.discountLabel
-              }}</span>
+                }}</span>
             </div>
-            <span class="offer-validity">Offer valid until batch starts</span>
+
+            <span class="offer-validity"><i class="fa-solid fa-circle-exclamation"></i> Offer valid until batch
+              starts</span>
             <span class="enrollments" *ngIf="activeBatch?.enrollmentCount">
-              {{ activeBatch.enrollmentCount }} students enrolled
+              <i class="fa-solid fa-user-group"></i> {{ activeBatch.enrollmentCount }} students
+              enrolled
             </span>
           </div>
+
+          <!-- COUNTDOWN TIMER -->
           <div class="timer-premium">
-            <div>
-              <b>{{ timer.days() }}</b
-              ><span>Days</span>
+            <div class="timer-unit">
+              <b>{{ timer.days() }}</b>
+              <span>Days</span>
             </div>
-            <div>
-              <b>{{ timer.hours() }}</b
-              ><span>Hrs</span>
+            <div class="timer-unit">
+              <b>{{ timer.hours() }}</b>
+              <span>Hrs</span>
             </div>
-            <div>
-              <b>{{ timer.minutes() }}</b
-              ><span>Min</span>
+            <div class="timer-unit">
+              <b>{{ timer.minutes() }}</b>
+              <span>Min</span>
             </div>
-            <div>
-              <b>{{ timer.seconds() }}</b
-              ><span>Sec</span>
+            <div class="timer-unit">
+              <b>{{ timer.seconds() }}</b>
+              <span>Sec</span>
             </div>
           </div>
-          <a
-            class="cta-btn"
-            *ngIf="heroCourse"
-            [routerLink]="['/checkout']"
-            [queryParams]="{
+
+          <!-- ACTION BUTTON -->
+          <a class="cta-btn" *ngIf="heroCourse" [routerLink]="['/checkout']" [queryParams]="{
               courseId: heroCourse?.id,
               course: heroCourse?.title,
               amount: heroCourse?.price,
               batch: heroCourse?.activeBatch?.name,
               batchId: heroCourse?.activeBatch?.id,
-            }"
-          >
-            Reserve My Seat
+            }">
+            <i class="fa-solid fa-cart-shopping"></i>
+            Purchase Course
+            <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- PRACTICE ARENA SECTION -->
   <section class="practice-arena-section">
-    <div class="arena-bg-grid"></div>
-    <div class="arena-orb arena-orb-one"></div>
-    <div class="arena-orb arena-orb-two"></div>
-    <div class="arena-orb arena-orb-three"></div>
-
     <div class="container practice-arena-shell">
+      <!-- ARENA CONTENT -->
       <div class="arena-copy">
-        <span class="arena-kicker">Free Practice + Weekly Coding Arena</span>
-
+        <span class="arena-kicker">
+          <i class="fa-solid fa-laptop-code"></i> Free Practice + Weekly Coding Arena
+        </span>
         <h2>
-          Practice mock tests.
-          <span>Compete in coding contests.</span>
-          Get placement-ready faster.
+          Practice Mock Tests. <br />
+          <span class="gradient-text">Compete in Coding Contests.</span> <br />
+          Get Placement-Ready.
         </h2>
-
         <p>
           One powerful practice hub for company-wise mock tests, TCS NQT style preparation, coding
           challenges, instant scoring, and weekly leaderboard competitions.
         </p>
 
         <div class="arena-actions">
-          <a routerLink="/practice" class="arena-primary-action"> Start Free Practice </a>
-
-          <a routerLink="/coding-contests" class="arena-secondary-action"> Join Coding Contest </a>
+          <a routerLink="/practice" class="btn btn-primary">
+            <i class="fa-solid fa-dumbbell"></i> Start Free Practice
+          </a>
+          <a routerLink="/coding-contests" class="btn btn-secondary">
+            <i class="fa-solid fa-trophy"></i> Join Coding Contest
+          </a>
         </div>
 
-        <div class="arena-feature-pills">
-          <span>Instant score reports</span>
-          <span>Company-wise practice</span>
-          <span>Live leaderboard</span>
-          <span>Weekly top 3 badges</span>
-        </div>
-
+        <!-- LOGOS STRIP -->
         <div class="arena-company-strip">
-          <img src="logos/tcs.svg" alt="TCS" />
-          <img src="logos/infosys.svg" alt="Infosys" />
-          <img src="logos/wipro.svg" alt="Wipro" />
-          <img src="logos/deloitte.svg" alt="Deloitte" />
-          <img src="logos/accenture.svg" alt="Accenture" />
+          <span>Target Companies:</span>
+          <div class="logos-wrap">
+            <img src="logos/tcs.svg" alt="TCS" />
+            <img src="logos/infosys.svg" alt="Infosys" />
+            <img src="logos/wipro.svg" alt="Wipro" />
+            <img src="logos/deloitte.svg" alt="Deloitte" />
+            <img src="logos/accenture.svg" alt="Accenture" />
+          </div>
         </div>
       </div>
 
+      <!-- LEADERBOARD & VISUAL CARD -->
       <div class="arena-visual">
         <a routerLink="/coding-contests" class="arena-image-card" aria-label="Open coding contests">
           <div class="arena-image-glow"></div>
-
-          <img src="Coding Contest new.png" alt="Coding Contest" />
+          <img src="Coding Contest new.png" alt="Coding Contest Interface" />
         </a>
 
+        <!-- CHAMPIONS LEADERBOARD -->
         <div class="arena-leaderboard-card">
           <div class="arena-leaderboard-head">
             <div>
               <span>Weekly Coding Champions</span>
-              <strong>Top 3</strong>
+              <strong>Top 3 Performers</strong>
             </div>
-
-            <a routerLink="/leaderboard">View all</a>
+            <a routerLink="/leaderboard"><i class="fa-solid fa-ranking-star"></i> View All</a>
           </div>
 
           <div class="arena-winners" *ngIf="weeklyContestTopThree.length; else arenaNoWinners">
-            <article
-              class="arena-winner"
-              *ngFor="let winner of weeklyContestTopThree"
-              [class.gold]="winner.rank === 1"
-              [class.silver]="winner.rank === 2"
-              [class.bronze]="winner.rank === 3"
-            >
+            <article class="arena-winner" *ngFor="let winner of weeklyContestTopThree" [class.gold]="winner.rank === 1"
+              [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
               <div class="arena-medal">
                 <ng-container *ngIf="winnerAvatarUrl(winner); else winnerInitialTpl">
-                  <img
-                    class="arena-winner-avatar"
-                    [src]="winnerAvatarUrl(winner)"
-                    [alt]="winner.name || 'Participant'"
-                    referrerpolicy="no-referrer"
-                    (error)="markWinnerAvatarFailed(winner)"
-                  />
+                  <img class="arena-winner-avatar" [src]="winnerAvatarUrl(winner)" [alt]="winner.name || 'Participant'"
+                    referrerpolicy="no-referrer" (error)="markWinnerAvatarFailed(winner)" />
                 </ng-container>
-
                 <ng-template #winnerInitialTpl>
                   <strong>{{ winnerInitial(winner) }}</strong>
                 </ng-template>
-
-                <span>#{{ winner.rank }} {{ winnerBadge(winner.rank) }}</span>
+                <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
               </div>
 
               <div class="arena-winner-info">
                 <h3>{{ winner.name || 'Participant' }}</h3>
                 <p>{{ winner.email || 'Contest participant' }}</p>
-
-                <div>
-                  <span>{{ winner.solvedChallenges || 0 }} solved</span>
-                  <span>{{ winner.score || 0 }}/{{ winner.totalMarks || 0 }} marks</span>
+                <div class="winner-stats-badges">
+                  <span class="stat-badge"><i class="fa-solid fa-check-double"></i>
+                    {{ winner.solvedChallenges || 0 }} solved</span>
+                  <span class="stat-badge"><i class="fa-solid fa-star"></i> {{ winner.score || 0 }} pts</span>
                 </div>
               </div>
             </article>
@@ -273,1630 +262,689 @@
 
           <ng-template #arenaNoWinners>
             <div class="arena-empty-winners">
+              <i class="fa-solid fa-hourglass-half empty-icon"></i>
               <strong>Leaderboard opening soon</strong>
-              <p>Top weekly performers will appear after submissions.</p>
+              <p>Top weekly performers will appear here after submissions are assessed.</p>
             </div>
           </ng-template>
         </div>
       </div>
     </div>
 
+    <!-- PIPELINE STEPS BAND -->
     <div class="container arena-flow-band">
-      <article>
-        <span>01</span>
-        <strong>Register once</strong>
-        <p>Student details are captured before public practice attempts.</p>
+      <article class="flow-step">
+        <span class="step-num">01</span>
+        <strong>Register Once</strong>
+        <p>Student details are safely captured before first public practice attempt.</p>
       </article>
-
-      <article>
-        <span>02</span>
-        <strong>Practice and submit</strong>
-        <p>Attempt mock tests, coding challenges, and contest problems.</p>
+      <article class="flow-step">
+        <span class="step-num">02</span>
+        <strong>Practice & Submit</strong>
+        <p>Attempt mock tests, coding challenges, and contest problems on the editor.</p>
       </article>
-
-      <article>
-        <span>03</span>
-        <strong>Score and rank</strong>
-        <p>Get instant results and compete on live leaderboards.</p>
+      <article class="flow-step">
+        <span class="step-num">03</span>
+        <strong>Score & Rank</strong>
+        <p>Get instant test cases feedback and climb the weekly leaderboards.</p>
       </article>
     </div>
   </section>
+
+  <!-- MARQUEE INFINITE CAROUSEL -->
   <section class="marquee-section">
     <div class="marquee-track">
-      <span>🔥 Live Interactive Classes</span>
-      <span>🐍 Python + Data Structures</span>
-      <span>☕ Java Full Stack Development</span>
-      <span>⚡ Frontend Development</span>
-      <span>🚀 Backend API Development</span>
-      <span>🗄️ SQL & Database Training</span>
-      <span>💻 Real-Time Project Lab</span>
-      <span>📄 Resume Building Support</span>
-      <span>🎯 Mock Interviews</span>
-      <span>🏢 Corporate Workshops</span>
-      <span>🧠 Problem Solving Sessions</span>
-      <span>📚 Beginner Friendly Learning</span>
-      <span>🎥 Recorded Sessions Access</span>
-      <span>👨‍🏫 Mentor Guidance</span>
-      <span>🔗 Git & GitHub Practice</span>
-      <span>🌐 Full Stack Projects</span>
-      <span>📱 Responsive UI Design</span>
-      <span>🛠️ CRUD Application Development</span>
-      <span>🔐 Authentication Systems</span>
-      <span>☁️ Deployment Training</span>
-      <!-- duplicate -->
-      <span>🔥 Live Interactive Classes</span>
-      <span>🐍 Python + Data Structures</span>
-      <span>☕ Java Full Stack Development</span>
-      <span>⚡ Frontend Development</span>
-      <span>🚀 Backend API Development</span>
-      <span>🗄️ SQL & Database Training</span>
-      <span>💻 Real-Time Project Lab</span>
-      <span>📄 Resume Building Support</span>
-      <span>🎯 Mock Interviews</span>
-      <span>🏢 Corporate Workshops</span>
-      <span>🧠 Problem Solving Sessions</span>
-      <span>📚 Beginner Friendly Learning</span>
-      <span>🎥 Recorded Sessions Access</span>
-      <span>👨‍🏫 Mentor Guidance</span>
-      <span>🔗 Git & GitHub Practice</span>
-      <span>🌐 Full Stack Projects</span>
-      <span>📱 Responsive UI Design</span>
-      <span>🛠️ CRUD Application Development</span>
-      <span>🔐 Authentication Systems</span>
-      <span>☁️ Deployment Training</span>
+      <span><i class="fa-solid fa-circle-play"></i> Live Interactive Classes</span>
+      <span><i class="fa-brands fa-python"></i> Python + Data Structures</span>
+      <span><i class="fa-brands fa-java"></i> Java Full Stack Development</span>
+      <span><i class="fa-solid fa-laptop-code"></i> Frontend Development</span>
+      <span><i class="fa-solid fa-server"></i> Backend API Development</span>
+      <span><i class="fa-solid fa-database"></i> SQL & Database Training</span>
+      <span><i class="fa-solid fa-flask"></i> Real-Time Project Lab</span>
+      <span><i class="fa-solid fa-file-pdf"></i> Resume Building Support</span>
+      <span><i class="fa-solid fa-comments"></i> Mock Interviews</span>
+      <span><i class="fa-solid fa-briefcase"></i> Placement Preparation</span>
+      <span><i class="fa-solid fa-users-gear"></i> Mentor Guidance</span>
+
+      <!-- Duplicate for seamless scroll loop -->
+      <span><i class="fa-solid fa-circle-play"></i> Live Interactive Classes</span>
+      <span><i class="fa-brands fa-python"></i> Python + Data Structures</span>
+      <span><i class="fa-brands fa-java"></i> Java Full Stack Development</span>
+      <span><i class="fa-solid fa-laptop-code"></i> Frontend Development</span>
+      <span><i class="fa-solid fa-server"></i> Backend API Development</span>
+      <span><i class="fa-solid fa-database"></i> SQL & Database Training</span>
+      <span><i class="fa-solid fa-flask"></i> Real-Time Project Lab</span>
+      <span><i class="fa-solid fa-file-pdf"></i> Resume Building Support</span>
+      <span><i class="fa-solid fa-comments"></i> Mock Interviews</span>
+      <span><i class="fa-solid fa-briefcase"></i> Placement Preparation</span>
+      <span><i class="fa-solid fa-users-gear"></i> Mentor Guidance</span>
     </div>
   </section>
+
+  <!-- ECOSYSTEM SECTION -->
   <section class="institute-section">
     <div class="container institute-layout">
-      <div class="institute-copy reveal">
-        <span class="section-kicker">VidhuraTech training ecosystem</span>
-
-        <h2>Not just one course. A complete software career training institute.</h2>
-
+      <div class="institute-copy">
+        <span class="section-kicker"><i class="fa-solid fa-school"></i> VidhuraTech Ecosystem</span>
+        <h2>Not just one course. A complete career training institute.</h2>
         <p>
-          Learn through live batches, project labs, mentor support, resume guidance, mock
-          interviews, and company-focused preparation. Start with TCS NQT practice and build
-          confidence for real hiring rounds.
+          Learn through live batches, interactive project labs, dedicated mentor support, resume
+          crafting, and company-focused mock interviews. Start with free TCS NQT practice and build
+          core competency.
         </p>
 
         <div class="institute-actions">
-          <a routerLink="/preparation" class="primary-action institute-action prep-offer-action">
-            <span>Crack Interviews</span>
-            <b><del>₹999/year</del> Free for limited period</b>
+          <a routerLink="/preparation" class="btn btn-primary prep-offer-action">
+            <span><i class="fa-solid fa-circle-arrow-up"></i> Crack Interviews</span>
+            <small><del>₹999/year</del> Free for limited period</small>
           </a>
-
-          <a routerLink="/practice" class="secondary-action institute-action"> Free Mock Tests </a>
         </div>
       </div>
 
-      <div class="institute-media reveal delay-one">
+      <div class="institute-media">
         <div class="mock-image-card">
-          <img src="/TCS NQT 2026 mock tests promotion.png" alt="TCS NQT 2026 Mock Tests" />
-
+          <img src="/TCS NQT 2026 mock tests promotion.png" alt="TCS NQT 2026 Mock Tests Promotion" />
           <div class="mock-image-label">
-            <span>TCS NQT 2026</span>
+            <span class="mock-badge">TCS NQT 2026 Ready</span>
             <strong>Mock Tests + Interview Preparation</strong>
-            <small>Practice aptitude, coding, verbal ability, and interview readiness.</small>
+            <p>Practice aptitude, coding challenges, verbal ability, and technical MCQ rounds.</p>
           </div>
         </div>
       </div>
 
-      <div class="institute-stats reveal delay-two">
-        <div>
-          <strong>Companies</strong>
-          <span
-            >TCS, Infosys, Wipro, Accenture style hiring preparation with role-wise practice.</span
-          >
+      <!-- HIGHLIGHTS GRID -->
+      <div class="institute-stats">
+        <div class="stat-card">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-building-user"></i></div>
+          <strong>Target Companies</strong>
+          <span>TCS, Infosys, Wipro, and Accenture role-wise practice challenges.</span>
         </div>
-
-        <div>
-          <strong>Assessments</strong>
-          <span
-            >Timed mock tests with aptitude, verbal, technical MCQs, scoring, and result
-            review.</span
-          >
+        <div class="stat-card">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-stopwatch"></i></div>
+          <strong>Timed Assessments</strong>
+          <span>Assessments with timed MCQs, coding challenges, scoring, and reviews.</span>
         </div>
-
-        <div>
-          <strong>Challenges</strong>
-          <span
-            >Pseudo code and coding practice with constraints, test cases, hints, and
-            submissions.</span
-          >
+        <div class="stat-card">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-file-code"></i></div>
+          <strong>Coding Challenges</strong>
+          <span>Pseudo-code and code exercises with test cases, constraints, and metrics.</span>
         </div>
-
-        <div>
-          <strong>Interviews</strong>
-          <span
-            >Company-wise interview questions with structured answers and preparation tips.</span
-          >
+        <div class="stat-card">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-user-tie"></i></div>
+          <strong>Structured Interviews</strong>
+          <span>Company-wise past interview banks with answers and detailed tips.</span>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- VIRTUAL MOCK INTERVIEWS SECTION -->
   <section class="virtual-interview-section">
     <div class="container virtual-interview-stack">
-      <div class="virtual-visual-row reveal">
+      <!-- VISUAL BANNER -->
+      <div class="virtual-visual-row">
         <div class="virtual-visual-glow"></div>
-
-        <img src="Virtual interview feature.png" alt="Virtual mock interview feature" />
-
-        <!-- <div class="visual-badge badge-left">
-          <strong>Coming Soon</strong>
-          <span>Virtual expert interviews</span>
-        </div>
-
-        <div class="visual-badge badge-right">
-          <strong>Industry Standard</strong>
-          <span>Role-based evaluation</span>
-        </div> -->
+        <img src="Virtual interview feature.png" alt="Virtual Mock Interview Panel Mockup" />
       </div>
 
-      <div class="virtual-content-row reveal delay-one">
+      <!-- CONTENT CARD -->
+      <div class="virtual-content-row">
         <div class="virtual-copy">
-          <span class="virtual-pill">Mock Interview Experience</span>
-
+          <span class="virtual-pill"><i class="fa-solid fa-microphone"></i> Mock Interview Experience</span>
           <h2>Practice interviews that feel close to real company hiring rounds.</h2>
-
           <p>
-            VidhuraTech virtual mock interviews will help students prepare with confidence through
-            structured sessions based on qualification, skills, experience, projects, and target job
-            role. Each session will be guided by professionals and real-time industry experts.
+            VidhuraTech virtual mock interviews help students prepare with confidence through
+            structured live sessions based on skills, target role, and projects. Sessions are guided
+            by industry professionals and mentors.
           </p>
         </div>
 
         <div class="virtual-flow-grid">
-          <article>
+          <article class="flow-item">
             <b>01</b>
-            <strong>Register your interest</strong>
+            <strong>Register Interest</strong>
             <span>Click the registration form and share your basic profile details.</span>
           </article>
-
-          <article>
+          <article class="flow-item">
             <b>02</b>
-            <strong>Raise a mock interview request</strong>
-            <span
-              >Add qualification, skills, experience, role preference, and available time
-              slots.</span
-            >
+            <strong>Submit Request</strong>
+            <span>Specify your qualification, skills, projects, and available time slots.</span>
           </article>
-
-          <article>
+          <article class="flow-item">
             <b>03</b>
-            <strong>Get your meeting invite</strong>
-            <span>Our team will review your request and share the scheduled interview link.</span>
+            <strong>Get Meeting Invite</strong>
+            <span>Our coordinators review your request and share the interview video link.</span>
           </article>
-
-          <article>
+          <article class="flow-item">
             <b>04</b>
-            <strong>Stay connected with our team</strong>
-            <span>Receive feedback, preparation guidance, and next-step support.</span>
+            <strong>Review & Feedback</strong>
+            <span>Receive post-interview scorecards, improvements, and advice.</span>
           </article>
         </div>
 
         <div class="virtual-footer-note">
-          <button type="button" (click)="openMockInterviewLeadForm()">
-            Registration Opens Soon
+          <button type="button" class="btn btn-primary" (click)="openMockInterviewLeadForm()">
+            <i class="fa-solid fa-pen-to-square"></i> Register Interest Now
           </button>
-          <p>Professional mock interviews by mentors and real-time industry experts.</p>
+          <p class="mentor-note">Professional mock sessions led by industry expert mentors.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <div
-    class="mock-interest-overlay"
-    *ngIf="showMockInterviewLeadForm"
-    (click)="closeMockInterviewLeadForm()"
-  >
-    <form
-      class="mock-interest-modal"
-      (click)="$event.stopPropagation()"
-      (ngSubmit)="submitMockInterviewLead()"
-    >
-      <div class="mock-interest-head">
-        <span>Mock Interview Interest</span>
-        <button type="button" (click)="closeMockInterviewLeadForm()">×</button>
+  <!-- ATS RESUME BUILDER PROMOTION SECTION -->
+  <section class="ats-resume-promo-section">
+    <!-- Background Animated Glow Blobs -->
+    <div class="ats-promo-radial-glow primary"></div>
+    <div class="ats-promo-radial-glow secondary"></div>
+
+    <div class="container ats-resume-layout">
+      <!-- COPY COLUMN -->
+      <div class="ats-resume-copy">
+        <span class="ats-resume-kicker">
+          <i class="fa-solid fa-file-invoice"></i> Premium ATS Resume Lab
+        </span>
+        <h2>
+          Build a High-Score ATS Resume. <br />
+          <span class="gradient-text">Scan, Match, and Get Shortlisted.</span>
+        </h2>
+        <p>
+          Don't let your resume get filtered by candidate screening algorithms. Use our real-time ATS Resume Lab to scan your resume against job descriptions, check match scores, receive AI-powered optimization guidelines, and export print-ready PDF resumes using 25+ professional templates.
+        </p>
+
+        <!-- Dynamic feature grid with rich hover actions -->
+        <div class="ats-features-grid-cards">
+          <div class="ats-feature-card-item">
+            <div class="card-icon-wrap gold"><i class="fa-solid fa-palette"></i></div>
+            <div class="card-text">
+              <strong>25+ Premium Templates</strong>
+              <span>Styled strictly according to ATS guidelines using parser-safe typography and layouts.</span>
+            </div>
+          </div>
+          <div class="ats-feature-card-item">
+            <div class="card-icon-wrap violet"><i class="fa-solid fa-crosshairs"></i></div>
+            <div class="card-text">
+              <strong>JD Scanner Matching</strong>
+              <span>Instant keyword compliance scan, similarity score calculations, and suggestions.</span>
+            </div>
+          </div>
+          <div class="ats-feature-card-item">
+            <div class="card-icon-wrap green"><i class="fa-solid fa-bolt-lightning"></i></div>
+            <div class="card-text">
+              <strong>One-Click AI Optimization</strong>
+              <span>Auto-populate missing industry keywords directly into your skills stack in real-time.</span>
+            </div>
+          </div>
+          <div class="ats-feature-card-item">
+            <div class="card-icon-wrap blue"><i class="fa-solid fa-file-pdf"></i></div>
+            <div class="card-text">
+              <strong>Clean PDF Export</strong>
+              <span>Clean print-ready A4 formats with custom live zoom canvas previews.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ats-actions">
+          <a routerLink="/resume" class="btn btn-primary ats-neon-btn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Try ATS Resume Builder
+          </a>
+          <span class="free-badge-sparkle">
+            <i class="fa-solid fa-gift"></i> 100% Free & Unlimited Exports
+          </span>
+        </div>
       </div>
 
-      <h3>Register your interest</h3>
+      <!-- VISUAL PRESENTATION COLUMN (FULLY ANIMATED PREMIUM MOCKUP) -->
+      <div class="ats-resume-visual">
+        <div class="visual-stack-wrapper">
+          <div class="visual-glow-background"></div>
+          <div class="visual-glow-background glow-secondary"></div>
+          
+          <!-- Premium Mac-Style Window -->
+          <div class="premium-ats-window">
+            <!-- Mac Header Bar -->
+            <div class="window-header">
+              <div class="window-controls">
+                <span class="control-dot red"></span>
+                <span class="control-dot yellow"></span>
+                <span class="control-dot green"></span>
+              </div>
+              <div class="window-title-address">
+                <i class="fa-solid fa-lock"></i> vidhuratech.com/resume-lab
+              </div>
+              <div class="window-actions">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </div>
+            </div>
+            
+            <!-- Workspace Content Grid Mockup -->
+            <div class="window-workspace-mock">
+              <!-- Left Mock Panel: Form Input & Scanning -->
+              <div class="mock-panel-left">
+                <div class="panel-kicker">1. JD Scanner</div>
+                <div class="mock-textarea-box">
+                  <div class="scanning-laser-line"></div>
+                  <div class="mock-text-line short"></div>
+                  <div class="mock-text-line long"></div>
+                  <div class="mock-text-line medium"></div>
+                  <div class="mock-text-line long"></div>
+                </div>
+                
+                <div class="mock-btn-action-glow">
+                  <i class="fa-solid fa-bolt-lightning"></i> One-Click Optimize
+                </div>
+              </div>
+              
+              <!-- Right Mock Canvas: Resume Preview Sheet (Luxury Gold theme) -->
+              <div class="mock-canvas-right">
+                <div class="panel-kicker">2. Live Premium Canvas</div>
+                <div class="luxury-gold-mock-sheet">
+                  <div class="gold-mock-border"></div>
+                  <!-- Mini resume elements -->
+                  <div class="mock-sheet-header">
+                    <div class="mock-avatar-circle"></div>
+                    <div class="mock-name-bar"></div>
+                    <div class="mock-title-bar"></div>
+                  </div>
+                  <div class="mock-sheet-body">
+                    <div class="mock-section-block">
+                      <div class="mock-sec-title-bar"></div>
+                      <div class="mock-body-line-full"></div>
+                      <div class="mock-body-line-short"></div>
+                    </div>
+                    <div class="mock-section-block">
+                      <div class="mock-sec-title-bar"></div>
+                      <div class="mock-skills-tags-row">
+                        <span class="mock-skill-pill-active label-java">Java</span>
+                        <span class="mock-skill-pill-active label-angular">Angular</span>
+                        <span class="mock-skill-pill-active label-spring">Spring Boot</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Float-Over 1: Live Match Score Badge -->
+            <div class="floating-score-badge">
+              <div class="score-circular-track">
+                <svg viewBox="0 0 36 36" class="radial-svg-mock">
+                  <path class="track-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="track-fill-animate" stroke-dasharray="96, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="score-number-animate">96%</div>
+              </div>
+              <div class="score-meta-info">
+                <strong>ATS Compliance</strong>
+                <span>Excellent Match!</span>
+              </div>
+            </div>
+            
+            <!-- Float-Over 2: PDF Download Toast -->
+            <div class="floating-download-toast">
+              <div class="toast-icon-circle">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+              <div class="toast-content">
+                <strong>User_Resume.pdf</strong>
+                <span>Downloaded Successfully!</span>
+              </div>
+              <div class="toast-check">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+            </div>
+            
+            <!-- Float-Over 3: Keyword Optimization Status -->
+            <div class="floating-status-badge">
+              <span class="status-pulse-dot"></span>
+              <span>AI Optimizer Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOCK INTERVIEW INTEREST MODAL OVERLAY -->
+  <div class="mock-interest-overlay" *ngIf="showMockInterviewLeadForm" (click)="closeMockInterviewLeadForm()">
+    <form class="mock-interest-modal" (click)="$event.stopPropagation()" (ngSubmit)="submitMockInterviewLead()">
+      <div class="mock-interest-head">
+        <span><i class="fa-solid fa-clipboard-list"></i> Mock Interview Register</span>
+        <button type="button" class="close-modal-btn" (click)="closeMockInterviewLeadForm()">
+          &times;
+        </button>
+      </div>
+
+      <h3>Join the Waitlist</h3>
       <p>
-        Share your details and our team will contact you when mock interview registrations open.
+        Share your details and our team will contact you once the mock interview schedule opens.
       </p>
 
-      <label>
-        Name
-        <input
-          type="text"
-          name="mockName"
-          [(ngModel)]="mockInterviewLead.name"
-          placeholder="Enter your name"
-          required
-        />
-      </label>
+      <div class="form-fields">
+        <label class="form-label">
+          Full Name
+          <input type="text" name="mockName" [(ngModel)]="mockInterviewLead.name" placeholder="Enter your name" required
+            class="form-input" />
+        </label>
 
-      <label>
-        Email
-        <input
-          type="email"
-          name="mockEmail"
-          [(ngModel)]="mockInterviewLead.email"
-          placeholder="Enter your email"
-          required
-        />
-      </label>
+        <label class="form-label">
+          Email Address
+          <input type="email" name="mockEmail" [(ngModel)]="mockInterviewLead.email" placeholder="Enter your email"
+            required class="form-input" />
+        </label>
 
-      <label>
-        Skills
-        <input
-          type="text"
-          name="mockSkills"
-          [(ngModel)]="mockInterviewLead.skills"
-          placeholder="Java, Python, Angular, SQL..."
-          required
-        />
-      </label>
+        <label class="form-label">
+          Skills (Comma Separated)
+          <input type="text" name="mockSkills" [(ngModel)]="mockInterviewLead.skills"
+            placeholder="e.g. Java, Python, Angular, SQL" required class="form-input" />
+        </label>
 
-      <label>
-        Interested?
-        <select name="mockInterested" [(ngModel)]="mockInterviewLead.interested">
-          <option value="YES">Yes, I am interested</option>
-          <option value="MAYBE">Maybe, tell me more</option>
-          <option value="NO">Not now</option>
-        </select>
-      </label>
+        <label class="form-label">
+          Interested?
+          <select name="mockInterested" [(ngModel)]="mockInterviewLead.interested" class="form-input select-input">
+            <option value="YES">Yes, I am interested</option>
+            <option value="MAYBE">Maybe, tell me more</option>
+            <option value="NO">Not now</option>
+          </select>
+        </label>
 
-      <label>
-        Message
-        <textarea
-          name="mockMessage"
-          [(ngModel)]="mockInterviewLead.message"
-          rows="4"
-          placeholder="Tell us your target role, experience, or preferred interview area"
-        ></textarea>
-      </label>
-
-      <div class="mock-interest-alert success" *ngIf="mockInterviewLeadSuccess">
-        {{ mockInterviewLeadSuccess }}
+        <label class="form-label">
+          Message / Preferences
+          <textarea name="mockMessage" [(ngModel)]="mockInterviewLead.message" rows="3"
+            placeholder="Tell us your target role, experience, or preferred topics"
+            class="form-input text-area"></textarea>
+        </label>
       </div>
 
+      <!-- ALERTS -->
+      <div class="mock-interest-alert success" *ngIf="mockInterviewLeadSuccess">
+        <i class="fa-solid fa-circle-check"></i> {{ mockInterviewLeadSuccess }}
+      </div>
       <div class="mock-interest-alert error" *ngIf="mockInterviewLeadError">
-        {{ mockInterviewLeadError }}
+        <i class="fa-solid fa-circle-xmark"></i> {{ mockInterviewLeadError }}
       </div>
 
       <button type="submit" class="mock-submit-btn" [disabled]="mockInterviewSubmitting">
-        {{ mockInterviewSubmitting ? 'Saving...' : 'Save Interest' }}
+        <span class="loading-ring" *ngIf="mockInterviewSubmitting"></span>
+        <span>{{ mockInterviewSubmitting ? 'Registering...' : 'Submit Interest' }}</span>
       </button>
     </form>
   </div>
 
+  <!-- FEATURED COURSES / PROGRAMS SECTION -->
   <section class="program-section">
     <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Best industry programs</span>
-        <h2>Practical training tracks for students, freshers, and career switchers.</h2>
+      <div class="section-heading">
+        <span class="section-kicker"><i class="fa-solid fa-award"></i> Programs Catalog</span>
+        <h2>Practical training tracks for students & career switchers.</h2>
         <p>
-          We guide learners across programming, full stack development, databases, APIs, project
-          implementation, interview preparation, and career presentation.
+          We guide learners across core programming, full-stack technologies, databases, APIs, code
+          implementation, and placement readiness.
         </p>
       </div>
+
+      <!-- CARDS FOR RUNNING API COURSES (Vibrant 3-Column Layout) -->
       <div class="featured-courses" *ngIf="featuredCourses.length">
         <article class="featured-course" *ngFor="let course of featuredCourses">
           <div class="course-shimmer"></div>
+
           <div class="featured-course-image" *ngIf="course.thumbnailUrl">
             <img [src]="courseImage(course.thumbnailUrl)" [alt]="course.title" />
           </div>
+
           <div class="course-top">
-            <span [class.live-chip]="course.isLive">{{
-              course.isLive ? 'Current Live Batch' : course.level
-            }}</span>
-            <b>{{ course.duration }}</b>
+            <span [class.live-chip]="course.isLive" class="course-level-chip">
+              <i class="fa-solid" [class.fa-bolt]="course.isLive" [class.fa-graduation-cap]="!course.isLive"></i>
+              {{ course.isLive ? 'Current Live Batch' : course.level }}
+            </span>
+            <b class="course-duration"><i class="fa-regular fa-clock"></i> {{ course.duration }}</b>
           </div>
+
           <h3>{{ course.title }}</h3>
           <p>{{ course.desc }}</p>
+
           <div class="chips" *ngIf="course.highlights?.length">
-            <span *ngFor="let item of course.highlights.slice(0, 3)">{{ item }}</span>
+            <span *ngFor="let item of course.highlights.slice(0, 3)"><i class="fa-regular fa-circle-check"></i> {{ item
+              }}</span>
           </div>
+
           <div class="course-actions">
-            <button class="mini-action" (click)="openEnrollModal(course)">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="19" cy="12" r="1"></circle>
-                <circle cx="5" cy="12" r="1"></circle>
-              </svg>
-              Free Demo
+            <button class="btn btn-secondary-mini" (click)="openEnrollModal(course)">
+              <i class="fa-solid fa-circle-play"></i> Free Demo
             </button>
-            <a
-              class="mini-link"
-              [routerLink]="['/checkout']"
-              [queryParams]="{
+            <a class="btn btn-primary-mini" [routerLink]="['/checkout']" [queryParams]="{
                 courseId: course.id,
                 course: course.title,
                 amount: course.price,
                 batch: course.activeBatch?.name,
                 batchId: course.activeBatch?.id,
-              }"
-            >
-              Enroll
+              }">
+              <span>Enroll Now</span>
+              <i class="fa-solid fa-circle-chevron-right"></i>
             </a>
           </div>
         </article>
       </div>
+
+      <!-- STANDALONE STATIC METHODOLOGY CARDS (3-Column Layout) -->
       <div class="program-grid institute-programs">
-        <article class="program-card reveal">
+        <article class="program-card">
           <div class="icon-wrap icon-float">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"></polyline>
-              <line x1="12" y1="12" x2="20" y2="7.5"></line>
-              <line x1="12" y1="12" x2="12" y2="21"></line>
-              <line x1="12" y1="12" x2="4" y2="7.5"></line>
-            </svg>
+            <i class="fa-solid fa-code"></i>
           </div>
           <h3>Programming Foundations</h3>
           <p>
-            Beginner-friendly programming, logic building, debugging, and clean coding habits from
-            scratch.
+            Master fundamental coding constructs, logic-building algorithms, structured testing
+            methods, and clean coding principles. Perfect for beginners starting their journey.
           </p>
-          <div class="chips"><span>Python</span><span>Java</span><span>Logic</span></div>
+          <div class="chips">
+            <span>Python</span>
+            <span>Java</span>
+            <span>Logic Building</span>
+          </div>
         </article>
-        <article class="program-card reveal delay-one">
+
+        <article class="program-card">
           <div class="icon-wrap icon-float">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
+            <i class="fa-solid fa-layer-group"></i>
           </div>
           <h3>Full Stack Development</h3>
           <p>
-            Frontend, backend, REST APIs, database integration, authentication flow, and deployment
-            basics.
+            Develop end-to-end web architectures, responsive user interfaces, RESTful API
+            microservices, database schemas, and deploy live production systems.
           </p>
-          <div class="chips"><span>Angular</span><span>APIs</span><span>SQL</span></div>
-        </article>
-        <article class="program-card reveal delay-two">
-          <div class="icon-wrap icon-float">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-              <polyline points="13 2 13 9 20 9"></polyline>
-            </svg>
+          <div class="chips">
+            <span>Angular</span>
+            <span>Web APIs</span>
+            <span>SQL Database</span>
           </div>
-          <h3>Project Lab</h3>
-          <p>
-            Guided mini projects, real-time use cases, dashboards, CRUD systems, and portfolio
-            practice.
-          </p>
-          <div class="chips"><span>Projects</span><span>Reviews</span><span>Portfolio</span></div>
         </article>
-        <article class="program-card reveal delay-three">
+
+        <article class="program-card">
           <div class="icon-wrap icon-float">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
+            <i class="fa-solid fa-flask"></i>
+          </div>
+          <h3>Project Sandbox Lab</h3>
+          <p>
+            Build real-world production projects in our isolated developer sandbox, manage source
+            control with Git, and construct a robust portfolio.
+          </p>
+          <div class="chips">
+            <span>CRUD Apps</span>
+            <span>Git & GitHub</span>
+            <span>Portfolios</span>
+          </div>
+        </article>
+
+        <article class="program-card">
+          <div class="icon-wrap icon-float">
+            <i class="fa-solid fa-rocket"></i>
           </div>
           <h3>Career Accelerator</h3>
           <p>
-            Resume building, LinkedIn optimization, mock interviews, HR preparation, and
-            job-readiness guidance.
+            Accelerate your transition with custom resume building, LinkedIn optimization, dedicated
+            mentor support, and realistic mock interview rounds.
           </p>
-          <div class="chips"><span>Resume</span><span>Mock</span><span>Career</span></div>
+          <div class="chips">
+            <span>Resumes</span>
+            <span>Mentors</span>
+            <span>Mock Rounds</span>
+          </div>
+        </article>
+
+        <article class="program-card">
+          <div class="icon-wrap icon-float">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <h3>AI Resume Builder</h3>
+          <p>
+            Create parser-safe ATS compliant resumes, scan keyword compliance against job descriptions, and access premium templates with one-click AI optimizations.
+          </p>
+          <div class="chips">
+            <span>ATS Scoring</span>
+            <span>PDF Export</span>
+            <span>AI Optimizer</span>
+          </div>
+        </article>
+
+        <article class="program-card">
+          <div class="icon-wrap icon-float">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <h3>Placement & Jobs</h3>
+          <p>
+            Access exclusive job listings, connect with partner companies, submit applications directly through our integrated job board, and track recruitment status.
+          </p>
+          <div class="chips">
+            <span>Job Board</span>
+            <span>Hiring Partners</span>
+            <span>Direct Referrals</span>
+          </div>
         </article>
       </div>
     </div>
   </section>
+
+  <!-- TIMELINE / JOURNEY FLOW -->
   <section class="experience-section">
     <div class="container experience-layout">
-      <div class="experience-copy reveal">
-        <span class="section-kicker">Training flow</span>
+      <div class="experience-copy">
+        <span class="section-kicker"><i class="fa-solid fa-road"></i> Learning Path</span>
         <h2>A practical student journey from counseling to career readiness.</h2>
         <p>
-          Our institute flow is designed to remove confusion. Students start with roadmap clarity,
+          Our program flow is designed to remove confusion. Students start with roadmap clarity,
           move into live classes and labs, build projects, prepare resumes, and practice interviews.
         </p>
       </div>
-      <div class="timeline reveal delay-one">
+
+      <div class="timeline">
         <div class="timeline-item">
-          <span>Step 1</span>
+          <span class="timeline-step">Step 01</span>
           <h3>Career counseling and personal learning roadmap</h3>
+          <p>
+            Align expectation, evaluate experience levels, and formulate personal roadmap
+            milestones.
+          </p>
         </div>
         <div class="timeline-item">
-          <span>Step 2</span>
+          <span class="timeline-step">Step 02</span>
           <h3>Live concept training with daily coding practice</h3>
+          <p>
+            Understand architecture patterns, learn core operations, and solve daily editor
+            exercises.
+          </p>
         </div>
         <div class="timeline-item">
-          <span>Step 3</span>
-          <h3>Project lab, assignments, reviews, and mentor support</h3>
+          <span class="timeline-step">Step 03</span>
+          <h3>Project sandbox, reviews, and dedicated mentor support</h3>
+          <p>
+            Build end-to-end projects in sandbox mode and get them reviewed by senior engineer
+            mentors.
+          </p>
         </div>
         <div class="timeline-item">
-          <span>Step 4</span>
-          <h3>Resume, LinkedIn, mock interviews, and opportunity guidance</h3>
+          <span class="timeline-step">Step 04</span>
+          <h3>Resume, LinkedIn, mock rounds, and opportunity guidance</h3>
+          <p>
+            Format industrial resume, clean up portfolios, and practice with real expert interviews.
+          </p>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- FEATURES GRID -->
   <section class="features-section">
     <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Learning platform</span>
+      <div class="section-heading">
+        <span class="section-kicker"><i class="fa-solid fa-cubes"></i> Integrated Features</span>
         <h2>Everything students need, all in one place.</h2>
         <p>
-          A unified platform designed for continuous learning, practice, mentorship, and career
-          growth at every step of your journey.
+          A unified dashboard designed for continuous progress evaluation, sandbox practice, video
+          files, and mentorship support.
         </p>
       </div>
+
       <div class="features-grid">
-        <article class="feature-card reveal">
+        <article class="feature-card">
           <div class="feature-icon icon-pulse">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
+            <i class="fa-solid fa-gauge-high"></i>
           </div>
           <div class="feature-header">
             <h3>Student Dashboard</h3>
             <span class="feature-tag">Primary Hub</span>
           </div>
           <p>
-            Track your learning progress, view assignments, access recordings, and manage your
-            complete training journey in one centralized dashboard.
+            Track your course progress, view assignments schedules, access recordings, and manage
+            grades.
           </p>
           <div class="feature-dots"><span></span><span></span><span></span></div>
         </article>
-        <article class="feature-card reveal delay-one">
+
+        <article class="feature-card">
           <div class="feature-icon icon-bounce">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M23 7l-7 5 7 5V7z"></path>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-            </svg>
+            <i class="fa-solid fa-video"></i>
           </div>
           <div class="feature-header">
-            <h3>Live Recordings</h3>
+            <h3>Recorded Batches</h3>
             <span class="feature-tag">Always Available</span>
           </div>
           <p>
-            Access high-quality recordings of all live sessions. Revisit concepts, learn at your own
-            pace, and never miss important lessons no matter when you join.
+            Access high-definition recordings of past sessions. Review complicated concepts on your
+            schedule.
           </p>
           <div class="feature-dots"><span></span><span></span><span></span></div>
         </article>
-        <article class="feature-card reveal delay-two">
+
+        <article class="feature-card">
           <div class="feature-icon icon-spin-slow">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M9 11l3 3L22 4"></path>
-              <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-            </svg>
+            <i class="fa-solid fa-paste"></i>
           </div>
           <div class="feature-header">
-            <h3>Assignments & Assessments</h3>
-            <span class="feature-tag">Hands-On Learning</span>
+            <h3>Assignments & MCQs</h3>
+            <span class="feature-tag">Hands-on Practice</span>
           </div>
           <p>
-            Regular assignments with detailed feedback. Strengthen your fundamentals through real
-            coding challenges and get mentor feedback on every submission.
+            Submit coding exercises with instant checker reports. Build fundamentals via target
+            challenges.
           </p>
           <div class="feature-dots"><span></span><span></span><span></span></div>
         </article>
-        <article class="feature-card reveal delay-three">
+
+        <article class="feature-card">
           <div class="feature-icon icon-float-slow">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M12 2c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10z"></path>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
+            <i class="fa-solid fa-comments"></i>
           </div>
           <div class="feature-header">
-            <h3>Mock Interviews</h3>
-            <span class="feature-tag">Interview Ready</span>
+            <h3>Expert Mock Interviews</h3>
+            <span class="feature-tag">Placement Ready</span>
           </div>
           <p>
-            Prepare for real interviews with guided mock sessions. Practice with mentors, get
-            constructive feedback, and build confidence before your actual interviews.
+            Prepare with realistic peer mock sessions. Get detailed feedback on communication and
+            tech skills.
           </p>
           <div class="feature-dots"><span></span><span></span><span></span></div>
         </article>
-        <article class="feature-card reveal">
-          <div class="feature-icon icon-rotate">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="1"></circle>
-              <path d="M12 1v6m0 6v6"></path>
-              <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
-            </svg>
-          </div>
-          <div class="feature-header">
-            <h3>Practice Sessions</h3>
-            <span class="feature-tag">Unlimited Practice</span>
-          </div>
-          <p>
-            Unlimited coding challenges and practice problems. Build muscle memory, improve
-            problem-solving speed, and master concepts through consistent hands-on practice.
-          </p>
-          <div class="feature-dots"><span></span><span></span><span></span></div>
-        </article>
-        <article class="feature-card reveal delay-one">
-          <div class="feature-icon icon-shake">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-          <div class="feature-header">
-            <h3>Dedicated Mentors</h3>
-            <span class="feature-tag">Personal Support</span>
-          </div>
-          <p>
-            Connect with experienced mentors who guide your learning journey. Get personalized
-            feedback, career advice, and direct support whenever you need it.
-          </p>
-          <div class="feature-dots"><span></span><span></span><span></span></div>
-        </article>
-        <article class="feature-card reveal delay-two">
-          <div class="feature-icon icon-scale-up">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <div class="feature-header">
-            <h3>Certificates</h3>
-            <span class="feature-tag">Recognized</span>
-          </div>
-          <p>
-            Earn industry-recognized certificates upon course completion. Showcase your achievements
-            on LinkedIn and in job applications to boost your professional profile.
-          </p>
-          <div class="feature-dots"><span></span><span></span><span></span></div>
-        </article>
-      </div>
-    </div>
-  </section>
-  <section class="outcomes-section">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Learning outcomes</span>
-        <h2>Skills you'll master step by step.</h2>
-        <p>
-          Each module is structured to build upon the previous one, ensuring steady progression from
-          fundamentals to advanced concepts.
-        </p>
-      </div>
-      <div class="outcomes-grid">
-        <article class="outcome-card reveal">
-          <div class="outcome-number">01</div>
-          <h3>Programming Fundamentals</h3>
-          <p>
-            Master core concepts like variables, data types, loops, functions, and object-oriented
-            programming with clean, professional code.
-          </p>
-          <div class="skill-list">
-            <span>Variables & Data Types</span>
-            <span>Control Flow</span>
-            <span>Functions</span>
-            <span>OOP Basics</span>
-          </div>
-        </article>
-        <article class="outcome-card reveal delay-one">
-          <div class="outcome-number">02</div>
-          <h3>Data Structures & Algorithms</h3>
-          <p>
-            Learn arrays, linked lists, trees, sorting, searching, and solve real-world problems
-            with optimal solutions.
-          </p>
-          <div class="skill-list">
-            <span>Arrays & Lists</span>
-            <span>Trees & Graphs</span>
-            <span>Sorting</span>
-            <span>Problem Solving</span>
-          </div>
-        </article>
-        <article class="outcome-card reveal delay-two">
-          <div class="outcome-number">03</div>
-          <h3>Full Stack Development</h3>
-          <p>
-            Build complete applications with frontend UI, backend APIs, database integration, and
-            deployment ready systems.
-          </p>
-          <div class="skill-list">
-            <span>Angular/React</span>
-            <span>REST APIs</span>
-            <span>Database Design</span>
-            <span>Deployment</span>
-          </div>
-        </article>
-        <article class="outcome-card reveal delay-three">
-          <div class="outcome-number">04</div>
-          <h3>Professional Practices</h3>
-          <p>
-            Git workflows, clean code principles, testing, documentation, and industry-standard
-            development practices.
-          </p>
-          <div class="skill-list">
-            <span>Version Control</span>
-            <span>Code Quality</span>
-            <span>Testing</span>
-            <span>Documentation</span>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-  <section class="success-stories-section">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Student success</span>
-        <h2>Freshers to working professionals — real learning journeys.</h2>
-        <p>
-          Many of our learners started with zero coding knowledge. Through live classes, projects,
-          mentor support, and consistent practice, they became confident developers.
-        </p>
-      </div>
-      <div class="stories-grid">
-        <!-- STORY 1 -->
-        <article class="story-card reveal">
-          <div class="story-header">
-            <div class="story-avatar" style="background: linear-gradient(135deg, #2563eb, #0f766e)">
-              VK
-            </div>
-            <div class="story-meta">
-              <strong>Venkatesh Kumar</strong>
-              <span>Fresher → Python Developer</span>
-            </div>
-          </div>
-          <p class="story-text">
-            "I joined without any programming background. Daily practice sessions, assignments, and
-            mentor guidance helped me understand coding step by step. Now I can build APIs and
-            full-stack projects confidently."
-          </p>
-          <div class="story-stats">
-            <div>
-              <b>45 Days</b>
-              <span>consistent practice</span>
-            </div>
-            <div>
-              <b>4 Projects</b>
-              <span>added to portfolio</span>
-            </div>
-          </div>
-        </article>
-        <!-- STORY 2 -->
-        <article class="story-card reveal delay-one">
-          <div class="story-header">
-            <div class="story-avatar" style="background: linear-gradient(135deg, #f97316, #db2777)">
-              SP
-            </div>
-            <div class="story-meta">
-              <strong>Sindhu Priya</strong>
-              <span>Non-IT Student → Full Stack Learner</span>
-            </div>
-          </div>
-          <p class="story-text">
-            "Initially I was scared of coding and English communication. The live classes, mock
-            interviews, and project reviews slowly improved my confidence. I can now explain
-            projects clearly and solve problems independently."
-          </p>
-          <div class="story-stats">
-            <div>
-              <b>6 Mini Apps</b>
-              <span>completed</span>
-            </div>
-            <div>
-              <b>Daily</b>
-              <span>mentor support</span>
-            </div>
-          </div>
-        </article>
-        <!-- STORY 3 -->
-        <article class="story-card reveal delay-two">
-          <div class="story-header">
-            <div class="story-avatar" style="background: linear-gradient(135deg, #16a34a, #14b8a6)">
-              RN
-            </div>
-            <div class="story-meta">
-              <strong>Rohith Naidu</strong>
-              <span>Mechanical Graduate → Backend Developer</span>
-            </div>
-          </div>
-          <p class="story-text">
-            "I wasted time watching random YouTube tutorials before joining. Here everything was
-            structured properly — roadmap, tasks, projects, and interview preparation. That clarity
-            changed my learning speed."
-          </p>
-          <div class="story-stats">
-            <div>
-              <b>3 Months</b>
-              <span>learning journey</span>
-            </div>
-            <div>
-              <b>REST APIs</b>
-              <span>built independently</span>
-            </div>
-          </div>
-        </article>
-        <!-- STORY 4 -->
-        <article class="story-card reveal delay-three">
-          <div class="story-header">
-            <div class="story-avatar" style="background: linear-gradient(135deg, #7c3aed, #2563eb)">
-              AJ
-            </div>
-            <div class="story-meta">
-              <strong>Anusha Jain</strong>
-              <span>Career Switcher → Software Trainee</span>
-            </div>
-          </div>
-          <p class="story-text">
-            "The best part was the accountability and real-time practice. Instead of only theory, we
-            worked on real projects, GitHub uploads, debugging sessions, and interview questions
-            every week."
-          </p>
-          <div class="story-stats">
-            <div>
-              <b>GitHub</b>
-              <span>project portfolio ready</span>
-            </div>
-            <div>
-              <b>Mock Interviews</b>
-              <span>weekly practice</span>
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-  <section class="why-choose-section">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Why VidhuraTech</span>
-        <h2>Here's what makes us different.</h2>
-        <p>
-          We're not just another online course platform. We're a complete career transformation
-          institute.
-        </p>
-      </div>
-      <div class="comparison-showcase">
-        <div class="showcase-item reveal">
-          <div class="showcase-icon icon-glow-blue">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="1"></circle>
-              <path d="M12 1v6m0 6v6"></path>
-              <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
-            </svg>
-          </div>
-          <h3>Live Mentor Support</h3>
-          <p>
-            Real people, not bots. Connect directly with mentors who have 5+ years of industry
-            experience.
-          </p>
-        </div>
-        <div class="showcase-item reveal delay-one">
-          <div class="showcase-icon icon-glow-orange">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <h3>Project-Based Learning</h3>
-          <p>
-            Build real applications, not tutorials. Every skill you learn is immediately applied in
-            practical projects.
-          </p>
-        </div>
-        <div class="showcase-item reveal delay-two">
-          <div class="showcase-icon icon-glow-green">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-          <h3>Career Accelerator</h3>
-          <p>
-            Resume polish, LinkedIn optimization, mock interviews, and direct job opportunities with
-            partners.
-          </p>
-        </div>
-        <div class="showcase-item reveal delay-three">
-          <div class="showcase-icon icon-glow-purple">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-            </svg>
-          </div>
-          <h3>Accountability System</h3>
-          <p>
-            Weekly reviews, milestone tracking, and personalized feedback to keep you on track and
-            motivated.
-          </p>
-        </div>
-        <div class="showcase-item reveal">
-          <div class="showcase-icon icon-glow-blue">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-          </div>
-          <h3>Lifetime Access</h3>
-          <p>
-            Access course materials, recordings, and resources forever. Learn at your own pace,
-            anytime.
-          </p>
-        </div>
-        <div class="showcase-item reveal delay-one">
-          <div class="showcase-icon icon-glow-orange">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-              ></path>
-            </svg>
-          </div>
-          <h3>Industry Recognition</h3>
-          <p>
-            Certificates recognized by top companies. Show employers you've been trained by industry
-            experts.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="value-proposition">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Our services</span>
-        <h2>Support beyond classroom training.</h2>
-        <p>
-          Students need more than lectures. Our services cover learning, practice, confidence, and
-          career presentation.
-        </p>
-      </div>
-      <div class="project-showcase">
-        <article class="project-card reveal">
-          <div class="project-screen screen-one">
-            <svg
-              class="screen-icon"
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="rgba(255,255,255,0.6)"
-              stroke-width="1.5"
-            >
-              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </div>
-          <h3>Live Training Batches</h3>
-          <p>
-            Structured online and classroom-style live sessions for programming, full stack, and
-            job-ready tracks.
-          </p>
-        </article>
-        <article class="project-card reveal delay-one">
-          <div class="project-screen screen-two">
-            <svg
-              class="screen-icon"
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="rgba(255,255,255,0.6)"
-              stroke-width="1.5"
-            >
-              <path
-                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-              ></path>
-            </svg>
-          </div>
-          <h3>Project & Internship Lab</h3>
-          <p>
-            Guided project work, use cases, reviews, documentation support, and portfolio
-            presentation practice.
-          </p>
-        </article>
-        <article class="project-card reveal delay-two">
-          <div class="project-screen screen-three">
-            <svg
-              class="screen-icon"
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="rgba(255,255,255,0.6)"
-              stroke-width="1.5"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <h3>College & Corporate Programs</h3>
-          <p>
-            Workshops, bootcamps, campus training, skill-up programs, and custom technology
-            sessions.
-          </p>
-        </article>
-      </div>
-    </div>
-  </section>
-  <section class="transformation-section">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Real transformation</span>
-        <h2>From learner to confident professional developer.</h2>
-        <p>
-          Programming knowledge alone doesn't create jobs. We develop discipline, communication,
-          confidence, and professional habits that companies actually need.
-        </p>
-      </div>
-      <div class="transformation-grid">
-        <div class="transform-card reveal">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="1"></circle>
-              <path d="M12 1v6m0 6v6"></path>
-              <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
-            </svg>
-          </div>
-          <h3>Clarity First</h3>
-          <p>
-            Every student gets a clear roadmap. What to learn, why, where it's used, and how it
-            appears in interviews. Confusion removed = faster growth.
-          </p>
-        </div>
-        <div class="transform-card reveal delay-one">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="1"></circle>
-              <path d="M3 12a9 9 0 0 1 18 0"></path>
-            </svg>
-          </div>
-          <h3>Daily Discipline</h3>
-          <p>
-            Consistency over intensity. Daily tasks, coding streaks, regular assignments, and mentor
-            reviews build the professional habit of showing up every day.
-          </p>
-        </div>
-        <div class="transform-card reveal delay-two">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-              <path d="M9 11l3 3L15 9"></path>
-            </svg>
-          </div>
-          <h3>Practical Projects</h3>
-          <p>
-            Theory alone creates confusion. Real projects like APIs, dashboards, login systems show
-            students exactly how professional software is actually built.
-          </p>
-        </div>
-        <div class="transform-card reveal delay-three">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M4 12h16M12 4v16"></path>
-            </svg>
-          </div>
-          <h3>Problem Solving</h3>
-          <p>
-            Learners ask "What's the answer?" Professionals ask "How do I solve this?" We train
-            debugging, analysis, and edge-case thinking every day.
-          </p>
-        </div>
-        <div class="transform-card reveal">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </div>
-          <h3>Communication Skills</h3>
-          <p>
-            Professionals explain code, discuss decisions, and present work. Daily practice in
-            project demos, self-intros, and technical speaking prepares students for real teams.
-          </p>
-        </div>
-        <div class="transform-card reveal delay-one">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-            </svg>
-          </div>
-          <h3>Accountability</h3>
-          <p>
-            Deliver on time, take responsibility, complete tasks. Task tracking, weekly reviews, and
-            mentor follow-ups build the reliability that companies depend on.
-          </p>
-        </div>
-        <div class="transform-card reveal delay-two">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-              ></path>
-            </svg>
-          </div>
-          <h3>Professional Habits</h3>
-          <p>
-            GitHub usage, clean code, naming conventions, documentation, punctuality, teamwork.
-            These are industry standards, not optional. We embed them into training.
-          </p>
-        </div>
-        <div class="transform-card reveal delay-three">
-          <div class="transform-icon icon-spin">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <h3>Confidence Building</h3>
-          <p>
-            Complete projects, handle pressure, explain architecture, pass mock interviews.
-            Confidence comes from proving you can do real work, not just watching tutorials.
-          </p>
-        </div>
-      </div>
-      <section class="mindset-section reveal">
-        <!-- BACKGROUND DECOR -->
-        <div class="mindset-glow glow-one"></div>
-        <div class="mindset-glow glow-two"></div>
-        <!-- HEADER -->
-        <div class="mindset-header">
-          <span class="mindset-tag"> SOFTWARE CAREER TRANSFORMATION </span>
-          <h2>
-            The Gap Between
-            <span>Learning Coding</span>
-            and Becoming
-            <span>A Real Developer</span>
-          </h2>
-          <p>
-            Most students consume tutorials passively and remain stuck for years. Companies hire
-            professionals who can solve problems, communicate clearly, build systems independently,
-            and deliver value consistently.
-          </p>
-        </div>
-        <!-- COMPARISON -->
-        <div class="mindset-wrapper">
-          <!-- LEFT -->
-          <div class="mindset-side learner-side">
-            <div class="mindset-top">
-              <div class="mindset-icon">⚠️</div>
-              <div>
-                <small>Common Beginner Pattern</small>
-                <h3>Tutorial Learner</h3>
-              </div>
-            </div>
-            <div class="mindset-card">
-              <span>Learning Style</span>
-              <p>
-                Watches endless tutorials and jumps between technologies without mastering
-                fundamentals deeply.
-              </p>
-            </div>
-            <div class="mindset-card">
-              <span>Project Building</span>
-              <p>
-                Copies code from videos but struggles to build applications independently from
-                scratch.
-              </p>
-            </div>
-            <div class="mindset-card">
-              <span>Problem Solving</span>
-              <p>Gets stuck quickly, fears debugging, and waits for exact solutions from others.</p>
-            </div>
-            <div class="mindset-card">
-              <span>Consistency</span>
-              <p>Learns only when motivated and often skips assignments, practice, and revision.</p>
-            </div>
-            <div class="mindset-card">
-              <span>Career Preparation</span>
-              <p>
-                Focuses only on syntax while ignoring communication, GitHub, resumes, and
-                interviews.
-              </p>
-            </div>
-          </div>
-          <!-- CENTER -->
-          <div class="mindset-center">
-            <div class="center-line"></div>
-            <div class="vs-badge">TRANSFORMATION</div>
-          </div>
-          <!-- RIGHT -->
-          <div class="mindset-side pro-side">
-            <div class="mindset-top">
-              <div class="mindset-icon success">🚀</div>
-              <div>
-                <small>Industry-Ready Approach</small>
-                <h3>Professional Developer</h3>
-              </div>
-            </div>
-            <div class="mindset-card">
-              <span>Learning Style</span>
-              <p>
-                Follows a structured roadmap and practices concepts through real implementation.
-              </p>
-            </div>
-            <div class="mindset-card">
-              <span>Project Building</span>
-              <p>
-                Builds APIs, dashboards, authentication systems, databases, and complete real-world
-                applications.
-              </p>
-            </div>
-            <div class="mindset-card">
-              <span>Problem Solving</span>
-              <p>
-                Researches, experiments, debugs confidently, and solves problems step by step
-                independently.
-              </p>
-            </div>
-            <div class="mindset-card">
-              <span>Consistency</span>
-              <p>
-                Practices daily, follows discipline, completes projects, and improves continuously.
-              </p>
-            </div>
-            <div class="mindset-card">
-              <span>Career Preparation</span>
-              <p>
-                Maintains GitHub projects, strong resumes, communication skills, and interview
-                confidence.
-              </p>
-            </div>
-          </div>
-        </div>
-        <!-- FOOTER -->
-        <div class="mindset-footer">
-          <h3>We Don't Just Teach Coding.</h3>
-          <p>
-            We help students become confident software professionals through practical projects,
-            real-world workflows, problem-solving training, communication improvement,
-            accountability, and industry-focused mentorship.
-          </p>
-        </div>
-      </section>
-      <div class="transformation-vision reveal">
-        <div class="vision-content">
-          <h3>VidhuraTech's Core Promise</h3>
-          <p>
-            Our goal is not just to teach programming concepts. We transform students from learners
-            into confident software professionals through practical training, real projects,
-            consistent mentorship, communication development, and industry-focused career
-            preparation. Success means you can independently solve problems, build systems, and
-            deliver value—exactly what companies need.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="mentor-section">
-    <div class="container mentor-layout">
-      <div class="mentor-panel reveal">
-        <span class="section-kicker">Career support</span>
-        <h2>We help students present skills professionally.</h2>
-        <p>
-          Institute training is useful only when students can show their work confidently. That is
-          why project explanation, resume preparation, mock interviews, and communication support
-          are part of the learning experience.
-        </p>
-        <div class="mentor-points">
-          <div class="mentor-point-item">
-            <div class="mentor-icon">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M21.5 2v6h-6M2.5 22v-6h6"></path>
-                <path d="M2 11.5a10 10 0 0 1 19.8-4.3"></path>
-                <path d="M22 4.5a10 10 0 0 1-19.8 4.2"></path>
-              </svg>
-            </div>
-            <div>
-              <b>Resume and LinkedIn</b
-              ><span>Improve profile quality and recruiter-facing presentation.</span>
-            </div>
-          </div>
-          <div class="mentor-point-item">
-            <div class="mentor-icon">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <b>Project explanation</b
-              ><span>Learn how to explain architecture, code flow, and decisions.</span>
-            </div>
-          </div>
-          <div class="mentor-point-item">
-            <div class="mentor-icon">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-              </svg>
-            </div>
-            <div>
-              <b>Interview practice</b
-              ><span>Prepare for technical, project, communication, and HR rounds.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="progress-board reveal delay-one">
-        <h3>Career readiness progress</h3>
-        <div class="progress-item">
-          <div><span>Technical skill foundation</span><b>100%</b></div>
-          <i><em style="width: 100%"></em></i>
-        </div>
-        <div class="progress-item">
-          <div><span>Hands-on project practice</span><b>90%</b></div>
-          <i><em style="width: 90%"></em></i>
-        </div>
-        <div class="progress-item">
-          <div><span>Resume and portfolio polish</span><b>82%</b></div>
-          <i><em style="width: 82%"></em></i>
-        </div>
-        <div class="progress-item">
-          <div><span>Interview confidence</span><b>95%</b></div>
-          <i><em style="width: 95%"></em></i>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="industry-section">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">Industry exposure</span>
-        <h2>Programs are inspired by real company workflows.</h2>
-        <p>
-          Students learn practical tools and habits used in modern IT environments, so training
-          feels closer to real work.
-        </p>
-      </div>
-      <div class="tool-grid">
-        <article class="tool-item">
-          <div class="tool-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 7v5l3 2"></path>
-            </svg>
-          </div>
-          <strong>Git</strong><span>Version control</span>
-        </article>
-        <article class="tool-item">
-          <div class="tool-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-            </svg>
-          </div>
-          <strong>APIs</strong><span>Backend integration</span>
-        </article>
-        <article class="tool-item">
-          <div class="tool-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <circle cx="12" cy="12" r="1"></circle>
-              <path d="M12 1v6m0 6v6"></path>
-              <path d="M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24"></path>
-            </svg>
-          </div>
-          <strong>SQL</strong><span>Database practice</span>
-        </article>
-        <article class="tool-item">
-          <div class="tool-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-              <polyline points="13 2 13 9 20 9"></polyline>
-            </svg>
-          </div>
-          <strong>Deploy</strong><span>Production basics</span>
-        </article>
-      </div>
-    </div>
-    <div class="logo-marquee">
-      <div class="logo-track">
-        <img src="logos/tcs.svg" alt="TCS" />
-        <img src="logos/infosys.svg" alt="Infosys" />
-        <img src="logos/wipro.svg" alt="Wipro" />
-        <img src="logos/cgi-logo.svg" alt="CGI" />
-        <img src="logos/cognizant.svg" alt="Cognizant" />
-        <img src="logos/ey.svg" alt="EY" />
-        <img src="logos/ibm.svg" alt="IBM" />
-        <img src="logos/amazon.svg" alt="Amazon" />
-        <img src="logos/zoho.svg" alt="Zoho" />
-        <img src="logos/deloitte.svg" alt="Deloitte" />
-        <img src="logos/kpmg.svg" alt="KPMG" />
-        <img src="logos/microsoft.svg" alt="Microsoft" />
-        <img src="logos/salesforce.svg" alt="Salesforce" />
-        <img src="logos/tcs.svg" alt="TCS" />
-        <img src="logos/infosys.svg" alt="Infosys" />
-        <img src="logos/wipro.svg" alt="Wipro" />
-        <img src="logos/cgi-logo.svg" alt="CGI" />
-        <img src="logos/cognizant.svg" alt="Cognizant" />
-      </div>
-    </div>
-  </section>
-  <section class="faq-section">
-    <div class="container">
-      <div class="section-heading reveal">
-        <span class="section-kicker">FAQ</span>
-        <h2>Everything students ask before joining our institute.</h2>
-      </div>
-      <div class="faq-grid">
-        <article class="faq-card">
-          <h3>Are your trainings beginner friendly?</h3>
-          <p>
-            Yes. We support complete beginners, freshers, non-IT students, and career switchers with
-            step-by-step learning.
-          </p>
-        </article>
-        <article class="faq-card">
-          <h3>Do you offer programs other than Python?</h3>
-          <p>
-            Yes. The institute can present multiple industry programs such as full stack, frontend,
-            backend, database, project, and career tracks.
-          </p>
-        </article>
-        <article class="faq-card">
-          <h3>Will students build projects?</h3>
-          <p>
-            Yes. Project lab and portfolio building are important parts of the training experience.
-          </p>
-        </article>
-        <article class="faq-card">
-          <h3>Is interview preparation included?</h3>
-          <p>
-            Yes. We include resume guidance, project explanation, mock interviews, and HR
-            preparation.
-          </p>
-        </article>
-        <article class="faq-card">
-          <h3>Do you provide college or corporate training?</h3>
-          <p>
-            Yes. The institute section supports workshops, campus programs, bootcamps, and custom
-            training sessions.
-          </p>
-        </article>
-        <article class="faq-card">
-          <h3>Will recordings be available?</h3>
-          <p>
-            Yes. Recordings and materials help students revise and continue practicing after live
-            sessions.
-          </p>
-        </article>
-      </div>
-    </div>
-  </section>
-  <section class="final-cta">
-    <div class="container final-shell reveal">
-      <div>
-        <span class="section-kicker">Start today</span>
-        <h2>Explore our training programs and start with the current live batch.</h2>
-        <p>
-          {{ heroCourse?.title || 'Our featured career program' }} is highlighted now, and the
-          institute supports broader software career training.
-        </p>
-      </div>
-      <div class="final-actions">
-        <button class="primary-action" (click)="openEnrollModal(heroCourse)">Join Free Demo</button>
-        <a class="secondary-action" routerLink="/courses">Explore Programs</a>
       </div>
     </div>
   </section>

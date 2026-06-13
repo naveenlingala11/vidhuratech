@@ -315,11 +315,16 @@ export class InvoiceComponent implements OnInit {
     this.searchInvoices();
   }
   // validations
+  get totalDeductions(): number {
+    return (
+      (Number(this.invoiceData.amount || 0) * Number(this.invoiceData.discount || 0) / 100)
+      + Number(this.invoiceData.scholarship || 0)
+    );
+  }
   get finalInvoiceAmount(): number {
     return (
       Number(this.invoiceData.amount || 0)
-      - (Number(this.invoiceData.amount || 0) * Number(this.invoiceData.discount || 0) / 100)
-      - Number(this.invoiceData.scholarship || 0)
+      - this.totalDeductions
     );
   }
   get totalInstallmentAmount(): number {

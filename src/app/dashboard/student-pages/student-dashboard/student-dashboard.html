@@ -1,9 +1,25 @@
 <section class="student-dashboard">
+  <!-- Interactive Terminal Hero Grid -->
   <div class="hero">
     <div class="hero-copy">
-      <span class="eyebrow">Student Workspace</span>
+      <span class="eyebrow"><i class="bi bi-cpu"></i> Student Workstation</span>
       <h1>Welcome back, {{ studentName }}</h1>
-      <p>{{ placementMessage }}</p>
+      
+      <!-- Premium XP & Level Badge Progress Tracker -->
+      <div class="level-indicator">
+        <span class="badge-level">LEVEL {{ userLevel }}</span>
+        <div class="xp-progress-wrapper">
+          <div class="xp-progress-bar" [style.width.%]="xpProgressPercentage"></div>
+        </div>
+        <span class="xp-caption">{{ totalXP }} XP · {{ xpProgressPercentage }}% to next level</span>
+      </div>
+
+      <!-- Live Terminal Console Daily Tip -->
+      <p class="console-tip">
+        <i class="bi bi-terminal-fill"></i>
+        <span>{{ currentTip }}</span>
+      </p>
+
       <div class="hero-actions">
         <button class="primary-action" type="button" (click)="goTo('/dashboard/student/lms')">
           <i class="bi bi-play-fill"></i>
@@ -19,24 +35,84 @@
         </button>
       </div>
     </div>
-    <div class="readiness-card" [class]="placementTone">
-      <div class="readiness-top">
-        <span>Placement Readiness</span>
-        <i class="bi bi-stars"></i>
+
+    <!-- Upgraded Gamification Streak Card -->
+    <div class="streak-card">
+      <div class="streak-top">
+        <span>Login Streak</span>
+        <i class="bi bi-fire animated-fire"></i>
       </div>
-      <strong>{{ stats.placementStatus }}</strong>
-      <div class="readiness-meter">
-        <span [style.width.%]="averageProgress"></span>
+      
+      <div class="streak-stats">
+        <strong>{{ calculatedStreak }} {{ calculatedStreak === 1 ? 'Day' : 'Days' }}</strong>
+        <small>Consecutive Login Streak</small>
       </div>
-      <small>{{ averageProgress }}% learning progress</small>
+
+      <!-- GitHub-style daily activity tracker -->
+      <div class="activity-matrix-container">
+        <small class="matrix-label">Weekly Activity Tracker</small>
+        <div class="activity-matrix">
+          <span 
+            *ngFor="let day of last7DaysActivity" 
+            class="matrix-dot" 
+            [class.active]="day.active" 
+            [title]="day.dateLabel + (day.active ? ' - Visited' : ' - Not Visited')"
+          ></span>
+        </div>
+      </div>
+
+      <div class="placement-gauge">
+        <div class="gauge-meta">
+          <span>Readiness: <strong>{{ stats.placementStatus }}</strong></span>
+          <span>{{ averageProgress }}%</span>
+        </div>
+        <div class="readiness-meter">
+          <span [style.width.%]="averageProgress"></span>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
+
+  <!-- Banner Alerts -->
+  <div class="toast" *ngIf="toast">
+    <i class="bi bi-info-circle-fill"></i>
+    <span>{{ toast }}</span>
+  </div>
+
   <div *ngIf="error" class="error-banner">
-    <i class="bi bi-exclamation-triangle"></i>
-    {{ error }}
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>{{ error }}</span>
     <button type="button" (click)="loadDashboard()">Retry</button>
   </div>
+
+  <!-- Grid 2: Skill Analytics Console -->
+  <div class="skills-panel panel">
+    <div class="panel-title compact">
+      <div>
+        <span>Competency Matrix</span>
+        <h2>Developer Skill Profile</h2>
+      </div>
+    </div>
+    
+    <div class="skills-grid">
+      <div class="skill-card" *ngFor="let skill of skillMetrics" [class]="skill.tone">
+        <div class="skill-meta">
+          <span class="skill-icon-box">
+            <i class="bi" [ngClass]="skill.icon"></i>
+          </span>
+          <div>
+            <strong>{{ skill.name }}</strong>
+            <small>{{ skill.value }}% Proficiency</small>
+          </div>
+        </div>
+        <div class="skill-progress-track">
+          <span [style.width.%]="skill.value"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid 3: Stats Dashboard Cards -->
   <div class="stats-grid" *ngIf="!loading; else loadingStats">
     <button
       *ngFor="let card of statCards; trackBy: trackByTitle"
@@ -55,12 +131,16 @@
       </span>
     </button>
   </div>
+
   <ng-template #loadingStats>
     <div class="stats-grid">
       <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></div>
     </div>
   </ng-template>
+
+  <!-- Grid 4: Main Workspace Area -->
   <div class="main-grid">
+    <!-- Active Course Tracker -->
     <article class="panel continue-panel">
       <div class="panel-title">
         <div>
@@ -71,6 +151,7 @@
           <i class="bi bi-arrow-right"></i>
         </button>
       </div>
+
       <ng-container *ngIf="activeCourse; else noActiveCourse">
         <div class="featured-course">
           <div class="course-mark">
@@ -81,9 +162,11 @@
             <p>{{ activeCourse.progress || 0 }}% completed</p>
           </div>
         </div>
+        
         <div class="large-progress">
           <span [ngStyle]="progressStyle(activeCourse.progress)"></span>
         </div>
+        
         <div class="course-meta">
           <span>
             <i class="bi bi-person-video3"></i>
@@ -94,6 +177,7 @@
             {{ activeCourse.nextClass || 'Next class details soon' }}
           </span>
         </div>
+        
         <button
           class="wide-action"
           type="button"
@@ -102,6 +186,7 @@
           Open Course Player
         </button>
       </ng-container>
+
       <ng-template #noActiveCourse>
         <div class="empty-state">
           <i class="bi bi-journal-plus"></i>
@@ -111,27 +196,49 @@
         </div>
       </ng-template>
     </article>
+
+    <!-- Upgraded Interactive Local Task Planner -->
     <aside class="panel plan-panel">
       <div class="panel-title compact">
         <div>
-          <span>Today</span>
-          <h2>Learning Plan</h2>
+          <span>Today's Workspace Planner</span>
+          <h2>Focus Checklist</h2>
         </div>
       </div>
-      <div class="plan-list">
-        <div class="plan-item" *ngFor="let item of learningPlan">
-          <span class="check" [class.done]="item.done">
+
+      <!-- Local Task Creator Input Box -->
+      <div class="planner-creator">
+        <input 
+          type="text" 
+          [(ngModel)]="newTaskText" 
+          placeholder="Add custom task (e.g. Solve binary search)..." 
+          (keyup.enter)="addLocalTask()"
+        />
+        <button type="button" (click)="addLocalTask()">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+
+      <!-- Planner checklist rows -->
+      <div class="plan-list planner-list">
+        <div class="plan-item planner-item" *ngFor="let item of localTasks">
+          <span class="check" [class.done]="item.done" (click)="toggleLocalTask(item)">
             <i class="bi" [ngClass]="item.done ? 'bi-check2' : 'bi-circle'"></i>
           </span>
-          <div>
-            <strong>{{ item.title }}</strong>
-            <small>{{ item.meta }}</small>
+          <div class="planner-text-wrapper" [class.done]="item.done" (click)="toggleLocalTask(item)">
+            <strong>{{ item.text }}</strong>
           </div>
+          <button class="delete-task-btn" type="button" (click)="deleteLocalTask(item.id)">
+            <i class="bi bi-trash3-fill"></i>
+          </button>
         </div>
       </div>
     </aside>
   </div>
+
+  <!-- Grid 5: Courses & Content Modules -->
   <div class="content-grid">
+    <!-- Enrolled Courses -->
     <article class="panel">
       <div class="panel-title">
         <div>
@@ -140,6 +247,7 @@
         </div>
         <button type="button" routerLink="/dashboard/student/courses">View All</button>
       </div>
+      
       <div class="course-list" *ngIf="myCourses.length; else emptyCourses">
         <a
           class="course-row"
@@ -157,17 +265,19 @@
           <i class="bi bi-chevron-right"></i>
         </a>
       </div>
+      
       <ng-template #emptyCourses>
-        <div class="empty-line">No courses enrolled yet.</div>
+        <div class="empty-line">No enrolled courses yet.</div>
       </ng-template>
     </article>
+
+    <!-- Pseudo coding challenges -->
     <article class="panel">
       <div class="panel-title compact">
         <div>
           <span>Coding Practice</span>
           <h2>Pseudo Challenges</h2>
         </div>
-
         <button type="button" routerLink="/dashboard/student/pseudo-challenges">View All</button>
       </div>
 
@@ -183,16 +293,12 @@
           <span>
             <i class="bi bi-code-square"></i>
           </span>
-
           <div>
             <strong>Available Pseudo Challenges</strong>
-
             <p>
-              {{ stats.pseudoChallenges ?? 0 }}
-              coding logic challenges available
+              {{ stats.pseudoChallenges ?? 0 }} coding logic challenges available
             </p>
           </div>
-
           <i class="bi bi-arrow-right"></i>
         </button>
       </div>
@@ -201,11 +307,13 @@
         <div class="empty-line">No pseudo challenges available yet.</div>
       </ng-template>
     </article>
+
+    <!-- Shared Materials & Notes -->
     <article class="panel">
       <div class="panel-title compact">
         <div>
           <span>Trainer Content</span>
-          <h2>Practice, Materials & Notes</h2>
+          <h2>Practice & Study Materials</h2>
         </div>
       </div>
 
@@ -223,35 +331,36 @@
               "
             ></i>
           </span>
-
           <div>
             <strong>{{ item.title }}</strong>
             <p>{{ item.type }} · Batch #{{ item.batchId }}</p>
             <small>{{ item.description }}</small>
-
             <a
               *ngIf="item.fileName"
               [href]="'/api/trainer/content/' + item.id + '/file'"
               target="_blank"
             >
-              Download {{ item.fileName }}
+              <i class="bi bi-download"></i> Download {{ item.fileName }}
             </a>
           </div>
         </div>
       </div>
 
       <ng-template #emptyContent>
-        <div class="empty-line">No practice, materials, or notes shared yet.</div>
+        <div class="empty-line">No study resources shared yet.</div>
       </ng-template>
     </article>
+
+    <!-- Scheduled Assessments -->
     <article class="panel">
       <div class="panel-title compact">
         <div>
-          <span> Assessments </span>
+          <span>Assessments</span>
           <h2>Upcoming Assessments</h2>
         </div>
         <button type="button" routerLink="/dashboard/student/assessments">View All</button>
       </div>
+      
       <div class="activity-list" *ngIf="stats.assessmentsUpcoming > 0; else emptyAssessments">
         <button
           class="activity-item assessment-item"
@@ -262,21 +371,24 @@
             <i class="bi bi-clipboard-data"></i>
           </span>
           <div>
-            <strong> Scheduled Assessments </strong>
+            <strong>Scheduled Assessments</strong>
             <p>
-              {{ stats.assessmentsUpcoming }}
-              upcoming assessments available
+              {{ stats.assessmentsUpcoming }} evaluations pending
             </p>
           </div>
           <i class="bi bi-arrow-right"></i>
         </button>
       </div>
+      
       <ng-template #emptyAssessments>
-        <div class="empty-line">No upcoming assessments.</div>
+        <div class="empty-line">No upcoming assessments scheduled.</div>
       </ng-template>
     </article>
   </div>
+
+  <!-- Grid 6: Activity Logs & Shortcuts -->
   <div class="content-grid bottom">
+    <!-- Activity Feed -->
     <article class="panel">
       <div class="panel-title compact">
         <div>
@@ -284,6 +396,7 @@
           <h2>Activity & Notifications</h2>
         </div>
       </div>
+      
       <div class="activity-list" *ngIf="activityFeed.length; else emptyActivity">
         <div class="activity-item" *ngFor="let item of activityFeed; trackBy: trackByTitle">
           <span><i class="bi bi-bell"></i></span>
@@ -293,10 +406,13 @@
           </div>
         </div>
       </div>
+      
       <ng-template #emptyActivity>
         <div class="empty-line">No new notifications.</div>
       </ng-template>
     </article>
+
+    <!-- Quick Shortcuts Navigation -->
     <article class="panel quick-panel">
       <div class="panel-title compact">
         <div>
@@ -304,6 +420,7 @@
           <h2>Quick Actions</h2>
         </div>
       </div>
+      
       <div class="quick-grid">
         <a
           *ngFor="let action of quickActions; trackBy: trackByTitle"
@@ -327,28 +444,37 @@
       </div>
     </article>
   </div>
+
+  <!-- Grid 7: Requests & Mentorship -->
   <div class="content-grid bottom">
+    <!-- Mock Interviews Status list -->
     <article class="panel">
       <div class="panel-title compact">
         <div>
-          <span>Interview</span>
+          <span>Interview Prep</span>
           <h2>Mock Interview Requests</h2>
         </div>
       </div>
+      
       <div class="activity-list" *ngIf="mockRequests.length; else emptyMocks">
         <div class="activity-item" *ngFor="let mock of mockRequests">
           <span><i class="bi bi-camera-video"></i></span>
           <div>
             <strong>{{ mock.topic }}</strong>
             <p>{{ mock.status }} · {{ mock.preferredDate }} {{ mock.preferredTime }}</p>
-            <a *ngIf="mock.meetingLink" [href]="mock.meetingLink" target="_blank">Join Meeting</a>
+            <a *ngIf="mock.meetingLink" [href]="mock.meetingLink" target="_blank">
+              <i class="bi bi-box-arrow-up-right"></i> Join Meeting
+            </a>
           </div>
         </div>
       </div>
+      
       <ng-template #emptyMocks>
-        <div class="empty-line">No mock interview requests yet.</div>
+        <div class="empty-line">No mock interview requests created.</div>
       </ng-template>
     </article>
+
+    <!-- Mentor Session Timeline -->
     <article class="panel">
       <div class="panel-title compact">
         <div>
@@ -356,6 +482,7 @@
           <h2>Mentor Sessions</h2>
         </div>
       </div>
+      
       <div class="timeline" *ngIf="mentorSessions.length; else emptyMentor">
         <div class="timeline-item" *ngFor="let session of mentorSessions; trackBy: trackByTitle">
           <span></span>
@@ -365,34 +492,44 @@
           </div>
         </div>
       </div>
+      
       <ng-template #emptyMentor>
-        <div class="empty-line">No mentor sessions scheduled.</div>
+        <div class="empty-line">No mentor sessions scheduled yet.</div>
       </ng-template>
     </article>
   </div>
+
+  <!-- Request Mock Interview Dialog Popup -->
   <div class="modal-overlay" *ngIf="showMockPopup">
     <div class="modal-box">
       <button class="close" type="button" (click)="closeMockInterviewPopup()">×</button>
       <h2>Request Mock Interview</h2>
       <p>Choose your batch, topic, date, and preferred time slot.</p>
+      
       <select [(ngModel)]="mockForm.batchId">
         <option value="">Select Batch</option>
         <option *ngFor="let course of myCourses" [value]="course.batchId">
           {{ getCourseName(course) }} - Batch #{{ course.batchId }}
         </option>
       </select>
+      
       <input [(ngModel)]="mockForm.topic" placeholder="Topic or role, ex: Java OOP / HR round" />
       <input type="date" [(ngModel)]="mockForm.preferredDate" />
       <input type="time" [(ngModel)]="mockForm.preferredTime" />
+      
       <textarea
         [(ngModel)]="mockForm.notes"
         rows="4"
         placeholder="Tell trainer what you want to practice"
       ></textarea>
+      
       <button class="primary" type="button" (click)="submitMockInterviewRequest()">
         Send Request
       </button>
-      <button type="button" routerLink="/dashboard/student/mock-interviews">View All</button>
+      
+      <button type="button" class="btn-secondary-modal" routerLink="/dashboard/student/mock-interviews">
+        View All Requests
+      </button>
     </div>
   </div>
 </section>

@@ -7,7 +7,7 @@ import { IAssessmentResult, OptionKey } from '../../assessments/models/assessmen
 @Component({
   selector: 'app-assessment-results',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './assessment-results.html',
   styleUrls: ['./assessment-results.css'],
 })
@@ -120,6 +120,15 @@ export class AssessmentResults implements OnInit {
           timeStyle: 'short',
         })
       : '-';
+  }
+
+  getInitials(name: string): string {
+    return String(name || 'ST')
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
   }
 
   showToast(message: string): void {

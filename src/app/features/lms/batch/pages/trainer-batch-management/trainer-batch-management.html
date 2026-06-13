@@ -1,4 +1,5 @@
 <section class="trainer-batch-page">
+  <!-- Interactive frosted glass header -->
   <header class="batch-hero" *ngIf="batch">
     <div class="hero-mesh"></div>
     <div class="hero-grid"></div>
@@ -12,368 +13,434 @@
 
       <h1>
         {{ batch.name }}
-        <span>{{ batch.courseName || batch.course?.title || 'Course Sessions' }}</span>
+        <span class="course-subtitle">
+          <i class="bi bi-journal-bookmark-fill me-1"></i>
+          {{ batch.courseName || batch.course?.title || 'Course Sessions' }}
+        </span>
       </h1>
 
-      <p>
-        Build a polished session library for this batch. Upload recordings, detect duration, publish
-        lessons, preview content, and keep drafts organized.
+      <p class="hero-desc">
+        Configure the cohort's session records. Upload lecture videos, audit durations, configure session states, and
+        launch student-facing feeds.
       </p>
 
       <div class="hero-meta">
         <div class="meta-card">
-          <i class="bi bi-calendar-event"></i>
-          <div>
+          <div class="meta-icon"><i class="bi bi-calendar2-week"></i></div>
+          <div class="meta-text">
             <small>Start Date</small>
             <strong>{{ batch.startDate || 'Not set' }}</strong>
           </div>
         </div>
 
         <div class="meta-card">
-          <i class="bi bi-flag"></i>
-          <div>
+          <div class="meta-icon"><i class="bi bi-calendar2-check"></i></div>
+          <div class="meta-text">
             <small>End Date</small>
             <strong>{{ batch.endDate || 'Not set' }}</strong>
           </div>
         </div>
 
         <div class="meta-card">
-          <i class="bi bi-collection-play"></i>
-          <div>
-            <small>Sessions</small>
+          <div class="meta-icon"><i class="bi bi-collection-play-fill"></i></div>
+          <div class="meta-text">
+            <small>Total Sessions</small>
             <strong>{{ sessions.length }}</strong>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="hero-score">
-      <span>Published</span>
-      <strong>{{ publishedCount }}</strong>
-      <small>{{ draftCount }} drafts pending</small>
+    <!-- Circular glow rating stats widget -->
+    <div class="hero-score-ring">
+      <div class="score-backdrop"></div>
+      <div class="score-content">
+        <span class="score-label">Published</span>
+        <strong class="score-number">{{ publishedCount }}</strong>
+        <span class="score-subtext">
+          <i class="bi bi-info-circle-fill me-1"></i>
+          {{ draftCount }} drafts pending
+        </span>
+      </div>
     </div>
   </header>
 
+  <!-- Telemetry Filter Cards Row -->
   <section class="stats-grid">
-    <article class="stat-card blue">
-      <i class="bi bi-collection-play"></i>
-      <span>Total Sessions</span>
-      <strong>{{ sessions.length }}</strong>
-      <small>Uploaded lessons</small>
+    <article class="stat-card total-card">
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-collection-play-fill"></i>
+        <strong class="stat-number">{{ sessions.length }}</strong>
+      </div>
+      <span class="stat-label">Total Sessions</span>
+      <span class="stat-desc">Uploaded lessons roster</span>
     </article>
 
-    <article class="stat-card green">
-      <i class="bi bi-check2-circle"></i>
-      <span>Published</span>
-      <strong>{{ publishedCount }}</strong>
-      <small>Visible to students</small>
+    <article class="stat-card published-card">
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-check-circle-fill"></i>
+        <strong class="stat-number">{{ publishedCount }}</strong>
+      </div>
+      <span class="stat-label">Published Files</span>
+      <span class="stat-desc">Visible on student boards</span>
     </article>
 
-    <article class="stat-card orange">
-      <i class="bi bi-pencil-square"></i>
-      <span>Drafts</span>
-      <strong>{{ draftCount }}</strong>
-      <small>Not yet published</small>
+    <article class="stat-card draft-card">
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-pencil-square"></i>
+        <strong class="stat-number">{{ draftCount }}</strong>
+      </div>
+      <span class="stat-label">Draft Records</span>
+      <span class="stat-desc">Unpublished templates</span>
     </article>
 
-    <article class="stat-card purple">
-      <i class="bi bi-clock-history"></i>
-      <span>Total Time</span>
-      <strong>{{ totalHours }}h</strong>
-      <small>{{ totalMinutes }} learning minutes</small>
+    <article class="stat-card duration-card">
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-clock-history"></i>
+        <strong class="stat-number">{{ totalHours }}h</strong>
+      </div>
+      <span class="stat-label">Learning Volume</span>
+      <span class="stat-desc">{{ totalMinutes }} total minutes</span>
     </article>
 
-    <article class="stat-card cyan">
-      <i class="bi bi-stopwatch"></i>
-      <span>Average Time</span>
-      <strong>{{ averageMinutes }}m</strong>
-      <small>Per session</small>
+    <article class="stat-card average-card">
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-stopwatch-fill"></i>
+        <strong class="stat-number">{{ averageMinutes }}m</strong>
+      </div>
+      <span class="stat-label">Average Run</span>
+      <span class="stat-desc">Per-session duration</span>
     </article>
   </section>
 
+  <!-- Workspace Grid Layout -->
   <main class="workspace-grid">
+    <!-- Left Panel: Upload / Edit form -->
     <article class="panel upload-panel">
+      <div class="panel-accent"></div>
       <div class="section-header">
-        <div>
-          <span>{{ editingSessionId ? 'Edit Mode' : 'Create Session' }}</span>
-          <h2>{{ editingSessionId ? 'Edit Session' : 'Upload New Session' }}</h2>
+        <div class="header-copy">
+          <span class="section-eyebrow">
+            <i class="bi bi-sliders"></i>
+            {{ editingSessionId ? 'Editor Console' : 'Creator Studio' }}
+          </span>
+          <h2>{{ editingSessionId ? 'Edit Session' : 'Upload Session' }}</h2>
           <p>
             {{
-              editingSessionId
-                ? 'Update session content, date, duration, and publish status.'
-                : 'Create a structured learning session for this batch.'
+            editingSessionId
+            ? 'Modify the video stream, description, date, or visibility settings.'
+            : 'Publish a new video lecture and curriculum details for this cohort.'
             }}
           </p>
         </div>
-
-        <div class="header-icon">
-          <i class="bi" [ngClass]="editingSessionId ? 'bi-pencil-square' : 'bi-cloud-arrow-up'"></i>
+        <div class="header-icon-bubble" [class.edit-active]="editingSessionId">
+          <i class="bi" [ngClass]="editingSessionId ? 'bi-pencil-square' : 'bi-cloud-arrow-up-fill'"></i>
         </div>
       </div>
 
-      <div class="form-progress">
-        <div>
-          <span>Form Completion</span>
+      <!-- Completion Progress widget -->
+      <div class="form-progress-box">
+        <div class="progress-details">
+          <span>Metadata Completion</span>
           <strong>{{ formCompletion }}%</strong>
         </div>
-
-        <div class="progress-track">
-          <div class="progress-fill" [style.width.%]="formCompletion"></div>
+        <div class="progress-track-bar">
+          <div class="progress-fill-gradient" [style.width.%]="formCompletion"></div>
         </div>
       </div>
 
+      <!-- Session Form -->
       <form [formGroup]="form" (ngSubmit)="submitSession()" class="session-form">
-        <label>
-          <span>Session Title</span>
-          <input class="modern-input" placeholder="Enter session title" formControlName="title" />
-          <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
-            Session title is required
-          </small>
-        </label>
-
-        <label>
-          <span>Video URL</span>
-          <input
-            class="modern-input"
-            placeholder="Paste YouTube / recording URL"
-            formControlName="videoUrl"
-          />
-          <small *ngIf="form.get('videoUrl')?.touched && form.get('videoUrl')?.invalid">
-            Video URL is required
-          </small>
-        </label>
-
-        <label class="full">
-          <span>Description</span>
-          <textarea
-            rows="5"
-            class="modern-input"
-            placeholder="Explain what students will learn in this session"
-            formControlName="description"
-          ></textarea>
-        </label>
-
-        <label>
-          <span>Duration</span>
-          <div class="duration-field">
-            <input
-              type="number"
-              class="modern-input"
-              formControlName="durationMinutes"
-              readonly
-              placeholder="Auto detected from video"
-            />
-            <b *ngIf="durationLoading">Detecting...</b>
-          </div>
-          <small class="helper-text" *ngIf="!durationLoading && !durationError">
-            Duration is auto-filled from the video URL.
-          </small>
-          <small class="error-text" *ngIf="durationError">
-            {{ durationError }}
-          </small>
-        </label>
-
-        <label>
-          <span>Session Date</span>
-          <input type="date" class="modern-input" formControlName="sessionDate" />
-        </label>
-
-        <div class="publish-box full">
-          <label class="switch-row">
-            <input type="checkbox" formControlName="published" />
-            <span class="switch-ui"></span>
-            <b>Publish immediately for students</b>
+        <div class="form-group-item">
+          <label>
+            <span class="input-label">Session Title</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-bookmark-star-fill input-icon"></i>
+              <input class="modern-input-field" placeholder="e.g. Advanced JavaScript Selectors"
+                formControlName="title" />
+            </div>
+            <small class="error-validation-text" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i> Session title is required
+            </small>
           </label>
         </div>
 
-        <div class="form-actions full">
-          <button class="upload-btn" type="submit">
-            <i class="bi" [ngClass]="editingSessionId ? 'bi-save' : 'bi-cloud-arrow-up'"></i>
-            {{ editingSessionId ? 'Update Session' : 'Upload Session' }}
+        <div class="form-group-item">
+          <label>
+            <span class="input-label">Video URL</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-link-45deg input-icon"></i>
+              <input class="modern-input-field" placeholder="YouTube / Video stream URL" formControlName="videoUrl" />
+            </div>
+            <small class="error-validation-text" *ngIf="form.get('videoUrl')?.touched && form.get('videoUrl')?.invalid">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i> Video URL is required
+            </small>
+          </label>
+        </div>
+
+        <div class="form-group-item full-width-label">
+          <label>
+            <span class="input-label">Session Description</span>
+            <div class="input-icon-wrapper textarea-wrapper">
+              <i class="bi bi-card-text input-icon"></i>
+              <textarea rows="4" class="modern-input-field textarea-field"
+                placeholder="Explain the concepts, tasks, or resources covered in this lecture..."
+                formControlName="description"></textarea>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group-item">
+          <label>
+            <span class="input-label">Video Duration</span>
+            <div class="input-icon-wrapper duration-wrapper">
+              <i class="bi bi-hourglass-split input-icon"></i>
+              <input type="number" class="modern-input-field duration-input" formControlName="durationMinutes" readonly
+                placeholder="Auto-detected duration" />
+              <div class="probe-loading-indicator" *ngIf="durationLoading">
+                <span class="spinner-dot"></span>
+                <span>Probing Video...</span>
+              </div>
+            </div>
+            <small class="helper-explanation" *ngIf="!durationLoading && !durationError">
+              <i class="bi bi-info-circle-fill me-1"></i> Computed automatically on URL paste.
+            </small>
+            <small class="error-validation-text" *ngIf="durationError">
+              <i class="bi bi-exclamation-octagon-fill me-1"></i> {{ durationError }}
+            </small>
+          </label>
+        </div>
+
+        <div class="form-group-item">
+          <label>
+            <span class="input-label">Session Date</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-calendar-check-fill input-icon"></i>
+              <input type="date" class="modern-input-field" formControlName="sessionDate" />
+            </div>
+          </label>
+        </div>
+
+        <!-- Publish toggle deck -->
+        <div class="publish-toggle-box full-width-label">
+          <label class="toggle-card-label">
+            <input type="checkbox" formControlName="published" />
+            <div class="toggle-slider-track">
+              <span class="toggle-slider-knob"></span>
+            </div>
+            <div class="toggle-card-info">
+              <strong>Make lesson visible to students</strong>
+              <span>Checked sessions are published live in learning feeds.</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Actions panel -->
+        <div class="form-action-buttons full-width-label">
+          <button class="btn-action btn-submit-primary" type="submit">
+            <i class="bi" [ngClass]="editingSessionId ? 'bi-save-fill' : 'bi-cloud-arrow-up-fill'"></i>
+            <span>{{ editingSessionId ? 'Update Session' : 'Publish Session' }}</span>
           </button>
 
-          <button *ngIf="editingSessionId" type="button" class="cancel-btn" (click)="cancelEdit()">
-            Cancel Edit
+          <button *ngIf="editingSessionId" type="button" class="btn-action btn-cancel-secondary" (click)="cancelEdit()">
+            <i class="bi bi-x-circle"></i>
+            <span>Cancel Edit</span>
           </button>
 
-          <button type="button" class="clear-btn" (click)="resetForm()">
-            <i class="bi bi-eraser"></i>
-            Clear Form
+          <button type="button" class="btn-action btn-clear-tertiary" (click)="resetForm()">
+            <i class="bi bi-eraser-fill"></i>
+            <span>Clear Form</span>
           </button>
         </div>
       </form>
     </article>
 
+    <!-- Right Panel: Session Library -->
     <article class="panel sessions-card">
+      <div class="panel-accent"></div>
       <div class="section-header">
-        <div>
-          <span>Session Library</span>
-          <h2>All Sessions</h2>
-          <p>Manage uploaded learning sessions and publish visibility.</p>
+        <div class="header-copy">
+          <span class="section-eyebrow">
+            <i class="bi bi-folder-fill"></i>
+            Session Library
+          </span>
+          <h2>All Session Feeds</h2>
+          <p>Search, filter, edit, and organize curriculum content and student access details.</p>
         </div>
-
-        <div class="session-count">{{ filteredSessions.length }}</div>
+        <div class="session-count-orb">{{ filteredSessions.length }}</div>
       </div>
 
+      <!-- Library Search & Settings Toolbar -->
       <div class="session-toolbar">
-        <label class="session-search">
-          <i class="bi bi-search"></i>
-          <input [(ngModel)]="search" placeholder="Search sessions..." />
-        </label>
+        <div class="search-box-wrapper">
+          <i class="bi bi-search search-lens"></i>
+          <input [(ngModel)]="search" placeholder="Search sessions by title, date, description..."
+            class="toolbar-search-input" />
+          <button type="button" class="clear-search-btn" *ngIf="search" (click)="search = ''">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
 
-        <select [(ngModel)]="sessionSort">
-          <option value="LATEST">Latest Date</option>
-          <option value="OLDEST">Oldest Date</option>
-          <option value="TITLE">Title A-Z</option>
-          <option value="DURATION_HIGH">Longest</option>
-          <option value="DURATION_LOW">Shortest</option>
-        </select>
+        <div class="select-sort-wrapper">
+          <i class="bi bi-sort-down select-icon"></i>
+          <select [(ngModel)]="sessionSort" class="toolbar-select">
+            <option value="LATEST">Latest Sessions</option>
+            <option value="OLDEST">Oldest Sessions</option>
+            <option value="TITLE">Title A-Z</option>
+            <option value="DURATION_HIGH">Longest Runtime</option>
+            <option value="DURATION_LOW">Shortest Runtime</option>
+          </select>
+        </div>
 
-        <div class="filter-tabs">
-          <button type="button" [class.active]="sessionFilter === 'ALL'" (click)="setFilter('ALL')">
+        <div class="toolbar-filter-tabs">
+          <button type="button" class="tab-button" [class.active]="sessionFilter === 'ALL'" (click)="setFilter('ALL')">
             All
           </button>
-          <button
-            type="button"
-            [class.active]="sessionFilter === 'PUBLISHED'"
-            (click)="setFilter('PUBLISHED')"
-          >
+          <button type="button" class="tab-button" [class.active]="sessionFilter === 'PUBLISHED'"
+            (click)="setFilter('PUBLISHED')">
             Published
           </button>
-          <button
-            type="button"
-            [class.active]="sessionFilter === 'DRAFT'"
-            (click)="setFilter('DRAFT')"
-          >
+          <button type="button" class="tab-button" [class.active]="sessionFilter === 'DRAFT'"
+            (click)="setFilter('DRAFT')">
             Drafts
           </button>
         </div>
 
-        <div class="view-tabs">
-          <button type="button" [class.active]="sessionView === 'GRID'" (click)="setView('GRID')">
-            <i class="bi bi-grid-3x3-gap"></i>
+        <div class="toolbar-view-selectors">
+          <button type="button" class="view-btn" [class.active]="sessionView === 'GRID'" (click)="setView('GRID')"
+            title="Grid View">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
           </button>
-          <button
-            type="button"
-            [class.active]="sessionView === 'COMPACT'"
-            (click)="setView('COMPACT')"
-          >
-            <i class="bi bi-list-ul"></i>
+          <button type="button" class="view-btn" [class.active]="sessionView === 'COMPACT'" (click)="setView('COMPACT')"
+            title="List View">
+            <i class="bi bi-list-stars"></i>
           </button>
         </div>
 
-        <button type="button" class="publish-all-btn" (click)="publishAllDrafts()">
+        <button type="button" class="publish-all-drafts-btn" (click)="publishAllDrafts()" title="Publish All Drafts">
           <i class="bi bi-broadcast"></i>
-          Publish Drafts
+          <span>Publish Drafts</span>
         </button>
 
-        <button type="button" class="refresh-btn" (click)="loadSessions()">
+        <button type="button" class="toolbar-refresh-btn" (click)="loadSessions()" title="Refresh Library">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
       </div>
 
+      <!-- Loading Spinner state -->
       <div *ngIf="loading" class="loader-box">
-        <div class="loader"></div>
-        <p>Loading sessions...</p>
+        <div class="loader-spinner"></div>
+        <p>Fetching session logs from database...</p>
       </div>
 
+      <!-- Empty library state -->
       <div *ngIf="!loading && sessions.length === 0" class="empty-state">
-        <i class="bi bi-journal-plus"></i>
-        <h4>No Sessions Yet</h4>
-        <p>Upload your first session for this batch.</p>
+        <div class="empty-state-illustration">
+          <i class="bi bi-journal-plus"></i>
+        </div>
+        <h4>No Sessions Registered</h4>
+        <p>Get started by uploading your first curriculum video block for this cohort.</p>
       </div>
 
-      <div
-        *ngIf="!loading && sessions.length > 0 && filteredSessions.length === 0"
-        class="empty-state"
-      >
-        <i class="bi bi-search"></i>
-        <h4>No Matching Sessions</h4>
-        <p>Try changing your search, filter, or sort option.</p>
+      <!-- Empty search results state -->
+      <div *ngIf="!loading && sessions.length > 0 && filteredSessions.length === 0" class="empty-state">
+        <div class="empty-state-illustration">
+          <i class="bi bi-search-heart"></i>
+        </div>
+        <h4>No Match Located</h4>
+        <p>No lectures matched your current search parameters. Try adjusting filters.</p>
+        <button type="button" class="clear-filters-btn" (click)="search = ''; sessionFilter = 'ALL'">
+          <i class="bi bi-x-circle-fill me-1"></i> Clear Filter Queries
+        </button>
       </div>
 
-      <div
-        *ngIf="!loading && filteredSessions.length > 0"
-        class="sessions-grid"
-        [class.compact-view]="sessionView === 'COMPACT'"
-      >
-        <article
-          class="session-item"
-          *ngFor="let session of filteredSessions; trackBy: trackBySessionId"
-          [class.published-card]="session.published"
-        >
-          <div class="session-top">
-            <div class="session-title">
-              <i class="bi bi-play-circle"></i>
-              <div>
-                <h3>{{ session.title }}</h3>
-                <p>{{ session.sessionDate || 'Date not set' }}</p>
+      <!-- Sessions Grid & List container -->
+      <div *ngIf="!loading && filteredSessions.length > 0" class="sessions-grid"
+        [class.compact-view]="sessionView === 'COMPACT'">
+        <article class="session-item-card" *ngFor="let session of filteredSessions; trackBy: trackBySessionId"
+          [class.published-state]="session.published">
+          <!-- Accent top status line -->
+          <div class="card-status-accent"></div>
+
+          <div class="session-top-header">
+            <div class="session-label-group">
+              <div class="session-video-icon">
+                <i class="bi bi-play-fill"></i>
+              </div>
+              <div class="title-meta">
+                <h3 [title]="session.title">{{ session.title }}</h3>
+                <span class="session-timestamp">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ session.sessionDate || 'Date not set' }}
+                </span>
               </div>
             </div>
 
-            <span class="status-badge" [ngClass]="session.published ? 'published' : 'draft'">
+            <span class="status-indicator-badge" [class.published]="session.published">
+              <span class="indicator-dot"></span>
               {{ session.published ? 'Published' : 'Draft' }}
             </span>
           </div>
 
-          <p class="session-description" [class.expanded]="isDescriptionExpanded(session.id)">
-            {{ session.description || 'No description added for this session.' }}
-          </p>
+          <!-- Expanding text block -->
+          <div class="description-block-wrapper">
+            <p class="session-description" [class.expanded]="isDescriptionExpanded(session.id)">
+              {{ session.description || 'No description provided for this session.' }}
+            </p>
 
-          <button
-            *ngIf="shouldShowDescriptionToggle(session.description)"
-            type="button"
-            class="view-toggle"
-            (click)="toggleDescription(session.id)"
-          >
-            {{ isDescriptionExpanded(session.id) ? 'View less' : 'View more' }}
-          </button>
-
-          <div class="session-meta">
-            <span>
-              <i class="bi bi-clock"></i>
-              {{ session.durationMinutes || 0 }} mins
-            </span>
-            <span>
-              <i class="bi bi-stopwatch"></i>
-              {{ ((session.durationMinutes || 0) / 60).toFixed(1) }} hrs
-            </span>
+            <button *ngIf="shouldShowDescriptionToggle(session.description)" type="button"
+              class="description-toggle-btn" (click)="toggleDescription(session.id)">
+              <span>{{ isDescriptionExpanded(session.id) ? 'View less' : 'View more' }}</span>
+              <i class="bi" [ngClass]="isDescriptionExpanded(session.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+            </button>
           </div>
 
-          <div class="session-actions">
-            <button class="preview-btn" type="button" (click)="openPreview(session)">
-              <i class="bi bi-play-btn"></i>
-              Preview
+          <!-- Metadata info cards -->
+          <div class="session-metadata-pills">
+            <div class="meta-pill">
+              <i class="bi bi-clock"></i>
+              <span>{{ session.durationMinutes || 0 }} mins</span>
+            </div>
+            <div class="meta-pill">
+              <i class="bi bi-stopwatch"></i>
+              <span>{{ ((session.durationMinutes || 0) / 60).toFixed(1) }} hrs</span>
+            </div>
+          </div>
+
+          <!-- Session control actions -->
+          <div class="session-action-buttons">
+            <button class="card-action-btn btn-preview" type="button" (click)="openPreview(session)"
+              title="Preview Video">
+              <i class="bi bi-play-btn-fill"></i>
+              <span>Preview</span>
             </button>
 
-            <button class="edit-btn" type="button" (click)="editSession(session)">
-              <i class="bi bi-pencil"></i>
-              Edit
+            <button class="card-action-btn btn-edit" type="button" (click)="editSession(session)" title="Edit Metadata">
+              <i class="bi bi-pencil-fill"></i>
+              <span>Edit</span>
             </button>
 
-            <button
-              *ngIf="!session.published"
-              class="publish-btn"
-              type="button"
-              (click)="publish(session.id)"
-            >
-              <i class="bi bi-eye"></i>
-              Publish
+            <button *ngIf="!session.published" class="card-action-btn btn-publish" type="button"
+              (click)="publish(session.id)" title="Publish Session">
+              <i class="bi bi-eye-fill"></i>
+              <span>Publish</span>
             </button>
 
-            <button
-              *ngIf="session.published"
-              class="unpublish-btn"
-              type="button"
-              (click)="unpublish(session.id)"
-            >
-              <i class="bi bi-eye-slash"></i>
-              Unpublish
+            <button *ngIf="session.published" class="card-action-btn btn-unpublish" type="button"
+              (click)="unpublish(session.id)" title="Unpublish Session">
+              <i class="bi bi-eye-slash-fill"></i>
+              <span>Unpublish</span>
             </button>
 
-            <button class="delete-btn" type="button" (click)="delete(session.id)">
-              <i class="bi bi-trash"></i>
-              Delete
+            <button class="card-action-btn btn-delete" type="button" (click)="delete(session.id)"
+              title="Delete Session">
+              <i class="bi bi-trash3-fill"></i>
+              <span>Delete</span>
             </button>
           </div>
         </article>
@@ -381,42 +448,36 @@
     </article>
   </main>
 
+  <!-- Video Theatre Modal Overlay -->
   <div class="preview-overlay" *ngIf="previewSession">
-    <div class="preview-modal">
-      <button class="preview-close" type="button" (click)="closePreview()">
+    <div class="preview-backdrop" (click)="closePreview()"></div>
+
+    <div class="preview-modal-container">
+      <button class="preview-close-trigger" type="button" (click)="closePreview()" title="Close Player">
         <i class="bi bi-x-lg"></i>
       </button>
 
-      <div class="preview-head">
-        <div>
-          <span>Session Preview</span>
-          <h3>{{ previewSession.title }}</h3>
-          <p>{{ previewSession.durationMinutes || 0 }} mins · {{ previewSession.sessionDate }}</p>
+      <div class="preview-modal-header">
+        <span class="preview-badge"><i class="bi bi-tv-fill me-1"></i> Classroom Player</span>
+        <h3 class="preview-title">{{ previewSession.title }}</h3>
+        <div class="preview-metadata-line">
+          <span><i class="bi bi-clock-history me-1"></i> {{ previewSession.durationMinutes || 0 }} mins</span>
+          <span class="divider-dot">•</span>
+          <span><i class="bi bi-calendar3 me-1"></i> {{ previewSession.sessionDate }}</span>
         </div>
       </div>
 
-      <div class="preview-video">
-        <iframe
-          *ngIf="previewIsYouTube && previewEmbedUrl"
-          [src]="previewEmbedUrl"
-          title="Session preview"
-          allow="
+      <div class="preview-video-frame">
+        <iframe *ngIf="previewIsYouTube && previewEmbedUrl" [src]="previewEmbedUrl" title="Session preview" allow="
             accelerometer;
             autoplay;
             clipboard-write;
             encrypted-media;
             gyroscope;
             picture-in-picture;
-          "
-          allowfullscreen
-        ></iframe>
+          " allowfullscreen></iframe>
 
-        <video
-          *ngIf="!previewIsYouTube && previewVideoUrl"
-          [src]="previewVideoUrl"
-          controls
-          autoplay
-        ></video>
+        <video *ngIf="!previewIsYouTube && previewVideoUrl" [src]="previewVideoUrl" controls autoplay></video>
       </div>
     </div>
   </div>

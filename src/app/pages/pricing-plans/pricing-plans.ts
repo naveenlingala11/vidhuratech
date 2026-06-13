@@ -40,6 +40,14 @@ export class PricingPlansComponent implements OnInit {
         'Practice for 5 companies',
         'Weekly leaderboard access',
       ],
+      accessPremiumChallenges: false,
+      accessMockTests: true,
+      accessInterviews: true,
+      accessNotes: true,
+      accessMaterials: false,
+      accessVideos: false,
+      accessLiveClasses: false,
+      accessPracticeCompanies: true,
     },
     {
       code: 'PRO',
@@ -51,17 +59,24 @@ export class PricingPlansComponent implements OnInit {
       compareAtPrice: null,
       validityDays: 30,
       companyLimit: 15,
-      description: 'Best for premium challenges, videos, materials, and live support.',
+      description: 'Best for premium challenges, videos, and materials.',
       features: [
         'Everything in Starter',
         'Premium coding challenges',
         'Video lessons',
-        'Live doubt classes',
         'Resume and interview prep',
         'Practice for 15 companies',
         'Downloadable materials',
         'Monthly mock interview',
       ],
+      accessPremiumChallenges: true,
+      accessMockTests: true,
+      accessInterviews: true,
+      accessNotes: true,
+      accessMaterials: true,
+      accessVideos: true,
+      accessLiveClasses: false,
+      accessPracticeCompanies: true,
     },
     {
       code: 'ELITE',
@@ -73,11 +88,10 @@ export class PricingPlansComponent implements OnInit {
       compareAtPrice: null,
       validityDays: 180,
       companyLimit: 999,
-      description: 'Complete career bundle with courses, live classes, and placement support.',
+      description: 'Complete career bundle with courses and placement support.',
       features: [
         'Everything in Pro',
         'All premium courses',
-        'Live classes access',
         'Advanced coding contests',
         'Unlimited mock tests',
         'Unlimited company practice',
@@ -85,6 +99,14 @@ export class PricingPlansComponent implements OnInit {
         'Mock interviews with feedback',
         'Placement preparation bundle',
       ],
+      accessPremiumChallenges: true,
+      accessMockTests: true,
+      accessInterviews: true,
+      accessNotes: true,
+      accessMaterials: true,
+      accessVideos: true,
+      accessLiveClasses: false,
+      accessPracticeCompanies: true,
     },
   ];
 
@@ -118,6 +140,51 @@ export class PricingPlansComponent implements OnInit {
     });
   }
 
+  resolveAccessFlag(code: string, flag: string, apiVal: any, fallbackVal: boolean): boolean {
+    // Live classes are strictly for course purchases, not membership plans
+    if (flag === 'accessLiveClasses') {
+      return false;
+    }
+
+    const cleanCode = String(code).toUpperCase();
+
+    // 1. Respect truthy API value if explicitly set
+    if (
+      apiVal === true ||
+      apiVal === 1 ||
+      String(apiVal).toLowerCase() === 'true' ||
+      String(apiVal) === '1'
+    ) {
+      return true;
+    }
+
+    // 2. Define business default permissions based on plan code
+    if (cleanCode === 'ELITE') {
+      return true;
+    }
+    if (cleanCode === 'PRO') {
+      // Pro includes all premium features except structured premium courses (which are Elite only)
+      if (flag === 'accessCourses') {
+        return false;
+      }
+      return true;
+    }
+    if (cleanCode === 'STARTER' || cleanCode === 'BASIC') {
+      // Starter only includes mock tests, interviews, notes, and practice companies
+      if (
+        flag === 'accessMockTests' ||
+        flag === 'accessInterviews' ||
+        flag === 'accessNotes' ||
+        flag === 'accessPracticeCompanies'
+      ) {
+        return true;
+      }
+      return false;
+    }
+
+    return fallbackVal;
+  }
+
   mergePlan(apiPlan: any): any {
     const code = String(apiPlan?.code || apiPlan?.planCode || '').toUpperCase();
     const fallback = this.plans.find((plan) => plan.code === code) || this.plans[0];
@@ -127,8 +194,66 @@ export class PricingPlansComponent implements OnInit {
     );
     const companyLimit = Number(apiPlan?.companyLimit ?? fallback.companyLimit);
 
+    const resolvedAccess = {
+      accessCourses: this.resolveAccessFlag(
+        code,
+        'accessCourses',
+        apiPlan?.accessCourses,
+        fallback.code === 'ELITE',
+      ),
+      accessPremiumChallenges: this.resolveAccessFlag(
+        code,
+        'accessPremiumChallenges',
+        apiPlan?.accessPremiumChallenges,
+        fallback.accessPremiumChallenges,
+      ),
+      accessMockTests: this.resolveAccessFlag(
+        code,
+        'accessMockTests',
+        apiPlan?.accessMockTests,
+        fallback.accessMockTests,
+      ),
+      accessInterviews: this.resolveAccessFlag(
+        code,
+        'accessInterviews',
+        apiPlan?.accessInterviews,
+        fallback.accessInterviews,
+      ),
+      accessNotes: this.resolveAccessFlag(
+        code,
+        'accessNotes',
+        apiPlan?.accessNotes,
+        fallback.accessNotes,
+      ),
+      accessMaterials: this.resolveAccessFlag(
+        code,
+        'accessMaterials',
+        apiPlan?.accessMaterials,
+        fallback.accessMaterials,
+      ),
+      accessVideos: this.resolveAccessFlag(
+        code,
+        'accessVideos',
+        apiPlan?.accessVideos,
+        fallback.accessVideos,
+      ),
+      accessLiveClasses: this.resolveAccessFlag(
+        code,
+        'accessLiveClasses',
+        apiPlan?.accessLiveClasses,
+        fallback.accessLiveClasses,
+      ),
+      accessPracticeCompanies: this.resolveAccessFlag(
+        code,
+        'accessPracticeCompanies',
+        apiPlan?.accessPracticeCompanies,
+        fallback.accessPracticeCompanies,
+      ),
+    };
+
     return {
       ...fallback,
+      ...resolvedAccess,
       code: code || fallback.code,
       name: apiPlan?.name || apiPlan?.planName || fallback.name,
       price: Number.isFinite(price) ? price : fallback.price,
@@ -138,29 +263,30 @@ export class PricingPlansComponent implements OnInit {
       validityDays,
       companyLimit,
       active: apiPlan?.active,
-      features: this.featuresFromPlan(apiPlan, fallback, companyLimit),
+      features: this.featuresFromPlan(resolvedAccess, fallback, companyLimit),
       description: this.descriptionFromPlan(code || fallback.code, validityDays),
     };
   }
 
-  featuresFromPlan(apiPlan: any, fallback: any, companyLimit: number): string[] {
+  featuresFromPlan(resolvedAccess: any, fallback: any, companyLimit: number): string[] {
     const features: string[] = [];
 
-    if (apiPlan?.accessCourses) features.push('Premium courses and structured learning paths');
-    if (apiPlan?.accessMockTests) features.push('Mock tests and assessment practice');
-    if (apiPlan?.accessInterviews) features.push('Interview preparation question bank');
-    if (apiPlan?.accessNotes) features.push('Premium notes and revision sheets');
-    if (apiPlan?.accessMaterials) features.push('Downloadable preparation materials');
-    if (apiPlan?.accessVideos) features.push('Recorded video lessons');
-    if (apiPlan?.accessLiveClasses) features.push('Live classes and doubt sessions');
-    if (apiPlan?.accessPracticeCompanies) {
+    if (resolvedAccess.accessCourses)
+      features.push('Premium courses and structured learning paths');
+    if (resolvedAccess.accessMockTests) features.push('Mock tests and assessment practice');
+    if (resolvedAccess.accessInterviews) features.push('Interview preparation question bank');
+    if (resolvedAccess.accessNotes) features.push('Premium notes and revision sheets');
+    if (resolvedAccess.accessMaterials) features.push('Downloadable preparation materials');
+    if (resolvedAccess.accessVideos) features.push('Recorded video lessons');
+    if (resolvedAccess.accessLiveClasses) features.push('Live classes and doubt sessions');
+    if (resolvedAccess.accessPracticeCompanies) {
       features.push(
         companyLimit >= 999
           ? 'Unlimited company-wise practice bundles'
           : `Practice for ${companyLimit} companies`,
       );
     }
-    if (apiPlan?.accessPremiumChallenges) features.push('Premium coding challenges');
+    if (resolvedAccess.accessPremiumChallenges) features.push('Premium coding challenges');
 
     return features.length ? features : fallback.features;
   }
@@ -349,7 +475,7 @@ export class PricingPlansComponent implements OnInit {
     }
 
     if (plan.code === 'PRO') {
-      return ['Premium challenges', 'Videos and live classes', 'Serious placement prep'];
+      return ['Premium challenges', 'Video lessons', 'Serious placement prep'];
     }
 
     return ['Complete access', 'Long-term preparation', 'Unlimited company practice'];
@@ -363,19 +489,20 @@ export class PricingPlansComponent implements OnInit {
     }
 
     if (plan.code === 'PRO') {
-      return ['30-day validity', 'Limited company bundles'];
+      return ['30-day validity', 'Limited company bundles', 'No live classes'];
     }
 
-    return ['No major access limitations during validity'];
+    return ['No live classes included in membership'];
   }
 
   accessRows(plan: any): any[] {
+    const isBasic = plan.code === 'STARTER' || plan.code === 'BASIC';
     return [
       { icon: 'fa-code', label: 'Best Answers source code', enabled: true },
       {
         icon: 'fa-trophy',
         label: 'Coding contests access',
-        enabled: !!plan.accessPremiumChallenges || plan.code !== 'STARTER',
+        enabled: !!plan.accessPremiumChallenges || !isBasic,
       },
       { icon: 'fa-file-lines', label: 'Mock tests', enabled: !!plan.accessMockTests },
       { icon: 'fa-comments', label: 'Interview practice', enabled: !!plan.accessInterviews },
@@ -385,7 +512,12 @@ export class PricingPlansComponent implements OnInit {
         enabled: !!plan.accessNotes || !!plan.accessMaterials,
       },
       { icon: 'fa-video', label: 'Recorded videos', enabled: !!plan.accessVideos },
-      { icon: 'fa-chalkboard-user', label: 'Live classes', enabled: !!plan.accessLiveClasses },
+      {
+        icon: 'fa-chalkboard-user',
+        label: 'Live classes',
+        enabled: false,
+        statusText: 'Only for Course Purchased',
+      },
       {
         icon: 'fa-layer-group',
         label: this.companyLimitLabel(plan),
@@ -402,7 +534,12 @@ export class PricingPlansComponent implements OnInit {
       { label: 'Interview question bank', basic: true, pro: true, elite: true },
       { label: 'Premium coding challenges', basic: false, pro: true, elite: true },
       { label: 'Recorded videos', basic: false, pro: true, elite: true },
-      { label: 'Live classes', basic: false, pro: true, elite: true },
+      {
+        label: 'Live classes',
+        basic: 'Only for Course Purchased',
+        pro: 'Only for Course Purchased',
+        elite: 'Only for Course Purchased',
+      },
       { label: 'Premium courses', basic: false, pro: true, elite: true },
       { label: 'Company practice bundles', basic: '5', pro: '15', elite: 'Unlimited' },
       { label: 'Validity', basic: '30 days', pro: '30 days', elite: '180 days' },
