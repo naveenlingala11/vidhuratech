@@ -15,6 +15,11 @@ export class Footer implements OnInit {
   email = '';
   isLightTheme = false;
 
+  /* Subscribe State */
+  isSubscribing = false;
+  subscribeSuccess = false;
+  subscribeError = '';
+
   ngOnInit() {
     const theme = localStorage.getItem('theme');
     this.isLightTheme = theme === 'light';
@@ -24,6 +29,12 @@ export class Footer implements OnInit {
     } else {
       document.body.classList.remove('light-theme');
       document.body.classList.remove('light-mode');
+    }
+
+    // Check if already subscribed
+    const subscribed = localStorage.getItem('vt_subscribed');
+    if (subscribed) {
+      this.subscribeSuccess = true;
     }
   }
 
@@ -41,12 +52,41 @@ export class Footer implements OnInit {
   }
 
   subscribe() {
-    if (!this.email) {
-      alert('Please enter email');
+    this.subscribeError = '';
+
+    if (!this.email || !this.email.trim()) {
+      this.subscribeError = 'Please enter your email address.';
       return;
     }
-    alert('Subscribed successfully!');
-    this.email = '';
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(this.email.trim())) {
+      this.subscribeError = 'Please enter a valid email address.';
+      return;
+    }
+
+    this.isSubscribing = true;
+
+    // Simulate API call (replace with real HTTP POST to backend when ready)
+    setTimeout(() => {
+      // Save to localStorage for persistence
+      const subscribers = JSON.parse(localStorage.getItem('vt_subscribers') || '[]');
+      const normalizedEmail = this.email.trim().toLowerCase();
+
+      if (subscribers.includes(normalizedEmail)) {
+        this.subscribeError = 'This email is already subscribed!';
+        this.isSubscribing = false;
+        return;
+      }
+
+      subscribers.push(normalizedEmail);
+      localStorage.setItem('vt_subscribers', JSON.stringify(subscribers));
+      localStorage.setItem('vt_subscribed', normalizedEmail);
+
+      this.isSubscribing = false;
+      this.subscribeSuccess = true;
+      this.email = '';
+    }, 1200);
   }
 
   openWebsite() {

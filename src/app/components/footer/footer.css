@@ -123,74 +123,174 @@ body.light-mode .site-footer {
   max-width: 280px;
 }
 
-/* Theme Switcher */
-.theme-switcher-wrapper {
+/* Newsletter Subscribe */
+.subscribe-wrapper {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 12px;
-  padding: 6px 12px;
-  background: rgba(120, 120, 120, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  max-width: 300px;
 }
 
-.switcher-label {
+.subscribe-label {
   font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--heading-color);
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.subscribe-label i {
+  font-size: 13px;
+  color: var(--accent-color);
+  animation: bellRing 2s ease-in-out infinite;
+}
+
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(8deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(0); }
+}
+
+.subscribe-desc {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.subscribe-form {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
-.switcher-label i {
-  font-size: 12px;
-}
-
-.theme-toggle-slider {
-  width: 46px;
-  height: 24px;
-  border-radius: 99px;
-  background: var(--toggle-track);
-  border: 1px solid var(--toggle-border);
-  padding: 2px;
-  position: relative;
-  cursor: pointer;
+.subscribe-input-group {
   display: flex;
   align-items: center;
-  transition: all 0.25s ease;
+  gap: 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  background: rgba(120, 120, 120, 0.04);
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.slider-circle {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--toggle-thumb);
+.subscribe-input-group:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.02);
+}
+
+.subscribe-input-group.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
+.subscribe-input-group .input-icon {
+  padding-left: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.subscribe-input-group:focus-within .input-icon {
+  color: var(--accent-color);
+}
+
+.subscribe-input-group input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--heading-color);
+}
+
+.subscribe-input-group input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.subscribe-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  transform: translateX(0);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 38px;
+  height: 38px;
+  margin: 3px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #4f46e5 100%);
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
 }
 
-.slider-circle i {
-  font-size: 9px;
-  transition: color 0.25s;
+.subscribe-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
 }
 
-.text-yellow {
-  color: #d97706;
+.subscribe-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
-.text-blue {
-  color: #3b82f6;
+.subscribe-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
-/* Toggled switch state */
-.theme-toggle-slider.active .slider-circle {
-  transform: translateX(22px);
+.subscribe-error-msg {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ef4444;
+  padding-left: 4px;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+.subscribe-success-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  animation: fadeSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subscribe-success-msg i {
+  font-size: 16px;
+  color: #10b981;
+}
+
+.subscribe-success-msg span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── LINKS COLUMNS GRID ── */

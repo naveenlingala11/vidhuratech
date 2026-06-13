@@ -66,7 +66,7 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
       videoUrl: ['', Validators.required],
       durationMinutes: [0, Validators.required],
       sessionDate: ['', Validators.required],
-      published: [false],
+      published: [true],
     });
   }
 
@@ -202,18 +202,48 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const wasPublished = this.editingSessionId
+      ? !!this.sessions.find((s) => s.id === this.editingSessionId)?.published
+      : false;
+    const shouldBePublished = !!this.form.value.published;
+
     const request = this.editingSessionId
       ? this.batchService.updateSession(this.batchId, this.editingSessionId, this.form.value)
       : this.batchService.createSession(this.batchId, this.form.value);
 
     request.subscribe({
-      next: () => {
-        this.toastr.success(
-          this.editingSessionId ? 'Session updated successfully' : 'Session uploaded successfully',
-        );
+      next: (res: any) => {
+        const sessionId = this.editingSessionId || res?.data?.id || res?.id;
 
-        this.resetForm();
-        this.loadSessions();
+        const proceed = () => {
+          this.toastr.success(
+            this.editingSessionId ? 'Session updated successfully' : 'Session uploaded successfully',
+          );
+          this.resetForm();
+          this.loadSessions();
+        };
+
+        if (sessionId && shouldBePublished !== wasPublished) {
+          if (shouldBePublished) {
+            this.batchService.publishSession(this.batchId, sessionId).subscribe({
+              next: () => proceed(),
+              error: () => {
+                this.toastr.warning('Session saved but failed to publish automatically');
+                proceed();
+              }
+            });
+          } else {
+            this.batchService.unpublishSession(this.batchId, sessionId).subscribe({
+              next: () => proceed(),
+              error: () => {
+                this.toastr.warning('Session saved but failed to unpublish automatically');
+                proceed();
+              }
+            });
+          }
+        } else {
+          proceed();
+        }
       },
       error: () => {
         this.toastr.error('Failed to save session');
@@ -228,7 +258,7 @@ export class TrainerBatchManagementComponent implements OnInit, OnDestroy {
       videoUrl: '',
       durationMinutes: 0,
       sessionDate: '',
-      published: false,
+      published: true,
     });
 
     this.durationError = '';

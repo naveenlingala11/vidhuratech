@@ -1,11 +1,137 @@
-<div class="container mt-3">
-  <h3>Assignments</h3>
-  <div *ngIf="assignments.length === 0" class="alert alert-info">
-    No assignments available
+<div class="assignments-page">
+  <!-- BACKGROUND EFFECTS -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-grid"></div>
+
+  <!-- HERO HEADER -->
+  <header class="assignments-hero">
+    <div class="hero-left">
+      <div class="top-badge">
+        📋 Homework Console
+      </div>
+      <h1>Assignments & Tasks Tracker</h1>
+      <p>
+        Stay on top of your deliverables. Access batch assignment details, monitor due dates, and track trainer reviews and grading status.
+      </p>
+    </div>
+
+    <!-- METRICS CARD -->
+    <div class="hero-right">
+      <div class="metrics-grid">
+        <div class="metric-card total">
+          <span>{{ assignments.length }}</span>
+          <small>Total Tasks</small>
+        </div>
+        <div class="metric-card pending">
+          <span>{{ pendingCount }}</span>
+          <small>Pending</small>
+        </div>
+        <div class="metric-card submitted">
+          <span>{{ submittedCount }}</span>
+          <small>Submitted</small>
+        </div>
+        <div class="metric-card graded">
+          <span>{{ gradedCount }}</span>
+          <small>Graded</small>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ASSIGNMENTS GRID -->
+  <div class="section-title-row">
+    <h2>Active Deliverables</h2>
+    <span class="badge-count">{{ assignments.length }} Assignments</span>
   </div>
-  <div class="card p-3 mt-3" *ngFor="let a of assignments">
-    <h5>{{ a.title }}</h5>
-    <p>Due: {{ a.dueDate }}</p>
-    <span class="badge bg-warning">{{ a.status }}</span>
+
+  <div class="assignments-grid" *ngIf="assignments.length > 0; else noAssignments">
+    <article class="assignment-card" *ngFor="let a of assignments" 
+             [class.pending]="a.status?.toUpperCase() === 'PENDING' || !a.status"
+             [class.submitted]="a.status?.toUpperCase() === 'SUBMITTED' || a.status?.toUpperCase() === 'COMPLETED'"
+             [class.graded]="a.status?.toUpperCase() === 'GRADED'">
+      <div class="card-glow"></div>
+      
+      <div class="card-top">
+        <div class="task-icon">
+          <i class="fa-solid fa-file-code"></i>
+        </div>
+        <span class="status-badge" [class]="a.status?.toLowerCase() || 'pending'">
+          {{ a.status || 'Pending' }}
+        </span>
+      </div>
+
+      <div class="card-content">
+        <h3>{{ a.title }}</h3>
+        <p class="due-date">
+          <i class="fa-regular fa-clock"></i> Due Date: <strong>{{ a.dueDate || 'No deadline' }}</strong>
+        </p>
+        <p class="description">
+          Review the curriculum instructions, implement the required features, and submit your source code files or deployment URLs to the trainer.
+        </p>
+      </div>
+
+      <div class="card-footer">
+        <span class="attachment-info">
+          <i class="fa-solid fa-paperclip"></i> Deliverables Required
+        </span>
+        <button class="action-btn" type="button">
+          Open Task details
+        </button>
+      </div>
+    </article>
   </div>
+
+  <ng-template #noAssignments>
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fa-solid fa-list-check"></i>
+      </div>
+      <h2>All caught up!</h2>
+      <p>There are no assignments assigned to your active cohorts at the moment.</p>
+    </div>
+  </ng-template>
+
+  <!-- =====================================================
+       SUBMISSION INSTRUCTIONS / ACTIONS
+  ====================================================== -->
+  <section class="assignments-instructions-panel">
+    <div class="instructions-header">
+      <div class="instructions-badge">
+        📌 Submission Guidelines
+      </div>
+      <h2>Assignment Submission Rules & Guidelines</h2>
+      <p>Follow these steps to submit your homework and secure proper grading outcomes:</p>
+    </div>
+    
+    <div class="instructions-steps">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon"><i class="fa-solid fa-circle-question"></i></div>
+        <h3>Understand Prompt</h3>
+        <p>Click "Open Task details" to read the problem statement, inputs/outputs, and grading rubric uploaded by the trainer.</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon"><i class="fa-solid fa-terminal"></i></div>
+        <h3>Implement & Build</h3>
+        <p>Develop your codebase locally. Run tests and verify that the application matches the project requirements.</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+        <h3>Upload Deliverable</h3>
+        <p>Prepare your submission files (e.g. zip file or GitHub link) and click the upload input on the assignment console.</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">04</div>
+        <div class="step-icon"><i class="fa-solid fa-star"></i></div>
+        <h3>Review Feedback</h3>
+        <p>Monitor your submission status. Once graded, read the trainer notes and check your performance marks.</p>
+      </div>
+    </div>
+  </section>
 </div>
