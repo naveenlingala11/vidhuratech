@@ -1,115 +1,260 @@
-<nav
-  class="navbar navbar-expand-lg fixed-top"
-  [class.navbar-scrolled]="scrolled"
-  (click)="$event.stopPropagation()"
->
-  <div class="container-fluid px-3">
-    <a class="navbar-brand" routerLink="/">
-      <img src="VidhuraTechLogo.png" class="logo" alt="VidhuraTech" />
-    </a>
-    <button
-      class="navbar-toggler"
-      type="button"
-      (click)="toggleMobileMenu()"
-      aria-label="Toggle menu"
-    >
-      <i class="fa-solid" [ngClass]="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
-    </button>
-    <div class="navbar-collapse" [class.show]="mobileMenuOpen">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a routerLink="/" class="nav-link" (click)="closeMenu()">Home</a></li>
-        <li class="nav-item">
-          <a routerLink="/courses" class="nav-link" (click)="closeMenu()">Courses</a>
+<nav class="navbar fixed-top" [class.navbar-scrolled]="scrolled" (click)="$event.stopPropagation()">
+  <div class="nav-container-fluid">
+    <!-- LEFT COLUMN: Brand Logo -->
+    <div class="nav-left-brand">
+      <a class="navbar-brand" routerLink="/">
+        <div class="logo-wrapper">
+          <img src="VidhuraTechLogo.png" class="logo" alt="VidhuraTech" />
+          <span class="brand-name">Vidhura Tech</span>
+        </div>
+      </a>
+    </div>
+    <!-- CENTER COLUMN: Desktop Navigation Items -->
+    <div class="nav-center-links">
+      <ul class="nav-links-list">
+        <li class="nav-item-link">
+          <a routerLink="/courses" class="nav-link-anchor" routerLinkActive="active"><i
+              class="fa-solid fa-book-open nav-icon"></i> Courses</a>
         </li>
-        <li class="nav-item">
-          <a routerLink="/placements" class="nav-link" (click)="closeMenu()">Placements</a>
+        <li class="nav-item-link">
+          <a routerLink="/placements" class="nav-link-anchor" routerLinkActive="active"><i
+              class="fa-solid fa-user-graduate nav-icon"></i> Placements</a>
         </li>
-        <li class="nav-item">
-          <a routerLink="/contact" class="nav-link" (click)="closeMenu()">Contact</a>
-        </li>
-        <li class="nav-item">
-          <a routerLink="/about" class="nav-link" (click)="closeMenu()">About</a>
-        </li>
-        <li *ngIf="!authService.isLoggedIn()" class="nav-item auth-actions">
-          <a routerLink="/login" class="auth-link login-link" (click)="closeMenu()">Login</a>
-          <span class="auth-separator">/</span>
-          <a routerLink="/register" class="auth-link register-link" (click)="closeMenu()"
-            >Register</a
-          >
-        </li>
-        <li *ngIf="authService.isLoggedIn()" class="nav-item user-nav-item">
-          <div class="user-wrapper">
-            <button class="user-display" type="button" (click)="toggleDropdown($event)">
-              <img
-                *ngIf="profileImageUrl; else navInitials"
-                class="user-avatar user-avatar-img"
-                [src]="profileImageUrl"
-                [alt]="user?.name || 'User'"
-                referrerpolicy="no-referrer"
-                (error)="onProfileImageError()"
-              />
 
-              <ng-template #navInitials>
-                <span class="user-avatar">{{ getInitials() }}</span>
-              </ng-template>
-              <span class="user-meta">
-                <small>Welcome</small>
-                <b>{{ authService.getUser()?.name || 'User' }}</b>
-                <span
-                  class="user-plan-badge"
-                  *ngIf="userPlanBadgeService.badge$ | async as planBadge"
-                  [ngClass]="planBadge.className"
-                >
-                  {{ planBadge.label }}
-                </span>
-              </span>
-              <i class="fa-solid fa-chevron-down user-caret"></i>
-            </button>
-            <div class="user-dropdown" *ngIf="showDropdown">
-              <div class="dropdown-user">
-                <img
-                  *ngIf="profileImageUrl; else navDropdownInitials"
-                  class="dropdown-avatar dropdown-avatar-img"
-                  [src]="profileImageUrl"
-                  [alt]="user?.name || 'User'"
-                  referrerpolicy="no-referrer"
-                  (error)="onProfileImageError()"
-                />
+        <!-- Megamenu Dropdown Trigger -->
+        <li class="nav-item-link dropdown-megamenu" (mouseenter)="openCodingMenu()" (mouseleave)="closeCodingMenu()">
+          <button type="button" class="nav-link-anchor dropdown-trigger" (click)="toggleCodingMenu($event)"
+            [class.menu-active]="showCodingMenu">
+            <i class="fa-solid fa-laptop-code nav-icon"></i> <span>Coding</span>
+            <i class="fa-solid fa-chevron-down dropdown-caret" [class.rotated]="showCodingMenu"></i>
+          </button>
+          <!-- Desktop Megamenu -->
+          <div class="megamenu-panel" [class.panel-show]="showCodingMenu" (click)="$event.stopPropagation()">
+            <div class="megamenu-grid">
+              <!-- Column 1: Practice -->
+              <div class="megamenu-column">
+                <div class="column-header">
+                  <i class="fa-solid fa-terminal text-blue"></i>
+                  <span>Practice Arena</span>
+                </div>
 
-                <ng-template #navDropdownInitials>
-                  <span class="dropdown-avatar">{{ getInitials() }}</span>
-                </ng-template>
-                <div>
-                  <strong>{{ authService.getUser()?.name || 'User' }}</strong>
-                  <small>{{ authService.getUser()?.email || 'Vidhura Tech' }}</small>
-                  <span
-                    class="user-plan-badge"
-                    *ngIf="userPlanBadgeService.badge$ | async as planBadge"
-                    [ngClass]="planBadge.className"
-                  >
-                    {{ planBadge.label }}
-                  </span>
+                <div class="links-grid">
+                  <a routerLink="/practice" class="megamenu-link-card" (click)="closeAllMenus()">
+                    <div class="link-icon-box bg-blue-light">
+                      <i class="fa-solid fa-laptop-code text-blue"></i>
+                    </div>
+                    <div class="link-info">
+                      <strong>Practice Arena</strong>
+                      <small>Company-wise coding practice</small>
+                    </div>
+                  </a>
+                  <a routerLink="/coding-contests" class="megamenu-link-card" (click)="closeAllMenus()">
+                    <div class="link-icon-box bg-teal-light">
+                      <i class="fa-solid fa-trophy text-teal"></i>
+                    </div>
+                    <div class="link-info">
+                      <strong>Coding Contests</strong>
+                      <small>Weekly competitions & rankings</small>
+                    </div>
+                  </a>
+                  <a routerLink="/leaderboard" class="megamenu-link-card" (click)="closeAllMenus()">
+                    <div class="link-icon-box bg-purple-light">
+                      <i class="fa-solid fa-ranking-star text-purple"></i>
+                    </div>
+                    <div class="link-info">
+                      <strong>Leaderboard</strong>
+                      <small>Top performers & scores</small>
+                    </div>
+                  </a>
                 </div>
               </div>
-              <div class="divider"></div>
-              <button class="dropdown-item" type="button" (click)="goDashboard()">
-                <i class="fa-solid fa-table-columns"></i>
-                Dashboard
-              </button>
-              <button class="dropdown-item" type="button" (click)="goToProfile()">
-                <i class="fa-solid fa-id-card"></i>
-                View Profile
-              </button>
-              <div class="divider"></div>
-              <button class="dropdown-item logout" type="button" (click)="logout()">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout
-              </button>
+              <!-- Column 2: Prep -->
+              <div class="megamenu-column border-left">
+                <div class="column-header">
+                  <i class="fa-solid fa-graduation-cap text-amber"></i>
+                  <span>Preparation Modules</span>
+                </div>
+
+                <div class="links-grid">
+                  <a routerLink="/preparation" class="megamenu-link-card" (click)="closeAllMenus()">
+                    <div class="link-icon-box bg-amber-light">
+                      <i class="fa-solid fa-user-tie text-amber"></i>
+                    </div>
+                    <div class="link-info">
+                      <span class="flex-title">
+                        <strong>Interview Prep</strong>
+                        <span *ngIf="currentPlan !== 'PRO' && currentPlan !== 'ELITE'"
+                          class="plan-mini-badge pro">PRO</span>
+                      </span>
+                      <small>TCS, Infosys, Wipro patterns</small>
+                    </div>
+                  </a>
+                  <a routerLink="/mock-interviews" class="megamenu-link-card" (click)="closeAllMenus()">
+                    <div class="link-icon-box bg-teal-light">
+                      <i class="fa-solid fa-video text-teal"></i>
+                    </div>
+                    <div class="link-info">
+                      <span class="flex-title">
+                        <strong>Mock Interviews</strong>
+                        <span *ngIf="!isProOrElite()" class="plan-mini-badge pro">PRO</span>
+                      </span>
+                      <small>Live AI-powered mock sessions</small>
+                    </div>
+                  </a>
+                  <a routerLink="/resume" class="megamenu-link-card" (click)="closeAllMenus()">
+                    <div class="link-icon-box bg-purple-light">
+                      <i class="fa-solid fa-file-lines text-purple"></i>
+                    </div>
+                    <div class="link-info">
+                      <span class="flex-title">
+                        <strong>Resume Builder</strong>
+                        <span *ngIf="!isElite()" class="plan-mini-badge elite">ELITE</span>
+                      </span>
+                      <small>ATS-friendly resume templates</small>
+                    </div>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </li>
+        <li class="nav-item-link">
+          <a routerLink="/about" class="nav-link-anchor" routerLinkActive="active"><i
+              class="fa-solid fa-circle-info nav-icon"></i> About</a>
+        </li>
       </ul>
+    </div>
+    <!-- RIGHT COLUMN: User Actions / Profile -->
+    <div class="nav-right-actions">
+      <!-- Guest Actions -->
+      <div *ngIf="!authService.isLoggedIn()" class="guest-actions">
+        <a routerLink="/login" class="btn-login-text">Login</a>
+        <a routerLink="/register" class="btn-register-glow">Register</a>
+      </div>
+      <!-- Logged In Profile Capsule -->
+      <div *ngIf="authService.isLoggedIn()" class="user-console-capsule">
+        <button class="console-trigger-btn" type="button" (click)="toggleDropdown($event)"
+          [class.active]="showDropdown">
+          <div class="avatar-frame-border">
+            <img *ngIf="profileImageUrl; else navInitials" class="user-avatar-img" [src]="profileImageUrl"
+              [alt]="user?.name || 'User'" referrerpolicy="no-referrer" (error)="onProfileImageError()" />
+            <ng-template #navInitials>
+              <span class="avatar-initials-text">{{ getInitials() }}</span>
+            </ng-template>
+          </div>
+          <div class="user-name-details">
+            <span class="user-name-title">{{ authService.getUser()?.name || 'User' }}</span>
+            <span class="plan-tag" *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+              [ngClass]="planBadge.className">
+              <i [class]="planBadge.icon"></i>
+              {{ planBadge.label }}
+            </span>
+          </div>
+          <i class="fa-solid fa-chevron-down trigger-caret"></i>
+        </button>
+        <!-- Profile Dropdown Glass Menu -->
+        <div class="user-dropdown-glass" *ngIf="showDropdown">
+          <div class="profile-header-card">
+            <div class="header-avatar-circle">
+              <img *ngIf="profileImageUrl; else navDropdownInitials" class="dropdown-avatar-img" [src]="profileImageUrl"
+                [alt]="user?.name || 'User'" referrerpolicy="no-referrer" (error)="onProfileImageError()" />
+              <ng-template #navDropdownInitials>
+                <span class="dropdown-avatar-initials">{{ getInitials() }}</span>
+              </ng-template>
+            </div>
+            <div class="header-user-meta">
+              <strong>{{ authService.getUser()?.name || 'User' }}</strong>
+              <small>{{ authService.getUser()?.email || 'Vidhura Tech' }}</small>
+              <span class="plan-tag" *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+                [ngClass]="planBadge.className">
+                <i [class]="planBadge.icon"></i>
+                {{ planBadge.label }}
+              </span>
+            </div>
+          </div>
+          <div class="dropdown-divider-line"></div>
+          <div class="dropdown-menu-list">
+            <button class="dropdown-link-btn" type="button" (click)="goDashboard()">
+              <i class="fa-solid fa-table-columns text-blue"></i>
+              <span>Dashboard Console</span>
+            </button>
+            <button class="dropdown-link-btn" type="button" (click)="goToProfile()">
+              <i class="fa-solid fa-user-gear text-teal"></i>
+              <span>Profile Settings</span>
+            </button>
+          </div>
+          <div class="dropdown-divider-line"></div>
+          <button class="dropdown-logout-action" type="button" (click)="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout Account</span>
+          </button>
+        </div>
+      </div>
+      <!-- Mobile Toggle Icon (Hamburger to X Morph) -->
+      <button class="mobile-menu-toggle" type="button" (click)="toggleMobileMenu()" [class.open]="mobileMenuOpen"
+        aria-label="Toggle Navigation">
+        <span class="toggle-bar bar-1"></span>
+        <span class="toggle-bar bar-2"></span>
+        <span class="toggle-bar bar-3"></span>
+      </button>
+    </div>
+  </div>
+  <!-- MOBILE RESPONSIVE SIDE DRAWER (Icons replacing text menus) -->
+  <div class="mobile-navigation-drawer" [class.drawer-active]="mobileMenuOpen">
+    <div class="drawer-header-brand">
+      <img src="VidhuraTechLogo.png" class="drawer-logo" alt="VidhuraTech Logo" />
+      <span>Quick Actions</span>
+    </div>
+    <!-- Main Links Icon Grid -->
+    <div class="mobile-icon-grid">
+      <a routerLink="/" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-blue"><i class="fa-solid fa-house"></i></div>
+        <span class="grid-label">Home</span>
+      </a>
+
+      <a routerLink="/courses" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-teal"><i class="fa-solid fa-book-open"></i></div>
+        <span class="grid-label">Courses</span>
+      </a>
+
+      <a routerLink="/placements" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-purple"><i class="fa-solid fa-user-graduate"></i></div>
+        <span class="grid-label">Placements</span>
+      </a>
+
+      <a routerLink="/about" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-amber"><i class="fa-solid fa-circle-info"></i></div>
+        <span class="grid-label">About</span>
+      </a>
+    </div>
+    <div class="drawer-divider"></div>
+    <span class="drawer-section-title">Coding Arena</span>
+    <!-- Coding Arena Links Icon Grid -->
+    <div class="mobile-icon-grid">
+      <a routerLink="/practice" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-blue-tint"><i class="fa-solid fa-laptop-code"></i></div>
+        <span class="grid-label">Practice</span>
+      </a>
+
+      <a routerLink="/coding-contests" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-teal-tint"><i class="fa-solid fa-trophy"></i></div>
+        <span class="grid-label">Contests</span>
+      </a>
+      <a routerLink="/leaderboard" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-purple-tint"><i class="fa-solid fa-ranking-star"></i></div>
+        <span class="grid-label">Rankings</span>
+      </a>
+      <a routerLink="/preparation" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-amber-tint"><i class="fa-solid fa-user-tie"></i></div>
+        <span class="grid-label">Prep Hub</span>
+      </a>
+    </div>
+    <!-- Extra actions when guest in mobile drawer -->
+    <div *ngIf="!authService.isLoggedIn()" class="mobile-drawer-guest-actions">
+      <a routerLink="/login" class="btn-drawer-login" (click)="closeMenu()">Login Account</a>
+      <a routerLink="/register" class="btn-drawer-register" (click)="closeMenu()">Register Now</a>
     </div>
   </div>
 </nav>
-<div class="menu-backdrop" *ngIf="mobileMenuOpen" (click)="closeMenu()"></div>
+<!-- Backdrop overlay for mobile menu drawer -->
+<div class="mobile-menu-backdrop" *ngIf="mobileMenuOpen" (click)="closeMenu()"></div>

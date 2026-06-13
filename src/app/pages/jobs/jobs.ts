@@ -27,6 +27,15 @@ export class Jobs implements OnInit {
     date: '', // 🔥 IMPORTANT
   };
   selectedFilters: string[] = [];
+
+  // 🔥 Premium UI Redesign Features
+  viewMode: 'grid' | 'list' = 'grid';
+  selectedJob: Job | null = null;
+  trendingSearches = ['Java', 'React', 'Angular', 'Python', 'Remote', 'Spring Boot', 'Hyderabad', 'Bangalore'];
+  isApplying = false;
+  applySuccess = false;
+  applicantEmail = '';
+  applicantName = '';
   trigger$ = new Subject<void>();
   locations = ['India', 'Remote', 'USA', 'UK', 'Bangalore', 'Hyderabad', 'Pune'];
   companies: string[] = [];
@@ -272,5 +281,53 @@ export class Jobs implements OnInit {
     const diff = Date.now() - new Date(postedAt).getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     return days === 0 ? 'Today' : `${days} days ago`;
+  }
+
+  // ===== NEW PREMIUM HANDLERS =====
+  changeViewMode(mode: 'grid' | 'list') {
+    this.viewMode = mode;
+    this.cd.detectChanges();
+  }
+
+  selectTrendingSearch(term: string) {
+    this.searchText = term;
+    this.page = 0;
+    this.applyAll();
+  }
+
+  openQuickView(job: Job, event: Event) {
+    event.stopPropagation();
+    this.selectedJob = job;
+    this.applySuccess = false;
+    this.isApplying = false;
+    this.cd.detectChanges();
+  }
+
+  closeQuickView() {
+    this.selectedJob = null;
+    this.applicantName = '';
+    this.applicantEmail = '';
+    this.applySuccess = false;
+    this.isApplying = false;
+    this.cd.detectChanges();
+  }
+
+  submitQuickApply(event: Event) {
+    event.preventDefault();
+    if (!this.applicantName || !this.applicantEmail) return;
+
+    this.isApplying = true;
+    this.cd.detectChanges();
+
+    setTimeout(() => {
+      this.isApplying = false;
+      this.applySuccess = true;
+      this.cd.detectChanges();
+
+      // Clear input fields and auto close after a delay
+      setTimeout(() => {
+        this.closeQuickView();
+      }, 2500);
+    }, 1200);
   }
 }

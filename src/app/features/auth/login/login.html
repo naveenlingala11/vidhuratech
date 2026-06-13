@@ -1,8 +1,19 @@
 <div class="auth-page">
+  <!-- Ambient Glow Orbs -->
+  <div class="auth-ambient-glow">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
   <div class="auth-shell">
+    <!-- Visual Sidebar (Left Pane) -->
     <aside class="auth-visual">
+      <div class="visual-mesh"></div>
+      <div class="visual-shine"></div>
+      
       <div class="visual-brand">
-        <img src="VidhuraTechLogo.png" alt="Vidhura Tech" routerLink="/" />
+        <img src="VidhuraTechLogo.png" alt="Vidhura Tech Logo" routerLink="/" />
       </div>
 
       <div class="visual-content">
@@ -10,50 +21,84 @@
           <i class="fa-solid fa-graduation-cap"></i>
         </div>
 
-        <h1>Welcome back to your learning portal</h1>
+        <h1>Master Industry-Ready Technical Skills</h1>
         <p>
-          Access your dashboard, continue lessons, track progress, and manage your course journey.
+          Secure your student session to access code playgrounds, custom placement preparation labs, live assessments, and career tracking analytics.
         </p>
 
         <div class="visual-points">
-          <span><i class="fa-solid fa-check"></i> Secure student dashboard</span>
-          <span><i class="fa-solid fa-check"></i> Course access after enrollment</span>
-          <span><i class="fa-solid fa-check"></i> OTP and password login</span>
+          <div class="point-item">
+            <span class="point-icon icon-teal"><i class="fa-solid fa-code"></i></span>
+            <div>
+              <strong>Interactive Coding Labs</strong>
+              <span>Write code with real-time compilation & validation</span>
+            </div>
+          </div>
+          <div class="point-item">
+            <span class="point-icon icon-purple"><i class="fa-solid fa-trophy"></i></span>
+            <div>
+              <strong>Curated Assessments</strong>
+              <span>Take training contests designed by industry trainers</span>
+            </div>
+          </div>
+          <div class="point-item">
+            <span class="point-icon icon-orange"><i class="fa-solid fa-chart-line"></i></span>
+            <div>
+              <strong>Placement Readiness</strong>
+              <span>Track progress, mock scorecards, and resumes</span>
+            </div>
+          </div>
+          <div class="point-item">
+            <span class="point-icon icon-indigo"><i class="fa-solid fa-shield-halved"></i></span>
+            <div>
+              <strong>Secure Multi-Auth</strong>
+              <span>Login via password, SMS/Email OTP, or OAuth</span>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
 
+    <!-- Form Section (Right Pane) -->
     <main class="auth-panel">
       <section class="auth-card">
-        <div class="panel-heading">
-          <span class="eyebrow">Secure Login</span>
+        <header class="panel-heading">
+          <span class="eyebrow">
+            <i class="fa-solid fa-lock"></i> Secure Gateway
+          </span>
           <h2>Welcome Back</h2>
-          <p>Login to continue your learning journey with Vidhura Tech.</p>
-        </div>
+          <p>Sign in to resume your learning and assessment preparation.</p>
+        </header>
 
+        <!-- Already Logged In Warn Block -->
         <div class="already-login-box" *ngIf="alreadyLoggedIn">
-          <div>
-            <strong>Already logged in</strong>
-            <p>
-              Current user:
-              <b>{{ currentUser?.name || currentUser?.email || currentUser?.role || 'User' }}</b>
-              <span *ngIf="currentUser?.role">({{ currentUser.role }})</span>
-            </p>
-            <small>Please logout current user before logging in with another account.</small>
+          <div class="warn-head">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <strong>Active Session Detected</strong>
           </div>
-
-          <button type="button" (click)="logoutCurrentUser()">Logout Current User</button>
+          <div class="warn-body">
+            <p>
+              Current session: 
+              <b>{{ currentUser?.name || currentUser?.email || currentUser?.role || 'Active User' }}</b>
+              <span class="role-badge" *ngIf="currentUser?.role">{{ currentUser.role }}</span>
+            </p>
+            <small>Please logout of the current account before signing in with another user profile.</small>
+          </div>
+          <button type="button" class="btn-warn-logout" (click)="logoutCurrentUser()">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout Current User
+          </button>
         </div>
 
-        <div class="login-tabs">
+        <!-- Auth Tabs switcher -->
+        <nav class="login-tabs">
           <button
             type="button"
             [disabled]="alreadyLoggedIn"
             [class.active]="activeTab === 'password'"
             (click)="switchTab('password')"
           >
-            <i class="fa-solid fa-key"></i>
-            Password
+            <i class="fa-solid fa-fingerprint"></i>
+            <span>Password</span>
           </button>
 
           <button
@@ -62,8 +107,8 @@
             [class.active]="activeTab === 'otp'"
             (click)="switchTab('otp')"
           >
-            <i class="fa-solid fa-envelope-circle-check"></i>
-            Email OTP
+            <i class="fa-solid fa-envelope-open-text"></i>
+            <span>Email OTP</span>
           </button>
 
           <button
@@ -72,15 +117,16 @@
             [class.active]="activeTab === 'phone'"
             (click)="switchTab('phone')"
           >
-            <i class="fa-solid fa-mobile-screen"></i>
-            Phone OTP
+            <i class="fa-solid fa-mobile-button"></i>
+            <span>Phone OTP</span>
           </button>
-        </div>
+        </nav>
 
+        <!-- Social logins -->
         <div class="social-auth">
           <button type="button" class="social-btn google-btn" id="googleLoginBtn">
-            <i class="fa-brands fa-google"></i>
-            Continue with Google
+            <img src="logos/google.svg" alt="Google" class="social-icon-img" />
+            <span>Continue with Google</span>
           </button>
 
           <button
@@ -90,65 +136,73 @@
             [disabled]="alreadyLoggedIn || githubLoading"
           >
             <i class="fa-brands fa-github"></i>
-            {{ githubLoading ? 'Connecting...' : 'Continue with GitHub' }}
+            <span>{{ githubLoading ? 'Connecting...' : 'Continue with GitHub' }}</span>
           </button>
         </div>
 
-        <form *ngIf="activeTab === 'password'" [formGroup]="form" (ngSubmit)="submit()">
+        <!-- Section Divider -->
+        <div class="auth-divider">
+          <span>Or sign in using details</span>
+        </div>
+
+        <!-- ══════════ TAB 1: PASSWORD FORM ══════════ -->
+        <form *ngIf="activeTab === 'password'" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <div class="auth-field">
             <label>Email Address</label>
-            <div class="field-shell">
-              <i class="fa-solid fa-envelope"></i>
-              <input type="email" formControlName="email" placeholder="you@example.com" />
+            <div class="field-shell" [class.error]="f['email'].touched && f['email'].errors">
+              <span class="field-icon icon-indigo"><i class="fa-regular fa-envelope"></i></span>
+              <input type="email" formControlName="email" placeholder="name@domain.com" autocomplete="email" />
             </div>
-            <small *ngIf="f['email'].touched && f['email'].errors?.['required']">
-              Email is required
-            </small>
-            <small *ngIf="f['email'].touched && f['email'].errors?.['email']">
-              Enter valid email address
-            </small>
+            <span class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['required']">
+              <i class="fa-solid fa-circle-info"></i> Email address is required
+            </span>
+            <span class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">
+              <i class="fa-solid fa-circle-info"></i> Please enter a valid email address
+            </span>
           </div>
 
           <div class="auth-field">
             <label>Password</label>
-            <div class="field-shell">
-              <i class="fa-solid fa-lock"></i>
+            <div class="field-shell" [class.error]="f['password'].touched && f['password'].errors">
+              <span class="field-icon icon-purple"><i class="fa-regular fa-lock-keyhole"></i></span>
               <input
                 [type]="showPassword ? 'text' : 'password'"
                 formControlName="password"
-                placeholder="Enter password"
+                placeholder="••••••••"
+                autocomplete="current-password"
               />
-              <button type="button" class="icon-btn" (click)="togglePassword()">
-                <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+              <button type="button" class="icon-btn" (click)="togglePassword()" aria-label="Toggle Password Visibility">
+                <i class="fa-regular" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
               </button>
             </div>
-            <small *ngIf="f['password'].touched && f['password'].errors?.['required']">
-              Password is required
-            </small>
+            <span class="field-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">
+              <i class="fa-solid fa-circle-info"></i> Password is required
+            </span>
           </div>
 
           <div *ngIf="loginError" class="server-error">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            {{ loginError }}
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ loginError }}</span>
           </div>
 
           <div class="forgot-link">
             <a (click)="goToForgot()">Forgot Password?</a>
           </div>
 
-          <button type="submit" class="auth-btn" [disabled]="loading || alreadyLoggedIn">
-            <span *ngIf="!loading">Login</span>
-            <span *ngIf="loading" class="loader dark"></span>
+          <button type="submit" class="auth-btn btn-primary" [disabled]="loading || alreadyLoggedIn">
+            <span *ngIf="!loading">Sign In</span>
+            <span *ngIf="loading" class="btn-loader"></span>
           </button>
         </form>
 
+        <!-- ══════════ TAB 2: EMAIL OTP ══════════ -->
         <div *ngIf="activeTab === 'otp'" class="otp-section">
-          <div class="otp-email-row">
+          <div class="otp-input-row">
             <div class="auth-field email-field">
               <label>Email Address</label>
               <div class="field-shell">
-                <i class="fa-solid fa-envelope"></i>
-                <input [(ngModel)]="otpEmail" placeholder="you@example.com" />
+                <span class="field-icon icon-indigo"><i class="fa-regular fa-envelope"></i></span>
+                <input [(ngModel)]="otpEmail" placeholder="name@domain.com" type="email" autocomplete="email" />
               </div>
             </div>
 
@@ -158,16 +212,16 @@
               (click)="sendOtp()"
               [disabled]="alreadyLoggedIn || otpTimer > 0 || otpLoading"
             >
-              <span *ngIf="!otpLoading && otpTimer === 0">Send</span>
-              <span *ngIf="otpLoading" class="loader"></span>
-              <span *ngIf="otpTimer > 0">{{ otpTimer }}s</span>
+              <span *ngIf="!otpLoading && otpTimer === 0">Send OTP</span>
+              <span *ngIf="otpLoading" class="btn-loader"></span>
+              <span *ngIf="otpTimer > 0" class="timer-countdown">{{ otpTimer }}s</span>
             </button>
           </div>
 
-          <p class="otp-hint">We will send a 6-digit verification code to your email.</p>
+          <p class="otp-hint">We will mail a 6-digit confirmation key to your mailbox.</p>
 
           <div class="otp-divider">
-            <span>Enter OTP</span>
+            <span>Enter Verification Code</span>
           </div>
 
           <div class="otp-box-container" (paste)="onPasteOtp($event)">
@@ -186,32 +240,35 @@
             />
           </div>
 
-          <small *ngIf="otpError" class="otp-error">Invalid OTP. Please try again.</small>
-          <p class="otp-valid">OTP valid for <b>5 minutes</b></p>
+          <small *ngIf="otpError" class="otp-error">
+            <i class="fa-solid fa-circle-exclamation"></i> Invalid verification code. Try again.
+          </small>
+          <p class="otp-valid">The code remains valid for <b>5 minutes</b></p>
 
           <button
             type="button"
-            class="auth-btn"
+            class="auth-btn btn-primary"
             (click)="verifyOtp()"
             [disabled]="alreadyLoggedIn || otpVerifying"
           >
-            <span *ngIf="!otpVerifying">Login with OTP</span>
-            <span *ngIf="otpVerifying" class="loader dark"></span>
+            <span *ngIf="!otpVerifying">Authenticate Session</span>
+            <span *ngIf="otpVerifying" class="btn-loader"></span>
           </button>
 
           <div class="otp-security">
             <i class="fa-solid fa-shield-halved"></i>
-            Never share your OTP with anyone.
+            <span>Vidhura Security: OTPs expire shortly and should not be shared.</span>
           </div>
         </div>
 
+        <!-- ══════════ TAB 3: PHONE OTP ══════════ -->
         <div *ngIf="activeTab === 'phone'" class="otp-section">
-          <div class="otp-email-row">
+          <div class="otp-input-row">
             <div class="auth-field email-field">
               <label>Mobile Number</label>
               <div class="field-shell">
-                <i class="fa-solid fa-mobile-screen"></i>
-                <input [(ngModel)]="phoneNumber" placeholder="10 digit mobile number" />
+                <span class="field-icon icon-orange"><i class="fa-regular fa-mobile"></i></span>
+                <input [(ngModel)]="phoneNumber" placeholder="9876543210" type="tel" maxlength="10" inputmode="numeric" />
               </div>
             </div>
 
@@ -221,15 +278,15 @@
               (click)="sendPhoneOtp()"
               [disabled]="alreadyLoggedIn || phoneOtpLoading"
             >
-              <span *ngIf="!phoneOtpLoading">Send</span>
-              <span *ngIf="phoneOtpLoading" class="loader"></span>
+              <span *ngIf="!phoneOtpLoading">Send OTP</span>
+              <span *ngIf="phoneOtpLoading" class="btn-loader"></span>
             </button>
           </div>
 
-          <p class="otp-hint">We will send a 6-digit verification code to your mobile number.</p>
+          <p class="otp-hint">We will transmit a 6-digit verification code to your mobile phone via SMS.</p>
 
           <div class="otp-divider">
-            <span>Enter OTP</span>
+            <span>Enter SMS Verification Code</span>
           </div>
 
           <div class="otp-box-container" (paste)="onPasteOtp($event)">
@@ -248,27 +305,29 @@
             />
           </div>
 
-          <small *ngIf="otpError" class="otp-error">Invalid OTP. Please try again.</small>
+          <small *ngIf="otpError" class="otp-error">
+            <i class="fa-solid fa-circle-exclamation"></i> Invalid verification code. Try again.
+          </small>
 
           <button
             type="button"
-            class="auth-btn"
+            class="auth-btn btn-primary"
             (click)="verifyPhoneOtp()"
             [disabled]="alreadyLoggedIn || phoneOtpVerifying || !phoneOtpSent"
           >
-            <span *ngIf="!phoneOtpVerifying">Login with Phone OTP</span>
-            <span *ngIf="phoneOtpVerifying" class="loader dark"></span>
+            <span *ngIf="!phoneOtpVerifying">Authenticate Mobile Session</span>
+            <span *ngIf="phoneOtpVerifying" class="btn-loader"></span>
           </button>
 
           <div class="otp-security">
             <i class="fa-solid fa-shield-halved"></i>
-            Never share your OTP with anyone.
+            <span>Vidhura Security: OTPs expire shortly and should not be shared.</span>
           </div>
         </div>
 
         <p class="switch-link">
           Don't have an account?
-          <a routerLink="/register">Create account</a>
+          <a routerLink="/register">Create new account</a>
         </p>
       </section>
     </main>

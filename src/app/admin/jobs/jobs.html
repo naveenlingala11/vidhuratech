@@ -1,37 +1,254 @@
-<div class="job-panel">
-    <h3>🚀 Post New Job</h3>
-    <form #jobFormRef="ngForm">
-        <div class="job-form">
-            <div>
-                <input name="title" required #t="ngModel" placeholder="Job Title" [(ngModel)]="jobForm.title" />
-                <small *ngIf="t.invalid && t.touched" class="error">Required</small>
-            </div>
-            <div>
-                <input name="company" required #c="ngModel" placeholder="Company" [(ngModel)]="jobForm.company" />
-                <small *ngIf="c.invalid && c.touched" class="error">Required</small>
-            </div>
-            <input name="location" placeholder="Location" [(ngModel)]="jobForm.location" />
-            <input name="experience" placeholder="Experience" [(ngModel)]="jobForm.experience" />
-            <select name="type" required [(ngModel)]="jobForm.type">
-                <option value="">Type</option>
-                <option>Fresher</option>
-                <option>Internship</option>
-                <option>Experienced</option>
-                <option>Walkin</option>
-            </select>
-            <select name="category" [(ngModel)]="jobForm.category">
-                <option value="">Category</option>
-                <option *ngFor="let c of categories">{{ c }}</option>
-            </select>
-            <input name="link" placeholder="Apply Link" [(ngModel)]="jobForm.link" />
-            <button type="button" (click)="previewJob()">👁 Preview</button>
-            <button type="button" (click)="postJob()">🚀 Post Job</button>
-        </div>
-    </form>
-    <div class="preview-box" *ngIf="showPreview">
-        <h4>Preview</h4>
-        <p>{{ jobForm.title }} - {{ jobForm.company }}</p>
-        <button (click)="confirmPost()">Confirm</button>
-        <button (click)="showPreview = false">Cancel</button>
+<section class="aj-page">
+  <!-- Interactive Frosted Glass Header -->
+  <header class="aj-hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-briefcase-fill"></i>
+        Admin Career Suite
+      </span>
+      <h1>Post New Job Opportunity</h1>
+      <p class="hero-desc">
+        Launch candidate-facing opportunity cards. Set job parameters, experience expectations, and category tags, then preview the live layout before database publication.
+      </p>
     </div>
-</div>
+  </header>
+
+  <!-- Notification HUD alerts -->
+  <div class="aj-alerts-hud" *ngIf="successMessage || errorMessage">
+    <div class="hud-alert alert-success" *ngIf="successMessage">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>{{ successMessage }}</span>
+      <button type="button" class="btn-alert-close" (click)="successMessage = ''">&times;</button>
+    </div>
+    <div class="hud-alert alert-danger" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-octagon-fill"></i>
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="btn-alert-close" (click)="errorMessage = ''">&times;</button>
+    </div>
+  </div>
+
+  <!-- Double-Column Split Workspace -->
+  <div class="aj-workspace">
+    <!-- Left Column: Job Creator specs -->
+    <div class="aj-panel-card card-job-form">
+      <div class="card-header">
+        <i class="bi bi-pencil-square text-primary"></i>
+        <h3>Job Specifications</h3>
+      </div>
+      <div class="card-body">
+        <form #jobFormRef="ngForm" class="modern-job-form">
+          <div class="form-inputs-grid">
+            <!-- Job Title -->
+            <label class="modern-input-group full-width">
+              <span class="input-label">Job Title *</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-briefcase input-icon"></i>
+                <input
+                  name="title"
+                  required
+                  #t="ngModel"
+                  type="text"
+                  placeholder="e.g. Senior Frontend Architect"
+                  [(ngModel)]="jobForm.title"
+                  class="modern-input-field"
+                />
+              </div>
+              <small *ngIf="t.invalid && t.touched" class="error-text">
+                <i class="bi bi-exclamation-triangle-fill"></i> Job Title is required.
+              </small>
+            </label>
+
+            <!-- Company -->
+            <label class="modern-input-group">
+              <span class="input-label">Company Name *</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-building input-icon"></i>
+                <input
+                  name="company"
+                  required
+                  #c="ngModel"
+                  type="text"
+                  placeholder="e.g. Microsoft"
+                  [(ngModel)]="jobForm.company"
+                  class="modern-input-field"
+                />
+              </div>
+              <small *ngIf="c.invalid && c.touched" class="error-text">
+                <i class="bi bi-exclamation-triangle-fill"></i> Company Name is required.
+              </small>
+            </label>
+
+            <!-- Location -->
+            <label class="modern-input-group">
+              <span class="input-label">Job Location</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-geo-alt input-icon"></i>
+                <input
+                  name="location"
+                  type="text"
+                  placeholder="e.g. Bangalore / Remote"
+                  [(ngModel)]="jobForm.location"
+                  class="modern-input-field"
+                />
+              </div>
+            </label>
+
+            <!-- Experience -->
+            <label class="modern-input-group">
+              <span class="input-label">Experience Bracket</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-stars input-icon"></i>
+                <input
+                  name="experience"
+                  type="text"
+                  placeholder="e.g. 2 - 5 Years"
+                  [(ngModel)]="jobForm.experience"
+                  class="modern-input-field"
+                />
+              </div>
+            </label>
+
+            <!-- Job Type -->
+            <label class="modern-input-group">
+              <span class="input-label">Job Type *</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-calendar-event input-icon"></i>
+                <select name="type" required [(ngModel)]="jobForm.type" class="modern-input-field">
+                  <option value="">Select Type</option>
+                  <option value="Fresher">Fresher Track</option>
+                  <option value="Internship">Internship Program</option>
+                  <option value="Experienced">Experienced Role</option>
+                  <option value="Walkin">Walk-in Interview</option>
+                </select>
+              </div>
+            </label>
+
+            <!-- Category -->
+            <label class="modern-input-group">
+              <span class="input-label">Recruitment Category</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-tags input-icon"></i>
+                <select name="category" [(ngModel)]="jobForm.category" class="modern-input-field">
+                  <option value="">Select Category</option>
+                  <option *ngFor="let cat of categories" [value]="cat">{{ cat }} Track</option>
+                </select>
+              </div>
+            </label>
+
+            <!-- Apply Link -->
+            <label class="modern-input-group">
+              <span class="input-label">Application Link URL</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-link-45deg input-icon"></i>
+                <input
+                  name="link"
+                  type="url"
+                  placeholder="https://company.careers.com/job/..."
+                  [(ngModel)]="jobForm.link"
+                  class="modern-input-field"
+                />
+              </div>
+            </label>
+          </div>
+
+          <div class="form-actions-row">
+            <button type="button" class="btn-preview-job" (click)="previewJob()">
+              <i class="bi bi-eye-fill me-2"></i>
+              Preview Live Card
+            </button>
+            <button type="button" class="btn-submit-job" (click)="postJob()" [disabled]="loading || jobFormRef.invalid">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" *ngIf="loading"></span>
+              <i class="bi bi-cloud-arrow-up-fill me-2" *ngIf="!loading"></i>
+              Publish Job Listing
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Live Job Card Preview Frame -->
+    <div class="aj-panel-card card-preview-frame">
+      <div class="card-header border-bottom-0 pb-1">
+        <i class="bi bi-display text-success"></i>
+        <h3>Live Roster Card Preview</h3>
+      </div>
+      <div class="card-body preview-viewport">
+        <!-- Live Mock Card -->
+        <article
+          class="mock-job-card"
+          [class.cat-it]="jobForm.category === 'IT'"
+          [class.cat-non-it]="jobForm.category === 'Non-IT'"
+          [class.cat-core]="jobForm.category === 'Core'"
+          [class.cat-finance]="jobForm.category === 'Finance'"
+          [class.cat-hr]="jobForm.category === 'HR'"
+        >
+          <!-- Accent color line -->
+          <div class="card-category-indicator"></div>
+
+          <div class="card-main-content">
+            <div class="card-header-meta">
+              <span class="company-name-label">
+                {{ jobForm.company || 'MOCK COMPANY INC.' }}
+              </span>
+              <span class="type-pill-badge">
+                {{ jobForm.type || 'Job Type' }}
+              </span>
+            </div>
+
+            <h3 class="job-title-label">
+              {{ jobForm.title || 'Role Title Preview' }}
+            </h3>
+
+            <div class="job-attributes-row">
+              <span class="attribute-chip">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                {{ jobForm.location || 'Location Pending' }}
+              </span>
+              <span class="attribute-chip">
+                <i class="bi bi-stars text-warning me-1"></i>
+                {{ jobForm.experience || 'Experience Bracket' }}
+              </span>
+              <span class="attribute-chip text-uppercase" *ngIf="jobForm.category">
+                <i class="bi bi-bookmark-fill text-primary me-1"></i>
+                {{ jobForm.category }} Sector
+              </span>
+            </div>
+
+            <!-- Inactive mock apply link button -->
+            <div class="apply-mock-footer">
+              <span class="source-tag">Source: Admin Publish</span>
+              <button type="button" class="btn-mock-apply" disabled>
+                <span>Apply Opportunity</span>
+                <i class="bi bi-box-arrow-up-right"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Preview Modal Overlap (if active) -->
+        <div class="preview-verification-panel" *ngIf="showPreview">
+          <div class="verification-backdrop"></div>
+          <div class="verification-modal">
+            <div class="modal-icon">
+              <i class="bi bi-patch-question-fill"></i>
+            </div>
+            <h4>Publish Job Listing?</h4>
+            <p>Confirm the specifications on the left and preview card details are correct before broadcasting.</p>
+            <div class="modal-actions">
+              <button type="button" class="btn-modal-cancel" (click)="showPreview = false">
+                Cancel
+              </button>
+              <button type="button" class="btn-modal-confirm" (click)="confirmPost()">
+                Yes, Publish Listing
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

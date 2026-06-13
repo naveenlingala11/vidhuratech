@@ -34,6 +34,8 @@ export class CreateAssessmentComponent implements OnInit {
     durationMinutes: 60,
     questions: [],
   };
+  toast = '';
+  templateCopied = false;
   trainerBatches: any[] = [];
   batchLoading = false;
   bulkJsonInput = '';
@@ -46,7 +48,7 @@ export class CreateAssessmentComponent implements OnInit {
     private assessmentService: AssessmentService,
     private trainerBatchLookupService: TrainerBatchLookupService,
     private route: ActivatedRoute,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTrainerBatches();
@@ -236,7 +238,7 @@ export class CreateAssessmentComponent implements OnInit {
   "skill": "Aptitude",
   "title": "Angular Assessment",
   "description": "Angular Basics Test",
-  "totalMarks": 20,
+  "totalMarks": 30,
   "durationMinutes": 30,
   "questions": [
     {
@@ -248,13 +250,17 @@ export class CreateAssessmentComponent implements OnInit {
         "D": "OS"
       },
       "correctAnswer": "A",
-      "marks": 10,
+      "marks": 1,
       "explanation": "Angular is a frontend framework"
     }
   ]
 }`;
     navigator.clipboard.writeText(template);
-    alert('JSON template copied');
+    this.templateCopied = true;
+    this.showToast('JSON template copied to clipboard!');
+    setTimeout(() => {
+      this.templateCopied = false;
+    }, 2500);
   }
 
   get questionCount(): number {
@@ -296,5 +302,24 @@ export class CreateAssessmentComponent implements OnInit {
       marks: 10,
       explanation: '@Component decorator defines Angular components.',
     });
+  }
+
+  isQuestionValid(q: any): boolean {
+    return (
+      !!q.question?.trim() &&
+      !!q.options?.A?.trim() &&
+      !!q.options?.B?.trim() &&
+      !!q.options?.C?.trim() &&
+      !!q.options?.D?.trim() &&
+      !!q.correctAnswer &&
+      Number(q.marks) > 0
+    );
+  }
+
+  showToast(message: string): void {
+    this.toast = message;
+    setTimeout(() => {
+      this.toast = '';
+    }, 2800);
   }
 }

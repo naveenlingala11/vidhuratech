@@ -1,68 +1,119 @@
-<section class="trainer-batches-page">
-  <div class="batches-hero">
-    <div>
-      <span class="eyebrow">Trainer Batches</span>
-      <h1>Manage Your Learning Cohorts</h1>
-      <p>
-        Track assigned batches, student strength, course context, schedules, and jump into batch
-        management from one focused workspace.
+<div class="trainer-cohorts-container">
+  <!-- Dashboard Header -->
+  <header class="dashboard-header">
+    <div class="header-copy">
+      <span class="header-eyebrow"><i class="bi bi-people-fill"></i> Trainer Workspace</span>
+      <h1 class="header-title">My Learning Cohorts</h1>
+      <p class="header-description">
+        Track assigned batch details, manage student rosters, monitor live course schedules, and configure learning feeds from one central cohort workspace.
       </p>
     </div>
+    <div class="header-actions-deck">
+      <div class="header-stats-pill">
+        <div class="stats-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="stats-info">
+          <strong>{{ totalStudents }}</strong>
+          <span>Enrolled Learners</span>
+        </div>
+      </div>
+      <button type="button" class="header-refresh-btn" (click)="loadBatches()" title="Refresh Cohorts">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    </div>
+  </header>
 
-    <button type="button" class="refresh-btn" (click)="loadBatches()">
-      <i class="bi bi-arrow-clockwise"></i>
-      Refresh
+  <!-- Telemetry Filter Cards Deck -->
+  <div class="telemetry-filters-deck">
+    <button
+      type="button"
+      class="telemetry-card total-card"
+      [class.active]="selectedFilter === 'ALL'"
+      (click)="selectedFilter = 'ALL'"
+    >
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-collection-play-fill"></i>
+        <span class="count">{{ batches.length }}</span>
+      </div>
+      <span class="label">Total Cohorts</span>
+      <span class="desc">All assigned cohorts</span>
+    </button>
+
+    <button
+      type="button"
+      class="telemetry-card active-card"
+      [class.active]="selectedFilter === 'ACTIVE'"
+      (click)="selectedFilter = 'ACTIVE'"
+    >
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <div class="pulse-wrapper">
+          <i class="bi bi-play-circle-fill"></i>
+          <span class="pulse-dot"></span>
+        </div>
+        <span class="count">{{ activeBatches }}</span>
+      </div>
+      <span class="label">Active Batches</span>
+      <span class="desc">Currently in progress</span>
+    </button>
+
+    <button
+      type="button"
+      class="telemetry-card upcoming-card"
+      [class.active]="selectedFilter === 'UPCOMING'"
+      (click)="selectedFilter = 'UPCOMING'"
+    >
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-calendar2-plus-fill"></i>
+        <span class="count">{{ upcomingBatches }}</span>
+      </div>
+      <span class="label">Upcoming Batches</span>
+      <span class="desc">Scheduled to start</span>
+    </button>
+
+    <button
+      type="button"
+      class="telemetry-card completed-card"
+      [class.active]="selectedFilter === 'COMPLETED'"
+      (click)="selectedFilter = 'COMPLETED'"
+    >
+      <div class="card-glow"></div>
+      <div class="card-top">
+        <i class="bi bi-check-all"></i>
+        <span class="count">{{ completedBatches }}</span>
+      </div>
+      <span class="label">Completed Batches</span>
+      <span class="desc">Archived curriculum</span>
     </button>
   </div>
 
-  <div class="stats-grid">
-    <button type="button" class="stat-card total" (click)="selectedFilter = 'ALL'">
-      <span>Total Batches</span>
-      <strong>{{ batches.length }}</strong>
-      <small>Assigned to you</small>
-    </button>
-
-    <button type="button" class="stat-card active" (click)="selectedFilter = 'ACTIVE'">
-      <span>Active</span>
-      <strong>{{ activeBatches }}</strong>
-      <small>Running batches</small>
-    </button>
-
-    <button type="button" class="stat-card upcoming" (click)="selectedFilter = 'UPCOMING'">
-      <span>Upcoming</span>
-      <strong>{{ upcomingBatches }}</strong>
-      <small>Ready to start</small>
-    </button>
-
-    <button type="button" class="stat-card students" (click)="selectedFilter = 'ALL'">
-      <span>Students</span>
-      <strong>{{ totalStudents }}</strong>
-      <small>Total learners</small>
-    </button>
-  </div>
-
-  <div class="toolbar-panel">
-    <div class="search-box">
+  <!-- Unified Search & Filters Toolbar -->
+  <div class="toolbar-filter-deck">
+    <div class="search-wrapper">
       <i class="bi bi-search"></i>
       <input
         type="text"
         [(ngModel)]="searchText"
-        placeholder="Search batch, course, status, schedule..."
+        placeholder="Search by batch name, course name, schedule, ID..."
+        class="search-input-field"
       />
     </div>
 
-    <div class="filter-tabs">
+    <div class="segmented-capsule-tabs">
       <button
         type="button"
         [class.active]="selectedFilter === 'ALL'"
         (click)="selectedFilter = 'ALL'"
+        class="capsule-tab-btn"
       >
-        All
+        All Cohorts
       </button>
       <button
         type="button"
         [class.active]="selectedFilter === 'ACTIVE'"
         (click)="selectedFilter = 'ACTIVE'"
+        class="capsule-tab-btn"
       >
         Active
       </button>
@@ -70,6 +121,7 @@
         type="button"
         [class.active]="selectedFilter === 'UPCOMING'"
         (click)="selectedFilter = 'UPCOMING'"
+        class="capsule-tab-btn"
       >
         Upcoming
       </button>
@@ -77,79 +129,113 @@
         type="button"
         [class.active]="selectedFilter === 'COMPLETED'"
         (click)="selectedFilter = 'COMPLETED'"
+        class="capsule-tab-btn"
       >
         Completed
       </button>
     </div>
   </div>
 
-  <div class="loading-grid" *ngIf="loading">
-    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4, 5, 6]">
-      <span></span>
-      <strong></strong>
-      <p></p>
-      <p></p>
+  <!-- Loading Skeletons Grid -->
+  <div class="cohorts-shimmer-grid" *ngIf="loading">
+    <div class="skeleton-shimmer-card" *ngFor="let item of [1, 2, 3, 4, 5, 6]">
+      <div class="skeleton-card-ribbon"></div>
+      <div class="skeleton-top-row">
+        <div class="skeleton-orb"></div>
+        <div class="skeleton-pill"></div>
+      </div>
+      <div class="skeleton-title-line"></div>
+      <div class="skeleton-subtitle-line"></div>
+      <div class="skeleton-metrics-block">
+        <div class="skeleton-metric-node"></div>
+        <div class="skeleton-metric-node"></div>
+      </div>
+      <div class="skeleton-schedule-line"></div>
+      <div class="skeleton-actions-block">
+        <div class="skeleton-action-btn"></div>
+        <div class="skeleton-action-btn"></div>
+      </div>
     </div>
   </div>
 
-  <div class="batches-grid" *ngIf="!loading && filteredBatches.length">
+  <!-- Cohorts Card Grid -->
+  <div class="cohorts-workspace-grid" *ngIf="!loading && filteredBatches.length">
     <article
-      class="batch-card"
+      class="cohort-glass-card"
       *ngFor="let b of filteredBatches; trackBy: trackByBatchId"
       [class]="getStatusClass(b.status)"
     >
-      <div class="batch-top">
-        <div class="batch-icon">
+      <!-- Top Accent Status Ribbon -->
+      <div class="status-ribbon"></div>
+
+      <div class="card-top-row">
+        <div class="cohort-icon-box">
           <i class="bi bi-mortarboard-fill"></i>
         </div>
-
-        <span class="status-pill" [class]="getStatusClass(b.status)">
+        <span class="status-pill-badge" [class]="getStatusClass(b.status)">
           {{ getStatusLabel(b.status) }}
         </span>
       </div>
 
-      <div class="batch-body">
-        <h2>{{ b.name }}</h2>
-        <p>{{ b.course || 'Course not assigned' }}</p>
+      <div class="card-body-details">
+        <h2 class="cohort-title" [title]="b.name">{{ b.name }}</h2>
+        <p class="cohort-course-name">
+          <i class="bi bi-journal-bookmark-fill me-1"></i>
+          {{ b.course || 'Course not assigned' }}
+        </p>
       </div>
 
-      <div class="batch-metrics">
-        <div>
-          <i class="bi bi-people"></i>
-          <span>{{ b.students || 0 }}</span>
-          <small>Students</small>
+      <!-- Cohort Metadata Columns -->
+      <div class="cohort-metrics-columns">
+        <div class="metric-column">
+          <i class="bi bi-people-fill"></i>
+          <div class="metric-info">
+            <strong>{{ b.students || 0 }}</strong>
+            <span>Students</span>
+          </div>
         </div>
 
-        <div>
-          <i class="bi bi-hash"></i>
-          <span>{{ b.id }}</span>
-          <small>Batch ID</small>
+        <div class="metric-column">
+          <i class="bi bi-fingerprint"></i>
+          <div class="metric-info">
+            <strong>#{{ b.id }}</strong>
+            <span>Batch ID</span>
+          </div>
         </div>
       </div>
 
-      <div class="schedule-strip">
+      <!-- Schedule Strip -->
+      <div class="cohort-schedule-strip">
         <i class="bi bi-clock-history"></i>
-        <span>{{ b.zoomTime || 'Schedule not added' }}</span>
+        <span class="schedule-label" [title]="b.zoomTime || 'Schedule not added'">
+          {{ b.zoomTime || 'Schedule not added' }}
+        </span>
       </div>
 
-      <div class="batch-actions">
-        <button type="button" [routerLink]="['/dashboard/trainer/batches', b.id]">
-          <i class="bi bi-kanban"></i>
-          Manage
+      <!-- Action Footer Buttons -->
+      <footer class="cohort-actions-footer">
+        <button type="button" class="action-btn-primary" [routerLink]="['/dashboard/trainer/batches', b.id]">
+          <i class="bi bi-kanban-fill"></i>
+          <span>Manage Cohort</span>
         </button>
 
-        <button type="button" class="ghost" [routerLink]="['/dashboard/trainer/content']">
+        <button type="button" class="action-btn-secondary" [routerLink]="['/dashboard/trainer/content']">
           <i class="bi bi-folder2-open"></i>
-          Content
+          <span>Learning Feed</span>
         </button>
-      </div>
+      </footer>
     </article>
   </div>
 
-  <div class="empty-state" *ngIf="!loading && !filteredBatches.length">
-    <i class="bi bi-collection"></i>
-    <h3>No batches found</h3>
-    <p>Try another search term or switch the selected status filter.</p>
-    <button type="button" (click)="selectedFilter = 'ALL'; searchText = ''">Clear Filters</button>
+  <!-- Empty Search/Filter State -->
+  <div class="cohorts-empty-workspace-state" *ngIf="!loading && !filteredBatches.length">
+    <div class="empty-illustration">
+      <i class="bi bi-search-heart"></i>
+    </div>
+    <h3>No Cohorts Located</h3>
+    <p>No batch records match your active query. Check the filters or clear parameters to reload.</p>
+    <button type="button" class="reset-filter-btn" (click)="selectedFilter = 'ALL'; searchText = ''">
+      <i class="bi bi-x-circle"></i> Clear Active Query
+    </button>
   </div>
-</section>
+</div>

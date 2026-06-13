@@ -1,406 +1,991 @@
-<main class="contest-page">
-  <div class="toast" *ngIf="toast">
-    <span class="icon icon-bell"></span>
-    {{ toast }}
+<main class="contest-page vidhura-light">
+  <!-- Dynamic Brand Atmosphere Glows -->
+  <div class="light-grid-mesh"></div>
+  <div class="brand-glow glow-blue-tint"></div>
+  <div class="brand-glow glow-purple-tint"></div>
+  <div class="brand-glow glow-cyan-tint"></div>
+
+  <!-- Premium Floating Toast System -->
+  <div class="light-toast-popup" *ngIf="toast">
+    <div class="toast-brand-strip"></div>
+    <svg
+      class="svg-icon toast-icon-badge"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span class="toast-alert-text">{{ toast }}</span>
   </div>
 
+  <!-- Hero Arena Header: Redesigned as Split-Screen layout with CSS code editor mockup -->
   <section class="contest-hero">
-    <div class="hero-copy">
-      <div class="hero-orbit hero-orbit-one"></div>
-      <div class="hero-orbit hero-orbit-two"></div>
+    <div class="hero-split-card">
+      <div class="hero-subtle-pattern"></div>
 
-      <p class="eyebrow">
-        <span class="icon icon-code"></span>
-        Weekly Coding Arena
-      </p>
+      <!-- Left Column: Typography & Inline Spectrum Stats -->
+      <div class="hero-content-column">
+        <div class="hero-indicator-badge">
+          <svg
+            class="svg-icon brand-pulse-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <span class="badge-label-text">Interactive Contest Hub</span>
+        </div>
 
-      <h1>Coding Challenges Contest</h1>
+        <h1 class="hero-display-title">
+          Coding Challenges <span class="brand-gradient-text">Arena</span>
+        </h1>
 
-      <p class="hero-text">
-        Practice placement-style coding problems, unlock premium contests, submit your best
-        solution, and compete across daily, weekly, monthly, and challenge-wise leaderboards.
-      </p>
+        <p class="hero-desc-text">
+          Benchmarking your programmatic speed and algorithms. Resolve optimized test cases, access
+          premium corporate resources, and climb the daily, weekly, or monthly developer standings.
+        </p>
 
-      <div class="hero-actions">
-        <button type="button" class="primary-btn hero-btn" (click)="scrollToLeaderboard()">
-          <span class="icon icon-trophy"></span>
-          View Leaderboard
-        </button>
+        <!-- Redesigned Telemetry: Single continuous horizontal Spectrum Bar and Legend Chain (No separate stats columns) -->
+        <div class="hero-spectrum-analytics" *ngIf="challenges.length">
+          <div class="spectrum-track-bar">
+            <div
+              class="spectrum-segment free-segment"
+              [style.width.%]="(freeChallengeCount / (challenges.length || 1)) * 100"
+              title="Free Content Distribution"
+            ></div>
+            <div
+              class="spectrum-segment premium-segment"
+              [style.width.%]="(premiumChallengeCount / (challenges.length || 1)) * 100"
+              title="Premium Content Distribution"
+            ></div>
+          </div>
 
-        <a routerLink="/practice" class="secondary-btn hero-btn">
-          <span class="icon icon-grid"></span>
-          Explore Practice
-        </a>
+          <div class="spectrum-legend-chain">
+            <span class="legend-node node-total">
+              <span class="legend-dot"></span>
+              <strong>{{ challenges.length }}</strong> Total
+            </span>
+            <span class="legend-separator"></span>
+            <span class="legend-node node-free">
+              <span class="legend-dot"></span>
+              <strong>{{ freeChallengeCount }}</strong> Free Paths
+            </span>
+            <span class="legend-separator"></span>
+            <span class="legend-node node-premium">
+              <span class="legend-dot"></span>
+              <strong>{{ premiumChallengeCount }}</strong> Premium
+            </span>
+            <span class="legend-separator"></span>
+            <span class="legend-node node-duration">
+              <span class="legend-dot"></span>
+              <strong>{{ averageDuration }}m</strong> Avg Duration
+            </span>
+          </div>
+        </div>
+
+        <div class="hero-button-group">
+          <button
+            type="button"
+            class="btn-brand-solid hero-action-trigger"
+            (click)="scrollToLeaderboard()"
+          >
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+              <path d="M4 22h16"></path>
+              <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+              <path d="M12 2a6 6 0 0 1 6 6v3a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z"></path>
+            </svg>
+            <span>View Standings</span>
+          </button>
+
+          <a routerLink="/practice" class="btn-brand-outline hero-action-trigger">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Explore Practice</span>
+          </a>
+        </div>
       </div>
 
-      <div class="hero-metrics">
-        <article>
-          <span>Challenges</span>
-          <strong>{{ challenges.length }}</strong>
-        </article>
+      <!-- Right Column: Interactive CSS Mock Code Editor (Industry Standard Redesign) -->
+      <div class="hero-visual-column">
+        <div class="code-editor-mockup">
+          <div class="editor-titlebar">
+            <div class="window-controls">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <div class="editor-tabs">
+              <div class="tab active-tab">challenge.cpp</div>
+              <div class="tab">test_cases.json</div>
+            </div>
+          </div>
+          <div class="editor-body">
+            <div class="code-lines">
+              <div class="line">
+                <span class="line-number">1</span><span class="keyword">#include</span>
+                <span class="string">&lt;iostream&gt;</span>
+              </div>
+              <div class="line">
+                <span class="line-number">2</span><span class="keyword">using namespace</span>
+                <span class="variable">std</span>;
+              </div>
+              <div class="line"><span class="line-number">3</span></div>
+              <div class="line">
+                <span class="line-number">4</span
+                ><span class="comment">// Optimize algorithm performance</span>
+              </div>
+              <div class="line">
+                <span class="line-number">5</span><span class="keyword">int</span>
+                <span class="function-name">solve</span>(<span class="keyword">int</span>
+                <span class="variable">n</span>) &#123;
+              </div>
+              <div class="line">
+                <span class="line-number">6</span> <span class="keyword">int</span>
+                <span class="variable">score</span> = <span class="variable">n</span> *
+                <span class="number">10</span>;
+              </div>
+              <div class="line">
+                <span class="line-number">7</span> <span class="keyword">return</span>
+                <span class="variable">score</span>;
+              </div>
+              <div class="line"><span class="line-number">8</span>&#125;</div>
+              <div class="line"><span class="line-number">9</span></div>
+              <div class="line">
+                <span class="line-number">10</span><span class="keyword">int</span>
+                <span class="function-name">main</span>() &#123;
+              </div>
+              <div class="line">
+                <span class="line-number">11</span> <span class="variable">cout</span> &lt;&lt;
+                <span class="function-name">solve</span>(<span class="number">100</span>) &lt;&lt;
+                <span class="variable">endl</span>;
+              </div>
+              <div class="line"><span class="line-number">12</span>&#125;</div>
+              <div class="editor-terminal">
+                <div class="terminal-header">
+                  <span class="terminal-title">COMPILER TERMINAL</span>
+                  <span class="terminal-pulse-dot"></span>
+                </div>
+                <div class="terminal-text">
+                  <span class="success-text">✔ Build Success! 14/14 test cases passed.</span>
+                  <span class="details-text"
+                    >Status: Correct. Performance: O(1) space complexity.</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        <article>
-          <span>Premium</span>
-          <strong>{{ premiumChallengeCount }}</strong>
-        </article>
+  <!-- Broadcast Strip Ticker -->
+  <section class="broadcast-ticker-container" *ngIf="announcements.length">
+    <div
+      class="broadcast-announcement-pill"
+      *ngFor="let item of announcements.slice(0, 2); trackBy: trackById"
+    >
+      <div class="live-signal-badge">
+        <span class="signal-ping-dot"></span>
+        <span>Broadcast</span>
+      </div>
+      <div class="ticker-text-wrapper">
+        <strong>{{ item.title }}</strong>
+        <span class="separator-dot-node"></span>
+        <p>{{ item.message }}</p>
+      </div>
+    </div>
+  </section>
 
-        <article>
-          <span>Avg Time</span>
-          <strong>{{ averageDuration }}m</strong>
-        </article>
+  <!-- Glassmorphic Floating Console Filter Dock -->
+  <section class="console-filter-dock">
+    <div class="console-dock-inner">
+      <!-- Search Input -->
+      <label class="dock-input-wrapper">
+        <span class="dock-field-title">Search Assignments</span>
+        <div class="dock-input-element">
+          <svg
+            class="svg-icon element-icon-align"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="search"
+            (ngModelChange)="onChallengeFilterChange()"
+            placeholder="Search by title, topic, skill..."
+          />
+        </div>
+      </label>
+
+      <!-- Company Dropdown -->
+      <label class="dock-input-wrapper">
+        <span class="dock-field-title">Employer Group</span>
+        <div class="dock-input-element">
+          <svg
+            class="svg-icon element-icon-align"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+            <line x1="9" y1="22" x2="9" y2="16"></line>
+            <line x1="15" y1="22" x2="15" y2="16"></line>
+            <line x1="9" y1="16" x2="15" y2="16"></line>
+            <path d="M9 6h6"></path>
+            <path d="M9 10h6"></path>
+          </svg>
+          <select [(ngModel)]="selectedCompany" (ngModelChange)="onChallengeFilterChange()">
+            <option value="ALL">All Companies</option>
+            <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+          </select>
+          <svg
+            class="svg-icon select-chevron"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </label>
+
+      <!-- Skill Dropdown -->
+      <label class="dock-input-wrapper">
+        <span class="dock-field-title">Focus Skill</span>
+        <div class="dock-input-element">
+          <svg
+            class="svg-icon element-icon-align"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <select [(ngModel)]="selectedSkill" (ngModelChange)="onChallengeFilterChange()">
+            <option value="ALL">All Skills</option>
+            <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
+          </select>
+          <svg
+            class="svg-icon select-chevron"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </label>
+
+      <!-- Sort Dropdown -->
+      <label class="dock-input-wrapper">
+        <span class="dock-field-title">Sort Criteria</span>
+        <div class="dock-input-element">
+          <svg
+            class="svg-icon element-icon-align"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          <select [(ngModel)]="selectedSort" (ngModelChange)="onChallengeFilterChange()">
+            <option value="latest">Latest Released</option>
+            <option value="marks">Highest Marks</option>
+            <option value="duration">Shortest Duration</option>
+            <option value="company">Company A-Z</option>
+          </select>
+          <svg
+            class="svg-icon select-chevron"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </label>
+
+      <!-- Display Limit -->
+      <label class="dock-input-wrapper compact-field">
+        <span class="dock-field-title">Cards limit</span>
+        <div class="dock-input-element">
+          <svg
+            class="svg-icon element-icon-align"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <select [(ngModel)]="challengePageSize" (ngModelChange)="onChallengeFilterChange()">
+            <option *ngFor="let size of challengePageSizeOptions" [ngValue]="size">
+              {{ size }} Cards
+            </option>
+          </select>
+          <svg
+            class="svg-icon select-chevron"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </label>
+
+      <!-- Reset button -->
+      <button
+        type="button"
+        class="btn-dock-reset-element"
+        (click)="resetFilters()"
+        aria-label="Reset Filters"
+      >
+        <svg
+          class="svg-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+        </svg>
+        <span>Reset</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Workspace Wide Catalog Desk -->
+  <section class="workspace-wide-catalog">
+    <div class="catalog-pane-header">
+      <div>
+        <span class="catalog-sub-badge">LIVE REPOSITORY</span>
+        <h2 class="catalog-title">Active Challenges</h2>
+      </div>
+      <div class="catalog-count-pill" *ngIf="!loading">
+        Page {{ challengePage }} of {{ challengeTotalPages }}
       </div>
     </div>
 
-    <aside class="hero-panel">
-      <div class="panel-head">
-        <div>
-          <p class="panel-label">{{ leaderboardPeriod | titlecase }} Top 3</p>
-          <strong>Contest Standings</strong>
-        </div>
-
-        <button type="button" class="panel-link" (click)="scrollToLeaderboard()">
-          <span class="icon icon-arrow"></span>
-        </button>
+    <!-- Premium Challenge of the Day Spotlight Banner -->
+    <div class="challenge-of-the-day-banner" *ngIf="!loading && challenges.length && challengePage === 1">
+      <div class="cotd-glow-orb"></div>
+      <div class="cotd-glass-layer"></div>
+      <div class="cotd-header">
+        <span class="cotd-badge-active">
+          <i class="fa-solid fa-fire star-glow"></i> CHALLENGE OF THE DAY
+        </span>
+        <span class="cotd-label-latest">LATEST ASSIGNMENT</span>
       </div>
-
-      <div class="winner-list" *ngIf="featuredTopThree.length; else noWinners">
-        <article
-          class="winner-card"
-          *ngFor="let winner of featuredTopThree; trackBy: trackById"
-          [ngClass]="rankClass(winner)"
-        >
-          <span class="rank">#{{ winner.rank }}</span>
-
-          <div class="winner-avatar">
-            {{ (winner.name || 'U').charAt(0) }}
+      <div class="cotd-content-layout">
+        <div class="cotd-left-details">
+          <h3 class="cotd-title">{{ challenges[0].title }}</h3>
+          <p class="cotd-desc">
+            {{ challenges[0].description || 'Initialize this coding challenge module, evaluate test matrices, optimize algorithms, and verify standings.' }}
+          </p>
+          <div class="cotd-metadata-tags">
+            <span class="cotd-tag tag-company">
+              <i class="fa-solid fa-building"></i> {{ challenges[0].company || 'General' }}
+            </span>
+            <span class="cotd-tag tag-skill">
+              <i class="fa-solid fa-code"></i> {{ challenges[0].skill || 'Coding' }}
+            </span>
+            <span class="cotd-tag tag-time">
+              <i class="fa-solid fa-clock"></i> {{ challenges[0].durationMinutes || 0 }} min Limit
+            </span>
+            <span class="cotd-tag tag-score">
+              <i class="fa-solid fa-trophy"></i> {{ challenges[0].totalMarks || 0 }} Pts
+            </span>
           </div>
-
-          <div class="winner-info">
-            <strong>{{ winner.name || 'Participant' }}</strong>
-            <p>{{ winner.score || 0 }}/{{ winner.totalMarks || 0 }} marks</p>
-          </div>
-        </article>
-      </div>
-
-      <ng-template #noWinners>
-        <div class="empty-mini">
-          <span class="icon icon-trophy"></span>
-          <strong>No rankings yet</strong>
-          <p>Leaderboard appears after participants submit challenges.</p>
         </div>
-      </ng-template>
-    </aside>
-  </section>
-
-  <section class="contest-stats">
-    <article>
-      <span class="stat-icon icon-grid"></span>
-      <div>
-        <small>Live Challenges</small>
-        <strong>{{ challenges.length }}</strong>
-      </div>
-    </article>
-
-    <article>
-      <span class="stat-icon icon-unlock"></span>
-      <div>
-        <small>Free Challenges</small>
-        <strong>{{ freeChallengeCount }}</strong>
-      </div>
-    </article>
-
-    <article>
-      <span class="stat-icon icon-lock"></span>
-      <div>
-        <small>Premium</small>
-        <strong>{{ premiumChallengeCount }}</strong>
-      </div>
-    </article>
-
-    <article>
-      <span class="stat-icon icon-clock"></span>
-      <div>
-        <small>Avg Duration</small>
-        <strong>{{ averageDuration }} min</strong>
-      </div>
-    </article>
-  </section>
-
-  <section class="announcement-strip" *ngIf="announcements.length">
-    <article *ngFor="let item of announcements.slice(0, 2); trackBy: trackById">
-      <span class="announcement-icon icon-bell"></span>
-      <div>
-        <small>Announcement</small>
-        <strong>{{ item.title }}</strong>
-        <p>{{ item.message }}</p>
-      </div>
-    </article>
-  </section>
-
-  <section class="contest-toolbar">
-    <label class="search-box">
-      <span class="icon icon-search"></span>
-      <input
-        type="text"
-        [(ngModel)]="search"
-        (ngModelChange)="onChallengeFilterChange()"
-        placeholder="Search contests by title, company, skill..."
-      />
-    </label>
-
-    <label class="select-box">
-      <span class="icon icon-building"></span>
-      <select [(ngModel)]="selectedCompany" (ngModelChange)="onChallengeFilterChange()">
-        <option value="ALL">All Companies</option>
-        <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
-      </select>
-    </label>
-
-    <label class="select-box">
-      <span class="icon icon-code"></span>
-      <select [(ngModel)]="selectedSkill" (ngModelChange)="onChallengeFilterChange()">
-        <option value="ALL">All Skills</option>
-        <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
-      </select>
-    </label>
-
-    <label class="select-box">
-      <span class="icon icon-sort"></span>
-      <select [(ngModel)]="selectedSort" (ngModelChange)="onChallengeFilterChange()">
-        <option value="latest">Latest</option>
-        <option value="marks">Highest Marks</option>
-        <option value="duration">Shortest Duration</option>
-        <option value="company">Company A-Z</option>
-      </select>
-    </label>
-
-    <label class="select-box compact">
-      <span class="icon icon-list"></span>
-      <select [(ngModel)]="challengePageSize" (ngModelChange)="onChallengeFilterChange()">
-        <option *ngFor="let size of challengePageSizeOptions" [ngValue]="size">
-          {{ size }} cards
-        </option>
-      </select>
-    </label>
-
-    <button type="button" class="ghost-btn reset-btn" (click)="resetFilters()">
-      <span class="icon icon-reset"></span>
-      Reset
-    </button>
-  </section>
-
-  <section class="contest-layout">
-    <div class="challenge-list">
-      <div class="section-heading">
-        <div>
-          <p>Live Challenges</p>
-          <strong>{{ filteredChallenges.length }} available</strong>
+        <div class="cotd-right-actions">
+          <button type="button" class="btn-cotd-action solve" (click)="startChallenge(challenges[0])">
+            <i class="fa-solid fa-play"></i> Solve Challenge
+          </button>
+          <button type="button" class="btn-cotd-action details" (click)="selectChallenge(challenges[0], true)">
+            <i class="fa-solid fa-circle-info"></i> View Details
+          </button>
         </div>
-
-        <span>Page {{ challengePage }} of {{ challengeTotalPages }}</span>
       </div>
+    </div>
 
+    <!-- Shimmer Loading Skeletons (Light Mode) -->
+    <div class="light-skeleton-grid" *ngIf="loading">
+      <div class="skeleton-card-frosted" *ngFor="let item of [1, 2, 3, 4, 5, 6]">
+        <div class="skeleton-shimmer-wave"></div>
+        <div class="skeleton-badges-row">
+          <div class="skeleton-pill-element"></div>
+          <div class="skeleton-pill-element"></div>
+        </div>
+        <div class="skeleton-bar-title"></div>
+        <div class="skeleton-bar-title half-width"></div>
+        <div class="skeleton-meta-row">
+          <div class="skeleton-dot-element"></div>
+          <div class="skeleton-dot-element"></div>
+          <div class="skeleton-dot-element"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Challenges Grid Catalog (3 Columns on Desktop, Full Width Workspace) -->
+    <div class="challenges-catalog-grid" *ngIf="!loading">
       <button
         type="button"
-        class="challenge-card"
+        class="challenge-card-light"
         *ngFor="let challenge of pagedChallenges; trackBy: trackById"
-        [class.active]="selectedChallenge?.id === challenge.id"
-        [class.locked-card]="isPremiumLocked(challenge)"
+        [class.active-card]="selectedChallenge?.id === challenge.id"
+        [class.premium-locked]="isPremiumLocked(challenge)"
         (click)="selectChallenge(challenge)"
       >
-        <div class="card-top">
-          <div class="card-badges">
-            <span class="badge company-badge">
-              <span class="icon icon-building"></span>
-              {{ challenge.company || 'General' }}
-            </span>
+        <div class="active-lens-indicator"></div>
+        <div class="active-left-indicator-bar"></div>
 
-            <span
-              class="access-badge"
-              [class.locked]="isPremiumLocked(challenge)"
-              [class.active]="isPremiumContent(challenge) && !isPremiumLocked(challenge)"
+        <div class="card-badges-row">
+          <span class="badge company-badge-glass">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <span
-                class="icon"
-                [class.icon-lock]="isPremiumLocked(challenge)"
-                [class.icon-unlock]="!isPremiumLocked(challenge)"
-              ></span>
-              {{ accessLabel(challenge) }}
-            </span>
-          </div>
+              <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+              <line x1="9" y1="22" x2="9" y2="16"></line>
+              <line x1="15" y1="22" x2="15" y2="16"></line>
+              <line x1="9" y1="16" x2="15" y2="16"></line>
+              <path d="M9 6h6"></path>
+              <path d="M9 10h6"></path>
+            </svg>
+            {{ challenge.company || 'General' }}
+          </span>
 
-          <span class="card-arrow icon-arrow"></span>
+          <span
+            class="badge status-access-badge"
+            [class.locked-status]="isPremiumLocked(challenge)"
+            [class.active-status]="isPremiumContent(challenge) && !isPremiumLocked(challenge)"
+          >
+            <svg
+              class="svg-icon"
+              *ngIf="isPremiumLocked(challenge)"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <svg
+              class="svg-icon"
+              *ngIf="!isPremiumLocked(challenge)"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+            </svg>
+            {{ accessLabel(challenge) }}
+          </span>
         </div>
 
-        <h2>{{ challenge.title }}</h2>
+        <h3 class="card-title-text">{{ challenge.title }}</h3>
 
-        <div class="meta-grid">
-          <span>
-            <span class="icon icon-code"></span>
+        <div class="card-footer-metrics">
+          <span class="metric-tag tag-purple">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
             {{ challenge.skill || 'Coding' }}
           </span>
 
-          <span>
-            <span class="icon icon-clock"></span>
-            {{ challenge.durationMinutes || 0 }} min
+          <span class="metric-tag tag-blue">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ challenge.durationMinutes || 0 }}m
           </span>
 
-          <span>
-            <span class="icon icon-star"></span>
-            {{ challenge.totalMarks || 0 }} marks
+          <span class="metric-tag tag-amber">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              ></polygon>
+            </svg>
+            {{ challenge.totalMarks || 0 }} Pts
           </span>
         </div>
+
+        <!-- Hover visual action button overlay -->
+        <div class="card-action-reveal">
+          <span>Solve Challenge</span>
+          <svg
+            class="svg-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </div>
+      </button>
+    </div>
+
+    <!-- Empty State Fallback -->
+    <div class="catalog-empty-fallback" *ngIf="!loading && !filteredChallenges.length">
+      <svg
+        class="svg-icon fallback-search-svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <strong class="fallback-bold-text">No Challenges Found</strong>
+      <p class="fallback-muted-text">
+        Change filter values or search queries to fetch other items.
+      </p>
+    </div>
+
+    <!-- Paging Bar -->
+    <div class="catalog-paging-bar" *ngIf="challengeTotalPages > 1 && !loading">
+      <button
+        type="button"
+        class="pager-navigation-arrow"
+        [disabled]="challengePage === 1"
+        (click)="setChallengePage(challengePage - 1)"
+      >
+        Prev
       </button>
 
-      <div class="empty-state" *ngIf="!loading && !filteredChallenges.length">
-        <span class="icon icon-search"></span>
-        <strong>No contests found</strong>
-        <p>Try changing filters or search keywords.</p>
-      </div>
-
-      <div class="empty-state loading-state" *ngIf="loading">
-        <span class="loader"></span>
-        <strong>Loading coding contests</strong>
-        <p>Please wait while contests are being prepared.</p>
-      </div>
-
-      <div class="pager" *ngIf="challengeTotalPages > 1">
+      <div class="pager-navigation-numbers">
         <button
           type="button"
-          [disabled]="challengePage === 1"
-          (click)="setChallengePage(challengePage - 1)"
-        >
-          Previous
-        </button>
-
-        <button
-          type="button"
+          class="pager-number-node"
           *ngFor="let page of challengePages"
-          [class.active]="page === challengePage"
+          [class.active-node]="page === challengePage"
           (click)="setChallengePage(page)"
         >
           {{ page }}
         </button>
-
-        <button
-          type="button"
-          [disabled]="challengePage === challengeTotalPages"
-          (click)="setChallengePage(challengePage + 1)"
-        >
-          Next
-        </button>
       </div>
+
+      <button
+        type="button"
+        class="pager-navigation-arrow"
+        [disabled]="challengePage === challengeTotalPages"
+        (click)="setChallengePage(challengePage + 1)"
+      >
+        Next
+      </button>
     </div>
-
-    <aside class="challenge-detail" *ngIf="selectedChallenge">
-      <div class="detail-glow"></div>
-
-      <div class="card-badges">
-        <span class="badge company-badge">
-          <span class="icon icon-building"></span>
-          {{ selectedChallenge.company || 'General' }}
-        </span>
-
-        <span
-          class="access-badge"
-          [class.locked]="isPremiumLocked(selectedChallenge)"
-          [class.active]="
-            isPremiumContent(selectedChallenge) && !isPremiumLocked(selectedChallenge)
-          "
-        >
-          <span
-            class="icon"
-            [class.icon-lock]="isPremiumLocked(selectedChallenge)"
-            [class.icon-unlock]="!isPremiumLocked(selectedChallenge)"
-          ></span>
-          {{ accessLabel(selectedChallenge) }}
-        </span>
-      </div>
-
-      <h2>{{ selectedChallenge.title }}</h2>
-
-      <p>
-        {{
-          selectedChallenge.description ||
-            'Start this coding challenge, submit your best solution, and climb the rankings.'
-        }}
-      </p>
-
-      <div class="detail-stats">
-        <div>
-          <span class="icon icon-code"></span>
-          <small>Skill</small>
-          <strong>{{ selectedChallenge.skill || 'Coding' }}</strong>
-        </div>
-
-        <div>
-          <span class="icon icon-clock"></span>
-          <small>Duration</small>
-          <strong>{{ selectedChallenge.durationMinutes || 0 }} min</strong>
-        </div>
-
-        <div>
-          <span class="icon icon-star"></span>
-          <small>Marks</small>
-          <strong>{{ selectedChallenge.totalMarks || 0 }}</strong>
-        </div>
-      </div>
-
-      <div class="premium-lock-panel" *ngIf="isPremiumLocked(selectedChallenge)">
-        <div class="lock-icon">
-          <span class="icon icon-lock"></span>
-        </div>
-
-        <div>
-          <strong>{{ accessLabel(selectedChallenge) }} required</strong>
-          <p>Upgrade your plan to access this coding contest and submit leaderboard attempts.</p>
-        </div>
-      </div>
-
-      <div class="flow-box">
-        <div class="flow-head">
-          <span class="icon icon-route"></span>
-          <strong>Participation Flow</strong>
-        </div>
-
-        <div class="flow-steps">
-          <span>Start</span>
-          <i></i>
-          <span>Solve</span>
-          <i></i>
-          <span>Submit</span>
-          <i></i>
-          <span>Rank</span>
-        </div>
-      </div>
-
-      <div class="detail-actions">
-        <button
-          type="button"
-          class="primary-btn wide"
-          [class.premium-unlock-btn]="isPremiumLocked(selectedChallenge)"
-          (click)="startChallenge(selectedChallenge)"
-        >
-          <span
-            class="icon"
-            [class.icon-lock]="isPremiumLocked(selectedChallenge)"
-            [class.icon-play]="!isPremiumLocked(selectedChallenge)"
-          ></span>
-          {{ challengeActionLabel(selectedChallenge) }}
-        </button>
-
-        <button
-          type="button"
-          class="ghost-btn wide"
-          (click)="selectChallenge(selectedChallenge, true); scrollToLeaderboard()"
-        >
-          <span class="icon icon-trophy"></span>
-          Challenge Leaderboard
-        </button>
-      </div>
-    </aside>
   </section>
 
+  <!-- Sliding Drawer Inspector Overlay -->
+  <div class="inspector-drawer" [class.drawer-open]="isDrawerOpen && selectedChallenge">
+    <div class="drawer-backdrop" (click)="closeDrawer()"></div>
+    <div class="drawer-content" *ngIf="selectedChallenge">
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-sub-badge">CHALLENGE DETAILS</span>
+          <h2 class="drawer-title">{{ selectedChallenge.title }}</h2>
+        </div>
+        <button
+          type="button"
+          class="btn-drawer-close"
+          (click)="closeDrawer()"
+          aria-label="Close details"
+        >
+          <span class="close-icon">&times;</span>
+        </button>
+      </div>
+
+      <div class="drawer-scroll-body">
+        <header class="inspector-header-widgets">
+          <span class="badge company-badge-glass larger-badge">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+              <line x1="9" y1="22" x2="9" y2="16"></line>
+              <line x1="15" y1="22" x2="15" y2="16"></line>
+              <line x1="9" y1="16" x2="15" y2="16"></line>
+              <path d="M9 6h6"></path>
+              <path d="M9 10h6"></path>
+            </svg>
+            {{ selectedChallenge.company || 'General' }}
+          </span>
+
+          <span
+            class="badge status-access-badge larger-badge"
+            [class.locked-status]="isPremiumLocked(selectedChallenge)"
+            [class.active-status]="
+              isPremiumContent(selectedChallenge) && !isPremiumLocked(selectedChallenge)
+            "
+          >
+            <svg
+              class="svg-icon"
+              *ngIf="isPremiumLocked(selectedChallenge)"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <svg
+              class="svg-icon"
+              *ngIf="!isPremiumLocked(selectedChallenge)"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+            </svg>
+            {{ accessLabel(selectedChallenge) }}
+          </span>
+        </header>
+
+        <p class="inspector-summary-body">
+          {{
+            selectedChallenge.description ||
+              'Initialize this coding challenge module, evaluate test matrices, optimize algorithms, and verify standings.'
+          }}
+        </p>
+
+        <!-- Spec metrics grid -->
+        <div class="inspector-spec-grid">
+          <div class="spec-widget-item purple-accent">
+            <div class="spec-widget-icon">
+              <svg
+                class="svg-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </div>
+            <div class="widget-metadata">
+              <small>Required Skill</small>
+              <strong>{{ selectedChallenge.skill || 'Coding' }}</strong>
+            </div>
+          </div>
+
+          <div class="spec-widget-item blue-accent">
+            <div class="spec-widget-icon">
+              <svg
+                class="svg-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="widget-metadata">
+              <small>Time Limit</small>
+              <strong>{{ selectedChallenge.durationMinutes || 0 }} min Limit</strong>
+            </div>
+          </div>
+
+          <div class="spec-widget-item amber-accent">
+            <div class="spec-widget-icon">
+              <svg
+                class="svg-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+            </div>
+            <div class="widget-metadata">
+              <small>Marks Scale</small>
+              <strong>{{ selectedChallenge.totalMarks || 0 }} Pts Available</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Locked Alert Box -->
+        <div class="premium-lockout-banner" *ngIf="isPremiumLocked(selectedChallenge)">
+          <div class="lockout-banner-icon">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+
+          <div class="lockout-banner-text">
+            <strong>Unlock Premium Access</strong>
+            <p>
+              Accessing this challenge requires upgrading to the
+              {{ accessLabel(selectedChallenge) }} tier.
+            </p>
+          </div>
+        </div>
+
+        <!-- Timeline roadmap stepper -->
+        <div class="stepper-roadmap-card">
+          <div class="stepper-title-row">
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="6" cy="19" r="3"></circle>
+              <circle cx="18" cy="5" r="3"></circle>
+              <path d="M9 19h4.5a3.5 3.5 0 0 0 3.5-3.5v-7"></path>
+              <polyline points="12 6 18 6 18 12"></polyline>
+            </svg>
+            <span>Participation Stepper Roadmap</span>
+          </div>
+
+          <div class="stepper-nodes-row">
+            <div class="stepper-node-circle completed">
+              <span class="node-bullet-number">1</span>
+              <span class="node-bullet-label">Start</span>
+            </div>
+            <div class="stepper-node-line completed"></div>
+            <div class="stepper-node-circle active">
+              <span class="node-bullet-number">2</span>
+              <span class="node-bullet-label">Solve</span>
+            </div>
+            <div class="stepper-node-line"></div>
+            <div class="stepper-node-circle">
+              <span class="node-bullet-number">3</span>
+              <span class="node-bullet-label">Submit</span>
+            </div>
+            <div class="stepper-node-line"></div>
+            <div class="stepper-node-circle">
+              <span class="node-bullet-number">4</span>
+              <span class="node-bullet-label">Rank</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Call to action launch buttons -->
+        <div class="inspector-action-buttons">
+          <button
+            type="button"
+            class="btn-inspector-launch-arena"
+            [class.btn-unlock-amber-tint]="isPremiumLocked(selectedChallenge)"
+            (click)="startChallenge(selectedChallenge)"
+          >
+            <svg
+              class="svg-icon"
+              *ngIf="isPremiumLocked(selectedChallenge)"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <svg
+              class="svg-icon"
+              *ngIf="!isPremiumLocked(selectedChallenge)"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>{{ challengeActionLabel(selectedChallenge) }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-inspector-leaderboard-only"
+            (click)="selectChallenge(selectedChallenge, true); scrollToLeaderboard()"
+          >
+            <svg
+              class="svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+              <path d="M4 22h16"></path>
+              <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+              <path d="M12 2a6 6 0 0 1 6 6v3a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z"></path>
+            </svg>
+            <span>Challenge Leaderboard</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Stands Board Anchor -->
   <section id="contest-leaderboard" class="contest-leaderboard-wrapper">
     <app-premium-leaderboard
       [title]="

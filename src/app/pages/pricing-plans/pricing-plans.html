@@ -1,97 +1,120 @@
 <main class="pricing-page">
   <div class="pricing-bg-grid"></div>
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
 
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-wrapper" *ngIf="toast">
+    <div class="toast-card-premium">
+      <div class="toast-accent-bar"></div>
+      <i class="fa-solid fa-circle-info toast-icon-premium"></i>
+      <span class="toast-text-premium">{{ toast }}</span>
+    </div>
+  </div>
+
+  <!-- HERO SECTION -->
   <section class="pricing-hero">
     <div class="hero-copy">
+      <div class="hero-glow-blob"></div>
       <span class="pricing-kicker">
         <i class="fa-solid fa-lock-open"></i>
         Unlock Premium Access
       </span>
 
-      <h1>Choose the right preparation plan</h1>
+      <h1>Choose The Right <br /><span class="gradient-text">Preparation Plan</span></h1>
 
       <p>
-        Unlock coding contest best answers, 80%+ submitted solutions, mock tests, interviews, notes,
-        videos, live classes, premium challenges, and company-wise practice bundles.
+        Accelerate your coding progress by unlocking contest best answers, 80%+ submitted solutions,
+        mock tests, interview questions, revision notes, video lessons, live classes, and
+        company-specific practice bundles.
       </p>
 
       <div class="hero-chips">
         <span><i class="fa-solid fa-code"></i> Best Answers</span>
         <span><i class="fa-solid fa-trophy"></i> Coding Contests</span>
         <span><i class="fa-solid fa-file-lines"></i> Mock Tests</span>
-        <span><i class="fa-solid fa-video"></i> Videos</span>
+        <span><i class="fa-solid fa-video"></i> Video Lessons</span>
       </div>
     </div>
 
     <aside class="hero-panel">
-      <span>Live pricing</span>
-      <strong>{{ plansLoading ? 'Syncing' : 'Updated' }}</strong>
-      <p>Basic Rs. 49, Pro Rs. 149, Elite Rs. 499. Pricing is synced with admin controls.</p>
+      <div class="panel-glow-bg"></div>
+      <span class="panel-tag">Live pricing</span>
+      <strong class="panel-status-text">
+        <span class="pulse-indicator"></span>
+        {{ plansLoading ? 'Syncing...' : 'Live Synced' }}
+      </strong>
+      <p>
+        Basic ₹49, Pro ₹149, Elite ₹499. Pricing scales and benefits are dynamically synchronized
+        with administrative controls.
+      </p>
 
       <div class="hero-panel-list">
-        <b><i class="fa-solid fa-check"></i> Instant activation</b>
-        <b><i class="fa-solid fa-check"></i> Invoice confirmation</b>
-        <b><i class="fa-solid fa-check"></i> Any plan unlocks Best Answers</b>
+        <b><i class="fa-solid fa-circle-check"></i> Instant activation</b>
+        <b><i class="fa-solid fa-circle-check"></i> Invoice confirmation</b>
+        <b><i class="fa-solid fa-circle-check"></i> Any plan unlocks Best Answers</b>
       </div>
     </aside>
   </section>
 
+  <!-- LOADER STATE -->
   <div class="pricing-loader" *ngIf="plansLoading">
-    <span></span>
-    <b>Loading live pricing...</b>
+    <span class="loader-ring"></span>
+    <b>Syncing Live Plans & Pricing Models...</b>
   </div>
 
+  <!-- CONTEST UNLOCK METRICS -->
   <section class="best-answer-unlock">
-    <div>
-      <span class="pricing-kicker">
+    <div class="unlock-info">
+      <span class="pricing-kicker accent-gold">
         <i class="fa-solid fa-star"></i>
-        Coding Contest Unlock
+        Contest Code Unlock
       </span>
       <h2>Best Answers are available with any active plan</h2>
       <p>
-        In public practice, 80%+ submissions with answer code are protected. Basic, Pro, Elite,
-        enrolled, and paid users can view them. Free users see a locked card and can purchase any
-        plan to unlock.
+        In public practice modules, 80%+ submissions containing optimal answers are protected.
+        Basic, Pro, Elite, and active paid users can view the full source code. Free users see a
+        locked card and can purchase any plan to unlock instantly.
       </p>
     </div>
 
     <div class="unlock-flow">
-      <article>
-        <i class="fa-solid fa-lock"></i>
+      <article class="flow-card">
+        <div class="flow-icon red-glow"><i class="fa-solid fa-lock"></i></div>
         <strong>Free User</strong>
         <span>Locked Best Answers</span>
       </article>
-      <article>
-        <i class="fa-solid fa-credit-card"></i>
+      <article class="flow-card gold-glow">
+        <div class="flow-icon yellow-glow"><i class="fa-solid fa-credit-card"></i></div>
         <strong>Buy Any Plan</strong>
         <span>Basic also works</span>
       </article>
-      <article>
-        <i class="fa-solid fa-code"></i>
+      <article class="flow-card green-glow">
+        <div class="flow-icon blue-glow"><i class="fa-solid fa-code"></i></div>
         <strong>View Solutions</strong>
         <span>80%+ answer code</span>
       </article>
     </div>
   </section>
 
+  <!-- PRICING CARDS GRID -->
   <section class="pricing-grid">
     <article class="pricing-card" *ngFor="let plan of plans" [class.featured]="plan.highlight">
       <div class="plan-ribbon" *ngIf="plan.highlight">Recommended</div>
 
       <div class="plan-top">
-        <span>{{ plan.badge || plan.tag }}</span>
+        <span class="plan-badge">{{ plan.badge || plan.tag }}</span>
         <h2>{{ plan.name }}</h2>
-        <p>{{ plan.description }}</p>
+        <p class="plan-desc">{{ plan.description }}</p>
       </div>
 
       <div class="price-box">
-        <div>
-          <small>Rs.</small>
+        <div class="price-amount">
+          <small>₹</small>
           <strong>{{ formatPrice(plan.price) }}</strong>
-          <span>/ {{ plan.period }}</span>
+          <span class="price-period">/ {{ plan.period }}</span>
         </div>
-        <del *ngIf="plan.compareAtPrice">Rs. {{ formatPrice(plan.compareAtPrice) }}</del>
+        <del class="compare-price" *ngIf="plan.compareAtPrice"
+          >₹{{ formatPrice(plan.compareAtPrice) }}</del
+        >
       </div>
 
       <div class="plan-meta">
@@ -101,140 +124,202 @@
 
       <div class="best-for">
         <strong>Best for</strong>
-        <span *ngFor="let item of planBestFor(plan)">
-          <i class="fa-solid fa-bullseye"></i>
-          {{ item }}
-        </span>
+        <div class="best-for-list">
+          <span *ngFor="let item of planBestFor(plan)">
+            <i class="fa-solid fa-bullseye"></i>
+            {{ item }}
+          </span>
+        </div>
       </div>
 
       <div class="access-list">
-        <strong>What you get</strong>
-        <div *ngFor="let row of accessRows(plan)" [class.disabled]="!row.enabled">
+        <strong>What is included</strong>
+        <div
+          class="access-item"
+          *ngFor="let row of accessRows(plan)"
+          [class.disabled]="!row.enabled"
+        >
           <i class="fa-solid" [class]="row.icon"></i>
           <span>{{ row.label }}</span>
-          <b>{{ row.enabled ? 'Included' : 'Not included' }}</b>
+          <b class="status-indicator" [class.highlight-status]="row.statusText && !row.enabled">
+            {{ row.statusText || (row.enabled ? 'Included' : 'Not included') }}
+          </b>
         </div>
       </div>
 
       <div class="not-included">
-        <strong>What you will not get</strong>
-        <span *ngFor="let item of planLimitations(plan)">
-          <i class="fa-solid fa-circle-info"></i>
-          {{ item }}
-        </span>
+        <strong>Limitations</strong>
+        <div class="not-included-list">
+          <span *ngFor="let item of planLimitations(plan)">
+            <i class="fa-solid fa-circle-info"></i>
+            {{ item }}
+          </span>
+        </div>
       </div>
 
-      <button type="button" class="plan-action" (click)="selectPlan(plan)">
+      <button type="button" class="plan-action-btn" (click)="selectPlan(plan)">
+        <span>Get {{ plan.name }}</span>
         <i class="fa-solid fa-arrow-right"></i>
-        Get {{ plan.name }}
       </button>
     </article>
   </section>
 
+  <!-- COMPARISON TABLE SECTION -->
   <section class="comparison-section">
-    <div class="section-head">
+    <div class="section-head text-center">
       <span class="pricing-kicker">
         <i class="fa-solid fa-table"></i>
         Plan Comparison
       </span>
-      <h2>Compare access before purchase</h2>
-      <p>Clear view of what each plan unlocks across public practice and preparation modules.</p>
+      <h2>Compare Access Before Purchase</h2>
+      <p class="section-desc">
+        Get a detailed view of what each plan unlocks across coding contests, practice materials,
+        and mentor supports.
+      </p>
     </div>
 
     <div class="comparison-table">
       <div class="comparison-row head">
-        <strong>Feature</strong>
+        <strong>Feature Detail</strong>
         <strong>Basic</strong>
         <strong>Pro</strong>
         <strong>Elite</strong>
       </div>
 
       <div class="comparison-row" *ngFor="let row of comparisonRows()">
-        <span>{{ row.label }}</span>
-        <b [class]="comparisonClass(row.basic)">{{ comparisonValue(row.basic) }}</b>
-        <b [class]="comparisonClass(row.pro)">{{ comparisonValue(row.pro) }}</b>
-        <b [class]="comparisonClass(row.elite)">{{ comparisonValue(row.elite) }}</b>
+        <span class="row-label">{{ row.label }}</span>
+        <b class="comparison-cell" [class]="comparisonClass(row.basic)">{{
+          comparisonValue(row.basic)
+        }}</b>
+        <b class="comparison-cell" [class]="comparisonClass(row.pro)">{{
+          comparisonValue(row.pro)
+        }}</b>
+        <b class="comparison-cell" [class]="comparisonClass(row.elite)">{{
+          comparisonValue(row.elite)
+        }}</b>
       </div>
     </div>
   </section>
 
+  <!-- BUNDLE PROMO BANNER -->
   <section class="bundle-strip">
-    <div>
-      <span>Included in premium bundles</span>
-      <strong>Courses + Mock Tests + Interviews + Notes + Videos + Live Classes</strong>
+    <div class="strip-content">
+      <span class="strip-tag">Complete Career Hub</span>
+      <strong>Courses + Mock Tests + Practice Banks + Videos + Live Mentoring</strong>
       <p>
-        Use Basic for low-cost Best Answers unlock, Pro for premium practice, Elite for complete
-        access.
+        Use Basic for budget answer unlocks, Pro for regular preparations, and Elite for maximum
+        live guidance and placements.
       </p>
     </div>
-    <a routerLink="/coding-contests">
+    <a routerLink="/coding-contests" class="strip-cta">
       <i class="fa-solid fa-trophy"></i>
-      Back to Coding Contest
+      <span>Back to Coding Contest</span>
     </a>
   </section>
 
-  <div class="plan-modal-backdrop" *ngIf="selectedPlan">
-    <section class="plan-modal">
-      <button type="button" class="modal-close" (click)="closeCheckout()" aria-label="Close">
+  <!-- CHECKOUT MODAL OVERLAY -->
+  <div class="plan-modal-backdrop" *ngIf="selectedPlan" (click)="closeCheckout()">
+    <section class="plan-modal" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close-btn" (click)="closeCheckout()" aria-label="Close">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
       <div class="modal-layout">
+        <!-- Left: Summary -->
         <div class="modal-plan-summary">
-          <span class="pricing-kicker">Plan Details</span>
+          <span class="modal-kicker">Plan Selected</span>
           <h2>{{ selectedPlan.name }} Plan</h2>
           <p>
-            Pay Rs. {{ formatPrice(selectedPlan.price) }} for {{ planDurationLabel(selectedPlan) }}.
-            Access activates immediately after successful payment and invoice confirmation.
+            You are getting full access for {{ planDurationLabel(selectedPlan) }}. Activation takes
+            place immediately after payment verification.
           </p>
 
           <div class="modal-price">
-            <small>Rs.</small>
+            <small>₹</small>
             <strong>{{ formatPrice(selectedPlan.price) }}</strong>
-            <span>/ {{ selectedPlan.period }}</span>
+            <span class="modal-period">/ {{ selectedPlan.period }}</span>
           </div>
 
           <div class="modal-benefits">
             <span *ngFor="let feature of selectedPlan.features">
-              <i class="fa-solid fa-check"></i>
+              <i class="fa-solid fa-circle-check"></i>
               {{ feature }}
             </span>
           </div>
         </div>
 
+        <!-- Right: Forms -->
         <div class="checkout-panel">
-          <div class="next-steps">
-            <span class="pricing-kicker">Next Steps</span>
-            <ol>
+          <div class="next-steps-card">
+            <span class="steps-tag">Billing Instructions</span>
+            <ol class="steps-list">
               <li *ngFor="let step of nextSteps()">{{ step }}</li>
             </ol>
           </div>
 
           <div class="checkout-form">
-            <label>
-              Full Name
-              <input [(ngModel)]="buyer.name" placeholder="Enter full name" />
-            </label>
+            <div class="checkout-field">
+              <input
+                type="text"
+                [(ngModel)]="buyer.name"
+                id="billingName"
+                required
+                placeholder=" "
+                class="billing-input"
+              />
+              <label for="billingName">Full Name</label>
+              <span class="focus-line"></span>
+            </div>
 
-            <label>
-              Email
-              <input [(ngModel)]="buyer.email" placeholder="you@example.com" />
-            </label>
+            <div class="checkout-field">
+              <input
+                type="email"
+                [(ngModel)]="buyer.email"
+                id="billingEmail"
+                required
+                placeholder=" "
+                class="billing-input"
+              />
+              <label for="billingEmail">Email Address</label>
+              <span class="focus-line"></span>
+            </div>
 
-            <label>
-              Mobile
-              <input [(ngModel)]="buyer.phone" placeholder="10 digit mobile number" />
-            </label>
+            <div class="checkout-field">
+              <input
+                type="tel"
+                [(ngModel)]="buyer.phone"
+                id="billingPhone"
+                required
+                placeholder=" "
+                class="billing-input"
+              />
+              <label for="billingPhone">Mobile Number (10 digits)</label>
+              <span class="focus-line"></span>
+            </div>
 
-            <label>
-              City
-              <input [(ngModel)]="buyer.city" placeholder="Your city" />
-            </label>
+            <div class="checkout-field">
+              <input
+                type="text"
+                [(ngModel)]="buyer.city"
+                id="billingCity"
+                required
+                placeholder=" "
+                class="billing-input"
+              />
+              <label for="billingCity">City / Location</label>
+              <span class="focus-line"></span>
+            </div>
           </div>
 
-          <button type="button" class="pay-btn" [disabled]="loading" (click)="paySelectedPlan()">
-            <i class="fa-solid fa-lock"></i>
-            {{ loading ? 'Processing...' : 'Continue to Purchase' }}
+          <button
+            type="button"
+            class="pay-btn-premium"
+            [disabled]="loading"
+            (click)="paySelectedPlan()"
+          >
+            <i class="fa-solid fa-shield-halved" *ngIf="!loading"></i>
+            <span class="loading-ring" *ngIf="loading"></span>
+            <span>{{ loading ? 'Securing Transaction...' : 'Continue to Purchase' }}</span>
           </button>
         </div>
       </div>

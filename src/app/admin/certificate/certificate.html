@@ -1,141 +1,302 @@
-<div class="certificate-page">
-    <div class="form-row">
-        <!-- MOBILE -->
-        <div class="field mobile-wrapper">
-            <input placeholder="📱 Mobile" [(ngModel)]="certificateData.mobile" (input)="searchMobile()"
-                (blur)="fetchUserByMobile()" />
-            <!-- 🔥 SUGGESTIONS -->
-            <div class="suggestions" *ngIf="showSuggestions">
-                <div *ngFor="let s of mobileSuggestions" (click)="selectSuggestion(s)" class="suggestion-item">
-                    <b>{{ s.phone }}</b> - {{ s.name }}
-                </div>
-            </div>
+<div class="cs-page">
+  <!-- PAGE HEADER -->
+  <header class="cs-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="hero-mesh"></div>
+
+    <div class="cs-hero__body">
+      <div class="cs-hero__text">
+        <div class="cs-hero__eyebrow">
+          <i class="bi bi-award-fill"></i> Credentials & Certificate Studio
         </div>
-        <!-- NAME -->
-        <div class="field">
-            <input placeholder="👤 Name" [(ngModel)]="certificateData.name" />
-        </div>
-        <!-- COURSE -->
-        <div class="field">
-            <input placeholder="🎓 Course" [(ngModel)]="certificateData.course" />
-        </div>
-        <!-- EMAIL -->
-        <div class="field">
-            <input placeholder="✉ Email" [(ngModel)]="certificateData.email" />
-        </div>
-        <div class="cert-actions">
-            <button class="btn generate-btn" (click)="generateAndDownload()">
-                <i class="fas fa-certificate"></i>
-                <span>Generate</span>
-            </button>
-            <button class="btn download-btn" (click)="downloadCertificate()">
-                <i class="fas fa-download"></i>
-                <span>Download</span>
-            </button>
-            <button class="btn linkedin-btn" (click)="shareLinkedIn()">
-                <i class="fab fa-linkedin"></i>
-                <span>Share</span>
-            </button>
-        </div>
+        <h1>Credentials <span>& Certificate Studio</span></h1>
+        <p>Verify student achievement, generate digital course completion seals, and publish to social channels.</p>
+      </div>
+      <div class="cs-hero__cta">
+        <button type="button" class="primary-btn action-btn white-style" (click)="loadCertificates()">
+          <i class="bi bi-arrow-clockwise"></i> Refresh Studio
+        </button>
+      </div>
     </div>
-    <!-- CERTIFICATE -->
-    <div id="certificate" class="certificate">
-        <div class="border"></div>
-        <div class="left-design"></div>
-        <div class="bottom-right-design"></div>
-        <div class="top-wave">
-            <svg viewBox="0 0 1440 320">
-                <path fill="url(#grad1)"
-                    d="M0,160L80,144C160,128,320,96,480,96C640,96,800,128,960,133.3C1120,139,1280,117,1360,106.7L1440,96V0H0Z">
-                </path>
-                <defs>
-                    <linearGradient id="grad1">
-                        <stop offset="0%" style="stop-color:#0f172a" />
-                        <stop offset="50%" style="stop-color:#2563eb" />
-                        <stop offset="100%" style="stop-color:#facc15" />
-                    </linearGradient>
-                </defs>
-            </svg>
+  </header>
+
+  <!-- WORKSPACE MAIN GRID -->
+  <div class="workspace-grid">
+    <!-- LEFT PANEL: CONSOLE CONTROLS -->
+    <aside class="console-card">
+      <div class="console-header">
+        <i class="bi bi-sliders"></i>
+        <h3>Design Controls</h3>
+      </div>
+      
+      <div class="console-fields">
+        <!-- Mobile search -->
+        <div class="field-control">
+          <label>Inquiry Mobile <span class="required">*</span></label>
+          <div class="input-icon-group mobile-wrapper">
+            <i class="bi bi-telephone addon-icon"></i>
+            <input type="tel" placeholder="Enter mobile to search lead..." [(ngModel)]="certificateData.mobile" (input)="searchMobile()" (blur)="fetchUserByMobile()" />
+            <!-- SUGGESTIONS -->
+            <div class="suggestions-deck" *ngIf="showSuggestions">
+              <button type="button" *ngFor="let s of mobileSuggestions" (click)="selectSuggestion(s)" class="suggestion-item">
+                <i class="bi bi-person-fill"></i>
+                <div class="suggestion-meta">
+                  <strong>{{ s.name }}</strong>
+                  <span>{{ s.phone }} | {{ s.course }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
-        <img src="VidhuraTechLogo.png" class="logo-left" />
-        <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr" />
-        <p class="qr-label">Scan to Verify Certificate</p>
-        <div class="cert-content">
+
+        <!-- Name -->
+        <div class="field-control">
+          <label>Candidate Name <span class="required">*</span></label>
+          <div class="input-icon-group">
+            <i class="bi bi-person addon-icon"></i>
+            <input type="text" placeholder="Full name on certificate" [(ngModel)]="certificateData.name" />
+          </div>
+        </div>
+
+        <!-- Course -->
+        <div class="field-control">
+          <label>Course Track</label>
+          <div class="input-icon-group">
+            <i class="bi bi-journal-bookmark-fill addon-icon"></i>
+            <input type="text" placeholder="e.g. Java Fullstack Development" [(ngModel)]="certificateData.course" />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field-control">
+          <label>Email Address</label>
+          <div class="input-icon-group">
+            <i class="bi bi-envelope addon-icon"></i>
+            <input type="email" placeholder="example@domain.com" [(ngModel)]="certificateData.email" />
+          </div>
+        </div>
+      </div>
+
+      <div class="console-actions">
+        <button class="action-btn generate-btn" (click)="generateAndDownload()">
+          <i class="bi bi-shield-check"></i> Generate Certificate
+        </button>
+        <button class="action-btn download-btn" (click)="downloadCertificate()" [disabled]="!certificateId">
+          <i class="bi bi-download"></i> Download PDF
+        </button>
+        <button class="action-btn linkedin-btn" (click)="shareLinkedIn()" [disabled]="!certificateId">
+          <i class="bi bi-linkedin"></i> Share on LinkedIn
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: INTERACTIVE CANVAS PREVIEW -->
+    <section class="preview-card">
+      <div class="preview-header">
+        <i class="bi bi-eye"></i>
+        <h3>Live Certificate Preview</h3>
+        <span class="preview-scale-label"><i class="bi bi-aspect-ratio"></i> Scaled to fit screen</span>
+      </div>
+
+      <div class="canvas-viewport">
+        <!-- CERTIFICATE CONTAINER -->
+        <div id="certificate" class="certificate">
+          <div class="border"></div>
+          <div class="left-design"></div>
+          <div class="bottom-right-design"></div>
+          <div class="top-wave">
+            <svg viewBox="0 0 1440 320">
+              <path fill="url(#grad1)"
+                d="M0,160L80,144C160,128,320,96,480,96C640,96,800,128,960,133.3C1120,139,1280,117,1360,106.7L1440,96V0H0Z">
+              </path>
+              <defs>
+                <linearGradient id="grad1">
+                  <stop offset="0%" style="stop-color:#0f172a" />
+                  <stop offset="50%" style="stop-color:#2563eb" />
+                  <stop offset="100%" style="stop-color:#facc15" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <img src="VidhuraTechLogo.png" class="logo-left" />
+          <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr" />
+          <p class="qr-label">Scan to Verify Certificate</p>
+          
+          <div class="cert-content">
             <img src="course_completion_badge.png" class="badge-left" />
             <div class="cert-header">
-                <div class="line"></div>
-                <h1>CERTIFICATE</h1>
-                <div class="line"></div>
+              <div class="line"></div>
+              <h1>CERTIFICATE</h1>
+              <div class="line"></div>
             </div>
             <p class="cert-subtitle">OF ACHIEVEMENT</p>
             <p class="subtitle">
-                This certificate is proudly presented to
+              This certificate is proudly presented to
             </p>
             <h2 class="name">{{certificateData.name || 'Your Name'}}</h2>
             <p class="email">
-                <i>{{certificateData.email || 'email@example.com'}}</i>
+              <i>{{certificateData.email || 'email@example.com'}}</i>
             </p>
             <div class="line"></div>
             <p class="desc">
-                In recognition of successfully completing the professional training program
+              In recognition of successfully completing the professional training program
             </p>
             <h3 class="course">{{certificateData.course || 'Course Name'}}</h3>
             <p class="desc2">
-                This program covered practical concepts, real-time projects, and industry-relevant skills.
-                The candidate has demonstrated strong dedication, problem-solving ability, and commitment
-                towards continuous learning and professional excellence.
+              This program covered practical concepts, real-time projects, and industry-relevant skills.
+              The candidate has demonstrated strong dedication, problem-solving ability, and commitment
+              towards continuous learning and professional excellence.
             </p>
             <p class="desc3">
-                We proudly acknowledge this achievement and wish continued success in future endeavors.
+              We proudly acknowledge this achievement and wish continued success in future endeavors.
             </p>
-        </div>
-        <div class="bottom">
+          </div>
+          
+          <div class="bottom">
             <div class="footer-box">
-                <p><b><i>{{ today | date:'dd/MM/yyyy' }}</i></b></p>
-                <div class="underline"></div>
+              <p><b><i>{{ today | date:'dd/MM/yyyy' }}</i></b></p>
+              <div class="underline"></div>
             </div>
             <div class="footer-center">
-                <img src="seal.png" class="seal-img" />
-                <img src="signature.png" class="sign-img" />
-                <p class="sign-name">Authorized Signature</p>
+              <img src="seal.png" class="seal-img" />
+              <img src="signature.png" class="sign-img" />
+              <p class="sign-name">Authorized Signature</p>
             </div>
             <div class="footer-box">
-                <p><b>ID: {{certificateId}}</b></p>
-                <div class="underline"></div>
+              <p><b>ID: {{certificateId || 'VT-XXXX-XXXX'}}</b></p>
+              <div class="underline"></div>
             </div>
+          </div>
+          <img src="watermark.png" class="certificate-watermark" />
         </div>
-        <img src="watermark.png" class="certificate-watermark" />
+      </div>
+    </section>
+  </div>
+
+  <!-- REGISTRY CONTAINER: ISSUED CREDENTIALS TABLE -->
+  <section class="registry-card">
+    <div class="registry-header">
+      <div>
+        <h3>Issued Credentials Registry</h3>
+        <p>Audit and manage digital certificates generated for active students. Remarks auto-save inline.</p>
+      </div>
+      <!-- SEARCH BOX -->
+      <div class="registry-search-box">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" [(ngModel)]="registrySearchText" (input)="currentPage = 1" placeholder="Search by name, email, phone, course or ID..." />
+      </div>
     </div>
-</div>
-<!-- TABLE -->
-<div class="table-wrapper" style="margin-top:30px">
-    <table>
+
+    <div class="table-responsive-scroll">
+      <table class="registry-table">
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th>Course</th>
-                <th>Date</th>
-                <th>Remarks</th>
-                <th>Actions</th>
-            </tr>
+          <tr>
+            <th (click)="toggleSort('name')" style="cursor: pointer; user-select: none;">
+              Recipient Profile
+              <i class="bi" [ngClass]="sortColumn === 'name' ? (sortDirection === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down') : 'bi-arrow-down-up'" style="font-size: 11px; margin-left: 4px; color: var(--text-secondary);"></i>
+            </th>
+            <th>Contact Details</th>
+            <th (click)="toggleSort('course')" style="cursor: pointer; user-select: none;">
+              Certified Course Track
+              <i class="bi" [ngClass]="sortColumn === 'course' ? (sortDirection === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down') : 'bi-arrow-down-up'" style="font-size: 11px; margin-left: 4px; color: var(--text-secondary);"></i>
+            </th>
+            <th (click)="toggleSort('issuedAt')" style="cursor: pointer; user-select: none;">
+              Issue Date
+              <i class="bi" [ngClass]="sortColumn === 'issuedAt' ? (sortDirection === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down') : 'bi-arrow-down-up'" style="font-size: 11px; margin-left: 4px; color: var(--text-secondary);"></i>
+            </th>
+            <th>Internal Auditor Remarks</th>
+            <th class="text-center" style="width: 200px;">Actions</th>
+          </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let c of certificates">
-                <td>{{c.name}}</td>
-                <td>{{c.email}}</td>
-                <td>{{c.mobile}}</td>
-                <td>{{c.course}}</td>
-                <td>{{c.issuedAt | date:'dd/MM/yyyy'}}</td>
-                <td>
-                    <input [(ngModel)]="c.remarks" placeholder="Add remarks" />
-                </td>
-                <td>
-                    <button (click)="viewCert(c.id)">View</button>
-                    <button (click)="downloadCert(c.id)">Download</button>
-                </td>
-            </tr>
+          <tr *ngFor="let c of paginatedCertificates">
+            <td>
+              <div class="recipient-profile-cell">
+                <div class="cs-avatar">{{ getInitials(c.name) }}</div>
+                <div class="recipient-meta">
+                  <strong>{{ c.name }}</strong>
+                  <small class="cred-id"><i class="bi bi-shield-check"></i> {{ c.id }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="recipient-contact-cell">
+                <span><i class="bi bi-telephone-fill"></i> {{ c.mobile }}</span>
+                <small class="email-text"><i class="bi bi-envelope-fill"></i> {{ c.email }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="course-badge">{{ c.course }}</span>
+            </td>
+            <td>
+              <div class="date-cell">
+                <strong>{{ c.issuedAt | date:'dd MMM yyyy' }}</strong>
+                <small class="time-text"><i class="bi bi-clock-fill"></i> {{ c.issuedAt | date:'hh:mm a' }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="remarks-input-wrapper">
+                <input [(ngModel)]="c.remarks" (blur)="saveRemarks(c)" placeholder="Add auditor notes... (auto-saves)" />
+                <i class="bi bi-pencil remarks-pencil"></i>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="registry-actions-group">
+                <button class="registry-btn view" type="button" (click)="viewCert(c.id)" title="Verify & View Page">
+                  <i class="bi bi-eye-fill"></i> View
+                </button>
+                <button class="registry-btn download" type="button" (click)="downloadCert(c.id)" title="Download PDF Certificate">
+                  <i class="bi bi-download"></i> Download
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="!filteredAndSortedCertificates.length">
+            <td colspan="6" class="table-empty-row">
+              <i class="bi bi-award-fill"></i>
+              <h4>No certificates found</h4>
+              <p>Try refining your search keyword or generate a new certificate above.</p>
+            </td>
+          </tr>
         </tbody>
-    </table>
+      </table>
+    </div>
+
+    <!-- PAGINATION DOCK -->
+    <div class="registry-pagination-dock" *ngIf="filteredAndSortedCertificates.length > 0">
+      <div class="pagination-summary">
+        Showing <strong>{{ startIndex }}</strong> to <strong>{{ endIndex }}</strong> of <strong>{{ filteredAndSortedCertificates.length }}</strong> entries
+      </div>
+      
+      <div class="pagination-controls-group">
+        <!-- Page Size Selector -->
+        <div class="page-size-selector">
+          <span>Rows per page:</span>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="pagination-buttons">
+          <button class="pag-btn" (click)="prevPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button *ngFor="let p of pageNumbers" 
+                  class="pag-btn page-num" 
+                  [class.active]="p === currentPage" 
+                  (click)="goToPage(p)">
+            {{ p }}
+          </button>
+          <button class="pag-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>

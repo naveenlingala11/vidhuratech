@@ -1,707 +1,590 @@
 <div class="toast" *ngIf="toast">{{ toast }}</div>
 
 <section class="lab-page pro-lab">
-  <header class="lab-hero premium-lab-hero">
-    <div class="hero-mesh"></div>
-    <div class="hero-grid"></div>
-    <div class="hero-scan"></div>
-
-    <nav class="premium-lab-nav">
-      <button type="button" class="nav-action back-action" (click)="closeCompiler()">
-        <i class="bi bi-arrow-left"></i>
-        <span>Back to Challenges</span>
+  <!-- IDE NAVBAR -->
+  <header class="ide-navbar">
+    <div class="navbar-left">
+      <button type="button" class="btn-icon" (click)="closeCompiler()" title="Back to Challenges">
+        <i class="bi bi-chevron-left"></i>
       </button>
-
-      <div class="nav-cluster">
-        <div class="live-runtime-chip">
-          <span class="pulse-dot"></span>
-          <div>
-            <small>Runtime</small>
-            <strong>{{ selectedLanguage.label }}</strong>
-          </div>
-        </div>
-
-        <button type="button" class="nav-action fullscreen-action" (click)="toggleFullscreen()">
-          <i
-            class="bi"
-            [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-arrows-fullscreen'"
-          ></i>
-          <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
-        </button>
+      <div class="challenge-info">
+        <span class="challenge-badge">
+          <i class="bi bi-code-square"></i>
+          Pseudo Challenge Lab
+        </span>
+        <h1 class="challenge-title" *ngIf="selectedChallenge">{{ selectedChallenge.title }}</h1>
       </div>
-    </nav>
+    </div>
 
-    <div class="premium-hero-body">
-      <div class="hero-copy">
-        <div class="hero-badge premium-badge">
-          <i class="bi bi-lightning-charge-fill"></i>
-          Smart Coding Workspace
-        </div>
+    <div class="navbar-center" *ngIf="selectedChallenge">
+      <div class="meta-pill">
+        <i class="bi bi-clock-history"></i>
+        <span>Duration: <strong>{{ selectedChallenge.durationMinutes }} mins</strong></span>
+      </div>
+      <div class="meta-pill">
+        <i class="bi bi-award"></i>
+        <span>Max Marks: <strong>{{ selectedChallenge.totalMarks }}</strong></span>
+      </div>
+      <div class="meta-pill">
+        <i class="bi bi-percent"></i>
+        <span>Pass Score: <strong>{{ selectedChallenge.passPercentage }}%</strong></span>
+      </div>
+    </div>
 
-        <h1>
-          Code sharper.
-          <span>Submit smarter.</span>
-        </h1>
-
-        <p>
-          Build, validate, and submit solutions with real compiler feedback, saved drafts,
-          highlighted diagnostics, and hidden test evaluation.
-        </p>
-
-        <div class="hero-rules premium-rules">
-          <div class="rule-pill"><i class="bi bi-save2"></i>Save before run</div>
-          <div class="rule-pill"><i class="bi bi-send-check"></i>Save before submit</div>
-          <div class="rule-pill"><i class="bi bi-terminal"></i>Compiler tested</div>
-          <div class="rule-pill"><i class="bi bi-shield-lock"></i>Hidden tests</div>
+    <div class="navbar-right">
+      <div class="live-runtime-chip" *ngIf="selectedChallenge">
+        <span class="pulse-dot"></span>
+        <div class="runtime-meta">
+          <small>Active Runtime</small>
+          <strong>{{ selectedLanguage.label }} ({{ selectedLanguage.runtime }})</strong>
         </div>
       </div>
 
-      <div class="hero-code-preview">
-        <div class="code-preview-top">
-          <span></span>
-          <span></span>
-          <span></span>
-          <strong>{{ selectedLanguage.fileName }}</strong>
-        </div>
-
-        <div class="code-preview-lines">
-          <pre><code>def solve():
-    data = input().split()
-    result = max(map(int, data))
-    print(result)
-
-solve()</code></pre>
-        </div>
-
-        <div class="code-preview-status">
-          <div>
-            <i class="bi bi-check2-circle"></i>
-            Ready to run
-          </div>
-          <strong>{{ selectedLanguage.runtime }}</strong>
-        </div>
-      </div>
+      <button type="button" class="btn-secondary" (click)="toggleFullscreen()">
+        <i class="bi" [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-arrows-fullscreen'"></i>
+        <span>{{ isFullscreen ? 'Minimize' : 'Fullscreen' }}</span>
+      </button>
     </div>
   </header>
 
+  <!-- LOADING STATE -->
   <div class="state-card opening-card premium-loading" *ngIf="opening">
     <div class="loader-orbit">
       <span></span>
+      <span></span>
       <div class="loader"></div>
     </div>
-
-    <h3>Opening your coding workspace</h3>
-    <p>Fetching challenge details, sample tests, and starter code.</p>
+    <h3>Initializing Smart Workspace</h3>
+    <p>Loading problem definition, starter files, and runtime container...</p>
   </div>
-  <section class="problem-brief glass-panel premium-panel" *ngIf="selectedChallenge">
-    <div class="panel-kicker">
-      <span>Problem Brief</span>
-      <b>{{ selectedChallenge.durationMinutes }}m</b>
+
+  <!-- WORKSPACE GRID -->
+  <div class="lab-workspace-grid" *ngIf="!opening && selectedChallenge">
+    
+    <!-- LEFT PANEL: TABBED DOCUMENTATION -->
+    <div class="left-panel glass-card">
+      <div class="panel-tabs">
+        <button type="button" class="tab-btn" [class.active]="leftTab === 'description'" (click)="leftTab = 'description'">
+          <i class="bi bi-file-earmark-text"></i>
+          Description
+        </button>
+        <button type="button" class="tab-btn" [class.active]="leftTab === 'samples'" (click)="leftTab = 'samples'">
+          <i class="bi bi-list-check"></i>
+          Sample Tests
+          <span class="tab-badge" *ngIf="visibleTestCases.length">{{ visibleTestCases.length }}</span>
+        </button>
+        <button type="button" class="tab-btn" [class.active]="leftTab === 'hint'" (click)="leftTab = 'hint'">
+          <i class="bi bi-lightbulb"></i>
+          AI Hints
+          <span class="pulse-dot-warning" *ngIf="!hintUnlocked"></span>
+        </button>
+      </div>
+
+      <div class="panel-content custom-scrollbar">
+        <!-- DESCRIPTION TAB -->
+        <div class="tab-pane-content" *ngIf="leftTab === 'description'">
+          <div class="problem-details">
+            <h2 class="problem-heading">{{ selectedChallenge.title }}</h2>
+            <div class="problem-text">{{ selectedChallenge.problemStatement }}</div>
+            
+            <div class="problem-meta-grid">
+              <div class="meta-section" *ngIf="selectedChallenge.constraintsText">
+                <h3><i class="bi bi-shield-check"></i> Constraints</h3>
+                <pre class="formatted-pre">{{ selectedChallenge.constraintsText }}</pre>
+              </div>
+
+              <div class="meta-section" *ngIf="selectedChallenge.inputFormat">
+                <h3><i class="bi bi-box-arrow-in-right"></i> Input Format</h3>
+                <pre class="formatted-pre">{{ selectedChallenge.inputFormat }}</pre>
+              </div>
+
+              <div class="meta-section" *ngIf="selectedChallenge.outputFormat">
+                <h3><i class="bi bi-box-arrow-right"></i> Output Format</h3>
+                <pre class="formatted-pre">{{ selectedChallenge.outputFormat }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAMPLES TAB -->
+        <div class="tab-pane-content" *ngIf="leftTab === 'samples'">
+          <div class="samples-container">
+            <div class="sample-case-card" *ngFor="let tc of visibleTestCases; let i = index">
+              <div class="sample-case-header">
+                <strong>Sample Case {{ i + 1 }}</strong>
+                <span class="sample-visibility-badge"><i class="bi bi-eye"></i> Public</span>
+              </div>
+              <div class="sample-case-body">
+                <div class="sample-block">
+                  <label>Input</label>
+                  <pre class="code-pre">{{ tc.inputData }}</pre>
+                </div>
+                <div class="sample-block">
+                  <label>Expected Output</label>
+                  <pre class="code-pre">{{ tc.expectedOutput }}</pre>
+                </div>
+              </div>
+            </div>
+            <div class="no-samples-alert" *ngIf="!visibleTestCases.length">
+              <i class="bi bi-info-circle"></i>
+              <span>All test cases are hidden for this challenge. No public samples available.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI HINTS TAB -->
+        <div class="tab-pane-content" *ngIf="leftTab === 'hint'">
+          <div class="hint-workspace-panel">
+            <div class="hint-header-block">
+              <div>
+                <h3>AI Guide & Assistance</h3>
+                <p class="subtitle">Access hints and steps to approach the problem.</p>
+              </div>
+              <button type="button" class="btn-unlock-hint" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
+                {{ hintButtonLabel }}
+              </button>
+            </div>
+
+            <!-- LOCKED STATE -->
+            <div *ngIf="!hintUnlocked" class="hint-locked-card">
+              <div class="timer-ring">
+                <i class="bi bi-lock-fill lock-icon"></i>
+                <div class="lock-countdown">{{ hintUnlockSeconds }}s</div>
+              </div>
+              <h4>Hint is currently locked</h4>
+              <p>Analyzing problem statement... The AI Guide unlocks in a few seconds to encourage autonomous thinking.</p>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" [style.width.%]="hintProgress"></div>
+              </div>
+            </div>
+
+            <!-- UNLOCKED STATE -->
+            <div *ngIf="hintUnlocked && showHintPanel" class="hint-unlocked-container">
+              <div class="hint-step-item" *ngFor="let step of hintSteps; let i = index">
+                <div class="step-num">{{ i + 1 }}</div>
+                <div class="step-text">{{ step }}</div>
+              </div>
+              <div class="no-hints-alert" *ngIf="!hintSteps.length">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>No specific hints have been registered for this challenge.</span>
+              </div>
+            </div>
+            
+            <div *ngIf="hintUnlocked && !showHintPanel" class="hint-placeholder-card">
+              <i class="bi bi-lightbulb-fill unlocked-bulb"></i>
+              <h4>AI Guide Unlocked</h4>
+              <p>Click "Show Hint" above to reveal structural clues and algorithmic directions.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <h2>{{ selectedChallenge.title }}</h2>
-    <p>{{ selectedChallenge.problemStatement }}</p>
-
-    <div class="brief-metrics">
-      <div>
-        <i class="bi bi-award"></i>
-        <span>Marks</span>
-        <strong>{{ selectedChallenge.totalMarks }}</strong>
-      </div>
-
-      <div>
-        <i class="bi bi-bullseye"></i>
-        <span>Pass</span>
-        <strong>{{ selectedChallenge.passPercentage }}%</strong>
-      </div>
-
-      <div>
-        <i class="bi bi-vignette"></i>
-        <span>Samples</span>
-        <strong>{{ visibleTestCases.length }}</strong>
-      </div>
-    </div>
-  </section>
-  <div class="lab-grid pro-lab-grid" *ngIf="!opening && selectedChallenge">
-    <aside class="problem-dock pro-problem-dock">
-      <section class="problem-section glass-panel premium-panel">
-        <div class="section-headline">
-          <i class="bi bi-shield-check"></i>
-          <span class="section-label">Constraints</span>
-        </div>
-
-        <pre>{{ selectedChallenge.constraintsText || 'No constraints added.' }}</pre>
-      </section>
-      <section class="hint-panel premium-hint-panel">
-        <div class="hint-head">
-          <div>
-            <span class="hint-label">AI Guide</span>
-            <h3>Problem Hint</h3>
+    <!-- RIGHT PANEL: SOLUTION EDITOR + DYNAMIC BOTTOM CONSOLE -->
+    <div class="right-panel">
+      
+      <!-- SOLUTION EDITOR CARD -->
+      <div class="editor-pane glass-card">
+        <!-- Editor Header (Filename, Unsaved flag, Language select) -->
+        <div class="editor-header">
+          <div class="file-tab">
+            <i class="bi bi-file-earmark-code-fill"></i>
+            <span class="file-name">{{ selectedLanguage.fileName }}</span>
+            <span class="unsaved-dot" *ngIf="hasUnsavedChanges" title="Unsaved changes"></span>
           </div>
 
-          <button type="button" [disabled]="!hintUnlocked" (click)="toggleHintPanel()">
-            {{ hintButtonLabel }}
-          </button>
-        </div>
-
-        <div *ngIf="!hintUnlocked" class="hint-lock-state">
-          <i class="bi bi-lock-fill"></i>
-
-          <strong> Hint Available In </strong>
-
-          <div class="hint-timer">{{ hintUnlockSeconds }}s</div>
-        </div>
-
-        <div *ngIf="hintUnlocked && showHintPanel" class="hint-content">
-          <div class="hint-step" *ngFor="let step of hintSteps; let i = index">
-            <div class="step-index">
-              {{ i + 1 }}
-            </div>
-
-            <div class="step-content">
-              {{ step }}
-            </div>
-          </div>
-
-          <div *ngIf="!hintSteps.length" class="no-hint">No hint available for this challenge.</div>
-        </div>
-      </section>
-      <section class="format-grid">
-        <div class="problem-section glass-panel premium-panel">
-          <div class="section-headline">
-            <i class="bi bi-box-arrow-in-right"></i>
-            <span class="section-label">Input Format</span>
-          </div>
-
-          <pre>{{ selectedChallenge.inputFormat || 'Not provided.' }}</pre>
-        </div>
-
-        <div class="problem-section glass-panel premium-panel">
-          <div class="section-headline">
-            <i class="bi bi-box-arrow-right"></i>
-            <span class="section-label">Output Format</span>
-          </div>
-
-          <pre>{{ selectedChallenge.outputFormat || 'Not provided.' }}</pre>
-        </div>
-      </section>
-
-      <section class="samples-card glass-panel premium-panel">
-        <div class="panel-kicker">
-          <span>Sample Tests</span>
-          <b>{{ visibleTestCases.length }}</b>
-        </div>
-
-        <div class="sample-case" *ngFor="let tc of visibleTestCases; let i = index">
-          <div class="sample-title">
-            <strong>Sample {{ i + 1 }}</strong>
-            <i class="bi bi-eye"></i>
-          </div>
-
-          <div class="sample-block">
-            <span>Input</span>
-            <pre>{{ tc.inputData }}</pre>
-          </div>
-
-          <div class="sample-block">
-            <span>Expected Output</span>
-            <pre>{{ tc.expectedOutput }}</pre>
-          </div>
-        </div>
-
-        <p class="muted hidden-note" *ngIf="!visibleTestCases.length">
-          All tests are hidden for this challenge.
-        </p>
-      </section>
-    </aside>
-
-    <main class="code-stage pro-code-stage">
-      <section class="editor-card premium-editor-card">
-        <div class="editor-topbar">
-          <div>
-            <span class="eyebrow">Solution Editor</span>
-
-            <h2>{{ selectedLanguage.fileName }}</h2>
-
-            <p>{{ selectedLanguage.runtime }}</p>
-
-            <div class="unsaved-indicator" *ngIf="hasUnsavedChanges">
-              <i class="bi bi-exclamation-circle"></i>
-              Unsaved changes
-            </div>
-          </div>
-
-          <div class="language-picker">
-            <div class="language-switch">
-              <button
-                *ngFor="let lang of primaryLanguages"
-                type="button"
-                [class.active]="language === lang.value"
-                (click)="changeLanguage(lang.value)"
-              >
+          <div class="language-dropdown-container">
+            <div class="language-quick-select">
+              <button *ngFor="let lang of primaryLanguages" type="button" class="btn-lang-tab" [class.active]="language === lang.value" (click)="changeLanguage(lang.value)">
                 {{ lang.label }}
               </button>
-
-              <button
-                type="button"
-                class="view-more-btn"
-                [class.active]="showMoreLanguages"
-                (click)="showMoreLanguages = !showMoreLanguages"
-                title="View more languages"
-              >
+              <button type="button" class="btn-lang-tab-more" [class.active]="showMoreLanguages" (click)="showMoreLanguages = !showMoreLanguages" title="More languages">
                 <i class="bi bi-three-dots"></i>
               </button>
             </div>
 
-            <div class="more-languages" *ngIf="showMoreLanguages">
-              <button
-                *ngFor="let lang of moreLanguages"
-                type="button"
-                [class.active]="language === lang.value"
-                (click)="changeLanguage(lang.value)"
-              >
-                <span>{{ lang.label }}</span>
-                <small>{{ lang.runtime }}</small>
-              </button>
+            <div class="more-languages-overlay" *ngIf="showMoreLanguages">
+              <div class="more-languages-grid">
+                <button *ngFor="let lang of moreLanguages" type="button" class="btn-lang-item" [class.active]="language === lang.value" (click)="changeLanguage(lang.value)">
+                  <span class="lang-title">{{ lang.label }}</span>
+                  <small class="lang-runtime">{{ lang.runtime }}</small>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="editor-commandbar">
-          <div class="editor-tools">
-            <button type="button" (click)="setStarterCode()">
-              <i class="bi bi-stars"></i>
-              Starter
+        <!-- Editor Toolbar Actions -->
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <button type="button" class="btn-tool" (click)="setStarterCode()" title="Reset to starter code">
+              <i class="bi bi-stars"></i> Starter
             </button>
-
-            <button type="button" (click)="formatCode()">
-              <i class="bi bi-braces"></i>
-              Format
+            <button type="button" class="btn-tool" (click)="formatCode()" title="Auto format code">
+              <i class="bi bi-braces"></i> Format
             </button>
-
-            <button type="button" (click)="clearCode()">
-              <i class="bi bi-eraser"></i>
-              Clear
+            <button type="button" class="btn-tool" (click)="clearCode()" title="Clear editor">
+              <i class="bi bi-eraser"></i> Clear
             </button>
           </div>
 
-          <div class="editor-actions">
-            <button type="button" class="save-btn" [disabled]="saving" (click)="saveCode()">
+          <div class="toolbar-right">
+            <button type="button" class="btn-action-save" [disabled]="saving" (click)="saveCode()" title="Ctrl+S">
               <i class="bi bi-floppy"></i>
-              {{ saving ? 'Saving...' : 'Save Code' }}
+              <span>{{ saving ? 'Saving...' : 'Save Draft' }}</span>
             </button>
-
-            <button
-              class="run-button"
-              type="button"
-              [disabled]="!canRun || running"
-              (click)="runCode()"
-            >
+            <button type="button" class="btn-action-run" [disabled]="!canRun || running" (click)="runCode()">
               <i class="bi bi-play-fill"></i>
-              {{ running ? 'Running...' : 'Run Test Cases' }}
+              <span>{{ running ? 'Running...' : 'Run Code' }}</span>
             </button>
-
-            <button
-              class="submit-btn"
-              type="button"
-              [disabled]="submitting"
-              [class.unsaved-submit]="hasUnsavedChanges"
-              (click)="openSubmitModal()"
-            >
-              <i
-                class="bi"
-                [ngClass]="hasUnsavedChanges ? 'bi-exclamation-triangle' : 'bi-send-check'"
-              ></i>
-
-              {{
-                hasUnsavedChanges
-                  ? 'Unsaved Changes'
-                  : submitting
-                    ? 'Submitting...'
-                    : 'Submit Challenge'
-              }}
+            <button type="button" class="btn-action-submit" [disabled]="submitting" [class.unsaved-warning]="hasUnsavedChanges" (click)="openSubmitModal()">
+              <i class="bi" [ngClass]="hasUnsavedChanges ? 'bi-exclamation-triangle' : 'bi-send-check'"></i>
+              <span>{{ hasUnsavedChanges ? 'Unsaved Changes' : submitting ? 'Submitting...' : 'Submit Code' }}</span>
             </button>
           </div>
         </div>
 
-        <div class="editor-shell premium-editor-shell">
-          <div class="editor-windowbar">
-            <span></span>
-            <span></span>
-            <span></span>
-
-            <strong>{{ selectedLanguage.runtime }}</strong>
-            <em>{{ codeLineCount }} lines</em>
+        <!-- Editor Viewport Shell -->
+        <div class="editor-body">
+          <!-- Monaco Loading/Executing Wave overlay -->
+          <div class="editor-running-overlay" *ngIf="running || submitting">
+            <div class="running-wave wave--1"></div>
+            <div class="running-wave wave--2"></div>
+            <div class="running-wave wave--3"></div>
+            <div class="running-content">
+              <div class="wave-container">
+                <div class="wave-bar wave-bar--1"></div>
+                <div class="wave-bar wave-bar--2"></div>
+                <div class="wave-bar wave-bar--3"></div>
+                <div class="wave-bar wave-bar--4"></div>
+                <div class="wave-bar wave-bar--5"></div>
+              </div>
+              <div class="running-status">
+                <i class="fa-solid fa-spinner fa-spin status-spinner"></i>
+                <span>{{ submitting ? 'Submitting Code...' : 'Executing Compiler...' }}</span>
+              </div>
+              <p>Analyzing syntax & running against public and secure test scenarios. Please hold on.</p>
+            </div>
           </div>
 
-          <ngx-monaco-editor
-            class="code-editor premium-code-editor"
-            [options]="editorOptions"
-            [(ngModel)]="sourceCode"
-            (onInit)="onEditorInit($event)"
-          >
+          <!-- The Monaco Editor -->
+          <ngx-monaco-editor class="code-editor premium-code-editor" [options]="editorOptions" [(ngModel)]="sourceCode" (onInit)="onEditorInit($event)">
           </ngx-monaco-editor>
 
-          <div class="validation-panel" *ngIf="validationErrors.length">
-            <div class="validation-head">
-              <i class="bi bi-shield-exclamation"></i>
-              <strong>Fix before running</strong>
+          <!-- Pre-run Local Diagnostics Warning -->
+          <div class="local-validation-alert" *ngIf="validationErrors.length">
+            <div class="alert-header">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              <strong>Code Validation Errors (Resolve to run/submit)</strong>
             </div>
-
-            <ul>
+            <ul class="alert-list">
               <li *ngFor="let error of validationErrors">{{ error }}</li>
             </ul>
           </div>
+        </div>
 
-          <div class="suggestion-bar">
-            <button type="button" (click)="insertSnippet('input')">
-              <i class="bi bi-input-cursor-text"></i>
-              Input
+        <!-- Snippets Suggestion Bar & Stats -->
+        <div class="editor-footer">
+          <div class="snippet-suggestions">
+            <span class="footer-label">Quick Snippets:</span>
+            <button type="button" class="btn-snippet" (click)="insertSnippet('input')">Input</button>
+            <button type="button" class="btn-snippet" (click)="insertSnippet('loop')">Loop</button>
+            <button type="button" class="btn-snippet" (click)="insertSnippet('print')">Print</button>
+          </div>
+          <div class="editor-stats">
+            <span>{{ codeLineCount }} lines</span>
+            <span>UTF-8</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLLAPSIBLE CONSOLE DRAWER -->
+      <div class="console-drawer glass-card" [class.expanded]="consoleExpanded">
+        <!-- Drawer Header / Toggle bar -->
+        <div class="console-header" (click)="consoleExpanded = !consoleExpanded">
+          <div class="header-left">
+            <i class="bi bi-terminal-fill console-indicator-icon"></i>
+            <h2>Test Console</h2>
+            <div class="console-status-indicator" *ngIf="result" [class.success]="isWorkspacePass" [class.error]="!isWorkspacePass">
+              {{ isWorkspacePass ? 'Passed' : 'Failed' }} ({{ computedPercentage }}%)
+            </div>
+          </div>
+          <div class="header-right">
+            <button type="button" class="btn-console-toggle">
+              <i class="bi" [ngClass]="consoleExpanded ? 'bi-chevron-down' : 'bi-chevron-up'"></i>
             </button>
+          </div>
+        </div>
 
-            <button type="button" (click)="insertSnippet('loop')">
-              <i class="bi bi-arrow-repeat"></i>
-              Loop
-            </button>
-
-            <button type="button" (click)="insertSnippet('print')">
+        <!-- Drawer Content Body -->
+        <div class="console-body custom-scrollbar">
+          <!-- EMPTY STATE (No runs yet) -->
+          <div class="console-empty-state" *ngIf="!result">
+            <div class="empty-icon-box">
               <i class="bi bi-terminal"></i>
-              Print
-            </button>
+            </div>
+            <h3>No Execution Logs</h3>
+            <p>Write your solution and click "Run Code" to compile and evaluate against tests.</p>
+          </div>
+
+          <!-- LOGS STATE -->
+          <div class="console-results-workspace" *ngIf="result">
+            
+            <!-- Compile Errors or Diagnostic Alerts -->
+            <div class="console-diagnostics-section" *ngIf="compilerDiagnostics.length">
+              <div class="diagnostics-header error">
+                <i class="bi bi-bug-fill"></i>
+                <h3>Compiler & Diagnostic Warnings</h3>
+              </div>
+              <div class="diagnostics-grid">
+                <div class="diagnostic-card" *ngFor="let error of compilerDiagnostics" (click)="goToDiagnostic(error)" [class.clickable]="error.line">
+                  <div class="diag-meta">
+                    <span class="badge-line" *ngIf="error.line">Line {{ error.line }}</span>
+                    <span class="badge-line" *ngIf="!error.line">General Compiler</span>
+                    <span class="badge-col" *ngIf="error.column">Col {{ error.column }}</span>
+                  </div>
+                  <pre class="diag-msg">{{ error.message }}</pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evaluation Summary Card -->
+            <div class="console-summary-card" [class.success]="isWorkspacePass" [class.error]="!isWorkspacePass">
+              <div class="summary-glow"></div>
+              <div class="summary-details">
+                <div class="summary-status">
+                  <i class="bi" [ngClass]="isWorkspacePass ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
+                  <div>
+                    <h4>
+                      {{ 
+                        isWorkspacePass 
+                          ? 'All checks successfully completed' 
+                          : hasCompilerErrors 
+                            ? 'Compilation Error' 
+                            : hasFailedTests 
+                              ? 'Test Checks Failed' 
+                              : 'Requirements Not Met' 
+                      }}
+                    </h4>
+                    <p>
+                      {{ 
+                        isWorkspacePass 
+                          ? 'Great code quality. Ready for final evaluation.' 
+                          : hasCompilerErrors 
+                            ? 'Review the compiler diagnostic output below to resolve compilation issues.' 
+                            : hasFailedTests 
+                              ? 'Some test cases failed. Review the test outputs and adjust your solution bounds.' 
+                              : 'Your solution passed the test cases but did not meet the required passing percentage of ' + selectedChallenge.passPercentage + '%.' 
+                      }}
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="summary-score">
+                  <div class="radial-score" [style.--score]="computedPercentage" [class.success]="isWorkspacePass" [class.error]="!isWorkspacePass">
+                    <div class="radial-score-inner">
+                      <strong>{{ computedPercentage }}%</strong>
+                      <span>Score</span>
+                    </div>
+                  </div>
+                  <div class="summary-meta-labels">
+                    <div>
+                      <small>Language</small>
+                      <strong>{{ result.language || language }}</strong>
+                    </div>
+                    <div>
+                      <small>Status</small>
+                      <strong>{{ result.status }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Raw compiler logs box -->
+              <div class="raw-error-container" *ngIf="result.compileError">
+                <label>Raw Output / Execution Trace</label>
+                <pre class="error-pre">{{ result.compileError }}</pre>
+              </div>
+            </div>
+
+            <!-- Test cases evaluation -->
+            <div class="console-test-results-grid" *ngIf="result.testResults?.length">
+              
+              <!-- Public test cases -->
+              <div class="test-category-group">
+                <div class="category-header">
+                  <h3>Public Test Cases</h3>
+                  <span class="category-badge">{{ result.testResults.slice(0, 3).length }} Cases</span>
+                </div>
+
+                <div class="test-cards-wrapper">
+                  <div class="test-case-card" *ngFor="let test of result.testResults.slice(0, 3); let idx = index" [class.success]="test.status === 'PASS'" [class.error]="test.status !== 'PASS'">
+                    <div class="card-head">
+                      <div class="case-number">
+                        <i class="bi" [ngClass]="test.status === 'PASS' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                        <span>Case {{ idx + 1 }}</span>
+                      </div>
+                      <span class="badge-status">{{ test.status }}</span>
+                    </div>
+
+                    <div class="card-stats">
+                      <div>
+                        <small>Score Weight</small>
+                        <strong>{{ getTestPercentage(test) }}%</strong>
+                      </div>
+                      <div>
+                        <small>Feedback</small>
+                        <strong>{{ test.status === 'PASS' ? 'Correct answer' : 'Wrong answer' }}</strong>
+                      </div>
+                    </div>
+
+                    <div class="io-feedback-details">
+                      <div class="io-block">
+                        <label>Input</label>
+                        <pre>{{ test.inputData || 'No input data provided' }}</pre>
+                      </div>
+                      <div class="io-block">
+                        <label>Expected Output</label>
+                        <pre>{{ test.expectedOutput || 'No expected output' }}</pre>
+                      </div>
+                      <div class="io-block">
+                        <label>Your Output</label>
+                        <pre>{{ test.actualOutput || 'No output captured' }}</pre>
+                      </div>
+                    </div>
+
+                    <div class="runtime-error-msg" *ngIf="test.errorMessage || test.compileError">
+                      <label><i class="bi bi-x-circle-fill"></i> Runtime Error Logs</label>
+                      <pre>{{ test.errorMessage || test.compileError }}</pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Private test cases -->
+              <div class="test-category-group" *ngIf="result.testResults.length > 3">
+                <div class="category-header">
+                  <h3>Private Evaluation (Secure Tests)</h3>
+                  <span class="category-badge hidden">{{ result.testResults.length - 3 }} Cases</span>
+                </div>
+
+                <div class="hidden-test-grid">
+                  <div class="hidden-case-strip" *ngFor="let test of result.testResults.slice(3); let idx = index" [class.success]="test.status === 'PASS'" [class.error]="test.status !== 'PASS'">
+                    <div class="strip-main">
+                      <div class="strip-left">
+                        <div class="icon-orbit">
+                          <i class="bi" [ngClass]="test.status === 'PASS' ? 'bi-shield-fill-check' : 'bi-shield-fill-x'"></i>
+                        </div>
+                        <div class="strip-text">
+                          <h4>Secure Hidden Case {{ idx + 4 }}</h4>
+                          <p>{{ test.status === 'PASS' ? 'Your code correctly processes this hidden validation set.' : (test.errorMessage || test.compileError) ? 'Runtime error encountered.' : 'Failed edge case or computational bounds validation.' }}</p>
+                        </div>
+                      </div>
+                      <div class="strip-right">
+                        <div class="badge-status-strip">{{ test.status === 'PASS' ? 'Passed' : 'Failed' }}</div>
+                      </div>
+                    </div>
+
+                    <!-- IF FAILED: DISPLAY DETAILS IF AVAILABLE -->
+                    <div class="hidden-case-details" *ngIf="test.status !== 'PASS'">
+                      <div class="io-feedback-details" *ngIf="test.inputData || test.expectedOutput || test.actualOutput">
+                        <div class="io-block" *ngIf="test.inputData">
+                          <label>Input</label>
+                          <pre>{{ test.inputData }}</pre>
+                        </div>
+                        <div class="io-block" *ngIf="test.expectedOutput">
+                          <label>Expected Output</label>
+                          <pre>{{ test.expectedOutput }}</pre>
+                        </div>
+                        <div class="io-block" *ngIf="test.actualOutput">
+                          <label>Your Output</label>
+                          <pre>{{ test.actualOutput }}</pre>
+                        </div>
+                      </div>
+
+                      <div class="runtime-error-msg" *ngIf="test.errorMessage || test.compileError">
+                        <label><i class="bi bi-x-circle-fill"></i> Error Details</label>
+                        <pre>{{ test.errorMessage || test.compileError }}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
-      </section>
-    </main>
+      </div>
+
+    </div>
   </div>
-  <section class="result-card empty-result premium-console" *ngIf="!result">
-    <div>
-      <span class="eyebrow">Test Console</span>
-
-      <h2>Run your solution to see feedback</h2>
-
-      <p>
-        Your code runs against visible and hidden backend test cases. Results include pass status,
-        percentage, compiler errors, and per-case feedback.
-      </p>
-    </div>
-
-    <div class="console-icon">
-      <i class="bi bi-terminal"></i>
-    </div>
-  </section>
-  <section
-    class="result-card premium-result"
-    *ngIf="result"
-    [class.pass-result]="result.status === 'PASS'"
-  >
-    <section class="compiler-error-panel" *ngIf="compilerDiagnostics.length">
-      <div class="compiler-error-head">
-        <i class="bi bi-bug"></i>
-        <div>
-          <span class="eyebrow">Compiler Diagnostics</span>
-          <h3>
-            {{ compilerDiagnostics.length }} issue{{ compilerDiagnostics.length > 1 ? 's' : '' }}
-            found
-          </h3>
-        </div>
-      </div>
-
-      <article
-        class="compiler-error-item"
-        *ngFor="let error of compilerDiagnostics"
-        (click)="goToDiagnostic(error)"
-        [class.clickable-error]="error.line"
-      >
-        <div class="compiler-error-line">
-          <strong *ngIf="error.line">Line {{ error.line }}</strong>
-          <strong *ngIf="!error.line">Compiler</strong>
-          <span *ngIf="error.column">Column {{ error.column }}</span>
-        </div>
-
-        <pre>{{ error.message }}</pre>
-      </article>
-    </section>
-
-    <div
-      class="result-summary premium-result-summary"
-      [class.result-success]="result.status === 'PASS'"
-      [class.result-danger]="result.status !== 'PASS'"
-    >
-      <div class="result-glow"></div>
-
-      <div class="result-status-block">
-        <div class="result-icon">
-          <i
-            class="bi"
-            [ngClass]="result.status === 'PASS' ? 'bi-check2-circle' : 'bi-x-circle'"
-          ></i>
-        </div>
-
-        <div>
-          <span class="result-kicker">
-            {{ result.status === 'PASS' ? 'Evaluation Complete' : 'Needs Attention' }}
-          </span>
-
-          <h2>{{ result.status === 'PASS' ? 'Challenge Passed' : 'Challenge Failed' }}</h2>
-
-          <p>
-            {{
-              result.status === 'PASS'
-                ? 'Excellent. Your solution met the required pass percentage.'
-                : 'Review compiler output and failed test feedback, then run again.'
-            }}
-          </p>
-        </div>
-      </div>
-
-      <div class="result-score-panel">
-        <div class="premium-score-ring" [style.--score]="result.percentage || 0">
-          <div>
-            <strong>{{ result.percentage || 0 }}%</strong>
-            <span>Score</span>
-          </div>
-        </div>
-
-        <div class="result-score-meta">
-          <div>
-            <span>Language</span>
-            <strong>{{ result.language || language }}</strong>
-          </div>
-
-          <div>
-            <span>Status</span>
-            <strong>{{ result.status }}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <pre class="error-box" *ngIf="result.compileError">{{ result.compileError }}</pre>
-
-    <div class="submission-results-wrapper" *ngIf="result.testResults?.length">
-      <section class="visible-tests-section">
-        <div class="results-section-header">
-          <div>
-            <span class="section-kicker">Visible Feedback</span>
-            <h3>Sample Test Cases</h3>
-          </div>
-
-          <div class="section-badge">{{ result.testResults.slice(0, 3).length }} Visible</div>
-        </div>
-
-        <div class="visible-tests-grid">
-          <article
-            class="sample-test-card"
-            *ngFor="let test of result.testResults.slice(0, 3); let i = index"
-            [class.sample-pass]="test.status === 'PASS'"
-            [class.sample-fail]="test.status !== 'PASS'"
-          >
-            <div class="sample-card-top">
-              <div class="sample-test-info">
-                <div
-                  class="sample-test-icon"
-                  [class.icon-pass]="test.status === 'PASS'"
-                  [class.icon-fail]="test.status !== 'PASS'"
-                >
-                  <i
-                    class="bi"
-                    [ngClass]="test.status === 'PASS' ? 'bi-check2-circle' : 'bi-x-circle'"
-                  ></i>
-                </div>
-
-                <div>
-                  <span>Sample Test</span>
-                  <h4>Case {{ i + 1 }}</h4>
-                </div>
-              </div>
-
-              <div
-                class="sample-status-pill"
-                [class.pill-pass]="test.status === 'PASS'"
-                [class.pill-fail]="test.status !== 'PASS'"
-              >
-                {{ test.status }}
-              </div>
-            </div>
-
-            <div class="sample-score-strip">
-              <div>
-                <span>Score</span>
-                <strong>{{ getTestPercentage(test) }}%</strong>
-              </div>
-
-              <div>
-                <span>Result</span>
-                <strong>{{ test.status === 'PASS' ? 'Correct Output' : 'Wrong Output' }}</strong>
-              </div>
-            </div>
-
-            <div class="sample-detail-group">
-              <div class="sample-detail-card">
-                <label>Input</label>
-                <pre>{{ test.inputData || 'No input' }}</pre>
-              </div>
-
-              <div class="sample-detail-card">
-                <label>Expected Output</label>
-                <pre>{{ test.expectedOutput || 'No expected output' }}</pre>
-              </div>
-
-              <div class="sample-detail-card">
-                <label>Your Output</label>
-                <pre>{{ test.actualOutput || 'No output generated' }}</pre>
-              </div>
-            </div>
-
-            <div class="sample-error-box" *ngIf="test.errorMessage || test.compileError">
-              <div class="sample-error-head">
-                <i class="bi bi-bug"></i>
-                <span>Runtime / Compilation Error</span>
-              </div>
-
-              <pre>{{ test.errorMessage || test.compileError }}</pre>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="hidden-tests-section" *ngIf="result.testResults.length > 3">
-        <div class="results-section-header">
-          <div>
-            <span class="section-kicker">Private Evaluation</span>
-            <h3>Hidden Test Cases</h3>
-          </div>
-
-          <div class="section-badge hidden-badge">{{ result.testResults.length - 3 }} Hidden</div>
-        </div>
-
-        <div class="hidden-tests-list">
-          <article
-            class="hidden-test-card"
-            *ngFor="let test of result.testResults.slice(3); let i = index"
-            [class.hidden-pass-card]="test.status === 'PASS'"
-            [class.hidden-fail-card]="test.status !== 'PASS'"
-          >
-            <div class="hidden-card-left">
-              <div
-                class="hidden-card-icon"
-                [class.hidden-icon-pass]="test.status === 'PASS'"
-                [class.hidden-icon-fail]="test.status !== 'PASS'"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="test.status === 'PASS' ? 'bi-shield-check' : 'bi-shield-x'"
-                ></i>
-              </div>
-
-              <div class="hidden-card-content">
-                <span>Secure Validation</span>
-                <h4>Hidden Test Case {{ i + 4 }}</h4>
-
-                <p>
-                  {{
-                    test.status === 'PASS'
-                      ? 'Your solution passed this hidden edge-case validation.'
-                      : 'Your solution failed one hidden edge-case validation.'
-                  }}
-                </p>
-              </div>
-            </div>
-
-            <div
-              class="hidden-result-pill"
-              [class.hidden-pill-pass]="test.status === 'PASS'"
-              [class.hidden-pill-fail]="test.status !== 'PASS'"
-            >
-              <i class="bi" [ngClass]="test.status === 'PASS' ? 'bi-check-lg' : 'bi-x-lg'"></i>
-              <span>{{ test.status === 'PASS' ? 'Passed' : 'Failed' }}</span>
-            </div>
-          </article>
-        </div>
-      </section>
-    </div>
-  </section>
 </section>
 
+<!-- SUBMIT MODAL BACKDROP -->
 <div class="submit-modal-backdrop" *ngIf="showSubmitModal">
-  <div class="submit-modal">
-    <div class="submit-modal-icon">
-      <i class="bi bi-shield-check"></i>
+  <div class="submit-modal glass-card">
+    <div class="modal-header">
+      <div class="modal-icon-orbit">
+        <i class="bi bi-send-check-fill"></i>
+      </div>
+      <h2>Ready to Submit?</h2>
+      <p>Your solution will be compiled officially and your scores will be locked in.</p>
     </div>
 
-    <h2>Submit Challenge?</h2>
-
-    <p>
-      Are you sure you want to submit this challenge? You can still save drafts later, but this
-      attempt will be recorded officially.
-    </p>
-
-    <div class="submit-modal-info">
-      <div>
-        <span>Language</span>
+    <div class="modal-info-summary">
+      <div class="info-block">
+        <small>Target Language</small>
         <strong>{{ selectedLanguage.label }}</strong>
       </div>
-
-      <div>
-        <span>Lines</span>
-        <strong>{{ codeLineCount }}</strong>
+      <div class="info-block">
+        <small>Length of Code</small>
+        <strong>{{ codeLineCount }} Lines</strong>
       </div>
-
-      <div>
-        <span>Challenge</span>
+      <div class="info-block">
+        <small>Challenge Title</small>
         <strong>{{ selectedChallenge?.title }}</strong>
       </div>
     </div>
 
-    <div class="submit-modal-actions">
-      <button type="button" class="cancel-submit-btn" (click)="closeSubmitModal()">Cancel</button>
-
-      <button
-        type="button"
-        class="confirm-submit-btn"
-        [disabled]="submitting"
-        (click)="submitChallenge()"
-      >
-        <i class="bi bi-send-check"></i>
-        {{ submitting ? 'Submitting...' : 'Yes, Submit' }}
+    <div class="modal-actions">
+      <button type="button" class="btn-modal-cancel" (click)="closeSubmitModal()">Cancel</button>
+      <button type="button" class="btn-modal-confirm" [disabled]="submitting" (click)="submitChallenge()">
+        <i class="bi bi-check2-circle"></i>
+        <span>{{ submitting ? 'Submitting...' : 'Yes, Compile & Submit' }}</span>
       </button>
     </div>
   </div>
 </div>
+
+<!-- SUCCESS CONFETTI MODAL -->
 <div class="submit-success-backdrop" *ngIf="showSubmitSuccess">
   <div class="success-confetti">
-    <span *ngFor="let item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"></span>
+    <span *ngFor="let item of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
   </div>
 
-  <section class="submit-success-modal">
-    <div class="success-orbit">
-      <span></span>
-      <span></span>
-
-      <div class="success-check">
+  <div class="submit-success-modal glass-card">
+    <div class="success-orbit-wrapper">
+      <div class="success-check-circle">
         <i class="bi bi-check-lg"></i>
       </div>
+      <div class="orbit-glow-1"></div>
+      <div class="orbit-glow-2"></div>
     </div>
 
-    <span class="success-kicker">
-      <i class="bi bi-shield-check"></i>
-      Submission Recorded
+    <span class="success-mini-badge">
+      <i class="bi bi-shield-check"></i> Recorded
     </span>
 
-    <h2>Challenge Submitted Successfully</h2>
+    <h2>Submission Verified</h2>
+    <p>Excellent work. Your solution compiled clean and matches requirements. Returning to dashboard in <strong>{{ successRedirectSeconds }}s</strong>...</p>
 
-    <p>
-      Great work. Your solution has been evaluated and saved. Redirecting back to challenges in
-      {{ successRedirectSeconds }}s.
-    </p>
-
-    <div class="success-progress">
-      <i></i>
+    <div class="success-progress-bar">
+      <span class="success-progress-fill"></span>
     </div>
 
-    <button type="button" (click)="closeCompiler()">
-      <i class="bi bi-arrow-left"></i>
-      Back to Challenges
+    <button type="button" class="btn-success-back" (click)="closeCompiler()">
+      <i class="bi bi-arrow-left"></i> Back to Challenges
     </button>
-  </section>
+  </div>
 </div>

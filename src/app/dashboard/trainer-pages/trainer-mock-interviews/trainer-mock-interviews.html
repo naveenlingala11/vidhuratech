@@ -1,55 +1,89 @@
 <section class="mock-page">
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
+  <!-- Dynamic Alert Toast -->
+  <div class="toast-alert" *ngIf="toast">
+    <div class="toast-indicator"></div>
+    <div class="toast-content">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      <span>{{ toast }}</span>
+    </div>
+  </div>
 
-  <div class="mock-hero">
-    <div>
-      <span class="eyebrow">Trainer Interviews</span>
+  <!-- Frosted Glass Hero Banner -->
+  <header class="mock-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="hero-mesh"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-person-workspace me-1"></i> Interactive Dashboard
+      </span>
       <h1>Mock Interview Requests</h1>
       <p>
-        Review student requests, schedule meetings, add trainer comments, and close completed mock
-        interviews from one focused workspace.
+        Review candidate scheduling requests, dispatch meeting coordinates, record evaluations, and manage mock interview cycles.
       </p>
     </div>
 
-    <button type="button" class="refresh-btn" (click)="loadMockInterviews()">
-      <i class="bi bi-arrow-clockwise"></i>
-      Refresh
-    </button>
-  </div>
+    <div class="hero-actions">
+      <button type="button" class="refresh-btn action-btn" (click)="loadMockInterviews()" title="Reload Requests">
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>Refresh Feed</span>
+      </button>
+    </div>
+  </header>
 
-  <div class="stats-grid">
-    <button type="button" class="stat-card total" (click)="selectedFilter = 'ALL'">
-      <span>Total</span>
-      <strong>{{ mockRequests.length }}</strong>
-      <small>All requests</small>
-    </button>
-
-    <button type="button" class="stat-card requested" (click)="selectedFilter = 'REQUESTED'">
-      <span>Requested</span>
-      <strong>{{ requestedCount }}</strong>
-      <small>Waiting for schedule</small>
-    </button>
-
-    <button type="button" class="stat-card scheduled" (click)="selectedFilter = 'SCHEDULED'">
-      <span>Scheduled</span>
-      <strong>{{ scheduledCount }}</strong>
-      <small>Meetings planned</small>
+  <!-- Insights Telemetry Cards Deck -->
+  <section class="stats-grid">
+    <button type="button" class="stat-card total-card" [class.active]="selectedFilter === 'ALL'" (click)="selectedFilter = 'ALL'">
+      <div class="card-glow"></div>
+      <div class="card-icon"><i class="bi bi-grid-fill"></i></div>
+      <div class="card-details">
+        <span>Total Backlog</span>
+        <strong>{{ mockRequests.length }}</strong>
+        <small>All requests</small>
+      </div>
     </button>
 
-    <button type="button" class="stat-card completed" (click)="selectedFilter = 'COMPLETED'">
-      <span>Completed</span>
-      <strong>{{ completedCount }}</strong>
-      <small>Closed interviews</small>
+    <button type="button" class="stat-card requested-card" [class.active]="selectedFilter === 'REQUESTED'" (click)="selectedFilter = 'REQUESTED'">
+      <div class="card-glow"></div>
+      <div class="card-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="card-details">
+        <span>Requested</span>
+        <strong>{{ requestedCount }}</strong>
+        <small>Pending scheduling</small>
+      </div>
     </button>
-  </div>
 
-  <div class="toolbar-panel">
+    <button type="button" class="stat-card scheduled-card" [class.active]="selectedFilter === 'SCHEDULED'" (click)="selectedFilter = 'SCHEDULED'">
+      <div class="card-glow"></div>
+      <div class="card-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="card-details">
+        <span>Scheduled</span>
+        <strong>{{ scheduledCount }}</strong>
+        <small>Meetings locked</small>
+      </div>
+    </button>
+
+    <button type="button" class="stat-card completed-card" [class.active]="selectedFilter === 'COMPLETED'" (click)="selectedFilter = 'COMPLETED'">
+      <div class="card-glow"></div>
+      <div class="card-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="card-details">
+        <span>Completed</span>
+        <strong>{{ completedCount }}</strong>
+        <small>Evaluated & closed</small>
+      </div>
+    </button>
+  </section>
+
+  <!-- Filter & Search Toolbar (Floating Glass Panel) -->
+  <section class="toolbar-panel">
     <div class="search-box">
-      <i class="bi bi-search"></i>
+      <i class="bi bi-search search-icon"></i>
       <input
         type="text"
         [(ngModel)]="searchText"
-        placeholder="Search student, topic, batch, date, comments..."
+        placeholder="Search student, topic, cohort, remarks..."
+        class="search-input"
       />
     </div>
 
@@ -58,6 +92,7 @@
         type="button"
         [class.active]="selectedFilter === 'ALL'"
         (click)="selectedFilter = 'ALL'"
+        class="tab-btn"
       >
         All
       </button>
@@ -65,6 +100,7 @@
         type="button"
         [class.active]="selectedFilter === 'REQUESTED'"
         (click)="selectedFilter = 'REQUESTED'"
+        class="tab-btn"
       >
         Requested
       </button>
@@ -72,6 +108,7 @@
         type="button"
         [class.active]="selectedFilter === 'SCHEDULED'"
         (click)="selectedFilter = 'SCHEDULED'"
+        class="tab-btn"
       >
         Scheduled
       </button>
@@ -79,6 +116,7 @@
         type="button"
         [class.active]="selectedFilter === 'COMPLETED'"
         (click)="selectedFilter = 'COMPLETED'"
+        class="tab-btn"
       >
         Completed
       </button>
@@ -86,16 +124,23 @@
         type="button"
         [class.active]="selectedFilter === 'REJECTED'"
         (click)="selectedFilter = 'REJECTED'"
+        class="tab-btn"
       >
         Rejected
       </button>
     </div>
-  </div>
+  </section>
 
+  <!-- Shimmer Loader Grid -->
   <div class="loading-grid" *ngIf="loading">
-    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></div>
+    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]">
+      <div class="shimmer-pulse line-one"></div>
+      <div class="shimmer-pulse line-two"></div>
+      <div class="shimmer-pulse line-three"></div>
+    </div>
   </div>
 
+  <!-- Cards Grid View -->
   <div class="mock-grid" *ngIf="!loading && filteredRequests.length">
     <article
       class="mock-card"
@@ -105,95 +150,119 @@
       [class.completed]="item.status === 'COMPLETED'"
       [class.rejected]="item.status === 'REJECTED'"
     >
+      <div class="card-accent-bar"></div>
+      
       <div class="card-top">
-        <div class="student-avatar">
-          <i class="bi bi-person-video3"></i>
+        <div class="student-profile">
+          <div class="student-avatar">
+            <i class="bi bi-person-video3"></i>
+          </div>
+          <div class="student-meta-head">
+            <h2>{{ item.student || 'Student' }}</h2>
+            <span class="badge-status" [class]="'badge-' + (item.status || 'REQUESTED').toLowerCase()">
+              {{ statusLabel(item.status) }}
+            </span>
+          </div>
         </div>
+      </div>
 
-        <span class="status-pill" [class]="item.status">
-          {{ statusLabel(item.status) }}
+      <div class="mock-details">
+        <span class="topic-label">Target Evaluation Topic</span>
+        <p class="topic-text">{{ item.topic || 'General Assessment Topic' }}</p>
+      </div>
+
+      <div class="mock-meta-row">
+        <span class="meta-badge cohort-badge">
+          <i class="bi bi-collection-fill"></i>
+          <span>{{ item.batch || 'General Batch' }}</span>
+        </span>
+        <span class="meta-badge date-badge">
+          <i class="bi bi-calendar-event-fill"></i>
+          <span>{{ item.preferredDate || 'Date TBD' }}</span>
+        </span>
+        <span class="meta-badge time-badge">
+          <i class="bi bi-clock-fill"></i>
+          <span>{{ item.preferredTime || 'Time TBD' }}</span>
         </span>
       </div>
 
-      <div class="mock-title">
-        <h2>{{ item.student || 'Student' }}</h2>
-        <p>{{ item.topic || 'Mock interview topic not added' }}</p>
+      <div class="form-inputs-group">
+        <label class="form-group">
+          <span class="input-label">Meeting Coordination Link</span>
+          <div class="input-icon-wrapper">
+            <i class="bi bi-laptop input-icon"></i>
+            <input
+              type="text"
+              [(ngModel)]="item.meetingLink"
+              placeholder="Paste Google Meet or Zoom URL..."
+              class="modern-input"
+            />
+          </div>
+        </label>
+
+        <label class="form-group">
+          <span class="input-label">Trainer Remarks & Feedback</span>
+          <div class="input-icon-wrapper">
+            <i class="bi bi-chat-right-text input-icon textarea-icon"></i>
+            <textarea
+              [(ngModel)]="item.trainerRemarks"
+              placeholder="Provide constructive feedback, next steps, or cancellation reason..."
+              class="modern-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </label>
       </div>
 
-      <div class="mock-meta">
-        <span>
-          <i class="bi bi-collection"></i>
-          {{ item.batch || 'Batch not set' }}
-        </span>
-        <span>
-          <i class="bi bi-calendar3"></i>
-          {{ item.preferredDate || 'Date not set' }}
-        </span>
-        <span>
-          <i class="bi bi-clock"></i>
-          {{ item.preferredTime || 'Time not set' }}
-        </span>
+      <div class="meeting-action-row" *ngIf="item.meetingLink">
+        <a class="meeting-launch-link" [href]="item.meetingLink" target="_blank">
+          <i class="bi bi-box-arrow-up-right me-1"></i>
+          <span>Launch Session Room</span>
+        </a>
       </div>
-
-      <label>
-        <span>Meeting Link</span>
-        <input
-          type="text"
-          [(ngModel)]="item.meetingLink"
-          placeholder="Paste Google Meet / Zoom link"
-        />
-      </label>
-
-      <label>
-        <span>Trainer Comments</span>
-        <textarea
-          [(ngModel)]="item.trainerRemarks"
-          placeholder="Add feedback, decision notes, next steps, or rejection reason"
-        ></textarea>
-      </label>
-
-      <a *ngIf="item.meetingLink" class="meeting-link" [href]="item.meetingLink" target="_blank">
-        <i class="bi bi-box-arrow-up-right"></i>
-        Open Meeting
-      </a>
 
       <div class="card-actions">
         <button
           type="button"
+          class="btn-schedule"
           [disabled]="savingId === item.id"
           (click)="updateMock(item, 'SCHEDULED')"
         >
-          <i class="bi bi-calendar-check"></i>
-          Schedule
+          <i class="bi bi-calendar2-check-fill"></i>
+          <span>Schedule</span>
         </button>
 
         <button
           type="button"
-          class="success"
+          class="btn-complete"
           [disabled]="savingId === item.id"
           (click)="updateMock(item, 'COMPLETED')"
         >
-          <i class="bi bi-check2-circle"></i>
-          Complete
+          <i class="bi bi-patch-check-fill"></i>
+          <span>Complete</span>
         </button>
 
         <button
           type="button"
-          class="danger"
+          class="btn-reject"
           [disabled]="savingId === item.id"
           (click)="updateMock(item, 'REJECTED')"
         >
-          <i class="bi bi-x-circle"></i>
-          Reject
+          <i class="bi bi-x-octagon-fill"></i>
+          <span>Reject</span>
         </button>
       </div>
     </article>
   </div>
 
+  <!-- Empty Search/Backlog State -->
   <div class="empty-state" *ngIf="!loading && !filteredRequests.length">
-    <i class="bi bi-camera-video"></i>
-    <h3>No mock interviews found</h3>
-    <p>Try another status filter or search term.</p>
-    <button type="button" (click)="selectedFilter = 'ALL'; searchText = ''">Clear Filters</button>
+    <i class="bi bi-calendar-x-fill empty-icon"></i>
+    <h3>No Mock Interviews Found</h3>
+    <p>We couldn't find any student requests matching your search query or status criteria.</p>
+    <button type="button" class="primary-btn reset-btn" (click)="selectedFilter = 'ALL'; searchText = ''">
+      <i class="bi bi-slash-circle-fill"></i>
+      <span>Clear Search Filters</span>
+    </button>
   </div>
 </section>

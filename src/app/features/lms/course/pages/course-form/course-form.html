@@ -1,315 +1,425 @@
 <section class="course-form-page">
+  <!-- Frosted Glass Form Hero -->
   <header class="form-hero">
     <div class="hero-orb"></div>
+    <div class="hero-mesh"></div>
 
-    <div>
-      <span class="eyebrow">Course Builder Studio</span>
-      <h1>{{ isEditMode ? 'Edit Course' : 'Create Course' }}</h1>
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-rocket-takeoff-fill me-1"></i> Course Builder Studio
+      </span>
+      <h1>{{ isEditMode ? 'Edit Course Track' : 'Create Course Track' }}</h1>
       <p>
-        Build courses for homepage, checkout, monthly batches, pricing, media, and hero campaigns.
+        Define curriculum metadata, configure monthly batch automations, assign default trainers, set pricing tiers, and customize the checkout page.
       </p>
     </div>
 
     <div class="hero-actions">
-      <button type="button" class="ghost" routerLink="/dashboard/lms/courses">Back</button>
-      <button type="button" class="primary" [disabled]="saving || loading" (click)="submit()">
-        {{ saving ? 'Saving...' : isEditMode ? 'Update Course' : 'Create Course' }}
+      <button type="button" class="ghost-btn" routerLink="/dashboard/lms/courses">
+        <i class="bi bi-arrow-left"></i> <span>Back</span>
+      </button>
+      <button type="button" class="primary-btn" [disabled]="saving || loading" (click)="submit()">
+        <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-check-circle-fill'"></i>
+        <span>{{ saving ? 'Saving Changes...' : isEditMode ? 'Update Program' : 'Create Program' }}</span>
       </button>
     </div>
   </header>
 
   <div class="loading-card" *ngIf="loading">
-    <div class="spinner"></div>
-    <strong>Loading course...</strong>
+    <div class="loader-spinner"></div>
+    <strong>Loading course details...</strong>
+    <p>Please wait while we fetch the course track data.</p>
   </div>
 
   <form class="form-layout" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
+    <!-- Main Form Scroll Area -->
     <section class="form-main">
-      <div class="quick-actions">
-        <button type="button" (click)="generateCourseCode()">Generate Code</button>
-        <button type="button" (click)="useHomeHeroPreset()">Home Hero Preset</button>
-        <button type="button" (click)="setPricePreset(2999, 4999, 'Launch offer')">
-          Launch Price
-        </button>
-        <button type="button" (click)="setDurationPreset(45)">45 Hours</button>
-        <button type="button" (click)="syncEndDateFromStart()">Auto End Date</button>
+      <!-- Quick Presets Toolbar -->
+      <div class="quick-presets-deck">
+        <div class="deck-title"><i class="bi bi-lightning-charge-fill me-1"></i> Quick Presets</div>
+        <div class="preset-buttons">
+          <button type="button" class="preset-btn" (click)="generateCourseCode()">
+            <i class="bi bi-code-slash"></i> Generate Code
+          </button>
+          <button type="button" class="preset-btn" (click)="useHomeHeroPreset()">
+            <i class="bi bi-star-fill"></i> Home Hero Preset
+          </button>
+          <button type="button" class="preset-btn" (click)="setPricePreset(2999, 4999, 'Launch offer')">
+            <i class="bi bi-tag-fill"></i> Launch Price Preset
+          </button>
+          <button type="button" class="preset-btn" (click)="setDurationPreset(45)">
+            <i class="bi bi-clock-fill"></i> Set 45 Hours
+          </button>
+          <button type="button" class="preset-btn" (click)="syncEndDateFromStart()">
+            <i class="bi bi-calendar-range-fill"></i> Auto End Date
+          </button>
+        </div>
       </div>
 
+      <!-- Panel 01: Basic Details -->
       <div class="panel premium-panel">
         <div class="panel-head">
-          <div>
-            <span>01</span>
-            <h2>Basic Details</h2>
+          <div class="panel-badge-group">
+            <span class="panel-number">01</span>
+            <h2>Basic Course Details</h2>
           </div>
         </div>
 
         <div class="field-grid">
-          <label>
-            <span>Course Title</span>
-            <input formControlName="title" placeholder="Java Full Stack Development" />
-            <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
-              Title is required
-            </small>
-          </label>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Course Title</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-type input-icon"></i>
+                <input formControlName="title" placeholder="Java Full Stack Development" class="modern-input" />
+              </div>
+              <small class="validation-error" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+                <i class="bi bi-exclamation-triangle-fill"></i> Title is required
+              </small>
+            </label>
+          </div>
 
-          <label>
-            <span>Course Code</span>
-            <div class="input-action">
-              <input formControlName="code" placeholder="JAVA_FS" />
-              <button type="button" (click)="generateCourseCode()">Auto</button>
-            </div>
-            <small *ngIf="form.get('code')?.touched && form.get('code')?.invalid">
-              Code is required
-            </small>
-          </label>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Course Code</span>
+              <div class="input-icon-wrapper input-action-wrapper">
+                <i class="bi bi-code-square input-icon"></i>
+                <input formControlName="code" placeholder="JAVA_FS" class="modern-input" />
+                <button type="button" class="input-inline-btn" (click)="generateCourseCode()">Auto</button>
+              </div>
+              <small class="validation-error" *ngIf="form.get('code')?.touched && form.get('code')?.invalid">
+                <i class="bi bi-exclamation-triangle-fill"></i> Code is required
+              </small>
+            </label>
+          </div>
 
-          <label>
-            <span>Level</span>
-            <select formControlName="level">
-              <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
-            </select>
-          </label>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Difficulty Level</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-bar-chart-steps input-icon"></i>
+                <select formControlName="level" class="modern-select">
+                  <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+                </select>
+              </div>
+            </label>
+          </div>
 
-          <label>
-            <span>Duration Hours</span>
-            <input type="number" min="1" formControlName="durationHours" />
-          </label>
-        </div>
-
-        <div class="preset-row">
-          <button type="button" (click)="setDurationPreset(30)">30 hrs</button>
-          <button type="button" (click)="setDurationPreset(45)">45 hrs</button>
-          <button type="button" (click)="setDurationPreset(60)">60 hrs</button>
-          <button type="button" (click)="setDurationPreset(90)">90 hrs</button>
-        </div>
-
-        <label class="full-field">
-          <span>Description</span>
-          <textarea
-            rows="5"
-            formControlName="description"
-            placeholder="Explain what students will learn, what projects they build, and career outcomes..."
-          ></textarea>
-        </label>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <div>
-            <span>02</span>
-            <h2>Media & Pricing</h2>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Duration Hours</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-hourglass-split input-icon"></i>
+                <input type="number" min="1" formControlName="durationHours" class="modern-input" />
+              </div>
+            </label>
           </div>
         </div>
 
+        <!-- Duration preset chips -->
+        <div class="preset-chips-row">
+          <span>Quick Hours:</span>
+          <button type="button" class="chip-btn" (click)="setDurationPreset(30)">30 hrs</button>
+          <button type="button" class="chip-btn" (click)="setDurationPreset(45)">45 hrs</button>
+          <button type="button" class="chip-btn" (click)="setDurationPreset(60)">60 hrs</button>
+          <button type="button" class="chip-btn" (click)="setDurationPreset(90)">90 hrs</button>
+        </div>
+
+        <div class="form-group full-width">
+          <label>
+            <span class="input-label">Course Description</span>
+            <div class="input-icon-wrapper textarea-wrapper">
+              <i class="bi bi-card-text input-icon"></i>
+              <textarea
+                rows="5"
+                formControlName="description"
+                placeholder="Explain the technologies covered, hands-on projects, candidate prerequisites, and final career outcomes..."
+                class="modern-input textarea-field"
+              ></textarea>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Panel 02: Media & Pricing -->
+      <div class="panel premium-panel">
+        <div class="panel-head">
+          <div class="panel-badge-group">
+            <span class="panel-number">02</span>
+            <h2>Media & Pricing Details</h2>
+          </div>
+        </div>
+
+        <!-- Thumbnail Image Uploader -->
         <div class="thumbnail-uploader">
           <div class="upload-preview">
-            <img *ngIf="previewImage" [src]="previewImage" alt="Course thumbnail" />
-
+            <img *ngIf="previewImage" [src]="previewImage" alt="Course thumbnail preview" />
             <div *ngIf="!previewImage" class="empty-preview">
-              <span>Course Image</span>
-              <small>JPG, PNG, WEBP up to 4MB</small>
+              <i class="bi bi-image"></i>
+              <span>Image Preview</span>
+              <small>No image uploaded yet</small>
             </div>
           </div>
 
           <div class="upload-controls">
-            <label class="file-drop">
+            <label class="file-drop-zone">
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 (change)="onThumbnailSelected($event)"
               />
+              <i class="bi bi-cloud-arrow-up-fill upload-cloud-icon"></i>
               <strong>
                 {{ selectedThumbnailFile ? selectedThumbnailFile.name : 'Upload thumbnail image' }}
               </strong>
-              <small>This image appears on home, course cards, and checkout preview.</small>
+              <small>Drag or click to upload JPG, PNG, WEBP (Max 4MB)</small>
             </label>
 
             <button
               type="button"
-              class="ghost"
-              *ngIf="selectedThumbnailFile"
+              class="remove-media-btn"
+              *ngIf="selectedThumbnailFile || existingThumbnailUrl"
               (click)="clearSelectedThumbnail()"
             >
-              Remove Selected Image
+              <i class="bi bi-trash3-fill"></i> Clear image
             </button>
           </div>
         </div>
 
         <div class="field-grid pricing-grid">
-          <label>
-            <span>Price</span>
-            <input type="number" min="0" formControlName="price" />
-          </label>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Course Price (INR)</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-currency-rupee input-icon"></i>
+                <input type="number" min="0" formControlName="price" class="modern-input" />
+              </div>
+            </label>
+          </div>
 
-          <label>
-            <span>Start Date</span>
-            <input type="date" formControlName="startDate" />
-          </label>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Start Date</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-calendar-event input-icon"></i>
+                <input type="date" formControlName="startDate" class="modern-input" />
+              </div>
+            </label>
+          </div>
 
-          <label>
-            <span>End Date</span>
-            <input type="date" formControlName="endDate" />
-          </label>
+          <div class="form-group">
+            <label>
+              <span class="input-label">End Date</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-calendar-check input-icon"></i>
+                <input type="date" formControlName="endDate" class="modern-input" />
+              </div>
+            </label>
+          </div>
         </div>
 
-        <div class="preset-row">
-          <button type="button" (click)="setPricePreset(999, 1999, 'Starter offer')">₹999</button>
-          <button type="button" (click)="setPricePreset(2999, 4999, 'Launch offer')">₹2,999</button>
-          <button type="button" (click)="setPricePreset(4999, 7999, 'Premium track')">
-            ₹4,999
-          </button>
+        <!-- Pricing preset chips -->
+        <div class="preset-chips-row">
+          <span>Pricing Presets:</span>
+          <button type="button" class="chip-btn" (click)="setPricePreset(999, 1999, 'Starter offer')">₹999</button>
+          <button type="button" class="chip-btn" (click)="setPricePreset(2999, 4999, 'Launch offer')">₹2,999</button>
+          <button type="button" class="chip-btn" (click)="setPricePreset(4999, 7999, 'Premium track')">₹4,999</button>
         </div>
       </div>
 
-      <div class="panel">
+      <!-- Panel 03: Public Display & Automation -->
+      <div class="panel premium-panel">
         <div class="panel-head">
-          <div>
-            <span>03</span>
-            <h2>Public Display & Automation</h2>
+          <div class="panel-badge-group">
+            <span class="panel-number">03</span>
+            <h2>Display & Batch Automation</h2>
           </div>
         </div>
 
-        <div class="switch-card active-card">
-          <div>
-            <strong>Feature this course on Home Hero</strong>
-            <p>Enable this to show the course in the homepage hero switcher.</p>
+        <!-- Toggle Row Card: Feature on Home -->
+        <div class="switch-card" [class.active-card]="form.get('featuredOnHome')?.value">
+          <div class="switch-copy">
+            <strong>Feature course on Home Hero carousel</strong>
+            <p>Showcase this course template in the primary homepage slider widget.</p>
           </div>
-
-          <label class="switch">
+          <label class="switch-toggle-btn">
             <input type="checkbox" formControlName="featuredOnHome" />
-            <i></i>
+            <span class="switch-slider"></span>
           </label>
         </div>
 
         <div class="field-grid">
-          <label>
-            <span>Default Trainer</span>
-            <select formControlName="defaultTrainerId">
-              <option [ngValue]="null">Select default trainer</option>
-              <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">
-                {{ trainer.name || trainer.fullName || trainer.email }}
-              </option>
-            </select>
-            <em>This trainer will be assigned automatically to monthly batches.</em>
-          </label>
-
-          <label>
-            <span>Featured Rank</span>
-            <input type="number" min="1" formControlName="featuredRank" />
-            <em>Rank 1 appears first on home.</em>
-          </label>
-
-          <label>
-            <span>Monthly Batch Duration</span>
-            <input type="number" min="1" formControlName="monthlyBatchDurationMonths" />
-            <em>Example: 3 means each batch runs for 3 months.</em>
-          </label>
-        </div>
-
-        <div class="switch-card">
-          <div>
-            <strong>Auto-create fresh batch every month</strong>
-            <p>Useful for recurring live batches without manual setup.</p>
+          <div class="form-group">
+            <label>
+              <span class="input-label">Default Assigned Trainer</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-person-badge-fill input-icon"></i>
+                <select formControlName="defaultTrainerId" class="modern-select">
+                  <option [ngValue]="null">Select default trainer</option>
+                  <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">
+                    {{ trainer.name || trainer.fullName || trainer.email }}
+                  </option>
+                </select>
+              </div>
+              <em class="helper-text-block">Trainer is assigned automatically to auto-created monthly batches.</em>
+            </label>
           </div>
 
-          <label class="switch">
+          <div class="form-group">
+            <label>
+              <span class="input-label">Home Hero Feature Rank</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-sort-numeric-down input-icon"></i>
+                <input type="number" min="1" formControlName="featuredRank" class="modern-input" />
+              </div>
+              <em class="helper-text-block">Rank 1 represents the first featured slide.</em>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <span class="input-label">Monthly Batch Duration (Months)</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-calendar3-range input-icon"></i>
+                <input type="number" min="1" formControlName="monthlyBatchDurationMonths" class="modern-input" />
+              </div>
+              <em class="helper-text-block">Duration of automatically scheduled cohorts.</em>
+            </label>
+          </div>
+        </div>
+
+        <!-- Toggle Row Card: Monthly automation -->
+        <div class="switch-card" [class.active-card]="form.get('autoMonthlyBatchEnabled')?.value">
+          <div class="switch-copy">
+            <strong>Auto-create fresh batch every month</strong>
+            <p>Automate live learning schedules without manual admin intervention.</p>
+          </div>
+          <label class="switch-toggle-btn">
             <input type="checkbox" formControlName="autoMonthlyBatchEnabled" />
-            <i></i>
+            <span class="switch-slider"></span>
           </label>
         </div>
       </div>
 
-      <div class="panel">
+      <!-- Panel 04: Metadata JSON -->
+      <div class="panel premium-panel">
         <div class="panel-head">
-          <div>
-            <span>04</span>
-            <h2>Metadata JSON</h2>
+          <div class="panel-badge-group">
+            <span class="panel-number">04</span>
+            <h2>Curriculum Metadata JSON</h2>
           </div>
-
-          <div class="panel-actions">
-            <button type="button" class="ghost small" (click)="applyMetadataTemplate()">
-              Template
+          <div class="panel-heading-actions">
+            <button type="button" class="action-preset-btn" (click)="applyMetadataTemplate()">
+              <i class="bi bi-file-earmark-code"></i> Apply Template
             </button>
-            <button type="button" class="ghost small" (click)="formatMetadata()">Format</button>
+            <button type="button" class="action-preset-btn" (click)="formatMetadata()">
+              <i class="bi bi-braces-asterisk"></i> Format Code
+            </button>
           </div>
         </div>
 
-        <label class="full-field">
-          <span>Metadata</span>
-          <textarea
-            rows="9"
-            formControlName="metadataJson"
-            placeholder='{"highlights":[],"outcomes":[],"oldPrice":4999,"discountLabel":"Offer"}'
-          ></textarea>
-          <small class="danger-text" *ngIf="metadataError">{{ metadataError }}</small>
-        </label>
+        <div class="form-group full-width">
+          <label>
+            <span class="input-label">Metadata Configuration</span>
+            <div class="input-icon-wrapper json-textarea-wrapper">
+              <i class="bi bi-filetype-json input-icon"></i>
+              <textarea
+                rows="8"
+                formControlName="metadataJson"
+                placeholder='{"highlights":[],"outcomes":[],"oldPrice":4999,"discountLabel":"Offer"}'
+                class="modern-input textarea-field json-code"
+              ></textarea>
+            </div>
+            <small class="validation-error-text" *ngIf="metadataError">
+              <i class="bi bi-exclamation-octagon-fill"></i> {{ metadataError }}
+            </small>
+          </label>
+        </div>
       </div>
     </section>
 
+    <!-- Side Preview Panel -->
     <aside class="preview-panel">
-      <div class="preview-card">
-        <div
-          class="preview-thumb"
-          [style.backgroundImage]="previewImage ? 'url(' + previewImage + ')' : ''"
-        >
-          <span>{{ form.value.level }}</span>
-          <b *ngIf="form.value.featuredOnHome">Home #{{ form.value.featuredRank }}</b>
+      <div class="sticky-preview-card">
+        <!-- Main course preview grid card -->
+        <div class="checkout-card-preview">
+          <div
+            class="checkout-image-banner"
+            [style.backgroundImage]="previewImage ? 'url(' + previewImage + ')' : ''"
+          >
+            <div class="banner-shade"></div>
+            <span class="badge-difficulty">{{ form.value.level || 'Difficulty' }}</span>
+            <b class="badge-featured" *ngIf="form.value.featuredOnHome">Featured Hero #{{ form.value.featuredRank }}</b>
+          </div>
+
+          <div class="checkout-body">
+            <small class="checkout-code-tag"><i class="bi bi-tag-fill me-1"></i>{{ form.value.code || 'COURSE_CODE' }}</small>
+            <h2 class="checkout-title">{{ previewTitle }}</h2>
+            <p class="checkout-desc">{{ previewDescription }}</p>
+
+            <div class="checkout-price-block">
+              <strong class="price-net">Rs. {{ formatPrice(previewPrice) }}</strong>
+              <del class="price-gross" *ngIf="previewOldPrice">Rs. {{ formatPrice(previewOldPrice) }}</del>
+              <span class="discount-badge" *ngIf="previewDiscountLabel">{{ previewDiscountLabel }}</span>
+            </div>
+
+            <!-- Highlights list -->
+            <div class="checkout-highlights" *ngIf="previewHighlights.length">
+              <div class="highlight-node" *ngFor="let item of previewHighlights.slice(0, 4)">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span>{{ item }}</span>
+              </div>
+            </div>
+
+            <!-- Metadata parameters grid -->
+            <div class="checkout-specs-grid">
+              <div class="spec-node">
+                <span>Duration</span>
+                <b>{{ form.value.durationHours || 1 }} hrs</b>
+              </div>
+              <div class="spec-node">
+                <span>Homepage</span>
+                <b>{{ form.value.featuredOnHome ? 'Featured' : 'Normal' }}</b>
+              </div>
+              <div class="spec-node">
+                <span>Batch Mode</span>
+                <b>{{ form.value.autoMonthlyBatchEnabled ? 'Monthly Auto' : 'Manual' }}</b>
+              </div>
+              <div class="spec-node">
+                <span>Monthly Run</span>
+                <b>{{ form.value.monthlyBatchDurationMonths || 3 }} months</b>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="preview-body">
-          <small>{{ form.value.code || 'COURSE_CODE' }}</small>
-          <h2>{{ previewTitle }}</h2>
-          <p>{{ previewDescription }}</p>
-
-          <div class="preview-price">
-            <strong>Rs. {{ formatPrice(previewPrice) }}</strong>
-            <del *ngIf="previewOldPrice">Rs. {{ formatPrice(previewOldPrice) }}</del>
-            <span *ngIf="previewDiscountLabel">{{ previewDiscountLabel }}</span>
-          </div>
-
-          <div class="preview-chips" *ngIf="previewHighlights.length">
-            <i *ngFor="let item of previewHighlights.slice(0, 4)">{{ item }}</i>
-          </div>
-
-          <div class="preview-grid">
-            <div>
-              <span>Duration</span>
-              <b>{{ form.value.durationHours || 1 }} hrs</b>
-            </div>
-            <div>
-              <span>Home</span>
-              <b>{{ form.value.featuredOnHome ? 'Featured' : 'Normal' }}</b>
-            </div>
-            <div>
-              <span>Batches</span>
-              <b>{{ form.value.autoMonthlyBatchEnabled ? 'Monthly Auto' : 'Manual' }}</b>
-            </div>
-            <div>
-              <span>Batch Duration</span>
-              <b>{{ form.value.monthlyBatchDurationMonths || 3 }} months</b>
-            </div>
+        <!-- Outcome preview block -->
+        <div class="outcome-list-card" *ngIf="previewOutcomes.length">
+          <h3>What students will achieve:</h3>
+          <div class="outcome-node" *ngFor="let item of previewOutcomes.slice(0, 4)">
+            <i class="bi bi-arrow-right-short text-primary"></i>
+            <span>{{ item }}</span>
           </div>
         </div>
-      </div>
 
-      <div class="metadata-preview" *ngIf="previewOutcomes.length">
-        <h3>Outcome Preview</h3>
-        <p *ngFor="let item of previewOutcomes.slice(0, 4)">{{ item }}</p>
-      </div>
+        <!-- Ready to save card block -->
+        <div class="ready-save-card">
+          <h3>Ready to publish?</h3>
+          <p>Please double-check code formatting, pricing structures, and duration hours before building.</p>
 
-      <div class="save-box">
-        <h3>Ready to save?</h3>
-        <p>After saving, publish the course and enable Home Hero to show it on homepage.</p>
-
-        <button type="submit" class="primary wide" [disabled]="saving || uploadingThumbnail">
-          {{
-            saving || uploadingThumbnail
-              ? 'Saving...'
-              : isEditMode
-                ? 'Update Course'
-                : 'Create Course'
-          }}
-        </button>
+          <button type="submit" class="submit-action-btn" [disabled]="saving || uploadingThumbnail">
+            <i class="bi" [ngClass]="saving || uploadingThumbnail ? 'bi-arrow-repeat spin-icon' : 'bi-save-fill'"></i>
+            <span>
+              {{
+                saving || uploadingThumbnail
+                  ? 'Saving changes...'
+                  : isEditMode
+                    ? 'Update Program'
+                    : 'Create Program'
+              }}
+            </span>
+          </button>
+        </div>
       </div>
     </aside>
   </form>

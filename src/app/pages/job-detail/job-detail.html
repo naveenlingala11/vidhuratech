@@ -1,78 +1,135 @@
-<div class="detail-page" *ngIf="job$ | async as job; else notFound">
-  <!-- BACK -->
-  <button class="back-btn" (click)="goBack()">← Back</button>
-  <div class="detail-card">
+<div class="detail-page-wrapper" *ngIf="job$ | async as job; else notFound">
+  <!-- Back Action -->
+  <button class="back-action-btn" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i> Back to Jobs
+  </button>
+  
+  <div class="premium-detail-card">
+    <div class="card-gradient-top"></div>
+    
     <!-- HEADER -->
-    <div class="detail-header">
-      <div>
-        <h1>{{ job.title }}</h1>
-        <!-- ✅ FIX -->
-        <p class="company-name">{{ job.companyName }}</p>
-        <span *ngIf="job.remote" class="remote-badge">🌍 Remote</span>
+    <header class="detail-header-card">
+      <div class="header-main-left">
+        <div class="company-logo-3d">
+          <img 
+            [src]="'https://www.google.com/s2/favicons?domain=' + job.companyName.toLowerCase().replace(' ', '') + '.com&sz=128'" 
+            alt="{{ job.companyName }} logo"
+          />
+        </div>
+        <div class="header-text-block">
+          <h1 class="job-title-main">{{ job.title }}</h1>
+          <div class="company-row">
+            <span class="company-name-bold">{{ job.companyName }}</span>
+            <span *ngIf="job.remote" class="remote-badge-glow"><i class="bi bi-globe"></i> Remote</span>
+          </div>
+        </div>
       </div>
-      <!-- 🔥 APPLY BUTTON -->
-      <button class="apply-btn-big" (click)="openApply(job.applyLink)">🚀 Apply Now</button>
-    </div>
-    <!-- META -->
-    <div class="meta-grid">
-      <div class="meta-item location">
-        <span class="label">📍 Location : </span>
-        <span class="value">{{ job.location }}</span>
+
+      <div class="header-main-right">
+        <!-- Apply Trigger -->
+        <button class="apply-action-btn-main" (click)="openApply(job.applyLink)">
+          Apply Now <i class="bi bi-lightning-charge"></i>
+        </button>
       </div>
-      <div class="meta-item exp">
-        <span class="label">💼 Experience : </span>
-        <span class="value">{{ job.experience || 'Not specified' }}</span>
+    </header>
+
+    <!-- METADATA INFORMATION GRID -->
+    <section class="detail-meta-grid">
+      <div class="meta-info-card m-blue">
+        <div class="meta-icon"><i class="bi bi-geo-alt"></i></div>
+        <div class="meta-content">
+          <span class="meta-label">Location</span>
+          <span class="meta-value">{{ job.location }}</span>
+        </div>
       </div>
-      <div class="meta-item type">
-        <span class="label">🕒 Type : </span>
-        <span class="value">{{ job.employmentType || 'Full-time' }}</span>
+
+      <div class="meta-info-card m-amber">
+        <div class="meta-icon"><i class="bi bi-briefcase"></i></div>
+        <div class="meta-content">
+          <span class="meta-label">Experience</span>
+          <span class="meta-value">{{ job.experience || 'Entry Level (0+ yrs)' }}</span>
+        </div>
       </div>
-      <div class="meta-item salary">
-        <span class="label">💰 Salary : </span>
-        <span class="value">{{ job.salary || 'Not Disclosed' }}</span>
+
+      <div class="meta-info-card m-pink">
+        <div class="meta-icon"><i class="bi bi-clock-history"></i></div>
+        <div class="meta-content">
+          <span class="meta-label">Job Nature</span>
+          <span class="meta-value">{{ job.employmentType || 'Full-time' }}</span>
+        </div>
       </div>
-      <div class="meta-item category">
-        <span class="label">📦 Category : </span>
-        <span class="value">{{ job.category || 'General' }}</span>
+
+      <div class="meta-info-card m-emerald">
+        <div class="meta-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="meta-content">
+          <span class="meta-label">Compensation</span>
+          <span class="meta-value">{{ job.salary || 'Not Disclosed' }}</span>
+        </div>
       </div>
-      <div class="meta-item posted">
-        <span class="label">📅 Posted : </span>
-        <span class="value">{{ getPostedAgo(job.postedAt || '') }}</span>
+
+      <div class="meta-info-card m-purple">
+        <div class="meta-icon"><i class="bi bi-tags"></i></div>
+        <div class="meta-content">
+          <span class="meta-label">Category</span>
+          <span class="meta-value">{{ job.category || 'Engineering' }}</span>
+        </div>
       </div>
-      <div class="meta-item source">
-        <span class="label">🔗 Source : </span>
-        <span class="value">{{ job.source || job.companyName }}</span>
+
+      <div class="meta-info-card m-orange">
+        <div class="meta-icon"><i class="bi bi-calendar-check"></i></div>
+        <div class="meta-content">
+          <span class="meta-label">Listing Date</span>
+          <span class="meta-value">{{ getPostedAgo(job.postedAt || '') }}</span>
+        </div>
       </div>
-    </div>
-    <!-- SKILLS -->
-    <div class="section">
-      <h3>🛠 Skills</h3>
-      <div class="skills-wrap">
-        <span *ngIf="!job?.skills || job.skills.length === 0"> No skills provided </span>
-        <span *ngIf="job.skills.length === 0"> No skills provided </span>
+    </section>
+
+    <!-- REQUIRED SKILLS (FIXED LOOP BUG) -->
+    <section class="detail-section">
+      <h3 class="section-title"><i class="bi bi-award"></i> Required Competencies</h3>
+      <div class="skills-marquee-wrap">
+        <!-- Loop over actual job skills (Fixed missing list renderer bug!) -->
+        <span class="premium-skill-tag" *ngFor="let s of job.skills">
+          {{ s }}
+        </span>
+        
+        <span class="no-skills-notice" *ngIf="!job.skills || job.skills.length === 0">
+          <i class="bi bi-info-circle"></i> General IT engineering background matching this position.
+        </span>
       </div>
-    </div>
-    <!-- DESCRIPTION -->
-    <div class="section">
-      <h3>📄 Job Description</h3>
-      <div class="jd-content">
-        {{ job.description || 'No detailed description available' }}
+    </section>
+
+    <!-- JOB DESCRIPTION -->
+    <section class="detail-section">
+      <h3 class="section-title"><i class="bi bi-file-earmark-text"></i> Role Overview & Responsibilities</h3>
+      <div class="description-content-box">
+        <p>{{ job.description || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features and maintain scalability.' }}</p>
       </div>
-    </div>
-    <!-- FOOTER -->
-    <div class="apply-footer">
-      <p>Apply before it closes 🚀</p>
-      <!-- 🔥 FIXED LINK -->
-      <button class="apply-btn-big" (click)="openApply(job.applyLink)">
-        Apply on {{ job.source || job.companyName }}
+    </section>
+
+    <!-- FOOTER APPLY BOX -->
+    <footer class="detail-footer-row">
+      <div class="footer-left-info">
+        <h5>Hiring Immediately</h5>
+        <p>Apply directly on corporate tracking systems before the listing closes.</p>
+      </div>
+      <button class="apply-action-btn-main footer-btn-wide" (click)="openApply(job.applyLink)">
+        Apply on {{ job.source || job.companyName }} <i class="bi bi-box-arrow-up-right"></i>
       </button>
-    </div>
+    </footer>
   </div>
 </div>
+
 <!-- NOT FOUND -->
 <ng-template #notFound>
-  <div class="loading-state">
-    <p>Job not found 😕</p>
-    <button (click)="goBack()">← Back</button>
+  <div class="detail-not-found-card">
+    <div class="not-found-icon-wrap">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <h3>Opportunity Not Found</h3>
+    <p>The job you are trying to view might have expired or been removed from the portal.</p>
+    <button class="back-action-btn mt-3" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i> Return to Listing
+    </button>
   </div>
 </ng-template>

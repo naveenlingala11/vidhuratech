@@ -1,780 +1,935 @@
 <div class="leads-page">
-  <section class="hero-panel">
-    <div class="hero-sun"></div>
-    <div class="hero-wave"></div>
-
-    <div class="hero-copy">
-      <span class="eyebrow">CRM Command Center</span>
-      <h1>Lead Intelligence Studio</h1>
-      <p>
-        Track every inquiry from website, WhatsApp, manual calls, free mock tests, and coding
-        challenges with a modern conversion workspace.
-      </p>
-
-      <div class="hero-pills">
-        <span>{{ premiumSummary }}</span>
-        <span>{{ pageStats.hot }} hot</span>
-        <span>{{ pageStats.todayFollowups }} follow-ups today</span>
+  
+  <!-- PAGE HEADER -->
+  <div class="leads-header-section">
+    <div class="leads-title-area">
+      <div class="leads-icon-badge">
+        <i class="bi bi-funnel-fill"></i>
       </div>
-    </div>
-
-    <div class="hero-actions">
-      <button
-        class="soft-btn light"
-        type="button"
-        (click)="refreshLeads()"
-        [disabled]="loading || binLoading"
-      >
-        Refresh
-      </button>
-
-      <button
-        class="primary-btn light-primary"
-        type="button"
-        (click)="exportCSV()"
-        [disabled]="!filteredLeads.length || activeView === 'bin'"
-      >
-        Export CSV
-      </button>
-    </div>
-  </section>
-
-  <div class="view-tabs">
-    <button type="button" [class.active]="activeView === 'active'" (click)="switchView('active')">
-      Active Leads <span>{{ totalElements }}</span>
-    </button>
-
-    <button type="button" [class.active]="activeView === 'bin'" (click)="switchView('bin')">
-      Bin <span>{{ binTotalElements }}</span>
-    </button>
-  </div>
-
-  <ng-container *ngIf="activeView === 'active'">
-    <section class="metrics-grid">
-      <article class="metric-card metric-total">
-        <span>Total Leads</span>
-        <strong>{{ stats.total }}</strong>
-        <small>All captured inquiries</small>
-      </article>
-
-      <article class="metric-card metric-hot">
-        <span>Hot Leads</span>
-        <strong>{{ pageStats.hot }}</strong>
-        <small>High intent on this page</small>
-      </article>
-
-      <article class="metric-card metric-new">
-        <span>New</span>
-        <strong>{{ stats.new }}</strong>
-        <small>Fresh opportunities</small>
-      </article>
-
-      <article class="metric-card metric-contacted">
-        <span>Contacted</span>
-        <strong>{{ stats.contacted }}</strong>
-        <small>Follow-up started</small>
-      </article>
-
-      <article class="metric-card metric-joined">
-        <span>Joined</span>
-        <strong>{{ stats.joined }}</strong>
-        <small>{{ stats.conversionRate }}% conversion</small>
-      </article>
-
-      <article class="metric-card metric-followup">
-        <span>Due Today</span>
-        <strong>{{ pageStats.todayFollowups }}</strong>
-        <small>{{ pageStats.overdueFollowups }} overdue</small>
-      </article>
-    </section>
-
-    <section class="source-radar" *ngIf="topSources.length">
-      <article *ngFor="let item of topSources">
-        <span>{{ item.source }}</span>
-        <strong>{{ item.count }}</strong>
-        <i><em [style.width.%]="totalElements ? (item.count / totalElements) * 100 : 0"></em></i>
-      </article>
-    </section>
-
-    <section class="add-lead-panel">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Quick Capture</span>
-          <h2>Add Lead</h2>
-          <p>Add calls, walk-ins, references, campaign contacts, and offline inquiries.</p>
-        </div>
-
-        <button
-          class="soft-btn"
-          type="button"
-          (click)="resetManualLeadForm()"
-          [disabled]="addLeadSaving"
-        >
-          Reset
-        </button>
-      </div>
-
-      <div class="add-lead-grid">
-        <div class="field">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="addLeadForm.name" placeholder="Lead name" />
-          <small class="field-error" *ngIf="formErrors.name">{{ formErrors.name }}</small>
-        </div>
-
-        <div class="field">
-          <label>Phone *</label>
-          <input
-            type="tel"
-            [(ngModel)]="addLeadForm.phone"
-            (blur)="onAddLeadPhoneBlur()"
-            placeholder="Phone number"
-          />
-          <small class="field-error" *ngIf="formErrors.phone">{{ formErrors.phone }}</small>
-        </div>
-
-        <div class="field">
-          <label>Email</label>
-          <input type="email" [(ngModel)]="addLeadForm.email" placeholder="Email address" />
-          <small class="field-error" *ngIf="formErrors.email">{{ formErrors.email }}</small>
-        </div>
-
-        <div class="field">
-          <label>Course</label>
-          <input
-            type="text"
-            [(ngModel)]="addLeadForm.course"
-            list="courseSuggestions"
-            placeholder="Interested course"
-          />
-          <datalist id="courseSuggestions">
-            <option *ngFor="let course of courseOptions" [value]="course"></option>
-          </datalist>
-        </div>
-
-        <div class="field">
-          <label>City</label>
-          <input type="text" [(ngModel)]="addLeadForm.city" placeholder="City" />
-        </div>
-
-        <div class="field">
-          <label>Source</label>
-          <select [(ngModel)]="addLeadForm.source">
-            <option *ngFor="let src of sources" [value]="src">{{ src }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Message</label>
-        <textarea
-          [(ngModel)]="addLeadForm.message"
-          rows="3"
-          placeholder="Notes or message"
-        ></textarea>
-      </div>
-
-      <div class="add-lead-actions">
-        <small
-          *ngIf="formFeedback"
-          class="form-feedback"
-          [class.error]="formFeedbackType === 'error'"
-          [class.success]="formFeedbackType === 'success'"
-        >
-          {{ formFeedback }}
-        </small>
-
-        <button
-          class="primary-btn"
-          type="button"
-          (click)="saveManualLead()"
-          [disabled]="addLeadSaving"
-        >
-          {{ addLeadSaving ? 'Saving...' : 'Save Lead' }}
-        </button>
-      </div>
-    </section>
-
-    <section class="control-panel">
-      <div class="field search-field">
-        <label>Search</label>
-        <input
-          type="search"
-          placeholder="Name, phone, email, source..."
-          [(ngModel)]="searchText"
-          (input)="onSearchInput()"
-          (keyup.enter)="applyFilter()"
-        />
-      </div>
-
-      <div class="field">
-        <label>Status</label>
-        <select [(ngModel)]="selectedStatus" (change)="applyLocalFilters()">
-          <option value="">All Status</option>
-          <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Temperature</label>
-        <select [(ngModel)]="selectedTemperature" (change)="applyLocalFilters()">
-          <option value="">All Intent</option>
-          <option value="Hot">Hot</option>
-          <option value="Warm">Warm</option>
-          <option value="Cold">Cold</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>City</label>
-        <select [(ngModel)]="selectedCity" (change)="applyLocalFilters()">
-          <option value="">All Cities</option>
-          <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Course</label>
-        <select [(ngModel)]="selectedCourse" (change)="applyLocalFilters()">
-          <option value="">All Courses</option>
-          <option *ngFor="let course of courseOptions" [value]="course">{{ course }}</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Source</label>
-        <select [(ngModel)]="selectedSource" (change)="applyLocalFilters()">
-          <option value="">All Sources</option>
-          <option *ngFor="let source of sourceOptions" [value]="source">{{ source }}</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>From</label>
-        <input type="date" [(ngModel)]="fromDate" (change)="applyLocalFilters()" />
-      </div>
-
-      <div class="field">
-        <label>To</label>
-        <input type="date" [(ngModel)]="toDate" (change)="applyLocalFilters()" />
-      </div>
-
-      <div class="field">
-        <label>Sort</label>
-        <select [(ngModel)]="selectedSortIndex" (ngModelChange)="applySortByIndex($event)">
-          <option *ngFor="let option of sortOptions; let i = index" [ngValue]="i">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <button class="clear-btn" type="button" (click)="clearFilters()">Clear</button>
-    </section>
-
-    <section class="mode-bar">
       <div>
-        <button type="button" [class.active]="viewMode === 'table'" (click)="setViewMode('table')">
-          Table
-        </button>
-        <button
-          type="button"
-          [class.active]="viewMode === 'pipeline'"
-          (click)="setViewMode('pipeline')"
-        >
-          Pipeline
-        </button>
-        <button type="button" [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')">
-          Cards
-        </button>
+        <h2>Lead Intelligence Studio</h2>
+        <p class="sub">Monitor active marketing funnels, candidate inquiries, mock tests, and conversion metrics in real-time.</p>
       </div>
-
-      <p>{{ pageStats.showing }} showing from {{ totalElements }} total</p>
-    </section>
-
-    <section class="bulk-bar" *ngIf="selectedCount">
-      <strong>{{ selectedCount }} selected</strong>
-
-      <select [(ngModel)]="bulkStatus">
-        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-      </select>
-
-      <button class="soft-btn" type="button" (click)="bulkUpdateStatus()" [disabled]="bulkBusy">
-        Apply Status
+    </div>
+    
+    <div class="leads-header-actions">
+      <!-- Summary Pill Badge -->
+      <span class="summary-badge">
+        <i class="bi bi-info-circle-fill"></i> {{ premiumSummary }}
+      </span>
+      <button class="soft-btn" type="button" (click)="refreshLeads()" [disabled]="loading || binLoading">
+        <i class="bi bi-arrow-repeat"></i> Refresh Data
       </button>
-
-      <button class="danger-outline-btn" type="button" (click)="bulkDelete()" [disabled]="bulkBusy">
-        Move to Bin
+      <button class="primary-btn" type="button" (click)="exportCSV()" [disabled]="!filteredLeads.length || activeView === 'bin'">
+        <i class="bi bi-download"></i> Export CSV
       </button>
-    </section>
+    </div>
+  </div>
 
-    <div *ngIf="loading" class="loading-state"><span></span> Loading leads...</div>
-    <div *ngIf="error" class="error-state">{{ error }}</div>
+  <!-- VIEW TABS SEGMENTED CONTROL -->
+  <div class="leads-segmented-tabs">
+    <button type="button" [class.active]="activeView === 'active'" (click)="switchView('active')">
+      <i class="bi bi-person-check-fill"></i> Active Pipeline 
+      <span class="tab-count">{{ totalElements }}</span>
+    </button>
+    <button type="button" [class.active]="activeView === 'bin'" (click)="switchView('bin')">
+      <i class="bi bi-trash3-fill"></i> Recycle Bin 
+      <span class="tab-count">{{ binTotalElements }}</span>
+    </button>
+  </div>
 
-    <section class="records-panel" *ngIf="!loading && !error && viewMode === 'table'">
-      <div class="records-head">
-        <div>
-          <h2>Lead Records</h2>
-          <p>{{ pageStats.showing }} visible. {{ pageStats.pendingEdits }} unsaved edits.</p>
+  <!-- MAIN ACTIVE VIEW WRAPPER -->
+  <ng-container *ngIf="activeView === 'active'">
+    
+    <!-- STATS DECK GRID -->
+    <section class="leads-stats-grid">
+      <article class="leads-stat-card card-total">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-data">
+          <strong>{{ stats.total }}</strong>
+          <span>Total Captured</span>
+          <small>All marketing funnels</small>
         </div>
+      </article>
 
-        <label class="page-size">
-          Rows
-          <select [(ngModel)]="size" (change)="page = 0; loadLeads()">
-            <option *ngFor="let option of pageSizeOptions" [value]="option">{{ option }}</option>
-          </select>
-        </label>
-      </div>
+      <article class="leads-stat-card card-hot">
+        <div class="stat-icon"><i class="bi bi-fire"></i></div>
+        <div class="stat-data">
+          <strong>{{ pageStats.hot }}</strong>
+          <span>High Intent</span>
+          <small>Hot leads on this page</small>
+        </div>
+      </article>
 
-      <div class="table-scroll">
-        <table class="leads-table">
-          <thead>
-            <tr>
-              <th class="select-col">
-                <input
-                  type="checkbox"
-                  [checked]="areAllVisibleSelected()"
-                  (change)="toggleSelectAll($any($event.target).checked)"
-                />
-              </th>
-              <th>Lead</th>
-              <th>Intent</th>
-              <th>Contact</th>
-              <th>Course</th>
-              <th>Message</th>
-              <th>Status</th>
-              <th>Follow-up</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+      <article class="leads-stat-card card-new">
+        <div class="stat-icon"><i class="bi bi-stars"></i></div>
+        <div class="stat-data">
+          <strong>{{ stats.new }}</strong>
+          <span>Fresh / New</span>
+          <small>Unassigned opportunities</small>
+        </div>
+      </article>
 
-          <tbody>
-            <tr *ngFor="let lead of filteredLeads" [class.selected-row]="isLeadSelected(lead)">
-              <td class="select-col">
-                <input
-                  type="checkbox"
-                  [checked]="isLeadSelected(lead)"
-                  (change)="toggleLeadSelection(lead, $any($event.target).checked)"
-                />
-              </td>
+      <article class="leads-stat-card card-contacted">
+        <div class="stat-icon"><i class="bi bi-telephone-inbound-fill"></i></div>
+        <div class="stat-data">
+          <strong>{{ stats.contacted }}</strong>
+          <span>In Contact</span>
+          <small>Follow-up nurturing</small>
+        </div>
+      </article>
 
-              <td>
-                <div class="lead-cell">
-                  <span class="avatar">{{ getInitials(lead) }}</span>
-                  <div>
-                    <button class="lead-link" type="button" (click)="openLeadDrawer(lead)">
-                      {{ lead.Name || 'Unnamed Lead' }}
-                    </button>
-                    <small>{{ lead.Date | date: 'dd MMM yyyy, hh:mm a' }}</small>
-                    <small>{{ lead.City || 'No city' }} - {{ lead.Source || 'Website' }}</small>
-                  </div>
-                </div>
-              </td>
+      <article class="leads-stat-card card-joined">
+        <div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div>
+        <div class="stat-data">
+          <strong>{{ stats.joined }}</strong>
+          <span>Enrolled</span>
+          <small class="glow-text">{{ stats.conversionRate }}% Conversion</small>
+        </div>
+      </article>
 
-              <td>
-                <span class="temperature" [ngClass]="getTemperatureClass(lead)">
-                  {{ getLeadTemperature(lead) }}
-                </span>
-                <div class="score-line">
-                  <i><em [style.width.%]="getLeadScore(lead)"></em></i>
-                  <small>{{ getLeadScore(lead) }}</small>
-                </div>
-              </td>
-
-              <td>
-                <div class="contact-stack">
-                  <button class="plain-link" type="button" (click)="copyPhone(lead)">
-                    {{ lead.Phone || '-' }}
-                  </button>
-                  <small>{{ lead.Email || '-' }}</small>
-                </div>
-              </td>
-
-              <td>
-                <strong>{{ lead.Course || '-' }}</strong>
-                <small *ngIf="lead.Batch">{{ lead.Batch }}</small>
-                <small *ngIf="lead.ExpectedAmount !== null">
-                  Expected: {{ lead.ExpectedAmount | currency: 'INR' : 'symbol' : '1.0-0' }}
-                </small>
-              </td>
-
-              <td>
-                <button class="message-btn" type="button" (click)="openMessagePopup(lead)">
-                  {{
-                    lead.Message
-                      ? (lead.Message | slice: 0 : 42) + (lead.Message.length > 42 ? '...' : '')
-                      : 'No message'
-                  }}
-                </button>
-              </td>
-
-              <td>
-                <div class="status-editor" [ngClass]="getStatusClass(lead.tempStatus)">
-                  <select [(ngModel)]="lead.tempStatus" (change)="onStatusChange(lead)">
-                    <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-                  </select>
-                </div>
-
-                <div class="mini-actions" *ngIf="lead.isChanged">
-                  <button class="mini-save" type="button" (click)="saveStatus(lead)">Save</button>
-                  <button class="mini-cancel" type="button" (click)="cancelStatus(lead)">
-                    Cancel
-                  </button>
-                </div>
-              </td>
-
-              <td>
-                <div class="follow-cell" [ngClass]="getFollowUpClass(lead)">
-                  <input
-                    type="date"
-                    [(ngModel)]="lead.tempFollowUp"
-                    (change)="onFollowUpChange(lead)"
-                  />
-                  <button
-                    *ngIf="!lead.FollowUp"
-                    class="tiny-btn"
-                    type="button"
-                    (click)="markFollowUpToday(lead)"
-                  >
-                    Today
-                  </button>
-                </div>
-
-                <div class="mini-actions" *ngIf="lead.isFollowUpChanged">
-                  <button class="mini-save" type="button" (click)="saveFollowUp(lead)">Save</button>
-                  <button class="mini-cancel" type="button" (click)="cancelFollowUp(lead)">
-                    Cancel
-                  </button>
-                </div>
-              </td>
-
-              <td>
-                <div class="row-actions">
-                  <button class="soft-btn compact" type="button" (click)="openLeadDrawer(lead)">
-                    View
-                  </button>
-                  <button
-                    class="whatsapp-btn compact"
-                    type="button"
-                    (click)="openWhatsAppLead(lead)"
-                  >
-                    WhatsApp
-                  </button>
-                  <button class="danger-btn compact" type="button" (click)="openDeletePopup(lead)">
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-
-            <tr *ngIf="!filteredLeads.length">
-              <td colspan="9" class="empty-row">No leads found</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="pagination">
-        <button type="button" (click)="prevPage()" [disabled]="page === 0">Previous</button>
-
-        <button
-          type="button"
-          *ngFor="let pageNo of pageNumbers"
-          [class.active]="pageNo === page + 1"
-          (click)="goToPage(pageNo)"
-        >
-          {{ pageNo }}
-        </button>
-
-        <button type="button" (click)="nextPage()" [disabled]="page >= totalPages - 1">Next</button>
-      </div>
+      <article class="leads-stat-card card-due">
+        <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+        <div class="stat-data">
+          <strong>{{ pageStats.todayFollowups }}</strong>
+          <span>Due Today</span>
+          <small class="text-danger-custom">{{ pageStats.overdueFollowups }} Overdue</small>
+        </div>
+      </article>
     </section>
 
-    <section class="pipeline-board" *ngIf="!loading && !error && viewMode === 'pipeline'">
-      <article class="pipeline-column" *ngFor="let column of pipelineColumns">
-        <div class="pipeline-head" [ngClass]="getStatusClass(column.status)">
-          <div>
-            <span>{{ column.label }}</span>
-            <strong>{{ column.leads.length }}</strong>
+    <!-- TRAFFIC SOURCES PROGRESS STRIP -->
+    <section class="leads-sources-strip" *ngIf="topSources.length">
+      <div class="strip-header">
+        <i class="bi bi-compass-fill"></i>
+        <span>Traffic Distribution Channel Radar</span>
+      </div>
+      <div class="strip-items-grid">
+        <article *ngFor="let item of topSources" class="source-item">
+          <div class="source-meta">
+            <span class="source-label">{{ item.source }}</span>
+            <strong class="source-count">{{ item.count }}</strong>
           </div>
-          <small>{{ column.value | currency: 'INR' : 'symbol' : '1.0-0' }}</small>
-        </div>
+          <div class="source-track">
+            <span class="source-fill" [style.width.%]="totalElements ? (item.count / totalElements) * 100 : 0"></span>
+          </div>
+        </article>
+      </div>
+    </section>
 
-        <div class="pipeline-list">
-          <button
-            type="button"
-            class="pipeline-card"
-            *ngFor="let lead of column.leads"
-            (click)="openLeadDrawer(lead)"
-          >
-            <div>
-              <span class="avatar small">{{ getInitials(lead) }}</span>
-              <strong>{{ lead.Name || 'Unnamed Lead' }}</strong>
+    <!-- REDESIGNED COLLAPSIBLE QUICK CAPTURE FORM -->
+    <section class="leads-capture-panel-v2">
+      <div class="capture-header-v2" (click)="showQuickCapture = !showQuickCapture">
+        <div class="header-left">
+          <div class="capture-avatar-icon">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h3>Quick Lead Capture Workspace</h3>
+            <p>Register inbound phone calls, walk-ins, references, and offline inquiries instantly.</p>
+          </div>
+        </div>
+        <button class="capture-toggle-btn" type="button">
+          <i class="bi" [class.bi-chevron-down]="!showQuickCapture" [class.bi-chevron-up]="showQuickCapture"></i>
+          {{ showQuickCapture ? 'Hide Capture Console' : 'Open Capture Console' }}
+        </button>
+      </div>
+
+      <!-- Animated Form Body -->
+      <div class="capture-form-body-v2" *ngIf="showQuickCapture">
+        <div class="capture-form-grid">
+          <div class="field-control">
+            <label>Candidate Name <span class="required">*</span></label>
+            <div class="input-icon-group">
+              <i class="bi bi-person addon-icon"></i>
+              <input type="text" [(ngModel)]="addLeadForm.name" placeholder="Enter full name" />
             </div>
-            <p>{{ lead.Course || 'No course selected' }}</p>
-            <span class="temperature" [ngClass]="getTemperatureClass(lead)">
-              {{ getLeadTemperature(lead) }} - {{ getLeadScore(lead) }}
+            <small class="field-error" *ngIf="formErrors.name"><i class="bi bi-info-circle"></i> {{ formErrors.name }}</small>
+          </div>
+
+          <div class="field-control">
+            <label>Phone Number <span class="required">*</span></label>
+            <div class="input-icon-group">
+              <i class="bi bi-telephone addon-icon"></i>
+              <input type="tel" [(ngModel)]="addLeadForm.phone" (blur)="onAddLeadPhoneBlur()" placeholder="10-digit primary contact" />
+            </div>
+            <small class="field-error" *ngIf="formErrors.phone"><i class="bi bi-info-circle"></i> {{ formErrors.phone }}</small>
+          </div>
+
+          <div class="field-control">
+            <label>Email Address</label>
+            <div class="input-icon-group">
+              <i class="bi bi-envelope addon-icon"></i>
+              <input type="email" [(ngModel)]="addLeadForm.email" placeholder="example@domain.com" />
+            </div>
+            <small class="field-error" *ngIf="formErrors.email"><i class="bi bi-info-circle"></i> {{ formErrors.email }}</small>
+          </div>
+
+          <div class="field-control">
+            <label>Interested Course</label>
+            <div class="input-icon-group">
+              <i class="bi bi-journal-text addon-icon"></i>
+              <input type="text" [(ngModel)]="addLeadForm.course" list="courseSuggestions" placeholder="e.g. Java Fullstack" />
+              <datalist id="courseSuggestions">
+                <option *ngFor="let course of courseOptions" [value]="course"></option>
+              </datalist>
+            </div>
+          </div>
+
+          <div class="field-control">
+            <label>City / Location</label>
+            <div class="input-icon-group">
+              <i class="bi bi-geo-alt addon-icon"></i>
+              <input type="text" [(ngModel)]="addLeadForm.city" placeholder="Candidate city" />
+            </div>
+          </div>
+
+          <div class="field-control">
+            <label>Inquiry Source</label>
+            <div class="select-icon-group">
+              <i class="bi bi-funnel addon-icon"></i>
+              <select [(ngModel)]="addLeadForm.source">
+                <option *ngFor="let src of sources" [value]="src">{{ src }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-control mt-3">
+          <label>Inquiry Description & Follow-up Notes</label>
+          <textarea [(ngModel)]="addLeadForm.message" rows="3" placeholder="Enter key points discussed, fee commitment, or background..."></textarea>
+        </div>
+
+        <div class="capture-footer">
+          <div class="footer-left">
+            <span *ngIf="formFeedback" class="form-feedback-pill" [class.error]="formFeedbackType === 'error'" [class.success]="formFeedbackType === 'success'">
+              <i class="bi" [class.bi-x-circle-fill]="formFeedbackType === 'error'" [class.bi-check-circle-fill]="formFeedbackType === 'success'"></i>
+              {{ formFeedback }}
             </span>
-          </button>
+          </div>
+          <div class="footer-actions">
+            <button class="soft-btn compact" type="button" (click)="resetManualLeadForm()" [disabled]="addLeadSaving">
+              <i class="bi bi-arrow-clockwise"></i> Reset
+            </button>
+            <button class="primary-btn" type="button" (click)="saveManualLead()" [disabled]="addLeadSaving">
+              <span *ngIf="!addLeadSaving"><i class="bi bi-person-plus-fill"></i> Save Inbound Lead</span>
+              <span *ngIf="addLeadSaving"><span class="spinner-inline"></span> Saving...</span>
+            </button>
+          </div>
         </div>
-      </article>
+      </div>
     </section>
 
-    <section class="card-grid" *ngIf="!loading && !error && viewMode === 'cards'">
-      <article class="lead-card" *ngFor="let lead of filteredLeads">
-        <div class="lead-card-top">
-          <span class="avatar">{{ getInitials(lead) }}</span>
-          <span class="temperature" [ngClass]="getTemperatureClass(lead)">{{
-            getLeadTemperature(lead)
-          }}</span>
+    <!-- REDESIGNED QUERY SEARCH & ADVANCED FILTERS DOCK -->
+    <section class="leads-filters-card-v2">
+      <!-- ALWAYS VISIBLE ROW -->
+      <div class="filters-header-row">
+        <!-- Search bar -->
+        <div class="filter-search-box">
+          <i class="bi bi-search search-lens-icon"></i>
+          <input type="search" placeholder="Search leads by name, phone, email, course..." [(ngModel)]="searchText" (input)="onSearchInput()" (keyup.enter)="applyFilter()" />
         </div>
-
-        <h3>{{ lead.Name || 'Unnamed Lead' }}</h3>
-        <p>{{ lead.Course || 'No course selected' }}</p>
-
-        <div class="lead-card-meta">
-          <span>{{ lead.Phone || '-' }}</span>
-          <span>{{ lead.City || 'No city' }}</span>
-          <span>{{ lead.Source || 'Website' }}</span>
-        </div>
-
-        <div class="score-line large">
-          <i><em [style.width.%]="getLeadScore(lead)"></em></i>
-          <small>{{ getLeadScore(lead) }} lead score</small>
-        </div>
-
-        <div class="lead-card-actions">
-          <button class="soft-btn compact" type="button" (click)="openLeadDrawer(lead)">
-            View
-          </button>
-          <button class="whatsapp-btn compact" type="button" (click)="openWhatsAppLead(lead)">
-            WhatsApp
-          </button>
-          <button class="danger-btn compact" type="button" (click)="openDeletePopup(lead)">
-            Delete
-          </button>
-        </div>
-      </article>
-    </section>
-  </ng-container>
-
-  <ng-container *ngIf="activeView === 'bin'">
-    <section class="records-panel">
-      <div class="records-head">
-        <div>
-          <h2>Bin</h2>
-          <p>{{ binTotalElements }} deleted leads</p>
-        </div>
-
-        <label class="page-size">
-          Rows
-          <select [(ngModel)]="binSize" (change)="binPage = 0; loadBin()">
-            <option *ngFor="let option of pageSizeOptions" [value]="option">{{ option }}</option>
+        
+        <!-- Quick Dropdowns -->
+        <div class="filter-quick-dropdown">
+          <select [(ngModel)]="selectedStatus" (change)="applyLocalFilters()">
+            <option value="">All Statuses</option>
+            <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
           </select>
-        </label>
+        </div>
+
+        <div class="filter-quick-dropdown">
+          <select [(ngModel)]="selectedTemperature" (change)="applyLocalFilters()">
+            <option value="">All Intent (Temp)</option>
+            <option value="Hot">🔥 Hot</option>
+            <option value="Warm">⚡ Warm</option>
+            <option value="Cold">❄️ Cold</option>
+          </select>
+        </div>
+
+        <!-- Advanced Toggle Button -->
+        <button class="advanced-toggle-btn" [class.active-filters]="showAdvancedFilters" (click)="showAdvancedFilters = !showAdvancedFilters" type="button">
+          <i class="bi bi-sliders2-vertical"></i>
+          <span>Advanced Filters</span>
+          <i class="bi" [class.bi-chevron-down]="!showAdvancedFilters" [class.bi-chevron-up]="showAdvancedFilters"></i>
+        </button>
       </div>
 
-      <div *ngIf="binLoading" class="loading-state"><span></span> Loading bin...</div>
-      <div *ngIf="binError" class="error-state">{{ binError }}</div>
+      <!-- COLLAPSIBLE ADVANCED FILTERS DECK -->
+      <div class="advanced-filters-deck" *ngIf="showAdvancedFilters">
+        <div class="advanced-filters-grid">
+          <!-- City -->
+          <div class="field-control">
+            <label>Location City</label>
+            <div class="select-icon-group">
+              <i class="bi bi-geo-alt-fill addon-icon text-sky"></i>
+              <select [(ngModel)]="selectedCity" (change)="applyLocalFilters()">
+                <option value="">All Cities</option>
+                <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+              </select>
+            </div>
+          </div>
+          <!-- Course -->
+          <div class="field-control">
+            <label>Course Track</label>
+            <div class="select-icon-group">
+              <i class="bi bi-journal-bookmark addon-icon"></i>
+              <select [(ngModel)]="selectedCourse" (change)="applyLocalFilters()">
+                <option value="">All Courses</option>
+                <option *ngFor="let course of courseOptions" [value]="course">{{ course }}</option>
+              </select>
+            </div>
+          </div>
+          <!-- Source -->
+          <div class="field-control">
+            <label>Channel Source</label>
+            <div class="select-icon-group">
+              <i class="bi bi-funnel-fill addon-icon"></i>
+              <select [(ngModel)]="selectedSource" (change)="applyLocalFilters()">
+                <option value="">All Sources</option>
+                <option *ngFor="let source of sourceOptions" [value]="source">{{ source }}</option>
+              </select>
+            </div>
+          </div>
+          <!-- From Date -->
+          <div class="field-control">
+            <label>Captured From</label>
+            <div class="input-icon-group">
+              <i class="bi bi-calendar-check addon-icon"></i>
+              <input type="date" [(ngModel)]="fromDate" (change)="applyLocalFilters()" />
+            </div>
+          </div>
+          <!-- To Date -->
+          <div class="field-control">
+            <label>Captured To</label>
+            <div class="input-icon-group">
+              <i class="bi bi-calendar-x addon-icon"></i>
+              <input type="date" [(ngModel)]="toDate" (change)="applyLocalFilters()" />
+            </div>
+          </div>
+          <!-- Sort Option -->
+          <div class="field-control">
+            <label>Sort Order</label>
+            <div class="select-icon-group">
+              <i class="bi bi-sort-down addon-icon"></i>
+              <select [(ngModel)]="selectedSortIndex" (ngModelChange)="applySortByIndex($event)">
+                <option *ngFor="let option of sortOptions; let i = index" [ngValue]="i">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-      <div class="table-scroll" *ngIf="!binLoading && !binError">
-        <table class="leads-table">
-          <thead>
-            <tr>
-              <th>Deleted</th>
-              <th>Lead</th>
-              <th>Contact</th>
-              <th>Course</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+        <div class="advanced-actions-footer">
+          <button class="clear-filters-btn" type="button" (click)="clearFilters()">
+            <i class="bi bi-x-circle"></i> Reset Filter Conditions
+          </button>
+        </div>
+      </div>
+    </section>
 
-          <tbody>
-            <tr *ngFor="let lead of binLeads">
-              <td>
-                <strong>{{ lead.DeletedAt | date: 'dd MMM yyyy' }}</strong>
-                <small>{{ lead.DeletedAt | date: 'hh:mm a' }}</small>
-              </td>
+    <!-- WORKSPACE VIEW MODES & COUNTERS -->
+    <section class="leads-view-mode-bar">
+      <div class="view-selectors">
+        <button type="button" [class.active]="viewMode === 'table'" (click)="setViewMode('table')" title="Tabular Grid View">
+          <i class="bi bi-table"></i> Table Layout
+        </button>
+        <button type="button" [class.active]="viewMode === 'pipeline'" (click)="setViewMode('pipeline')" title="Kanban Pipeline Board">
+          <i class="bi bi-kanban"></i> Kanban Pipeline
+        </button>
+        <button type="button" [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')" title="Compact Card Layout">
+          <i class="bi bi-grid-3x3-gap-fill"></i> Cards Deck
+        </button>
+      </div>
 
-              <td>
-                <div class="lead-cell">
-                  <span class="avatar muted">{{ getInitials(lead) }}</span>
-                  <div>
-                    <strong>{{ lead.Name || 'Unnamed Lead' }}</strong>
-                    <small>{{ lead.City || 'No city' }}</small>
+      <div class="view-stats-text">
+        <span>Displaying <strong>{{ pageStats.showing }}</strong> filtered leads of <strong>{{ totalElements }}</strong> database records</span>
+      </div>
+    </section>
+
+    <!-- BULK ACTIONS FLOATING TOOLBAR -->
+    <section class="leads-bulk-toolbar" *ngIf="selectedCount">
+      <div class="bulk-label">
+        <i class="bi bi-check2-all"></i>
+        <span><strong>{{ selectedCount }}</strong> profiles selected for bulk processing</span>
+      </div>
+      <div class="bulk-controls">
+        <div class="select-icon-group mini-select">
+          <i class="bi bi-flag addon-icon"></i>
+          <select [(ngModel)]="bulkStatus">
+            <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+        <button class="bulk-action-btn primary-bulk" type="button" (click)="bulkUpdateStatus()" [disabled]="bulkBusy">
+          Apply Status Update
+        </button>
+        <button class="bulk-action-btn danger-bulk" type="button" (click)="bulkDelete()" [disabled]="bulkBusy">
+          <i class="bi bi-trash3"></i> Move Selection to Bin
+        </button>
+      </div>
+    </section>
+
+    <!-- LOADERS & ERRORS -->
+    <div *ngIf="loading" class="leads-loading-state">
+      <span class="spinner-inline large"></span>
+      <p>Syncing CRM data pipeline, please wait...</p>
+    </div>
+    <div *ngIf="error" class="leads-error-state">
+      <i class="bi bi-exclamation-triangle-fill text-danger-custom"></i>
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- VIEW TEMPLATE: TABLE VIEW WITH COLLAPSIBLE DUPLICATE EMAIL GROUPS -->
+    <section class="leads-data-container" *ngIf="!loading && !error && viewMode === 'table'">
+      <div class="table-card">
+        <div class="table-head-bar">
+          <div>
+            <h3>Lead Roster Grid</h3>
+            <p>Direct database entries. Duplicate emails are automatically grouped to prevent workflow clutter.</p>
+          </div>
+          <label class="page-size-selector">
+            <span>Rows per page:</span>
+            <select [(ngModel)]="size" (change)="page = 0; loadLeads()">
+              <option *ngFor="let option of pageSizeOptions" [value]="option">{{ option }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="table-responsive-scroll">
+          <table class="leads-premium-table">
+            <thead>
+              <tr>
+                <th style="width: 48px;" class="text-center">
+                  <input type="checkbox" [checked]="areAllVisibleSelected()" (change)="toggleSelectAll($any($event.target).checked)" />
+                </th>
+                <th>Candidate Profile</th>
+                <th>Interest Temperature</th>
+                <th>Contact Details</th>
+                <th>Requested Course</th>
+                <th>User Notes</th>
+                <th>Status Stage</th>
+                <th>Next Follow-up</th>
+                <th class="text-center" style="width: 200px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Grouped Row Iteration -->
+              <tr *ngFor="let item of groupedLeadsList" [class.selected-row]="isLeadSelected(item.lead)" [class.child-row]="item.isChild">
+                <!-- Checkbox -->
+                <td class="text-center">
+                  <div class="checkbox-cell-inner">
+                    <span class="indented-connector" *ngIf="item.isChild">└─</span>
+                    <input type="checkbox" [checked]="isLeadSelected(item.lead)" (change)="toggleLeadSelection(item.lead, $any($event.target).checked)" />
                   </div>
-                </div>
-              </td>
+                </td>
+                
+                <!-- Profile details -->
+                <td>
+                  <div class="profile-info-cell">
+                    <span class="initials-avatar" [ngClass]="getTemperatureClass(item.lead)">{{ getInitials(item.lead) }}</span>
+                    <div class="profile-details">
+                      <div class="name-duplicate-wrapper">
+                        <button class="name-trigger-link" type="button" (click)="openLeadDrawer(item.lead)">{{ item.lead.Name || 'Unnamed Inquiry' }}</button>
+                        <!-- Group Toggle Badge for duplicates -->
+                        <button class="duplicate-count-badge" *ngIf="item.isMaster && item.hasDuplicates" (click)="toggleEmailGroup(item.masterEmail, $event)" title="Click to toggle duplicates">
+                          <i class="bi" [class.bi-plus-circle-fill]="!item.isExpanded" [class.bi-dash-circle-fill]="item.isExpanded"></i>
+                          <span>{{ item.duplicateCount }} inquiries</span>
+                        </button>
+                      </div>
+                      <small class="capture-date"><i class="bi bi-calendar-plus"></i> {{ item.lead.Date | date: 'dd MMM yyyy, hh:mm a' }}</small>
+                      <small class="location-badge"><i class="bi bi-geo-alt"></i> {{ item.lead.City || 'Not specified' }}</small>
+                    </div>
+                  </div>
+                </td>
 
-              <td>
-                <div class="contact-stack">
-                  <span>{{ lead.Phone || '-' }}</span>
-                  <small>{{ lead.Email || '-' }}</small>
-                </div>
-              </td>
+                <!-- Temperature -->
+                <td>
+                  <div class="temp-score-cell">
+                    <span class="temp-badge" [ngClass]="getTemperatureClass(item.lead)">
+                      <i class="bi" [class.bi-fire]="getLeadTemperature(item.lead) === 'Hot'" [class.bi-lightning-fill]="getLeadTemperature(item.lead) === 'Warm'" [class.bi-thermometer-snow]="getLeadTemperature(item.lead) === 'Cold'"></i>
+                      {{ getLeadTemperature(item.lead) }}
+                    </span>
+                    <div class="score-slider">
+                      <div class="slider-track">
+                        <span class="slider-fill" [style.width.%]="getLeadScore(item.lead)" [ngClass]="getTemperatureClass(item.lead)"></span>
+                      </div>
+                      <span class="score-label">Score: {{ getLeadScore(item.lead) }}%</span>
+                    </div>
+                  </div>
+                </td>
 
-              <td>{{ lead.Course || '-' }}</td>
+                <!-- Contact details -->
+                <td>
+                  <div class="contact-info-cell">
+                    <button class="phone-link-btn" type="button" (click)="copyPhone(item.lead)" title="Click to copy phone">
+                      <i class="bi bi-telephone-outbound text-indigo"></i> {{ item.lead.Phone || '-' }}
+                    </button>
+                    <small class="email-text"><i class="bi bi-envelope"></i> {{ item.lead.Email || '-' }}</small>
+                  </div>
+                </td>
 
-              <td>
-                <span class="status-pill" [ngClass]="getStatusClass(lead.Status)">
-                  {{ lead.Status }}
-                </span>
-              </td>
+                <!-- Course details -->
+                <td>
+                  <div class="course-info-cell">
+                    <strong class="course-title">{{ item.lead.Course || '-' }}</strong>
+                    <span class="batch-title" *ngIf="item.lead.Batch"><i class="bi bi-people"></i> {{ item.lead.Batch }}</span>
+                    <span class="expected-amount" *ngIf="item.lead.ExpectedAmount !== null">
+                      Est: {{ item.lead.ExpectedAmount | currency: 'INR' : 'symbol' : '1.0-0' }}
+                    </span>
+                  </div>
+                </td>
 
-              <td>
-                <div class="row-actions">
-                  <button
-                    class="soft-btn compact"
-                    type="button"
-                    (click)="restoreLead(lead)"
-                    [disabled]="actionBusy"
-                  >
-                    Restore
+                <!-- Messages -->
+                <td>
+                  <button class="message-preview-btn" type="button" (click)="openMessagePopup(item.lead)">
+                    <i class="bi bi-chat-right-quote-fill text-muted"></i>
+                    {{ item.lead.Message ? (item.lead.Message | slice: 0:42) + (item.lead.Message.length > 42 ? '...' : '') : 'No message notes' }}
                   </button>
-                  <button
-                    class="danger-btn compact"
-                    type="button"
-                    (click)="deletePermanent(lead)"
-                    [disabled]="actionBusy"
-                  >
-                    Delete Forever
-                  </button>
-                </div>
-              </td>
-            </tr>
+                </td>
 
-            <tr *ngIf="!binLeads.length">
-              <td colspan="6" class="empty-row">Bin is empty</td>
-            </tr>
-          </tbody>
-        </table>
+                <!-- Status stages -->
+                <td>
+                  <div class="status-selector-cell" [ngClass]="getStatusClass(item.lead.tempStatus)">
+                    <select [(ngModel)]="item.lead.tempStatus" (change)="onStatusChange(item.lead)">
+                      <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+                    </select>
+                  </div>
+                  <div class="quick-status-actions" *ngIf="item.lead.isChanged">
+                    <button class="quick-save-btn" type="button" (click)="saveStatus(item.lead)" title="Save Status Change"><i class="bi bi-check"></i></button>
+                    <button class="quick-cancel-btn" type="button" (click)="cancelStatus(item.lead)" title="Cancel"><i class="bi bi-x"></i></button>
+                  </div>
+                </td>
+
+                <!-- Follow up dates -->
+                <td>
+                  <div class="followup-cell-wrapper" [ngClass]="getFollowUpClass(item.lead)">
+                    <input type="date" [(ngModel)]="item.lead.tempFollowUp" (change)="onFollowUpChange(item.lead)" />
+                    <button *ngIf="!item.lead.FollowUp" class="today-tag-btn" type="button" (click)="markFollowUpToday(item.lead)">Set Today</button>
+                  </div>
+                  <div class="quick-status-actions" *ngIf="item.lead.isFollowUpChanged">
+                    <button class="quick-save-btn" type="button" (click)="saveFollowUp(item.lead)" title="Save Date Change"><i class="bi bi-check"></i></button>
+                    <button class="quick-cancel-btn" type="button" (click)="cancelFollowUp(item.lead)" title="Cancel"><i class="bi bi-x"></i></button>
+                  </div>
+                </td>
+
+                <!-- Actions -->
+                <td class="text-center">
+                  <div class="roster-actions-group">
+                    <button class="roster-btn view-btn" type="button" (click)="openLeadDrawer(item.lead)" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="roster-btn whatsapp-btn" type="button" (click)="openWhatsAppLead(item.lead)" title="WhatsApp Contact">
+                      <i class="bi bi-whatsapp"></i>
+                    </button>
+                    <button class="roster-btn delete-btn" type="button" (click)="openDeletePopup(item.lead)" title="Remove Lead">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty Row -->
+              <tr *ngIf="!filteredLeads.length">
+                <td colspan="9" class="table-empty-row">
+                  <i class="bi bi-database-fill-x"></i>
+                  <h4>No leads match the filter query</h4>
+                  <p>Try refining the filters above or add a manual lead to start the pipeline.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION BAR -->
+        <div class="premium-pagination-bar" *ngIf="totalPages > 0">
+          <button class="page-arrow-btn" (click)="prevPage()" [disabled]="page === 0">
+            <i class="bi bi-arrow-left"></i> Previous
+          </button>
+          
+          <div class="page-numbers-deck">
+            <button type="button" *ngFor="let pageNo of pageNumbers" [class.active]="pageNo === page + 1" (click)="goToPage(pageNo)">
+              {{ pageNo }}
+            </button>
+          </div>
+
+          <button class="page-arrow-btn" (click)="nextPage()" [disabled]="page >= totalPages - 1">
+            Next <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
       </div>
+    </section>
 
-      <div class="pagination" *ngIf="!binLoading && !binError">
-        <button type="button" (click)="prevBinPage()" [disabled]="binPage === 0">Previous</button>
+    <!-- VIEW TEMPLATE: KANBAN PIPELINE VIEW -->
+    <section class="leads-pipeline-board" *ngIf="!loading && !error && viewMode === 'pipeline'">
+      <div class="pipeline-column-wrapper" *ngFor="let column of pipelineColumns">
+        <div class="pipeline-column-header" [ngClass]="getStatusClass(column.status)">
+          <div class="title-details">
+            <span class="column-name-pill">{{ column.label }}</span>
+            <strong class="column-count-badge">{{ column.leads.length }} Leads</strong>
+          </div>
+          <span class="column-value-badge" title="Total Expected Pipeline Amount">
+            {{ column.value | currency: 'INR' : 'symbol' : '1.0-0' }}
+          </span>
+        </div>
 
-        <button
-          type="button"
-          *ngFor="let pageNo of binPageNumbers"
-          [class.active]="pageNo === binPage + 1"
-          (click)="goToBinPage(pageNo)"
-        >
-          {{ pageNo }}
-        </button>
+        <div class="pipeline-cards-dropzone">
+          <div class="pipeline-lead-card" *ngFor="let lead of column.leads" (click)="openLeadDrawer(lead)">
+            <div class="card-title-row">
+              <span class="card-avatar" [ngClass]="getTemperatureClass(lead)">{{ getInitials(lead) }}</span>
+              <div class="card-name-info">
+                <strong>{{ lead.Name || 'Unnamed Candidate' }}</strong>
+                <small class="course-text-sub">{{ lead.Course || 'No course specified' }}</small>
+              </div>
+            </div>
+            
+            <div class="card-metric-row">
+              <span class="temp-label" [ngClass]="getTemperatureClass(lead)">
+                <i class="bi bi-lightning-fill"></i> Score: {{ getLeadScore(lead) }}
+              </span>
+              <span class="val-label" *ngIf="lead.ExpectedAmount">
+                ₹{{ lead.ExpectedAmount | number:'1.0-0' }}
+              </span>
+            </div>
 
-        <button type="button" (click)="nextBinPage()" [disabled]="binPage >= binTotalPages - 1">
-          Next
-        </button>
+            <div class="card-footer-info">
+              <span><i class="bi bi-geo-alt"></i> {{ lead.City || 'No city' }}</span>
+              <span><i class="bi bi-telephone"></i> {{ lead.Phone | slice:0:10 }}</span>
+            </div>
+          </div>
+
+          <div class="pipeline-empty-column" *ngIf="!column.leads.length">
+            <i class="bi bi-check2-circle"></i>
+            <p>No leads in {{ column.status }} stage</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW TEMPLATE: CARDS GRID VIEW -->
+    <section class="leads-cards-grid" *ngIf="!loading && !error && viewMode === 'cards'">
+      <article class="grid-lead-card" *ngFor="let lead of filteredLeads" [class.selected]="isLeadSelected(lead)">
+        <div class="card-top-header">
+          <div class="card-checkbox-avatar">
+            <input type="checkbox" [checked]="isLeadSelected(lead)" (change)="toggleLeadSelection(lead, $any($event.target).checked)" />
+            <span class="card-avatar" [ngClass]="getTemperatureClass(lead)">{{ getInitials(lead) }}</span>
+          </div>
+          <span class="card-temp-tag" [ngClass]="getTemperatureClass(lead)">
+            {{ getLeadTemperature(lead) }}
+          </span>
+        </div>
+
+        <div class="card-mid-body">
+          <h3 class="card-candidate-name" (click)="openLeadDrawer(lead)">{{ lead.Name || 'Unnamed Inquiry' }}</h3>
+          <p class="card-course-label">{{ lead.Course || 'No Course Tracks Selected' }}</p>
+          
+          <div class="card-lead-score-bar">
+            <div class="bar-track">
+              <span class="bar-fill" [style.width.%]="getLeadScore(lead)" [ngClass]="getTemperatureClass(lead)"></span>
+            </div>
+            <small>Lead Score: <strong>{{ getLeadScore(lead) }}%</strong></small>
+          </div>
+
+          <div class="card-meta-list">
+            <span><i class="bi bi-telephone-fill"></i> {{ lead.Phone || '-' }}</span>
+            <span><i class="bi bi-geo-alt-fill"></i> {{ lead.City || 'Not specified' }}</span>
+            <span><i class="bi bi-compass-fill"></i> Source: {{ lead.Source || 'Website' }}</span>
+          </div>
+        </div>
+
+        <div class="card-actions-footer">
+          <button class="footer-btn view" type="button" (click)="openLeadDrawer(lead)"><i class="bi bi-eye"></i> View</button>
+          <button class="footer-btn whatsapp" type="button" (click)="openWhatsAppLead(lead)"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+          <button class="footer-btn delete" type="button" (click)="openDeletePopup(lead)"><i class="bi bi-trash3"></i> Delete</button>
+        </div>
+      </article>
+
+      <div class="grid-empty-state" *ngIf="!filteredLeads.length">
+        <i class="bi bi-grid-fill-x"></i>
+        <h3>No Inquiry Cards Registered</h3>
+        <p>Refine your search criteria or add manual data.</p>
+      </div>
+    </section>
+
+  </ng-container>
+
+  <!-- RECYCLE BIN VIEW -->
+  <ng-container *ngIf="activeView === 'bin'">
+    <section class="leads-data-container">
+      <div class="table-card">
+        <div class="table-head-bar">
+          <div>
+            <h3>Recycle Bin Center</h3>
+            <p>Audit and restore deleted lead records. Records here can be permanently removed from system storage.</p>
+          </div>
+          <label class="page-size-selector">
+            <span>Rows:</span>
+            <select [(ngModel)]="binSize" (change)="binPage = 0; loadBin()">
+              <option *ngFor="let option of pageSizeOptions" [value]="option">{{ option }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div *ngIf="binLoading" class="leads-loading-state">
+          <span class="spinner-inline large"></span>
+          <p>Scanning bin records...</p>
+        </div>
+        <div *ngIf="binError" class="leads-error-state">
+          <i class="bi bi-exclamation-octagon-fill text-danger-custom"></i>
+          <p>{{ binError }}</p>
+        </div>
+
+        <div class="table-responsive-scroll" *ngIf="!binLoading && !binError">
+          <table class="leads-premium-table">
+            <thead>
+              <tr>
+                <th>Deleted Date</th>
+                <th>Candidate Profile</th>
+                <th>Contact Details</th>
+                <th>Course</th>
+                <th>Original Status</th>
+                <th class="text-center" style="width: 250px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let lead of binLeads">
+                <td>
+                  <div class="deleted-date-cell">
+                    <strong>{{ lead.DeletedAt | date: 'dd MMM yyyy' }}</strong>
+                    <small><i class="bi bi-clock"></i> {{ lead.DeletedAt | date: 'hh:mm a' }}</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="profile-info-cell">
+                    <span class="initials-avatar muted">{{ getInitials(lead) }}</span>
+                    <div class="profile-details">
+                      <strong>{{ lead.Name || 'Unnamed Inquiry' }}</strong>
+                      <small class="location-badge"><i class="bi bi-geo-alt"></i> {{ lead.City || 'Not specified' }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="contact-info-cell">
+                    <span>{{ lead.Phone || '-' }}</span>
+                    <small class="email-text"><i class="bi bi-envelope"></i> {{ lead.Email || '-' }}</small>
+                  </div>
+                </td>
+                <td><strong>{{ lead.Course || '-' }}</strong></td>
+                <td>
+                  <span class="status-pill" [ngClass]="getStatusClass(lead.Status)">
+                    <span class="status-dot"></span>
+                    {{ lead.Status }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="bin-actions-group">
+                    <button class="bin-btn restore-btn" type="button" (click)="restoreLead(lead)" [disabled]="actionBusy">
+                      <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </button>
+                    <button class="bin-btn permanent-delete-btn" type="button" (click)="deletePermanent(lead)" [disabled]="actionBusy">
+                      <i class="bi bi-trash3-fill"></i> Delete Forever
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!binLeads.length">
+                <td colspan="6" class="table-empty-row">
+                  <i class="bi bi-trash-fill"></i>
+                  <h4>Recycle bin is completely empty</h4>
+                  <p>Deleted leads will appear here for audit checks before permanent database removal.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- BIN PAGINATION -->
+        <div class="premium-pagination-bar" *ngIf="binTotalPages > 0 && !binLoading && !binError">
+          <button class="page-arrow-btn" (click)="prevBinPage()" [disabled]="binPage === 0">
+            <i class="bi bi-arrow-left"></i> Previous
+          </button>
+          
+          <div class="page-numbers-deck">
+            <button type="button" *ngFor="let pageNo of binPageNumbers" [class.active]="pageNo === binPage + 1" (click)="goToBinPage(pageNo)">
+              {{ pageNo }}
+            </button>
+          </div>
+
+          <button class="page-arrow-btn" (click)="nextBinPage()" [disabled]="binPage >= binTotalPages - 1">
+            Next <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
       </div>
     </section>
   </ng-container>
 
-  <div class="popup-overlay" *ngIf="showMessagePopup">
-    <section class="popup-card">
-      <div class="popup-header">
-        <div>
-          <span class="eyebrow">Message</span>
-          <h3>{{ selectedMessageLead?.Name || 'Lead Message' }}</h3>
+  <!-- POPUP: MESSAGE READER -->
+  <div class="leads-popup-overlay" *ngIf="showMessagePopup" (click)="closeMessagePopup()">
+    <section class="leads-popup-box" (click)="$event.stopPropagation()">
+      <div class="popup-head">
+        <div class="head-title">
+          <i class="bi bi-chat-right-quote-fill text-indigo"></i>
+          <div>
+            <span class="kicker">Message Context</span>
+            <h3>Inquiry Notes: {{ selectedMessageLead?.Name || 'Candidate' }}</h3>
+          </div>
         </div>
-        <button type="button" (click)="closeMessagePopup()">x</button>
+        <button class="popup-close-btn" type="button" (click)="closeMessagePopup()"><i class="bi bi-x-lg"></i></button>
       </div>
-
-      <p class="message-box">{{ selectedMessageLead?.Message || 'No message available' }}</p>
+      <div class="popup-body">
+        <p class="message-display-box">{{ selectedMessageLead?.Message || 'No message contents entered for this lead.' }}</p>
+      </div>
+      <div class="popup-foot">
+        <button class="soft-btn" type="button" (click)="closeMessagePopup()">Dismiss</button>
+      </div>
     </section>
   </div>
 
-  <div class="popup-overlay" *ngIf="showDeletePopup">
-    <section class="popup-card danger">
-      <div class="popup-header">
-        <div>
-          <span class="eyebrow">Delete</span>
-          <h3>Move Lead to Bin?</h3>
+  <!-- POPUP: DELETE CONFIRMATION -->
+  <div class="leads-popup-overlay" *ngIf="showDeletePopup" (click)="closeDeletePopup()">
+    <section class="leads-popup-box danger-style" (click)="$event.stopPropagation()">
+      <div class="popup-head">
+        <div class="head-title">
+          <i class="bi bi-trash3-fill text-danger-custom"></i>
+          <div>
+            <span class="kicker">Archive Check</span>
+            <h3>Move Lead to Recycle Bin?</h3>
+          </div>
         </div>
-        <button type="button" (click)="closeDeletePopup()">x</button>
+        <button class="popup-close-btn" type="button" (click)="closeDeletePopup()"><i class="bi bi-x-lg"></i></button>
       </div>
-
-      <p class="message-box">
-        {{ selectedLeadToDelete?.Name || selectedLeadToDelete?.Phone }} will be moved to bin.
-      </p>
-
-      <div class="popup-actions">
-        <button class="soft-btn" type="button" (click)="closeDeletePopup()">Cancel</button>
+      <div class="popup-body">
+        <p class="message-display-box">
+          You are moving <strong>{{ selectedLeadToDelete?.Name || selectedLeadToDelete?.Phone }}</strong> to the recycle center.
+          They will no longer appear in the active roster or pipeline grids.
+        </p>
+      </div>
+      <div class="popup-foot">
+        <button class="soft-btn" type="button" (click)="closeDeletePopup()">Cancel Action</button>
         <button class="danger-btn" type="button" (click)="confirmDelete()" [disabled]="actionBusy">
-          Delete
+          Confirm & Bin Lead
         </button>
       </div>
     </section>
   </div>
 
-  <div class="drawer-overlay" *ngIf="showLeadDrawer" (click)="closeLeadDrawer()">
-    <aside class="lead-drawer" (click)="$event.stopPropagation()">
-      <button class="drawer-close" type="button" (click)="closeLeadDrawer()">x</button>
+  <!-- DRAWER: DETAILED PREVIEW AND TIMELINE INQUIRY HISTORY -->
+  <div class="leads-drawer-overlay" *ngIf="showLeadDrawer" (click)="closeLeadDrawer()">
+    <aside class="leads-drawer-panel" (click)="$event.stopPropagation()" *ngIf="selectedLead as drawerLead">
+      <!-- Header Close -->
+      <button class="drawer-close-btn" type="button" (click)="closeLeadDrawer()"><i class="bi bi-x-lg"></i></button>
 
-      <div class="drawer-profile">
-        <span class="avatar large">{{ getInitials(selectedLead) }}</span>
-        <div>
-          <span class="eyebrow">Lead Details</span>
-          <h3>{{ selectedLead?.Name || 'Unnamed Lead' }}</h3>
-          <p>{{ selectedLead?.Course || 'No course selected' }}</p>
+      <!-- Profile Header -->
+      <div class="drawer-header-avatar">
+        <span class="drawer-avatar" [ngClass]="getTemperatureClass(drawerLead)">{{ getInitials(drawerLead) }}</span>
+        <div class="drawer-meta-title">
+          <span class="kicker-label">Lead Identification Card</span>
+          <h3>{{ drawerLead.Name || 'Unnamed Candidate' }}</h3>
+          <p class="course-sub">{{ drawerLead.Course || 'No course track requested' }}</p>
         </div>
       </div>
 
-      <div class="drawer-score" *ngIf="selectedLead as drawerLead">
-        <span class="temperature" [ngClass]="getTemperatureClass(drawerLead)">
-          {{ getLeadTemperature(drawerLead) }}
-        </span>
-        <div class="score-line large">
-          <i><em [style.width.%]="getLeadScore(drawerLead)"></em></i>
-          <small>{{ getLeadScore(drawerLead) }} lead score</small>
-        </div>
-      </div>
-
-      <dl class="detail-grid">
-        <div>
-          <dt>Phone</dt>
-          <dd>{{ selectedLead?.Phone || '-' }}</dd>
-        </div>
-        <div>
-          <dt>Email</dt>
-          <dd>{{ selectedLead?.Email || '-' }}</dd>
-        </div>
-        <div>
-          <dt>City</dt>
-          <dd>{{ selectedLead?.City || '-' }}</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>
-            <span class="status-pill" [ngClass]="getStatusClass(selectedLead?.Status || '')">
-              {{ selectedLead?.Status || '-' }}
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt>Follow-up</dt>
-          <dd>{{ selectedLead?.FollowUp || '-' }}</dd>
-        </div>
-        <div>
-          <dt>Source</dt>
-          <dd>{{ selectedLead?.Source || '-' }}</dd>
-        </div>
-      </dl>
-
-      <div class="drawer-message">
-        <span>Message</span>
-        <p>{{ selectedLead?.Message || 'No message available' }}</p>
-      </div>
-
-      <div class="drawer-actions" *ngIf="selectedLead as drawerLead">
-        <button class="whatsapp-btn" type="button" (click)="openWhatsAppLead(drawerLead)">
-          WhatsApp
+      <!-- DUPLICATE INQUIRY COUNT / HISTORY EXPANDER BUTTON -->
+      <div class="drawer-inquiries-badge-row">
+        <button class="inquiries-count-badge" [class.clickable]="drawerInquiries.length > 1" (click)="drawerInquiries.length > 1 && toggleHistory()" title="Click to view full inquiry history">
+          <i class="bi bi-clock-history"></i>
+          <span>{{ drawerInquiries.length }} {{ drawerInquiries.length === 1 ? 'Inquiry Captured' : 'Inquiries Captured' }}</span>
+          <i class="bi" *ngIf="drawerInquiries.length > 1" [class.bi-chevron-down]="!showHistory" [class.bi-chevron-up]="showHistory"></i>
         </button>
-        <button class="soft-btn" type="button" (click)="callLead(drawerLead)">Call</button>
-        <button class="soft-btn" type="button" (click)="copyPhone(drawerLead)">Copy</button>
+      </div>
+
+      <!-- INQUIRY SUBMISSION TIMELINE HISTORY -->
+      <div class="drawer-history-timeline" *ngIf="showHistory && drawerInquiries.length > 1">
+        <h4>Submission Timeline & Details</h4>
+        <div class="timeline-trail">
+          <div class="timeline-step" *ngFor="let inquiry of drawerInquiries">
+            <div class="step-marker" [ngClass]="getTemperatureClass(inquiry)"></div>
+            <div class="step-content">
+              <span class="step-time">
+                <i class="bi bi-calendar-check"></i> {{ inquiry.Date | date:'dd MMM yyyy, hh:mm a' }}
+              </span>
+              <span class="step-meta">
+                <i class="bi bi-compass"></i> Source: <strong>{{ inquiry.Source || 'Website' }}</strong> | 
+                <i class="bi bi-book"></i> Course: <strong>{{ inquiry.Course || 'N/A' }}</strong>
+              </span>
+              <p class="step-desc" *ngIf="inquiry.Message">
+                <i class="bi bi-chat-left-text"></i> "{{ inquiry.Message }}"
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score block -->
+      <div class="drawer-score-block">
+        <div class="score-meta">
+          <span class="temp-badge-large" [ngClass]="getTemperatureClass(drawerLead)">
+            <i class="bi bi-fire"></i> {{ getLeadTemperature(drawerLead) }} Grade
+          </span>
+          <strong class="score-percent">{{ getLeadScore(drawerLead) }}% Intensity</strong>
+        </div>
+        <div class="score-track-bar">
+          <span class="score-fill" [style.width.%]="getLeadScore(drawerLead)" [ngClass]="getTemperatureClass(drawerLead)"></span>
+        </div>
+      </div>
+
+      <!-- Detailed Attributes -->
+      <div class="drawer-attributes-deck">
+        <div class="attr-row">
+          <span class="attr-label"><i class="bi bi-telephone-fill"></i> Primary Phone</span>
+          <span class="attr-val">{{ drawerLead.Phone || '-' }}</span>
+        </div>
+        <div class="attr-row">
+          <span class="attr-label"><i class="bi bi-envelope-fill"></i> Email Address</span>
+          <span class="attr-val font-small">{{ drawerLead.Email || '-' }}</span>
+        </div>
+        <div class="attr-row">
+          <span class="attr-label"><i class="bi bi-geo-alt-fill"></i> Location City</span>
+          <span class="attr-val">{{ drawerLead.City || '-' }}</span>
+        </div>
+        <div class="attr-row">
+          <span class="attr-label"><i class="bi bi-flag-fill"></i> Pipeline Stage</span>
+          <span class="attr-val">
+            <span class="status-badge-inline" [ngClass]="getStatusClass(drawerLead.Status || '')">
+              {{ drawerLead.Status || '-' }}
+            </span>
+          </span>
+        </div>
+        <div class="attr-row">
+          <span class="attr-label"><i class="bi bi-calendar-event-fill"></i> Next Follow-up</span>
+          <span class="attr-val">{{ drawerLead.FollowUp ? (drawerLead.FollowUp | date:'mediumDate') : 'No follow-up planned' }}</span>
+        </div>
+        <div class="attr-row">
+          <span class="attr-label"><i class="bi bi-funnel-fill"></i> Origin Source</span>
+          <span class="attr-val">{{ drawerLead.Source || '-' }}</span>
+        </div>
+      </div>
+
+      <!-- Message block -->
+      <div class="drawer-notes-block">
+        <span class="notes-header"><i class="bi bi-file-text-fill"></i> Latest Discussion Notes</span>
+        <p class="notes-body">{{ drawerLead.Message || 'No discussion notes logged for this candidate profile.' }}</p>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="drawer-actions-footer">
+        <button class="wa-action-btn" type="button" (click)="openWhatsAppLead(drawerLead)">
+          <i class="bi bi-whatsapp"></i> Launch WhatsApp Chat
+        </button>
+        <div class="btn-grid-2">
+          <button class="soft-btn" type="button" (click)="callLead(drawerLead)"><i class="bi bi-telephone-fill"></i> Direct Call</button>
+          <button class="soft-btn" type="button" (click)="copyPhone(drawerLead)"><i class="bi bi-clipboard-fill"></i> Copy Phone</button>
+        </div>
       </div>
     </aside>
   </div>
 
-  <div class="toast" [class.error]="toastType === 'error'" *ngIf="toastMessage">
-    {{ toastMessage }}
+  <!-- TOAST ALERT PANEL -->
+  <div class="leads-toast" [class.error]="toastType === 'error'" *ngIf="toastMessage">
+    <div class="toast-content">
+      <i class="bi" [class.bi-check-circle-fill]="toastType === 'success'" [class.bi-exclamation-octagon-fill]="toastType === 'error'"></i>
+      <span>{{ toastMessage }}</span>
+    </div>
   </div>
+
 </div>

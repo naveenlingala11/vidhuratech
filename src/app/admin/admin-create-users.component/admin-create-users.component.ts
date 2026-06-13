@@ -2,8 +2,10 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
+
 @Component({
   selector: 'app-admin-create-user',
   standalone: true,
@@ -13,18 +15,31 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class AdminCreateUserComponent {
   API = `${environment.apiUrl}/api/users/employees`;
-  form: any = {
+  
+  form = {
     name: '',
     email: '',
     phone: '',
     role: ''
   };
+  
   loading = false;
   roles = ['TRAINER', 'ADMIN', 'HR', 'MANAGER', 'MENTOR'];
+
+  roleDescriptions: { [key: string]: string } = {
+    'ADMIN': 'Grants full administrative access including admissions management, user directories, invoicing audits, system integrity configurations, and certificates verification.',
+    'TRAINER': 'Grants permission to configure scheduling cohorts, track progress, broadcast batch announcements, upload syllabus milestones, and grade coding tasks.',
+    'HR': 'Grants access to recruiting modules, allowing creation of jobs, coordination of hiring partners, and monitoring of applicant leads.',
+    'MANAGER': 'Grants access to lead pipeline coordination, question database moderation, and general CRM components.',
+    'MENTOR': 'Grants access to review student ATS resumes, oversee mock panel interview scores, and coordinate portfolio feedback.'
+  };
+
   constructor(
     private http: HttpClient,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   ) { }
+
   submit() {
     if (!this.validate()) return;
     this.loading = true;
@@ -41,6 +56,7 @@ export class AdminCreateUserComponent {
         }
       });
   }
+
   validate(): boolean {
     if (!this.form.name?.trim()) {
       this.toastr.warning('Name is required');
@@ -61,6 +77,7 @@ export class AdminCreateUserComponent {
     }
     return true;
   }
+
   resetForm() {
     this.form = {
       name: '',
@@ -68,5 +85,9 @@ export class AdminCreateUserComponent {
       phone: '',
       role: ''
     };
+  }
+
+  goBack() {
+    this.router.navigate(['/dashboard/admin/users']);
   }
 }

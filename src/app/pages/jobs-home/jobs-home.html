@@ -1,276 +1,328 @@
-<div class="home">
-  <!-- HERO -->
-  <section class="hero">
-    <div class="circle one"></div>
-    <div class="circle two"></div>
-    <h1>Find Your Dream Job</h1>
-    <p class="sub-headline">
-      Get hired faster with AI-powered job discovery | Explore thousands of verified opportunities
-    </p>
-    <div class="search-bar">
-      <input type="text" placeholder="Search by role, skill, company..." [(ngModel)]="searchText"
-        (input)="onSearchChange()" />
-      <button class="search" (click)="goToJobs()">Search ➤</button>
-      <div class="suggestions" *ngIf="suggestions.length">
-        <div *ngFor="let s of suggestions" (click)="selectSuggestion(s)">
-          {{ s }}
+<div class="jobs-home-workspace">
+  <!-- Ambient background glows -->
+  <div class="policy-ambient-glow">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="hero-circle one"></div>
+    <div class="hero-circle two"></div>
+    
+    <div class="hero-content">
+      <span class="hero-tagline"><i class="bi bi-stars"></i> AI-Powered Job Discovery</span>
+      <h1>Find Your Dream IT Job</h1>
+      <p class="sub-headline">
+        Get hired faster with verified opportunities. Explore daily postings matching your profile.
+      </p>
+      
+      <!-- Premium Search Bar -->
+      <div class="search-bar-container">
+        <div class="search-input-wrap">
+          <i class="bi bi-search search-icon"></i>
+          <input 
+            type="text" 
+            placeholder="Search by role, skill, or hiring company..." 
+            [(ngModel)]="searchText"
+            (input)="onSearchChange()" 
+          />
         </div>
-      </div>
-    </div>
-    <p class="live-count">
-      🔥 {{ totalJobs }}+ jobs available right now
-    </p>
-    <div class="trust-badges">
-      <span>✔ 50K+ Users</span>
-      <span>✔ Verified Jobs</span>
-      <span>✔ No Spam</span>
-    </div>
-    <button class="cta" (click)="goToJobs()">Browse All Jobs →</button>
-  </section>
-  <!-- ================= JOB PORTAL FEATURE ================= -->
-  <section class="jobs-feature">
-    <div class="container">
-      <!-- HEADER -->
-      <div class="text-center">
-        <h2 class="jobs-title">🚀 Introducing Daily Job Portal (EXCLUSIVE)</h2>
-        <p class="jobs-sub">This feature is <b>NOT available anywhere</b> — Only for our students.</p>
-      </div>
-      <!-- MAIN CONTENT -->
-      <div class="row align-items-center mt-5">
-        <!-- LEFT CONTENT -->
-        <div class="col-md-6">
-          <div class="jobs-content">
-            <h3>💼 Get 500+ New Job Openings Daily!</h3>
-            <p>
-              Most students struggle not because of lack of skills, but because they don’t know
-              <b>where to apply</b> and <b>how to find real job openings</b>.
-            </p>
-            <p>
-              That’s why we built a <b>powerful job portal inside this website</b> specially for our
-              students.
-            </p>
-            <ul class="jobs-list">
-              <li>✔ Daily <b>500+ companies</b> job openings</li>
-              <li>✔ Updated <b>every morning at 8 AM</b></li>
-              <li>✔ Only <b>latest & verified jobs</b></li>
-              <li>✔ Freshers + Experienced roles</li>
-              <li>✔ Direct apply links included</li>
-            </ul>
-          </div>
-        </div>
-        <!-- RIGHT CARD -->
-        <div class="col-md-6">
-          <div class="jobs-card">
-            <h4>🔥 Why This Is Game-Changer?</h4>
-            <p>
-              Normally, students waste hours searching jobs on different websites like Naukri,
-              LinkedIn, Indeed.
-            </p>
-            <p class="highlight">
-              👉 But here, everything comes to YOU automatically — daily updated in one place.
-            </p>
-            <div class="jobs-box">
-              ⏰ <b>Daily Update Time:</b> 8:00 AM <br />
-              🏢 <b>Companies Covered:</b> 500+ <br />
-              📌 <b>Access:</b> Only enrolled students
-            </div>
-            <button class="btn btn-warning w-100 mt-3" (click)="openEnrollModal()">
-              Get Access Now 🚀
-            </button>
+        <button class="search-action-btn" (click)="goToJobs()">
+          Search Opportunities <i class="bi bi-chevron-right"></i>
+        </button>
+        
+        <!-- Suggestions dropdown -->
+        <div class="search-suggestions" *ngIf="suggestions.length">
+          <div *ngFor="let s of suggestions" (click)="selectSuggestion(s)" class="suggestion-item">
+            <i class="bi bi-arrow-up-right"></i> {{ s }}
           </div>
         </div>
       </div>
-      <!-- UNIQUE SELLING -->
-      <div class="jobs-unique text-center mt-5">
-        ⚡ This feature is <b>FIRST TIME</b> introduced — You don’t need to search jobs anymore.
-        <br />
-        <span>We bring jobs directly to you — every single day.</span>
+
+      <div class="live-count-badge">
+        <i class="bi bi-fire text-coral animate-pulse"></i> <strong>{{ totalJobs }}+</strong> active jobs waiting for you today
       </div>
-    </div>
-  </section>
-  <section class="top-companies">
-    <h2>🏢 Top Hiring Companies</h2>
-    <div class="company-list">
-      <div *ngFor="let c of companies | slice:0:10">
-        <img [src]="getCompanyLogo(c.name)" (error)="onImgError($event)" alt="company" />
-        <p>{{ c.name }}</p>
+
+      <div class="trust-badges">
+        <span class="trust-chip"><i class="bi bi-check-circle-fill text-indigo"></i> 50K+ Users</span>
+        <span class="trust-chip"><i class="bi bi-check-circle-fill text-emerald"></i> Verified Listings</span>
+        <span class="trust-chip"><i class="bi bi-check-circle-fill text-pink"></i> Zero Spam</span>
       </div>
+
+      <button class="cta-outline-btn" (click)="goToJobs()">
+        Browse All Listings <i class="bi bi-arrow-right"></i>
+      </button>
     </div>
   </section>
-  <!-- PROMO -->
-  <section class="promo">
-    <div class="promo-card">🚀 50,000+ Users</div>
-    <div class="promo-card">⚡ Daily Updates</div>
-    <div class="promo-card">🎯 Fresher Friendly</div>
-  </section>
-  <!-- STATS -->
-  <section class="stats">
-    <div>
-      <h2>{{ totalJobs }}</h2>
-      <p>Total Jobs</p>
-    </div>
-    <div>
-      <h2>{{ companies.length }}</h2>
-      <p>Companies</p>
-    </div>
-    <div>
-      <h2>24/7</h2>
-      <p>Updates</p>
-    </div>
-  </section>
-  <!-- ===============================
-       JOBS + FILTERS (NEW FIXED GRID)
-  ================================== -->
-  <section class="section">
-    <h2 class="text-center">🔥 Latest Jobs</h2>
-    <div class="jobs-wrapper">
-      <!-- FILTER COLUMN -->
-      <aside class="filters">
-        <h3>Filters</h3>
-        <div class="filter-group">
-          <label>Search</label>
-          <input [(ngModel)]="searchText" />
+
+  <!-- DAILY JOB PORTAL FEATURE -->
+  <section class="portal-promo-section">
+    <div class="container-wrap">
+      <div class="section-title-box text-center">
+        <span class="section-badge">Exclusive Feature</span>
+        <h2 class="promo-main-title">🚀 Introducing Daily Job Portal</h2>
+        <p class="promo-sub-title">This feature is <strong>NOT available anywhere else</strong> — built strictly for our students.</p>
+      </div>
+
+      <div class="promo-flex-grid">
+        <!-- LEFT: Info Panel -->
+        <div class="promo-info-card">
+          <div class="card-glow-indicator"></div>
+          <h3>💼 Receive 500+ New Openings Daily</h3>
+          <p class="promo-desc-lead">
+            Most candidates struggle not because of a lack of skills, but because they lack visibility on <strong>real, active job openings</strong>.
+          </p>
+          <p class="promo-desc-sub">
+            We built a automated job feed directly inside our learning workspace to bridge this gap.
+          </p>
+          <ul class="benefit-list">
+            <li>
+              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="bullet-text">Daily <strong>500+ corporate</strong> listings updated dynamically</div>
+            </li>
+            <li>
+              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="bullet-text">Fresh list published <strong>every morning at 8:00 AM</strong></div>
+            </li>
+            <li>
+              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="bullet-text">Strictly <strong>verified & active</strong> direct-apply linkages</div>
+            </li>
+            <li>
+              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="bullet-text">Dedicated filters for Freshers and Senior professionals</div>
+            </li>
+          </ul>
         </div>
-        <div class="filter-group">
-          <label>Location</label>
-          <select [(ngModel)]="selectedLocation">
-            <option value="">All</option>
-            <option>India</option>
-            <option>Hyderabad</option>
-            <option>Bangalore</option>
-            <option>Remote</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Experience</label>
-          <select [(ngModel)]="experience">
-            <option value="">All</option>
-            <option>0-1 yrs</option>
-            <option>1-3 yrs</option>
-            <option>3+ yrs</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Salary</label>
-          <select>
-            <option>Any</option>
-            <option>3-6 LPA</option>
-            <option>6-12 LPA</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Job Type</label>
-          <select>
-            <option>All</option>
-            <option>Full-time</option>
-            <option>Internship</option>
-          </select>
-        </div>
-        <button class="btn btn-primary w-100" (click)="goToJobs()">Apply</button>
-      </aside>
-      <!-- JOB GRID -->
-      <div class="jobs-grid">
-        <!-- SKELETON -->
-        <ng-container *ngIf="isLoading">
-          <div class="job-card skeleton" *ngFor="let x of skeletons">
-            <div class="sk-line title"></div>
-            <div class="sk-line small"></div>
-            <div class="sk-tags"><span></span><span></span><span></span></div>
-          </div>
-        </ng-container>
-        <!-- JOBS -->
-        <ng-container *ngIf="!isLoading">
-          <div class="job-card" *ngFor="let job of jobs | slice:0:9; trackBy: trackById" (click)="goToDetail(job.id)">
-            <span class="badge-new">NEW</span>
-            <div class="card-top">
-              <img [src]="getCompanyLogo(job.companyName)" />
-              <div class="info">
-                <h3>{{ job.title }}</h3>
-                <p>{{ job.companyName }}</p>
+
+        <!-- RIGHT: Interactive Access Box -->
+        <div class="promo-cta-box">
+          <div class="box-inner-glass">
+            <h4>🔥 Why is this a game changer?</h4>
+            <p>
+              Stop wasting hours manually searching across multiple boards. We aggregate everything you need in one clean dashboard.
+            </p>
+            
+            <div class="schedule-summary-box">
+              <div class="sched-row">
+                <span class="sched-lbl"><i class="bi bi-clock"></i> Update Schedule:</span>
+                <span class="sched-val">8:00 AM Morningly</span>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl"><i class="bi bi-building"></i> Coverage:</span>
+                <span class="sched-val">500+ Companies</span>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl"><i class="bi bi-shield-lock"></i> Access Tier:</span>
+                <span class="sched-val highlight-gold">Enrolled Students</span>
               </div>
             </div>
-            <div class="meta">
-              <span>📍 {{ job.location }}</span>
-              <span class="salary">💰 {{ job.salary || 'Not disclosed' }}</span>
-              <span>💼 {{ job.experience || '0-3 yrs' }}</span>
-            </div>
-            <div class="meta">
-              <span class="job-type">Full Time</span>
-              <span class="posted">⏰ 2 days ago</span>
-            </div>
-            <div class="skills">
-              <span *ngFor="let s of job.skills | slice: 0 : 3">{{ s }}</span>
-            </div>
-            <button class="btn btn-primary" (click)="goToDetail(job.id); $event.stopPropagation()">
-              View Job
+
+            <button class="enroll-action-btn" (click)="openEnrollModal()">
+              Request Access Now <i class="bi bi-lightning-charge"></i>
             </button>
           </div>
-        </ng-container>
+        </div>
+      </div>
+
+      <div class="promo-footer-tagline text-center">
+        <i class="bi bi-info-circle-fill text-primary"></i> No external searching required. We deliver verified openings directly to your learning dashboard.
       </div>
     </div>
   </section>
-  <section class="section trending-advanced">
-    <h2>🔥 Trending Skills</h2>
-    <p class="subtitle">Based on real-time hiring trends across top companies</p>
-    <div class="skills-cloud">
-      <span>Angular</span>
-      <span>React</span>
-      <span>Spring Boot</span>
-      <span>Python</span>
-      <span>AWS</span>
-    </div>
-    <!-- NEW FEATURE BOX -->
-    <div class="highlight-box">
-      <h3>🚀 Why Our Platform is Powerful?</h3>
-      <ul>
-        <li>✔ Aggregates jobs from multiple company career pages</li>
-        <li>✔ Daily automated job fetch at 8 AM</li>
-        <li>✔ Covers multiple job portals in one place</li>
-        <li>✔ No duplicate / outdated listings</li>
-      </ul>
-    </div>
-  </section>
-  <section class="section system-info">
-    <h2>⚙️ How Our Job Engine Works</h2>
-    <div class="system-grid">
-      <div class="system-card">
-        <h3>🔎 Smart Scraper</h3>
-        <p>Automatically scans multiple company career pages and job portals.</p>
-      </div>
-      <div class="system-card">
-        <h3>⏰ Daily Scheduler</h3>
-        <p>Runs every day at 8 AM to fetch the latest job openings.</p>
-      </div>
-      <div class="system-card">
-        <h3>📦 Unified Platform</h3>
-        <p>All jobs in one place — no need to check multiple sites.</p>
-      </div>
-      <div class="system-card">
-        <h3>⚡ Real-Time Updates</h3>
-        <p>Fresh listings delivered instantly with minimal delay.</p>
+
+  <!-- TOP COMPANIES CAROUSEL -->
+  <section class="hiring-brands-section">
+    <div class="container-wrap">
+      <h2 class="section-header-title">🏢 Hiring Partners & Brands</h2>
+      <div class="brands-marquee-wrap">
+        <div class="brand-item-card" *ngFor="let c of companies | slice:0:10">
+          <div class="brand-logo-frame">
+            <img [src]="getCompanyLogo(c.name)" (error)="onImgError($event)" alt="{{ c.name }}" />
+          </div>
+          <span class="brand-name">{{ c.name }}</span>
+        </div>
       </div>
     </div>
   </section>
+
+  <!-- QUICK STATS SECTION -->
+  <section class="stats-counter-section">
+    <div class="container-wrap">
+      <div class="counter-grid">
+        <div class="counter-card c-indigo">
+          <div class="count-num">{{ totalJobs > 0 ? totalJobs : '12,500+' }}</div>
+          <div class="count-lbl">Total Openings</div>
+        </div>
+        <div class="counter-card c-emerald">
+          <div class="count-num">{{ companies.length > 0 ? companies.length : '80+' }}</div>
+          <div class="count-lbl">Hiring Companies</div>
+        </div>
+        <div class="counter-card c-pink">
+          <div class="count-num">24/7</div>
+          <div class="count-lbl">Real-Time Refresh</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN JOB SEARCH AND LIST GRID -->
+  <section class="listings-section">
+    <div class="container-wrap">
+      <h2 class="section-header-title text-center"><i class="bi bi-stars text-indigo"></i> Explore Latest Openings</h2>
+      
+      <div class="landing-jobs-wrapper">
+        <!-- FILTER COLUMN (aside) -->
+        <aside class="filters-sidebar-card">
+          <div class="sidebar-top">
+            <i class="bi bi-funnel"></i>
+            <h3>Quick Filters</h3>
+          </div>
+          
+          <div class="filter-card-group">
+            <label>Search Keyword</label>
+            <div class="sidebar-input-wrapper">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="Title, skills..." [(ngModel)]="searchText" />
+            </div>
+          </div>
+
+          <div class="filter-card-group">
+            <label>Job Location</label>
+            <select [(ngModel)]="selectedLocation" class="sidebar-select">
+              <option value="">All Locations</option>
+              <option>India</option>
+              <option>Hyderabad</option>
+              <option>Bangalore</option>
+              <option>Remote</option>
+            </select>
+          </div>
+
+          <div class="filter-card-group">
+            <label>Experience Tier</label>
+            <select [(ngModel)]="experience" class="sidebar-select">
+              <option value="">All Experience</option>
+              <option>0-1 yrs</option>
+              <option>1-3 yrs</option>
+              <option>3+ yrs</option>
+            </select>
+          </div>
+
+          <button class="apply-filters-btn" (click)="goToJobs()">
+            Apply & Search <i class="bi bi-search"></i>
+          </button>
+        </aside>
+
+        <!-- JOB GRID -->
+        <div class="featured-jobs-grid">
+          <!-- SKELETONS -->
+          <ng-container *ngIf="isLoading">
+            <div class="landing-skeleton-card" *ngFor="let x of skeletons">
+              <div class="sk-shimmer"></div>
+              <div class="sk-header">
+                <div class="sk-circle"></div>
+                <div class="sk-text-wrap">
+                  <div class="sk-long-bar"></div>
+                  <div class="sk-short-bar"></div>
+                </div>
+              </div>
+              <div class="sk-tags-row"></div>
+            </div>
+          </ng-container>
+
+          <!-- ACTUAL JOBS -->
+          <ng-container *ngIf="!isLoading">
+            <article 
+              class="featured-job-card" 
+              *ngFor="let job of jobs | slice:0:9; trackBy: trackById" 
+              (click)="goToDetail(job.id)"
+            >
+              <span class="new-job-badge"><i class="bi bi-stars"></i> New</span>
+              
+              <div class="job-card-header">
+                <div class="logo-outer-box">
+                  <img [src]="getCompanyLogo(job.companyName)" (error)="onImgError($event)" alt="company logo" />
+                </div>
+                <div class="job-header-info">
+                  <h3 class="job-role-title">{{ job.title }}</h3>
+                  <span class="job-company-name">{{ job.companyName }}</span>
+                </div>
+              </div>
+
+              <div class="job-meta-badges">
+                <span class="job-badge location-lbl"><i class="bi bi-geo-alt"></i> {{ job.location }}</span>
+                <span class="job-badge exp-lbl"><i class="bi bi-briefcase"></i> {{ job.experience || 'Fresher' }}</span>
+                <span class="job-badge salary-lbl"><i class="bi bi-wallet2"></i> {{ job.salary || 'Not Disclosed' }}</span>
+              </div>
+
+              <div class="job-card-skills" *ngIf="job.skills && job.skills.length > 0">
+                <span class="skill-tag-pill" *ngFor="let s of job.skills | slice:0:3">{{ s }}</span>
+              </div>
+
+              <div class="job-card-footer">
+                <span class="posted-date-lbl"><i class="bi bi-clock"></i> Recently</span>
+                <button class="card-detail-action-btn" (click)="goToDetail(job.id); $event.stopPropagation()">
+                  View Details <i class="bi bi-arrow-right"></i>
+                </button>
+              </div>
+            </article>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRENDING SKILLS CLOUD -->
+  <section class="trending-skills-section">
+    <div class="container-wrap">
+      <h2>🔥 Trending Technologies</h2>
+      <p class="skills-subtitle">Based on active corporate recruitment profiles</p>
+      
+      <div class="skills-cloud-pills">
+        <span class="skills-cloud-pill" (click)="quickSearch('Angular')"><i class="bi bi-code-slash text-coral"></i> Angular</span>
+        <span class="skills-cloud-pill" (click)="quickSearch('React')"><i class="bi bi-braces text-sky"></i> React</span>
+        <span class="skills-cloud-pill" (click)="quickSearch('Spring Boot')"><i class="bi bi-terminal text-emerald"></i> Spring Boot</span>
+        <span class="skills-cloud-pill" (click)="quickSearch('Python')"><i class="bi bi-server text-amber"></i> Python</span>
+        <span class="skills-cloud-pill" (click)="quickSearch('AWS')"><i class="bi bi-cloud text-pink"></i> AWS</span>
+      </div>
+
+      <div class="highlight-info-box">
+        <h3>🚀 Why Our Job Discovery Engine is Powerful</h3>
+        <ul class="engine-benefits">
+          <li><i class="bi bi-check-circle-fill text-emerald"></i> Scrapes corporate career systems dynamically.</li>
+          <li><i class="bi bi-check-circle-fill text-emerald"></i> Scheduled cron synchronization every morning.</li>
+          <li><i class="bi bi-check-circle-fill text-emerald"></i> Aggregated and cleaned in a unified student workspace.</li>
+          <li><i class="bi bi-check-circle-fill text-emerald"></i> Outdated or expired listings are automatically pruned.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- TESTIMONIALS -->
-  <section class="section testimonials">
-    <h2>What Users Say</h2>
-    <div class="testimonial-grid">
-      <div class="testimonial-card">"Got job in 2 weeks!"</div>
-      <div class="testimonial-card">"Best platform!"</div>
+  <section class="testimonials-slider-section">
+    <div class="container-wrap">
+      <h2 class="text-center">Success Stories</h2>
+      <div class="testimonials-grid-layout">
+        <div class="testimonial-card-wrap">
+          <i class="bi bi-quote quote-mark"></i>
+          <p class="test-quote">"The daily job feed completely transformed my search. Found a remote developer opening updated that very morning and received a callback in 48 hours!"</p>
+          <div class="test-user">
+            <strong>- Anirudh K.</strong>
+            <span>Placed at Tech Mahindra</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card-wrap">
+          <i class="bi bi-quote quote-mark"></i>
+          <p class="test-quote">"No spam, direct application links, and updated daily. Excellent portal for graduates wanting to transition to tech hub roles in Bangalore."</p>
+          <div class="test-user">
+            <strong>- Shruti S.</strong>
+            <span>Placed at Deloitte India</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
-<!-- ===============================
-     NEW PAGES - TRAINING + DEMO
-================================== -->
-<section class="content-section">
-  <div class="container">
-    <h2>🚀 Free Training Demos</h2>
-    <p>
-      Join our free demo classes and experience our unique training approach. Get a taste of our
-      live coding sessions, real-time projects, and interview preparation techniques. Our expert
-      trainers will guide you through the learning process and help you build the skills needed to
-      succeed in the IT industry. Don't miss this opportunity to kickstart your career with us! Join our demo classes
-      and take the first step towards landing your dream job in IT. Our training programs are designed to equip you with
-      the practical skills, industry insights, and confidence needed to excel in your job search. Sign up for our free
-      demo classes today and see how we can help you achieve your career goals!

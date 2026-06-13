@@ -1,245 +1,459 @@
 <section class="checkout-page">
-  <div class="checkout-bg"></div>
+  <!-- AMBIENT EFFECTS -->
+  <div class="checkout-grid-bg"></div>
+  <div class="checkout-orb checkout-orb--1"></div>
+  <div class="checkout-orb checkout-orb--2"></div>
 
   <div class="checkout-shell">
+    <!-- ═══════ HEADER ═══════ -->
     <header class="checkout-header">
-      <div class="brand">
-        <img src="VidhuraTechIcon.png" alt="Vidhura Tech" />
-        <div>
+      <div class="header-brand">
+        <div class="brand-logo-box">
+          <i class="fa-solid fa-code"></i>
+        </div>
+        <div class="brand-text">
           <h3>Vidhura Tech</h3>
-          <p>Premium secure enrollment</p>
+          <p>Secure Enrollment Portal</p>
         </div>
       </div>
 
-      <div class="secure-pill">
-        <span></span>
+      <div class="header-secure-pill">
+        <span class="secure-dot"></span>
+        <i class="fa-solid fa-lock"></i>
         Razorpay Secure Checkout
       </div>
 
-      <div class="support-box">
-        <small>Need Help?</small>
-        <strong>+91 {{ supportNumber }}</strong>
+      <div class="header-support">
+        <button type="button" class="support-help-btn" routerLink="/checkout-help" title="Checkout Help">
+          <i class="fa-solid fa-circle-question"></i>
+        </button>
+        <div>
+          <small>Need Help?</small>
+          <strong>+91 {{ supportNumber }}</strong>
+        </div>
       </div>
     </header>
 
-    <section *ngIf="pageLoading()" class="loading-state">
-      <div class="spinner"></div>
+    <!-- ═══════ LOADING STATE ═══════ -->
+    <section *ngIf="pageLoading()" class="state-screen state-loading">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <i class="fa-solid fa-graduation-cap spinner-icon"></i>
+      </div>
       <h2>Preparing your checkout...</h2>
-      <p>Loading selected course and active batch.</p>
+      <p>Loading selected course and active batch details.</p>
     </section>
 
-    <section *ngIf="!pageLoading() && !selectedCourse" class="not-available">
-      <h1>Course not available for checkout</h1>
+    <!-- ═══════ NOT AVAILABLE STATE ═══════ -->
+    <section *ngIf="!pageLoading() && !selectedCourse" class="state-screen state-empty">
+      <div class="empty-icon-circle">
+        <i class="fa-solid fa-circle-exclamation"></i>
+      </div>
+      <h1>Course Not Available</h1>
       <p>This course does not have an active batch right now, so enrollment is disabled.</p>
-      <a routerLink="/">Back to Home</a>
+      <a routerLink="/" class="back-home-btn">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Home
+      </a>
     </section>
 
+    <!-- ═══════ MAIN CHECKOUT LAYOUT ═══════ -->
     <section *ngIf="!pageLoading() && selectedCourse && !paymentSuccess()" class="checkout-layout">
+
+      <!-- LEFT: COURSE PANEL -->
       <aside class="course-panel">
+        <!-- COURSE VISUAL -->
         <div class="course-visual" *ngIf="selectedCourse.thumbnailUrl">
           <img [src]="courseImage(selectedCourse.thumbnailUrl)" [alt]="selectedCourse.title" />
-          <div class="visual-overlay">
-            <span>{{ selectedCourse.level || 'Live Program' }}</span>
+          <div class="visual-gradient"></div>
+          <div class="visual-info">
+            <span class="visual-level-badge">
+              <i class="fa-solid fa-signal"></i>
+              {{ selectedCourse.level || 'Live Program' }}
+            </span>
             <strong>{{ selectedCourse.title }}</strong>
           </div>
         </div>
-
-        <div class="course-visual empty" *ngIf="!selectedCourse.thumbnailUrl">
-          <span>{{ selectedCourse.title?.charAt(0) }}</span>
+        <div class="course-visual course-visual--empty" *ngIf="!selectedCourse.thumbnailUrl">
+          <span class="visual-initial">{{ selectedCourse.title?.charAt(0) }}</span>
         </div>
 
-        <div class="course-content">
-          <div class="course-code">{{ selectedCourse.code || 'LIVE_COURSE' }}</div>
-          <h1>{{ selectedCourse.title }}</h1>
-          <p>
-            {{
-              selectedCourse.description ||
-                'Live training with projects, mentor support, interview preparation, and career guidance.'
-            }}
+        <!-- COURSE INFO -->
+        <div class="course-details">
+          <div class="course-code-badge">
+            <i class="fa-solid fa-tag"></i>
+            {{ selectedCourse.code || 'LIVE_COURSE' }}
+          </div>
+          <h1 class="course-title">{{ selectedCourse.title }}</h1>
+          <p class="course-desc">
+            {{ selectedCourse.description || 'Live training with projects, mentor support, interview preparation, and
+            career guidance.' }}
           </p>
 
-          <div class="price-card">
-            <div>
-              <small>Total Amount</small>
-              <strong>₹{{ formatPrice(formData.amount) }}</strong>
-            </div>
-
-            <em *ngIf="selectedCourse.oldPrice">₹{{ formatPrice(selectedCourse.oldPrice) }}</em>
-          </div>
-
-          <div class="summary-grid">
-            <div>
-              <span>Batch</span>
-              <b>{{ formData.batch }}</b>
-            </div>
-
-            <div>
-              <span>Duration</span>
-              <b>{{ selectedCourse.duration }}</b>
-            </div>
-
-            <div>
-              <span>Level</span>
-              <b>{{ selectedCourse.level || 'All Levels' }}</b>
-            </div>
-
-            <div>
-              <span>Payment</span>
-              <b>Online Secure</b>
+          <!-- PRICE CARD -->
+          <div class="price-highlight-card">
+            <div class="price-main">
+              <div class="price-left">
+                <span class="price-label">
+                  <i class="fa-solid fa-indian-rupee-sign"></i>
+                  Total Amount
+                </span>
+                <strong class="price-value">₹{{ formatPrice(formData.amount) }}</strong>
+              </div>
+              <div class="price-right" *ngIf="selectedCourse.oldPrice">
+                <span class="price-strike">₹{{ formatPrice(selectedCourse.oldPrice) }}</span>
+                <span class="price-save-badge">
+                  <i class="fa-solid fa-arrow-trend-down"></i>
+                  Save ₹{{ formatPrice(selectedCourse.oldPrice - formData.amount) }}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div class="highlight-list" *ngIf="selectedCourse.highlights?.length">
-            <span *ngFor="let item of selectedCourse.highlights.slice(0, 4)">
+          <!-- SUMMARY GRID -->
+          <div class="info-grid">
+            <div class="info-cell">
+              <div class="info-icon info-icon--blue"><i class="fa-solid fa-users-rectangle"></i></div>
+              <div class="info-body">
+                <span>Batch</span>
+                <b>{{ formData.batch }}</b>
+              </div>
+            </div>
+            <div class="info-cell">
+              <div class="info-icon info-icon--purple"><i class="fa-solid fa-clock"></i></div>
+              <div class="info-body">
+                <span>Duration</span>
+                <b>{{ selectedCourse.duration }}</b>
+              </div>
+            </div>
+            <div class="info-cell">
+              <div class="info-icon info-icon--teal"><i class="fa-solid fa-layer-group"></i></div>
+              <div class="info-body">
+                <span>Level</span>
+                <b>{{ selectedCourse.level || 'All Levels' }}</b>
+              </div>
+            </div>
+            <div class="info-cell">
+              <div class="info-icon info-icon--green"><i class="fa-solid fa-shield-halved"></i></div>
+              <div class="info-body">
+                <span>Payment</span>
+                <b>Online Secure</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- HIGHLIGHTS -->
+          <div class="highlight-chips" *ngIf="selectedCourse.highlights?.length">
+            <span class="highlight-chip" *ngFor="let item of selectedCourse.highlights.slice(0, 4)">
+              <i class="fa-solid fa-circle-check"></i>
               {{ item }}
             </span>
+          </div>
+
+          <!-- WHAT YOU GET -->
+          <div class="whats-included">
+            <h6 class="whats-title">
+              <i class="fa-solid fa-gift"></i>
+              What's Included
+            </h6>
+            <div class="included-list">
+              <div class="included-item">
+                <i class="fa-solid fa-video"></i>
+                <span>Live Classes</span>
+              </div>
+              <div class="included-item">
+                <i class="fa-solid fa-laptop-code"></i>
+                <span>Hands-on Projects</span>
+              </div>
+              <div class="included-item">
+                <i class="fa-solid fa-certificate"></i>
+                <span>Certification</span>
+              </div>
+              <div class="included-item">
+                <i class="fa-solid fa-handshake"></i>
+                <span>Placement Support</span>
+              </div>
+            </div>
           </div>
         </div>
       </aside>
 
+      <!-- RIGHT: FORM PANEL -->
       <main class="form-panel">
         <div class="form-card">
-          <div class="form-heading">
-            <span>Complete Enrollment</span>
-            <h2>Student Details</h2>
-            <p>Enter correct details. Invoice and access updates go to this email and mobile.</p>
+          <!-- STEPPER -->
+          <div class="checkout-stepper">
+            <div class="step step--done">
+              <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <span>Course</span>
+            </div>
+            <div class="step-line step-line--done"></div>
+            <div class="step step--active">
+              <div class="step-circle"><span>2</span></div>
+              <span>Details</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step">
+              <div class="step-circle"><span>3</span></div>
+              <span>Payment</span>
+            </div>
           </div>
 
-          <div class="form-grid">
-            <label [class.invalid]="formErrors['name']">
-              <span>Full Name</span>
-              <input [(ngModel)]="formData.name" placeholder="Enter full name" />
-              <small>{{ formErrors['name'] }}</small>
-            </label>
+          <!-- HEADING -->
+          <div class="form-heading">
+            <div class="heading-badge">
+              <i class="fa-solid fa-user-pen"></i>
+              <span>Step 2 of 3</span>
+            </div>
+            <h2>Billing Details</h2>
+            <p>Enter correct details — invoice and access updates go to this email and mobile.</p>
+          </div>
 
-            <label [class.invalid]="formErrors['phone']">
-              <span>Mobile Number</span>
-              <input
-                [(ngModel)]="formData.phone"
-                maxlength="10"
-                placeholder="10 digit mobile"
-                [class.valid]="isValidPhone()"
-              />
-              <small>{{ formErrors['phone'] }}</small>
-            </label>
+          <!-- FORM FIELDS -->
+          <div class="ck-form-grid">
+            <!-- Full Name -->
+            <div class="ck-field" [class.ck-field--error]="formErrors['name']"
+              [class.ck-field--valid]="formData.name && formData.name.trim().length >= 3 && !formErrors['name']">
+              <label class="ck-label" for="ck-name">
+                <i class="fa-solid fa-user"></i>
+                Full Name <span class="ck-req">*</span>
+              </label>
+              <div class="ck-input-wrap">
+                <input [(ngModel)]="formData.name" (ngModelChange)="onFieldChange()" placeholder="Enter your full name"
+                  class="ck-input" id="ck-name" />
+                <i class="fa-solid fa-circle-check ck-valid-icon"
+                  *ngIf="formData.name && formData.name.trim().length >= 3 && !formErrors['name']"></i>
+                <i class="fa-solid fa-circle-xmark ck-invalid-icon" *ngIf="formErrors['name']"></i>
+              </div>
+              <small class="ck-error" *ngIf="formErrors['name']">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ formErrors['name'] }}
+              </small>
+            </div>
 
-            <label [class.invalid]="formErrors['email']">
-              <span>Email Address</span>
-              <input
-                [(ngModel)]="formData.email"
-                placeholder="student@email.com"
-                [class.valid]="isValidEmail()"
-              />
-              <small>{{ formErrors['email'] }}</small>
-            </label>
+            <!-- Mobile Number -->
+            <div class="ck-field" [class.ck-field--error]="formErrors['phone']"
+              [class.ck-field--valid]="isValidPhone() && !formErrors['phone']">
+              <label class="ck-label" for="ck-phone">
+                <i class="fa-solid fa-phone"></i>
+                Mobile Number <span class="ck-req">*</span>
+              </label>
+              <div class="ck-input-wrap">
+                <input [(ngModel)]="formData.phone" (ngModelChange)="onFieldChange()" maxlength="10"
+                  placeholder="10 digit mobile number" class="ck-input" id="ck-phone" />
+                <i class="fa-solid fa-circle-check ck-valid-icon" *ngIf="isValidPhone() && !formErrors['phone']"></i>
+                <i class="fa-solid fa-circle-xmark ck-invalid-icon" *ngIf="formErrors['phone']"></i>
+              </div>
+              <small class="ck-error" *ngIf="formErrors['phone']">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ formErrors['phone'] }}
+              </small>
+            </div>
 
-            <label [class.invalid]="formErrors['city']">
-              <span>City</span>
-              <input [(ngModel)]="formData.city" placeholder="Your city" />
-              <small>{{ formErrors['city'] }}</small>
-            </label>
+            <!-- Email Address -->
+            <div class="ck-field" [class.ck-field--error]="formErrors['email']"
+              [class.ck-field--valid]="isValidEmail() && !formErrors['email']">
+              <label class="ck-label" for="ck-email">
+                <i class="fa-solid fa-envelope"></i>
+                Email Address <span class="ck-req">*</span>
+              </label>
+              <div class="ck-input-wrap">
+                <input [(ngModel)]="formData.email" (ngModelChange)="onFieldChange()" placeholder="student@email.com"
+                  class="ck-input" id="ck-email" />
+                <i class="fa-solid fa-circle-check ck-valid-icon" *ngIf="isValidEmail() && !formErrors['email']"></i>
+                <i class="fa-solid fa-circle-xmark ck-invalid-icon" *ngIf="formErrors['email']"></i>
+              </div>
+              <small class="ck-error" *ngIf="formErrors['email']">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ formErrors['email'] }}
+              </small>
+            </div>
 
-            <label class="full" [class.invalid]="formErrors['experience']">
-              <span>Current Status</span>
-              <select [(ngModel)]="formData.experience">
-                <option value="">Select status</option>
+            <!-- City -->
+            <div class="ck-field" [class.ck-field--error]="formErrors['city']"
+              [class.ck-field--valid]="formData.city && formData.city.trim().length >= 2 && !formErrors['city']">
+              <label class="ck-label" for="ck-city">
+                <i class="fa-solid fa-location-dot"></i>
+                City <span class="ck-req">*</span>
+              </label>
+              <div class="ck-input-wrap">
+                <input [(ngModel)]="formData.city" (ngModelChange)="onFieldChange()" placeholder="Your city"
+                  class="ck-input" id="ck-city" />
+                <i class="fa-solid fa-circle-check ck-valid-icon"
+                  *ngIf="formData.city && formData.city.trim().length >= 2 && !formErrors['city']"></i>
+                <i class="fa-solid fa-circle-xmark ck-invalid-icon" *ngIf="formErrors['city']"></i>
+              </div>
+              <small class="ck-error" *ngIf="formErrors['city']">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ formErrors['city'] }}
+              </small>
+            </div>
+
+            <!-- Current Status -->
+            <div class="ck-field ck-field--full" [class.ck-field--error]="formErrors['experience']"
+              [class.ck-field--valid]="formData.experience && !formErrors['experience']">
+              <label class="ck-label" for="ck-experience">
+                <i class="fa-solid fa-briefcase"></i>
+                Current Status <span class="ck-req">*</span>
+              </label>
+              <select [(ngModel)]="formData.experience" (ngModelChange)="onFieldChange()" class="ck-select"
+                id="ck-experience">
+                <option value="">Select your current status</option>
                 <option>Student</option>
                 <option>Fresher</option>
                 <option>Working Professional</option>
                 <option>Career Switcher</option>
               </select>
-              <small>{{ formErrors['experience'] }}</small>
-            </label>
+              <small class="ck-error" *ngIf="formErrors['experience']">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ formErrors['experience'] }}
+              </small>
+            </div>
           </div>
 
-          <div class="payment-review">
-            <div>
-              <span>Selected Course</span>
+          <!-- PAYMENT REVIEW -->
+          <div class="pay-review">
+            <h6 class="review-title">
+              <i class="fa-solid fa-receipt"></i>
+              Order Summary
+            </h6>
+            <div class="review-row">
+              <span><i class="fa-solid fa-book-open"></i> Course</span>
               <strong>{{ formData.course }}</strong>
             </div>
-
-            <div>
-              <span>Active Batch</span>
+            <div class="review-row">
+              <span><i class="fa-solid fa-users-rectangle"></i> Batch</span>
               <strong>{{ formData.batch }}</strong>
             </div>
-
-            <div>
-              <span>Amount Payable</span>
+            <div class="review-row review-row--total">
+              <span><i class="fa-solid fa-indian-rupee-sign"></i> Amount Payable</span>
               <strong>₹{{ formatPrice(formData.amount) }}</strong>
             </div>
           </div>
 
+          <!-- GATEWAY CARD -->
           <div class="gateway-card">
-            <div class="gateway-icon">₹</div>
-            <div>
-              <h3>Razorpay Payment Gateway</h3>
-              <p>UPI, cards, netbanking, wallets, and EMI supported where available.</p>
+            <div class="gateway-icon-box">
+              <i class="fa-solid fa-credit-card"></i>
             </div>
-            <span>Recommended</span>
+            <div class="gateway-info">
+              <h3>Razorpay Payment Gateway</h3>
+              <p>UPI, cards, netbanking, wallets, and EMI supported.</p>
+              <!-- PAYMENT METHOD ICONS -->
+              <div class="pay-method-icons">
+                <span class="method-icon" title="UPI"><i class="fa-solid fa-mobile-screen"></i></span>
+                <span class="method-icon" title="Credit/Debit Card"><i class="fa-solid fa-credit-card"></i></span>
+                <span class="method-icon" title="Net Banking"><i class="fa-solid fa-building-columns"></i></span>
+                <span class="method-icon" title="Wallet"><i class="fa-solid fa-wallet"></i></span>
+              </div>
+            </div>
+            <span class="gateway-rec-badge">
+              <i class="fa-solid fa-circle-check"></i>
+              Recommended
+            </span>
           </div>
 
-          <div class="trust-row">
-            <span>Secure Payment</span>
-            <span>Instant Invoice</span>
-            <span>Access After Verification</span>
+          <!-- TRUST ROW -->
+          <div class="ck-trust-row">
+            <div class="trust-pill">
+              <i class="fa-solid fa-lock"></i>
+              <span>256-bit Secure</span>
+            </div>
+            <div class="trust-pill">
+              <i class="fa-solid fa-file-invoice"></i>
+              <span>Instant Invoice</span>
+            </div>
+            <div class="trust-pill">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>Refund Policy</span>
+            </div>
           </div>
 
-          <div
-            class="form-error"
-            *ngIf="formErrors['batch'] || formErrors['course'] || formErrors['amount']"
-          >
+          <!-- FORM ERROR -->
+          <div class="ck-form-alert" *ngIf="formErrors['batch'] || formErrors['course'] || formErrors['amount']">
+            <i class="fa-solid fa-triangle-exclamation"></i>
             {{ formErrors['batch'] || formErrors['course'] || formErrors['amount'] }}
           </div>
 
-          <button
-            class="pay-button"
-            type="button"
-            [disabled]="loading() || !canPay()"
-            (click)="startCheckoutAndPay()"
-          >
-            <span *ngIf="!loading()">Pay ₹{{ formatPrice(formData.amount) }}</span>
-            <span *ngIf="loading()">Starting Payment...</span>
+          <!-- PAY BUTTON -->
+          <button class="ck-pay-btn" type="button" [disabled]="loading()" (click)="startCheckoutAndPay()"
+            id="ck-pay-btn">
+            <span *ngIf="!loading()" class="pay-btn-content">
+              <i class="fa-solid fa-lock"></i>
+              Pay ₹{{ formatPrice(formData.amount) }} Securely
+              <i class="fa-solid fa-arrow-right pay-arrow"></i>
+            </span>
+            <span *ngIf="loading()" class="pay-btn-content">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              Starting Payment...
+            </span>
           </button>
 
-          <p class="fine-print">
-            By continuing, you confirm that the selected course and batch details are correct.
+          <p class="ck-fine-print">
+            <i class="fa-solid fa-shield-halved"></i>
+            Your payment is protected by 256-bit SSL encryption. By continuing, you confirm the selected course details
+            are correct.
           </p>
         </div>
       </main>
     </section>
 
+    <!-- ═══════ SUCCESS SCREEN ═══════ -->
     <section *ngIf="paymentSuccess()" class="success-screen">
-      <div class="success-icon">✓</div>
-      <span>Payment Successful</span>
-      <h1>Enrollment Completed</h1>
-      <p>Your enrollment for {{ formData.course }} is confirmed.</p>
-
-      <div class="success-card">
-        <div>
-          <span>Invoice ID</span>
-          <strong>{{ invoiceId }}</strong>
-        </div>
-
-        <div>
-          <span>Course</span>
-          <strong>{{ formData.course }}</strong>
-        </div>
-
-        <div>
-          <span>Batch</span>
-          <strong>{{ formData.batch }}</strong>
-        </div>
-
-        <div>
-          <span>Amount</span>
-          <strong>₹{{ formatPrice(formData.amount) }}</strong>
-        </div>
+      <div class="success-orb"></div>
+      <!-- CONFETTI -->
+      <div class="success-confetti">
+        <span *ngFor="let i of [].constructor(50); let idx = index" class="confetti-bit"
+          [ngClass]="{'cb-square': idx % 3 === 0, 'cb-circle': idx % 3 === 1, 'cb-triangle': idx % 3 === 2}"
+          [style.left.%]="idx * 2" [style.animationDelay]="idx * 0.06 + 's'"
+          [style.animationDuration]="3 + (idx % 4) + 's'"></span>
       </div>
+      <div class="success-content">
+        <!-- CHECK ANIMATION -->
+        <div class="success-check-wrap">
+          <div class="success-ring"></div>
+          <div class="success-check-circle">
+            <i class="fa-solid fa-check"></i>
+          </div>
+        </div>
 
-      <button type="button" (click)="goToAccess()">Access Course</button>
+        <span class="success-tag">
+          <i class="fa-solid fa-circle-check"></i>
+          Payment Successful
+        </span>
+        <h1>Enrollment Completed! 🎉</h1>
+        <p>Your enrollment for <strong>{{ formData.course }}</strong> is confirmed. Check your email for details.</p>
+
+        <!-- SUCCESS DETAILS -->
+        <div class="success-details-card">
+          <div class="sd-row">
+            <span><i class="fa-solid fa-hashtag"></i> Invoice ID</span>
+            <strong>{{ invoiceId }}</strong>
+          </div>
+          <div class="sd-row">
+            <span><i class="fa-solid fa-book-open"></i> Course</span>
+            <strong>{{ formData.course }}</strong>
+          </div>
+          <div class="sd-row">
+            <span><i class="fa-solid fa-users-rectangle"></i> Batch</span>
+            <strong>{{ formData.batch }}</strong>
+          </div>
+          <div class="sd-row sd-row--highlight">
+            <span><i class="fa-solid fa-indian-rupee-sign"></i> Amount Paid</span>
+            <strong>₹{{ formatPrice(formData.amount) }}</strong>
+          </div>
+        </div>
+
+        <button type="button" (click)="goToAccess()" class="access-course-btn">
+          <i class="fa-solid fa-rocket"></i>
+          Access Your Course
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
     </section>
   </div>
 
+  <!-- INVOICE TEMPLATE (hidden) -->
   <div style="position: absolute; left: -9999px; top: 0">
     <app-invoice-template *ngIf="invoiceData" [data]="invoiceData" [today]="today">
     </app-invoice-template>

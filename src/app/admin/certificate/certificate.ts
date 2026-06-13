@@ -29,6 +29,12 @@ export class CertificateComponent implements OnInit {
   searchText = '';
   showCertPopup = false;
   searchTimeout: any;
+  // ================= SORTING & PAGINATION =================
+  sortColumn = 'issuedAt';
+  sortDirection: 'asc' | 'desc' = 'desc';
+  currentPage = 1;
+  pageSize = 5;
+  registrySearchText = '';
   constructor(private http: HttpClient, private cd: ChangeDetectorRef) { }
   ngOnInit() {
     this.loadCertificates();
@@ -36,8 +42,97 @@ export class CertificateComponent implements OnInit {
   // ================= LOAD =================
   loadCertificates() {
     this.http.get<any[]>(`${environment.apiUrl}/certificates`)
-      .subscribe(data => this.certificates = data);
+      .subscribe(data => {
+        this.certificates = data;
+        this.currentPage = 1;
+      });
     this.cd.detectChanges();
+  }
+  // ================= SORTING & PAGINATION =================
+  toggleSort(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+  }
+
+  get filteredAndSortedCertificates(): any[] {
+    let list = [...this.certificates];
+    if (this.registrySearchText) {
+      const search = this.registrySearchText.toLowerCase();
+      list = list.filter(c => 
+        (c.name || '').toLowerCase().includes(search) ||
+        (c.email || '').toLowerCase().includes(search) ||
+        (c.mobile || '').toLowerCase().includes(search) ||
+        (c.course || '').toLowerCase().includes(search) ||
+        (c.id || '').toLowerCase().includes(search)
+      );
+    }
+    list.sort((a, b) => {
+      let valA = a[this.sortColumn];
+      let valB = b[this.sortColumn];
+      if (this.sortColumn === 'issuedAt') {
+        valA = new Date(valA).getTime();
+        valB = new Date(valB).getTime();
+      } else {
+        valA = String(valA || '').toLowerCase();
+        valB = String(valB || '').toLowerCase();
+      }
+      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }
+
+  get paginatedCertificates(): any[] {
+    const list = this.filteredAndSortedCertificates;
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return list.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  get totalPages(): number {
+    const count = this.filteredAndSortedCertificates.length;
+    return Math.ceil(count / this.pageSize) || 1;
+  }
+
+  get pageNumbers(): number[] {
+    const total = this.totalPages;
+    const pages: number[] = [];
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  goToPage(page: number) {
+    this.currentPage = page;
+  }
+
+  get startIndex(): number {
+    if (this.filteredAndSortedCertificates.length === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get endIndex(): number {
+    const end = this.currentPage * this.pageSize;
+    const total = this.filteredAndSortedCertificates.length;
+    return end > total ? total : end;
   }
   // ================= GENERATE =================
   generateQRCode(id: string) {
@@ -134,5 +229,14 @@ export class CertificateComponent implements OnInit {
     const linkedInUrl =
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
     window.open(linkedInUrl, '_blank');
+  }
+
+  getInitials(name: string): string {
+    return String(name || 'ST')
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
   }
 }

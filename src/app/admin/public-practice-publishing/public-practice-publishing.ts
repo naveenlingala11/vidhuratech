@@ -814,6 +814,14 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
     this.selectedAttempt = null;
   }
 
+  copyCode(code: string): void {
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(
+      () => this.showToast('Source code copied to clipboard!'),
+      () => this.showToast('Failed to copy source code')
+    );
+  }
+
   trackById(_: number, item: any): number {
     return item.id;
   }

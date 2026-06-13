@@ -1,120 +1,388 @@
-<section class="trainer-students">
-  <div class="page-head">
-    <div>
-      <span>Trainer Control</span>
-      <h1>Students, Mock Requests & Results</h1>
-      <p>Registered students, interview requests, and assessment outcomes in one premium view.</p>
+<section class="ts-page">
+  <!-- Dynamic Alert Toast -->
+  <div class="ts-toast" *ngIf="toast" [class.ts-toast--error]="toastType === 'error'" [class.ts-toast--info]="toastType === 'info'">
+    <div class="toast-indicator"></div>
+    <div class="toast-content">
+      <i class="bi" [ngClass]="toastType === 'error' ? 'bi-exclamation-triangle-fill text-danger' : toastType === 'info' ? 'bi-info-circle-fill text-primary' : 'bi-check-circle-fill text-success'"></i>
+      <span>{{ toast }}</span>
     </div>
-    <input [(ngModel)]="search" placeholder="Search student, email, batch, course" />
   </div>
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
-  <div class="tabs">
-    <button [class.active]="activeTab === 'students'" (click)="activeTab = 'students'">
-      Students
-      <strong>{{ students.length }}</strong>
-    </button>
-    <button [class.active]="activeTab === 'mocks'" (click)="activeTab = 'mocks'">
-      Mock Requests
-      <strong>{{ mockRequests.length }}</strong>
-    </button>
-    <button [class.active]="activeTab === 'results'" (click)="activeTab = 'results'">
-      Results
-      <strong>{{ submissions.length }}</strong>
-    </button>
-  </div>
-  <article class="panel students-panel" *ngIf="activeTab === 'students'">
-    <div class="students-toolbar">
-      <div>
-        <span>Registered Learners</span>
-        <h2>Student Directory</h2>
+
+  <!-- Frosted Glass Hero Banner -->
+  <header class="ts-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="hero-mesh"></div>
+
+    <div class="ts-hero__body">
+      <div class="ts-hero__text">
+        <div class="ts-hero__eyebrow">
+          <i class="bi bi-mortarboard-fill me-1"></i> Trainer Command Center
+        </div>
+        <h1>Students, Mocks <span>& Results Hub</span></h1>
+        <p>Manage enrolled student profiles, schedule candidate mock interview requests, grade curriculum submissions, and monitor learning outcomes.</p>
       </div>
+      <div class="ts-hero__cta">
+        <button type="button" class="primary-btn action-btn white-style" (click)="load()">
+          <i class="bi bi-arrow-clockwise"></i> Refresh Hub
+        </button>
+        <button type="button" class="ghost-btn action-btn" (click)="exportStudents()" *ngIf="activeTab === 'students'">
+          <i class="bi bi-download"></i> Export Roster
+        </button>
+      </div>
+    </div>
+  </header>
 
-      <strong>{{ filteredStudents.length }} Students</strong>
+  <!-- Insights Telemetry Cards Deck -->
+  <div class="ts-stats">
+    <button type="button" class="ts-stat total-card" [class.ts-stat--active]="activeTab === 'students'" (click)="activeTab = 'students'">
+      <div class="card-glow"></div>
+      <div class="ts-stat__icon ts-stat__icon--indigo"><i class="bi bi-people-fill"></i></div>
+      <div class="ts-stat__data">
+        <small>Total Students</small>
+        <strong>{{ totalStudents }}</strong>
+        <span>Registered learners</span>
+      </div>
+    </button>
+
+    <button type="button" class="ts-stat active-card" (click)="activeTab = 'students'">
+      <div class="card-glow"></div>
+      <div class="ts-stat__icon ts-stat__icon--emerald"><i class="bi bi-shield-check"></i></div>
+      <div class="ts-stat__data">
+        <small>Active Roster</small>
+        <strong>{{ activeStudents }}</strong>
+        <span>Currently enrolled</span>
+      </div>
+    </button>
+
+    <button type="button" class="ts-stat batches-card" (click)="activeTab = 'students'">
+      <div class="card-glow"></div>
+      <div class="ts-stat__icon ts-stat__icon--violet"><i class="bi bi-collection-fill"></i></div>
+      <div class="ts-stat__data">
+        <small>Active cohorts</small>
+        <strong>{{ totalBatches }}</strong>
+        <span>Linked batches</span>
+      </div>
+    </button>
+
+    <button type="button" class="ts-stat mocks-card" [class.ts-stat--active]="activeTab === 'mocks'" (click)="activeTab = 'mocks'">
+      <div class="card-glow"></div>
+      <div class="ts-stat__icon ts-stat__icon--amber"><i class="bi bi-camera-video-fill"></i></div>
+      <div class="ts-stat__data">
+        <small>Mock Requests</small>
+        <strong>{{ mockRequests.length }}</strong>
+        <span>{{ pendingMocks }} pending review</span>
+      </div>
+    </button>
+
+    <button type="button" class="ts-stat results-card" [class.ts-stat--active]="activeTab === 'results'" (click)="activeTab = 'results'">
+      <div class="card-glow"></div>
+      <div class="ts-stat__icon ts-stat__icon--teal"><i class="bi bi-bar-chart-line-fill"></i></div>
+      <div class="ts-stat__data">
+        <small>Submissions</small>
+        <strong>{{ submissions.length }}</strong>
+        <span>{{ reviewedCount }} reviewed</span>
+      </div>
+    </button>
+
+    <button type="button" class="ts-stat courses-card" (click)="activeTab = 'students'">
+      <div class="card-glow"></div>
+      <div class="ts-stat__icon ts-stat__icon--cyan"><i class="bi bi-journal-bookmark-fill"></i></div>
+      <div class="ts-stat__data">
+        <small>Assigned tracks</small>
+        <strong>{{ totalCourses }}</strong>
+        <span>Programs active</span>
+      </div>
+    </button>
+  </div>
+
+  <!-- Segmented navigation tabs -->
+  <nav class="ts-tabs-bar">
+    <button type="button" class="ts-tab" [class.ts-tab--on]="activeTab === 'students'" (click)="activeTab = 'students'">
+      <i class="bi bi-people"></i>
+      <span>Students List</span>
+      <strong class="tab-badge">{{ totalStudents }}</strong>
+    </button>
+    <button type="button" class="ts-tab" [class.ts-tab--on]="activeTab === 'mocks'" (click)="activeTab = 'mocks'">
+      <i class="bi bi-camera-video"></i>
+      <span>Mock Requests</span>
+      <strong class="tab-badge">{{ mockRequests.length }}</strong>
+    </button>
+    <button type="button" class="ts-tab" [class.ts-tab--on]="activeTab === 'results'" (click)="activeTab = 'results'">
+      <i class="bi bi-bar-chart-line"></i>
+      <span>Grading Console</span>
+      <strong class="tab-badge">{{ submissions.length }}</strong>
+    </button>
+  </nav>
+
+  <!-- Loading state -->
+  <div class="ts-empty" *ngIf="loading">
+    <div class="spinner-loader"></div>
+    <h3>Synchronizing data</h3>
+    <p>Please wait while we update the workspace records...</p>
+  </div>
+
+  <!-- ═══════════ TAB 1: STUDENTS LIST ═══════════ -->
+  <ng-container *ngIf="!loading && activeTab === 'students'">
+    <!-- Floating Toolbar Panel -->
+    <div class="ts-toolbar">
+      <div class="ts-toolbar__row">
+        <label class="ts-search">
+          <i class="bi bi-search search-icon"></i>
+          <input [(ngModel)]="search" (ngModelChange)="resetStudentPage()" placeholder="Search students by name, email, batch, course..." class="search-input" />
+          <button *ngIf="search" type="button" (click)="search = ''" class="clear-search-btn"><i class="bi bi-x-lg"></i></button>
+        </label>
+        <div class="ts-toolbar__right">
+          <!-- Sort pills -->
+          <div class="ts-pills">
+            <button *ngFor="let sort of studentSortOptions" type="button" class="ts-pill" [class.ts-pill--on]="studentSortMode === sort" (click)="setStudentSort(sort)">
+              <i [class]="sortIcon(sort)"></i> <span>{{ sortLabel(sort) }}</span>
+            </button>
+          </div>
+          <!-- View selectors -->
+          <div class="ts-view">
+            <button type="button" class="view-btn" [class.ts-view--on]="viewMode === 'GRID'" (click)="setView('GRID')" title="Grid view"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+            <button type="button" class="view-btn" [class.ts-view--on]="viewMode === 'LIST'" (click)="setView('LIST')" title="List view"><i class="bi bi-list-ul"></i></button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="student-list" *ngIf="filteredStudents.length">
-      <article class="student-card" *ngFor="let s of filteredStudents">
-        <div class="student-profile">
-          <div class="avatar">
-            {{ getInitials(s.name) }}
-          </div>
+    <!-- Bulk actions bar -->
+    <div class="ts-bulk" *ngIf="filteredStudents.length">
+      <div class="ts-bulk__left">
+        <span class="bulk-count">Displaying <strong>{{ studentStartRecord }}–{{ studentEndRecord }}</strong> of {{ filteredStudents.length }} students</span>
+        <span class="ts-bulk__sel" *ngIf="selectedStudentCount">
+          <i class="bi bi-check2-square"></i>
+          <span>{{ selectedStudentCount }} selected</span>
+        </span>
+      </div>
+      <div class="ts-bulk__right">
+        <button type="button" class="bulk-action-btn" (click)="selectVisibleStudents()"><i class="bi bi-check-all"></i> Select Page</button>
+        <button type="button" class="bulk-action-btn" (click)="clearStudentSelection()" [disabled]="!selectedStudentCount"><i class="bi bi-x-circle"></i> Clear</button>
+        <button type="button" class="ts-bulk__export bulk-action-btn" (click)="exportStudents()"><i class="bi bi-download"></i> Export roster</button>
+      </div>
+    </div>
 
-          <div>
+    <!-- Cards Grid -->
+    <section class="ts-grid" [class.ts-grid--list]="viewMode === 'LIST'" *ngIf="filteredStudents.length">
+      <article class="ts-card" *ngFor="let s of pagedStudents; let i = index; trackBy: trackById"
+               [class.ts-card--sel]="isStudentSelected(s.id)"
+               [style.animation-delay]="(i * 40) + 'ms'">
+        <div class="ts-card__bar"></div>
+
+        <div class="ts-card__head">
+          <label class="custom-checkbox-wrapper">
+            <input type="checkbox" [checked]="isStudentSelected(s.id)" (change)="toggleStudentSelect(s.id)" class="checkbox-input" />
+            <span class="custom-checkbox"></span>
+          </label>
+          <span class="tag-badge tag-batch"><i class="bi bi-collection-fill"></i> {{ s.batch || 'Unassigned' }}</span>
+          <span class="tag-badge" [ngClass]="(s.status || 'ACTIVE') === 'ACTIVE' ? 'tag-active' : 'tag-rose'">
+            <i class="bi" [ngClass]="(s.status || 'ACTIVE') === 'ACTIVE' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+            <span>{{ s.status || 'ACTIVE' }}</span>
+          </span>
+        </div>
+
+        <div class="ts-card__profile">
+          <div class="ts-avatar">{{ getInitials(s.name) }}</div>
+          <div class="profile-copy">
             <h3>{{ s.name || 'Student' }}</h3>
-            <p>#{{ s.id }} · {{ s.email || 'No email' }}</p>
+            <p>ID #{{ s.id }} · {{ s.email || 'No email' }}</p>
           </div>
         </div>
 
-        <div class="student-info-grid">
-          <div>
-            <i class="bi bi-phone"></i>
-            <span>Phone</span>
-            <strong>{{ s.phone || 'Not added' }}</strong>
-          </div>
+        <div class="ts-card__meta">
+          <div class="meta-item"><i class="bi bi-envelope-fill"></i><span>Email Address</span><strong>{{ s.email || 'Not added' }}</strong></div>
+          <div class="meta-item"><i class="bi bi-phone-fill"></i><span>Phone Number</span><strong>{{ s.phone || 'Not added' }}</strong></div>
+          <div class="meta-item"><i class="bi bi-mortarboard-fill"></i><span>Program Track</span><strong>{{ s.course || 'Not set' }}</strong></div>
+          <div class="meta-item"><i class="bi bi-calendar3"></i><span>Cohort Batch</span><strong>{{ s.batch || 'Unassigned' }}</strong></div>
+        </div>
 
-          <div>
-            <i class="bi bi-collection"></i>
-            <span>Batch</span>
-            <strong>{{ s.batch || 'Not assigned' }}</strong>
-          </div>
+        <div class="ts-card__actions">
+          <button type="button" class="ts-act ts-act--detail" (click)="toggleStudentDetail(s.id)">
+            <i class="bi" [ngClass]="isStudentExpanded(s.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+            <span>{{ isStudentExpanded(s.id) ? 'Collapse' : 'Details' }}</span>
+          </button>
+          <button type="button" class="ts-act ts-act--email"><i class="bi bi-envelope-fill"></i> <span>Send Email</span></button>
+        </div>
 
-          <div>
-            <i class="bi bi-mortarboard"></i>
-            <span>Course</span>
-            <strong>{{ s.course || 'Course not set' }}</strong>
-          </div>
-
-          <div>
-            <i class="bi bi-shield-check"></i>
-            <span>Status</span>
-            <strong>
-              <b class="status-badge">{{ s.status || 'ACTIVE' }}</b>
-            </strong>
+        <div class="ts-card__detail" *ngIf="isStudentExpanded(s.id)">
+          <div class="ts-detail-grid">
+            <div class="detail-block"><i class="bi bi-person-badge-fill"></i><span>Candidate Name</span><strong>{{ s.name || 'N/A' }}</strong></div>
+            <div class="detail-block"><i class="bi bi-telephone-fill"></i><span>Direct Phone</span><strong>{{ s.phone || 'N/A' }}</strong></div>
+            <div class="detail-block"><i class="bi bi-geo-alt-fill"></i><span>Region Location</span><strong>{{ s.location || 'Not specified' }}</strong></div>
+            <div class="detail-block"><i class="bi bi-calendar-check-fill"></i><span>Joined Platform</span><strong>{{ s.joinedDate || 'Unknown' }}</strong></div>
           </div>
         </div>
       </article>
+    </section>
+
+    <!-- Pagination footer -->
+    <div class="ts-pager" *ngIf="filteredStudents.length">
+      <div class="ts-pager__info">Showing <strong>{{ studentStartRecord }}–{{ studentEndRecord }}</strong> of {{ filteredStudents.length }} records</div>
+      <div class="ts-pager__nav">
+        <button type="button" class="pager-arrow-btn" [disabled]="studentPage === 1" (click)="changeStudentPage(studentPage - 1)"><i class="bi bi-chevron-left"></i></button>
+        <button type="button" *ngFor="let p of studentPageNumbers" class="ta-pager__num" [class.ta-pager__num--on]="studentPage === p" (click)="changeStudentPage(p)">{{ p }}</button>
+        <button type="button" class="pager-arrow-btn" [disabled]="studentPage === studentTotalPages" (click)="changeStudentPage(studentPage + 1)"><i class="bi bi-chevron-right"></i></button>
+        
+        <div class="page-size-selector">
+          <select [ngModel]="studentPageSize" (ngModelChange)="changeStudentPageSize($event)" class="page-size-select">
+            <option [ngValue]="4">4 / page</option>
+            <option [ngValue]="8">8 / page</option>
+            <option [ngValue]="12">12 / page</option>
+            <option [ngValue]="16">16 / page</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div class="empty premium-empty" *ngIf="!filteredStudents.length">
-      <i class="bi bi-people"></i>
-      <h3>No students found</h3>
-      <p>Try another search term or refresh the page.</p>
+    <!-- Empty state -->
+    <div class="ts-empty" *ngIf="!filteredStudents.length">
+      <div class="ts-empty__icon"><i class="bi bi-people-fill"></i></div>
+      <h3>No candidates found</h3>
+      <p>We couldn't find any students matching your criteria.</p>
     </div>
-  </article>
-  <article class="cards-grid" *ngIf="activeTab === 'mocks'">
-    <div class="request-card" *ngFor="let item of mockRequests">
-      <div class="card-top">
-        <span class="badge">{{ item.status }}</span>
-        <small>{{ item.preferredDate }} {{ item.preferredTime }}</small>
-      </div>
-      <h3>{{ item.student }}</h3>
-      <p>{{ item.topic }}</p>
-      <small>{{ item.batch }} - {{ item.email }}</small>
-      <input [(ngModel)]="item.meetingLink" placeholder="Meeting link" />
-      <textarea [(ngModel)]="item.trainerRemarks" placeholder="Remarks"></textarea>
-      <div class="actions">
-        <button (click)="updateMock(item, 'SCHEDULED')">Schedule</button>
-        <button (click)="updateMock(item, 'COMPLETED')">Complete</button>
-        <button class="danger" (click)="updateMock(item, 'REJECTED')">Reject</button>
-      </div>
-    </div>
-    <div class="empty" *ngIf="!mockRequests.length">No mock interview requests yet.</div>
-  </article>
-  <article class="panel" *ngIf="activeTab === 'results'">
-    <div class="result-list">
-      <div class="result-card" *ngFor="let sub of submissions">
-        <div>
-          <strong>{{ sub.student }}</strong>
-          <p>{{ sub.title }} - {{ sub.type }} - {{ sub.batch }}</p>
-          <small>{{ sub.submittedAt }}</small>
-        </div>
-        <div class="review-grid">
-          <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="Marks" />
-          <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Feedback" />
-          <button (click)="review(sub)">Save</button>
+  </ng-container>
+
+  <!-- ═══════════ TAB 2: MOCK REQUESTS ═══════════ -->
+  <ng-container *ngIf="!loading && activeTab === 'mocks'">
+    <!-- Mock toolbar -->
+    <div class="ts-toolbar">
+      <div class="ts-toolbar__row">
+        <label class="ts-search">
+          <i class="bi bi-search search-icon"></i>
+          <input [(ngModel)]="search" placeholder="Search mock requests..." class="search-input" />
+          <button *ngIf="search" type="button" (click)="search = ''" class="clear-search-btn"><i class="bi bi-x-lg"></i></button>
+        </label>
+        <div class="ts-toolbar__right">
+          <div class="ts-filter-pills">
+            <button *ngFor="let f of mockFilters" type="button" class="ts-pill" [class.ts-pill--on]="mockFilter === f" (click)="mockFilter = f">
+              <span>{{ f === 'ALL' ? 'All Status' : f[0] + f.slice(1).toLowerCase() }}</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="empty" *ngIf="!submissions.length">No submissions or results yet.</div>
     </div>
-  </article>
+
+    <!-- Mocks Grid -->
+    <section class="ts-mock-grid" *ngIf="filteredMocks.length">
+      <article class="ts-mock-card" *ngFor="let item of filteredMocks; let i = index; trackBy: trackById"
+               [style.animation-delay]="(i * 50) + 'ms'">
+        <div class="ts-mock-card__bar"></div>
+        
+        <div class="ts-mock-card__head">
+          <span class="tag-badge" [ngClass]="mockStatusColor(item.status)">
+            <i [class]="mockStatusIcon(item.status) + ' me-1'"></i>
+            <span>{{ item.status }}</span>
+          </span>
+          <small class="preferred-time"><i class="bi bi-calendar3-fill me-1 text-primary"></i>{{ item.preferredDate }} · {{ item.preferredTime }}</small>
+        </div>
+
+        <div class="ts-mock-card__profile">
+          <div class="ts-avatar ts-avatar--sm">{{ getInitials(item.student) }}</div>
+          <div class="profile-copy">
+            <h3>{{ item.student }}</h3>
+            <p>{{ item.batch }} · {{ item.email }}</p>
+          </div>
+        </div>
+
+        <div class="ts-mock-card__topic">
+          <i class="bi bi-chat-left-text-fill explain-bulb"></i>
+          <div class="topic-content">
+            <span>Interview target focus</span>
+            <p>{{ item.topic }}</p>
+          </div>
+        </div>
+
+        <div class="ts-mock-card__inputs">
+          <div class="ts-input-group">
+            <label class="input-label"><i class="bi bi-link-45deg"></i> Meeting session URL</label>
+            <input [(ngModel)]="item.meetingLink" placeholder="Paste Zoom or Meet coordinates..." class="modern-input" />
+          </div>
+          <div class="ts-input-group mt-2">
+            <label class="input-label"><i class="bi bi-chat-dots"></i> Feedback Remarks</label>
+            <textarea [(ngModel)]="item.trainerRemarks" placeholder="Add candidate remarks or rejection reason..." rows="2" class="modern-textarea"></textarea>
+          </div>
+        </div>
+
+        <div class="ts-mock-card__actions">
+          <button type="button" class="ts-act ts-act--schedule" (click)="updateMock(item, 'SCHEDULED')"><i class="bi bi-calendar2-check-fill"></i> Schedule</button>
+          <button type="button" class="ts-act ts-act--complete" (click)="updateMock(item, 'COMPLETED')"><i class="bi bi-patch-check-fill"></i> Complete</button>
+          <button type="button" class="ts-act ts-act--reject" (click)="updateMock(item, 'REJECTED')"><i class="bi bi-x-octagon-fill"></i> Reject</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Empty mocks state -->
+    <div class="ts-empty" *ngIf="!filteredMocks.length">
+      <div class="ts-empty__icon ts-empty__icon--amber"><i class="bi bi-camera-video-off-fill"></i></div>
+      <h3>No mock requests</h3>
+      <p>We couldn't find any student requests matching the current filter parameters.</p>
+    </div>
+  </ng-container>
+
+  <!-- ═══════════ TAB 3: GRADING CONSOLE ═══════════ -->
+  <ng-container *ngIf="!loading && activeTab === 'results'">
+    <!-- Results toolbar -->
+    <div class="ts-toolbar">
+      <div class="ts-toolbar__row">
+        <label class="ts-search">
+          <i class="bi bi-search search-icon"></i>
+          <input [(ngModel)]="search" placeholder="Search submissions..." class="search-input" />
+          <button *ngIf="search" type="button" (click)="search = ''" class="clear-search-btn"><i class="bi bi-x-lg"></i></button>
+        </label>
+        <div class="ts-toolbar__right">
+          <div class="ts-pills">
+            <button *ngFor="let sort of resultSortOptions" type="button" class="ts-pill" [class.ts-pill--on]="resultSort === sort" (click)="resultSort = sort">
+              <span>{{ resultSortLabel(sort) }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions list -->
+    <section class="ts-result-list" *ngIf="filteredSubmissions.length">
+      <article class="ts-result-card" *ngFor="let sub of filteredSubmissions; let i = index; trackBy: trackById"
+               [style.animation-delay]="(i * 40) + 'ms'">
+        <div class="ts-result-card__bar"></div>
+        
+        <div class="ts-result-card__info">
+          <div class="ts-avatar ts-avatar--sm">{{ getInitials(sub.student) }}</div>
+          <div class="profile-copy">
+            <strong>{{ sub.student }}</strong>
+            <p>{{ sub.title }} · {{ sub.type }}</p>
+            <small class="cohort-detail"><i class="bi bi-collection-fill me-1"></i>{{ sub.batch }} · <i class="bi bi-clock-fill me-1"></i>{{ sub.submittedAt }}</small>
+          </div>
+        </div>
+
+        <!-- Dynamic graded score ring -->
+        <div class="ts-result-card__score" *ngIf="sub.marks">
+          <div class="ts-ring" [ngClass]="getMarkColor(sub)">
+            <strong>{{ sub.marks }}<small>/{{ sub.totalMarks || '–' }}</small></strong>
+          </div>
+        </div>
+
+        <!-- Inline review form console -->
+        <div class="ts-result-card__review">
+          <div class="ts-input-group ts-input-group--inline">
+            <label class="input-label">Award Marks</label>
+            <input type="number" [(ngModel)]="reviewDraft[sub.id].marks" placeholder="0" class="modern-input" />
+          </div>
+          <div class="ts-input-group ts-input-group--inline ts-input-group--grow">
+            <label class="input-label">Evaluation Feedback</label>
+            <input [(ngModel)]="reviewDraft[sub.id].feedback" placeholder="Provide candidate constructive feedback remarks..." class="modern-input" />
+          </div>
+          <button type="button" class="ts-act ts-act--save" (click)="review(sub)"><i class="bi bi-floppy-fill"></i> <span>Save</span></button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Empty results state -->
+    <div class="ts-empty" *ngIf="!filteredSubmissions.length">
+      <div class="ts-empty__icon ts-empty__icon--teal"><i class="bi bi-clipboard2-data-fill"></i></div>
+      <h3>No submissions yet</h3>
+      <p>Results will be displayed here as student attempts compile and post.</p>
+    </div>
+  </ng-container>
 </section>

@@ -1,255 +1,458 @@
-<main class="prep-page">
-  <section class="prep-hero">
-    <img class="hero-image" src="career-training.png" alt="" />
+<main class="prep-page-container">
+  <!-- Interactive Ambient Backdrop Glows -->
+  <div class="prep-ambient-grid"></div>
+  <div class="neon-glow glow-blue"></div>
+  <div class="neon-glow glow-teal"></div>
+  <div class="neon-glow glow-purple"></div>
 
-    <div class="hero-overlay"></div>
-    <div class="hero-pattern"></div>
+  <!-- premium glassmorphic console hero -->
+  <section class="prep-hero-console">
+    <div class="console-grid-overlay"></div>
+    <img
+      class="console-hero-img"
+      src="career-training.png"
+      alt="Placement Preparation Dashboard Banner"
+    />
+    <div class="console-gradient-shade"></div>
 
-    <header class="hero-topbar">
-      <div class="brand">
-        <img src="VidhuraTechLogo.png" alt="VidhuraTech" />
-        <div>
+    <header class="console-top-nav">
+      <div class="console-brand-pill">
+        <div class="console-brand-logo-shell">
+          <img src="VidhuraTechLogo.png" alt="VidhuraTech Logo" />
+        </div>
+        <div class="console-brand-title">
           <strong>VidhuraTech</strong>
-          <span>Placement Preparation</span>
+          <span>Placement Hub v2.0</span>
         </div>
       </div>
 
-      <div class="access-pill">
-        <span class="access-dot"></span>
-        Registration required before attempt
+      <div class="console-status-pill">
+        <span class="pulse-beacon green"></span>
+        <span class="status-message">All Tracks Active</span>
       </div>
     </header>
 
-    <div class="hero-content">
-      <span class="hero-label">Company Preparation Library</span>
+    <div class="console-main-content">
+      <div class="hero-left-col">
+        <div class="tagline-badge">
+          <i class="fa-solid fa-rocket animate-float"></i>
+          <span>Accelerate Your Career</span>
+        </div>
 
-      <h1>Placement Preparation Hub</h1>
+        <h1>
+          Master the <span class="gradient-shine text-blue">Recruitment</span>
+          <br />
+          <span class="gradient-shine text-cyan">Workspaces</span>
+        </h1>
 
-      <p>
-        Build confidence for assessments, coding rounds and interviews with company-focused
-        preparation paths.
-      </p>
+        <p class="hero-description">
+          A premium collection of company-specific placement pipelines. Gain early access to
+          simulation tests, technical interview banks, and mock assessments designed by industry
+          experts.
+        </p>
 
-      <div class="hero-actions">
-        <a class="primary-action" href="#company-directory">
-          Explore Companies
-          <span aria-hidden="true">&rarr;</span>
-        </a>
+        <div class="hero-console-actions">
+          <a class="action-btn btn-glow-blue" href="#company-directory">
+            <span>Explore Workspaces</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <button type="button" class="action-btn btn-glass" (click)="selectTrack('PRODUCT')">
+            <i class="fa-solid fa-cube text-teal"></i>
+            <span>Product Tracks</span>
+          </button>
+        </div>
+      </div>
 
-        <button type="button" class="secondary-action" (click)="selectTrack('PRODUCT')">
-          Product Companies
-        </button>
+      <!-- Hero Interactive Quick-selector HUD -->
+      <div class="hero-right-col">
+        <div class="hud-console-card">
+          <div class="hud-header">
+            <i class="fa-solid fa-terminal text-cyan"></i>
+            <span>WORKSPACE CONSOLE</span>
+          </div>
+
+          <div class="hud-sectors">
+            <button
+              class="hud-sector-item"
+              (click)="selectTrack('PRODUCT')"
+              [class.active]="selectedTrack === 'PRODUCT'"
+            >
+              <div class="sector-icon ib-teal"><i class="fa-solid fa-microchip"></i></div>
+              <div class="sector-meta">
+                <strong>Product</strong>
+                <span>{{ productCount }} Companies</span>
+              </div>
+              <i class="fa-solid fa-chevron-right arrow-indicator"></i>
+            </button>
+
+            <button
+              class="hud-sector-item"
+              (click)="selectTrack('SERVICE')"
+              [class.active]="selectedTrack === 'SERVICE'"
+            >
+              <div class="sector-icon ib-blue"><i class="fa-solid fa-network-wired"></i></div>
+              <div class="sector-meta">
+                <strong>IT Services</strong>
+                <span>{{ serviceCount }} Companies</span>
+              </div>
+              <i class="fa-solid fa-chevron-right arrow-indicator"></i>
+            </button>
+
+            <button
+              class="hud-sector-item"
+              (click)="selectTrack('CONSULTING')"
+              [class.active]="selectedTrack === 'CONSULTING'"
+            >
+              <div class="sector-icon ib-amber"><i class="fa-solid fa-chart-pie"></i></div>
+              <div class="sector-meta">
+                <strong>Consulting</strong>
+                <span>{{ consultingCount }} Companies</span>
+              </div>
+              <i class="fa-solid fa-chevron-right arrow-indicator"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="hero-company-rail">
-      <span>Popular tracks</span>
-
-      <div class="rail-items">
+    <!-- Bottom popular logos ribbon -->
+    <div class="console-partners-ribbon">
+      <span class="ribbon-label">FEATURED PIPELINES</span>
+      <div class="ribbon-carousel">
         <button
           type="button"
+          class="ribbon-logo-btn"
           *ngFor="let company of featuredCompanies"
           (click)="openCompany(company)"
           [attr.aria-label]="'Open ' + company.name + ' preparation'"
         >
           <img [src]="company.logo" [alt]="company.name" />
+          <span class="logo-btn-tooltip">{{ company.name }}</span>
         </button>
       </div>
     </div>
   </section>
 
-  <section class="metrics-band" aria-label="Preparation library summary">
-    <article>
-      <strong>{{ companies.length }}</strong>
-      <span>Company Tracks</span>
-      <small>Curated preparation hubs</small>
-    </article>
+  <!-- Metrics HUD Panel -->
+  <section class="metrics-grid-hud" aria-label="Library metrics">
+    <div class="metric-hud-card border-blue">
+      <div class="metric-glow-bg"></div>
+      <div class="metric-card-inner">
+        <div class="metric-icon val-blue-glow">
+          <i class="fa-solid fa-server"></i>
+        </div>
+        <div class="metric-details">
+          <span class="metric-num">{{ companies.length }}</span>
+          <span class="metric-title">Active Tracks</span>
+          <span class="metric-sub">Verified preparation pipelines</span>
+        </div>
+      </div>
+    </div>
 
-    <article>
-      <strong>{{ serviceCount }}</strong>
-      <span>IT Services</span>
-      <small>Graduate hiring pathways</small>
-    </article>
+    <div class="metric-hud-card border-teal">
+      <div class="metric-glow-bg"></div>
+      <div class="metric-card-inner">
+        <div class="metric-icon val-teal-glow">
+          <i class="fa-solid fa-code-branch"></i>
+        </div>
+        <div class="metric-details">
+          <span class="metric-num">{{ serviceCount }}</span>
+          <span class="metric-title">IT Services Hub</span>
+          <span class="metric-sub">Aptitude & programming prep</span>
+        </div>
+      </div>
+    </div>
 
-    <article>
-      <strong>{{ productCount }}</strong>
-      <span>Product Companies</span>
-      <small>Technical role practice</small>
-    </article>
+    <div class="metric-hud-card border-amber">
+      <div class="metric-glow-bg"></div>
+      <div class="metric-card-inner">
+        <div class="metric-icon val-amber-glow">
+          <i class="fa-solid fa-laptop-code"></i>
+        </div>
+        <div class="metric-details">
+          <span class="metric-num">{{ productCount }}</span>
+          <span class="metric-title">Product Cohorts</span>
+          <span class="metric-sub">Advanced DSA & Core CS</span>
+        </div>
+      </div>
+    </div>
 
-    <article>
-      <strong>{{ consultingCount }}</strong>
-      <span>Consulting Firms</span>
-      <small>Advisory role readiness</small>
-    </article>
+    <div class="metric-hud-card border-purple">
+      <div class="metric-glow-bg"></div>
+      <div class="metric-card-inner">
+        <div class="metric-icon val-purple-glow">
+          <i class="fa-solid fa-diagram-project"></i>
+        </div>
+        <div class="metric-details">
+          <span class="metric-num">{{ consultingCount }}</span>
+          <span class="metric-title">Consulting Hub</span>
+          <span class="metric-sub">Case studies & tech advisory</span>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section class="recommended-band">
-    <div class="band-heading">
-      <div>
-        <span class="section-label">Recommended</span>
-        <h2>High-demand preparation tracks</h2>
+  <!-- High-demand paths spotlights -->
+  <section class="spotlights-deck">
+    <div class="spotlights-header">
+      <div class="header-left">
+        <span class="outline-label">RECOMMENDED COHORTS</span>
+        <h2>High-Demand Preparation Paths</h2>
+        <p>Direct routes to top tier placements based on hiring cycles.</p>
       </div>
 
-      <button type="button" class="text-action" (click)="resetFilters()">
-        View all companies
-        <span aria-hidden="true">&rarr;</span>
+      <button type="button" class="btn-action-outline" (click)="resetFilters()">
+        <span>Reset Filters</span>
+        <i class="fa-solid fa-rotate-left"></i>
       </button>
     </div>
 
-    <div class="recommended-grid">
+    <div class="spotlights-grid">
       <button
         type="button"
-        class="recommended-card"
+        class="spotlight-card-interactive"
         *ngFor="let company of featuredCompanies"
         [attr.data-accent]="company.accent"
         (click)="openCompany(company)"
       >
-        <div class="recommended-logo">
-          <img [src]="company.logo" [alt]="company.name" />
+        <div class="card-glow-reflection"></div>
+        <div class="spotlight-badge-glow">
+          <i class="fa-solid fa-fire text-amber"></i>
+          <span>POPULAR</span>
         </div>
 
-        <div class="recommended-copy">
-          <span>{{ trackLabel(company.track) }}</span>
-          <strong>{{ company.name }}</strong>
-          <small>{{ company.hiringRoute }}</small>
+        <div class="spotlight-brand">
+          <div class="spotlight-logo-shell">
+            <img [src]="company.logo" [alt]="company.name" />
+          </div>
+          <div class="spotlight-meta">
+            <strong>{{ company.name }}</strong>
+            <span>{{ trackLabel(company.track) }}</span>
+          </div>
         </div>
 
-        <div class="arrow-button" aria-hidden="true">&rarr;</div>
+        <div class="spotlight-divider"></div>
+
+        <div class="spotlight-details">
+          <span class="route-info-label">HIRING PATH</span>
+          <strong class="route-info-value">{{ company.hiringRoute }}</strong>
+        </div>
+
+        <div class="spotlight-arrow-indicator">
+          <span>Enter Workspace</span>
+          <i class="fa-solid fa-arrow-right-long"></i>
+        </div>
       </button>
     </div>
   </section>
 
-  <section class="directory-band" id="company-directory">
-    <div class="directory-header">
-      <div>
-        <span class="section-label">Directory</span>
-        <h2>Choose your target company</h2>
-        <p>Open a company workspace for mock tests, coding challenges and interview preparation.</p>
+  <!-- Directory Main Section -->
+  <section class="directory-console" id="company-directory">
+    <div class="directory-control-dock">
+      <div class="dock-header">
+        <div class="badge-title">
+          <i class="fa-solid fa-folder-open text-blue"></i>
+          <span>EXPLORE PIPELINES</span>
+        </div>
+        <h2>Company Workspaces Directory</h2>
+        <p>Filter by track or search companies to launch custom modules and mock dashboards.</p>
       </div>
 
-      <div class="result-summary">
-        <strong>{{ filteredCompanies.length }}</strong>
-        <span>results</span>
+      <!-- Filters Interface Panel -->
+      <div class="floating-filter-panel">
+        <!-- Search bar -->
+        <div class="filter-group-search">
+          <label for="search-input" class="filter-label">Search Companies</label>
+          <div class="search-input-shell">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input
+              id="search-input"
+              type="search"
+              [(ngModel)]="search"
+              placeholder="Search TCS, Coding, Amazon, SQL..."
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <!-- Segmented Track Tabs -->
+        <div class="filter-group-segments">
+          <label class="filter-label">Filter Sector</label>
+          <div class="segmented-control-capsule">
+            <button
+              type="button"
+              class="segment-pill"
+              *ngFor="let filter of trackFilters"
+              [class.active]="selectedTrack === filter.value"
+              (click)="selectTrack(filter.value)"
+            >
+              <span>{{ filter.label }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sort Select -->
+        <div class="filter-group-sort">
+          <label for="sort-select" class="filter-label">Sort Order</label>
+          <div class="select-shell">
+            <i class="fa-solid fa-arrow-down-wide-short select-icon"></i>
+            <select id="sort-select" [(ngModel)]="sortMode">
+              <option value="FEATURED">Featured First</option>
+              <option value="AZ">Alphabetical A-Z</option>
+              <option value="TRACK">Sort by Sector</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="directory-results-meta">
+        <span class="results-indicator">
+          Found <strong>{{ filteredCompanies.length }}</strong> matching workspaces
+        </span>
+        <button
+          type="button"
+          class="btn-text"
+          (click)="resetFilters()"
+          *ngIf="search || selectedTrack !== 'ALL'"
+        >
+          Clear Filters
+        </button>
       </div>
     </div>
 
-    <section class="filter-panel" aria-label="Company filters">
-      <label class="search-control">
-        <span>Search Companies</span>
-
-        <div>
-          <i aria-hidden="true"></i>
-          <input
-            type="search"
-            [(ngModel)]="search"
-            placeholder="Search TCS, coding, consulting..."
-            autocomplete="off"
-          />
-        </div>
-      </label>
-
-      <div class="track-control">
-        <span>Company Type</span>
-
-        <div class="segmented-control">
-          <button
-            type="button"
-            *ngFor="let filter of trackFilters"
-            [class.active]="selectedTrack === filter.value"
-            (click)="selectTrack(filter.value)"
-          >
-            {{ filter.label }}
-          </button>
-        </div>
-      </div>
-
-      <label class="sort-control">
-        <span>Sort By</span>
-
-        <select [(ngModel)]="sortMode">
-          <option value="FEATURED">Featured First</option>
-          <option value="AZ">Name A-Z</option>
-          <option value="TRACK">Company Type</option>
-        </select>
-      </label>
-    </section>
-
-    <div class="company-grid" *ngIf="filteredCompanies.length">
+    <!-- Company Grid List (3 Columns) -->
+    <div class="catalog-grid-3col" *ngIf="filteredCompanies.length">
       <article
-        class="company-card"
+        class="workspace-card-3d"
         *ngFor="let company of filteredCompanies; let i = index"
         [attr.data-accent]="company.accent"
-        [style.animation-delay.ms]="i * 28"
+        [style.animation-delay.ms]="i * 30"
       >
-        <header class="card-header">
-          <div class="company-logo">
+        <div class="card-top-accent-line"></div>
+        <div class="card-ambient-shadow"></div>
+
+        <header class="card-brand-header">
+          <div class="brand-logo-frame">
             <img [src]="company.logo" [alt]="company.name + ' logo'" />
           </div>
-
-          <span class="track-chip">{{ trackLabel(company.track) }}</span>
+          <span class="sector-tag-chip">{{ trackLabel(company.track) }}</span>
         </header>
 
-        <div class="card-copy">
+        <div class="card-body-content">
           <h3>{{ company.name }}</h3>
-          <p>{{ company.desc }}</p>
+          <p class="company-description-text">{{ company.desc }}</p>
+
+          <div class="focus-tags-ribbon">
+            <span class="focus-tag-badge" *ngFor="let topic of company.focus">
+              <i class="fa-solid fa-hashtag text-cyan"></i>
+              <span>{{ topic }}</span>
+            </span>
+          </div>
         </div>
 
-        <div class="focus-tags">
-          <span *ngFor="let topic of company.focus">{{ topic }}</span>
-        </div>
-
-        <div class="card-footer">
-          <div class="route-label">
-            <span>Preparation Route</span>
-            <strong>{{ company.hiringRoute }}</strong>
+        <footer class="card-action-footer">
+          <div class="route-details-group">
+            <span class="label">Prep Workspace</span>
+            <strong class="route-name-val">{{ company.hiringRoute }}</strong>
           </div>
 
           <button
             type="button"
-            class="open-company"
+            class="workspace-launch-btn"
             (click)="openCompany(company)"
             [attr.aria-label]="'Open ' + company.name + ' preparation'"
           >
-            Open
-            <span aria-hidden="true">&rarr;</span>
+            <span>Launch</span>
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
           </button>
-        </div>
+        </footer>
       </article>
     </div>
 
-    <section class="empty-results" *ngIf="!filteredCompanies.length">
-      <div class="empty-mark">VT</div>
-      <h2>No companies match your search</h2>
-      <p>Reset your filters to browse every available preparation track.</p>
-      <button type="button" class="primary-action" (click)="resetFilters()">Reset Filters</button>
-    </section>
+    <!-- Empty Results -->
+    <div class="empty-directory-panel" *ngIf="!filteredCompanies.length">
+      <div class="empty-illustration">
+        <i class="fa-solid fa-box-open empty-box-icon animate-bounce"></i>
+        <div class="illustration-glow"></div>
+      </div>
+      <h3>No Match Found</h3>
+      <p>
+        No preparation tracks matched your query. Try broadening your keywords or selecting another
+        sector.
+      </p>
+      <button type="button" class="action-btn btn-glow-blue" (click)="resetFilters()">
+        <span>View All Companies</span>
+      </button>
+    </div>
   </section>
 
-  <section class="journey-band">
-    <div class="journey-copy">
-      <span class="section-label">Preparation Journey</span>
-      <h2>One focused path for every hiring round</h2>
+  <!-- Interactive Timeline Journey Step Band -->
+  <section class="journey-dashboard">
+    <div class="journey-heading-center">
+      <span class="outline-label">HOW IT WORKS</span>
+      <h2>Your Placement Prep Roadmap</h2>
+      <p>Follow our structured training blueprint to unlock high-paying corporate roles.</p>
     </div>
 
-    <div class="journey-grid">
-      <article>
-        <span>01</span>
-        <strong>Choose Company</strong>
-        <p>Enter the preparation workspace aligned to your target employer.</p>
-      </article>
+    <div class="journey-roadmap-timeline">
+      <div class="timeline-progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
 
-      <article>
-        <span>02</span>
-        <strong>Register to Attempt</strong>
-        <p>Complete your details before starting tests or coding labs.</p>
-      </article>
+      <div class="roadmap-grid">
+        <!-- Step 1 -->
+        <article class="roadmap-step-card">
+          <div class="step-card-glow"></div>
+          <header class="step-card-header">
+            <div class="step-badge-node">01</div>
+            <div class="step-icon-capsule border-teal">
+              <i class="fa-solid fa-compass text-teal"></i>
+            </div>
+          </header>
+          <div class="step-card-body">
+            <h3>Choose Target Company</h3>
+            <p>
+              Locate the placement portal aligned with your dream employer to load custom modules.
+            </p>
+          </div>
+        </article>
 
-      <article>
-        <span>03</span>
-        <strong>Practice and Review</strong>
-        <p>Receive instant results and prepare for the next hiring stage.</p>
-      </article>
+        <!-- Step 2 -->
+        <article class="roadmap-step-card">
+          <div class="step-card-glow"></div>
+          <header class="step-card-header">
+            <div class="step-badge-node">02</div>
+            <div class="step-icon-capsule border-blue">
+              <i class="fa-solid fa-fingerprint text-blue"></i>
+            </div>
+          </header>
+          <div class="step-card-body">
+            <h3>Register & Unlock</h3>
+            <p>
+              Ensure you satisfy the eligibility checkpoints before gaining access to high-value
+              test mocks.
+            </p>
+          </div>
+        </article>
+
+        <!-- Step 3 -->
+        <article class="roadmap-step-card">
+          <div class="step-card-glow"></div>
+          <header class="step-card-header">
+            <div class="step-badge-node">03</div>
+            <div class="step-icon-capsule border-purple">
+              <i class="fa-solid fa-graduation-cap text-purple"></i>
+            </div>
+          </header>
+          <div class="step-card-body">
+            <h3>Simulate & Clear</h3>
+            <p>
+              Solve coding rounds, run mock tests, review answers, and walk into the interview
+              ready.
+            </p>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 </main>

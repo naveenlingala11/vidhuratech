@@ -16,6 +16,7 @@ import { Preparation } from './pages/preparation/preparation';
 import { Company } from './pages/company/company';
 import { CertificateView } from './certificate-view/certificate-view';
 import { Checkout } from './pages/checkout/checkout';
+import { CheckoutHelp } from './pages/checkout-help/checkout-help';
 import { CoursesComponent } from './pages/courses/courses';
 import { PublicPracticeComponent } from './features/public/public-practice/public-practice/public-practice';
 import { NotificationsComponent } from './components/notifications/notifications';
@@ -46,7 +47,6 @@ import { BinComponent } from './admin/bin/bin';
 import { JobPostAdmin } from './admin/jobs/jobs';
 import { CompaniesComponent } from './admin/companies/companies';
 import { CertificateComponent } from './admin/certificate/certificate';
-import { Questions } from './admin/questions/questions';
 import { InvoiceComponent } from './admin/invoice/invoice';
 import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
 import { ManageTrainersComponent } from './admin/manage-trainers/manage-trainers';
@@ -99,6 +99,7 @@ import { TrainerAssignedCoursesComponent } from './dashboard/trainer-pages/train
 import { AdminActionsComponent } from './admin/admin-actions.component/admin-actions.component';
 import { AdminUsersComponent } from './admin/admin-users.component/admin-users.component';
 import { AdminCreateUserComponent } from './admin/admin-create-users.component/admin-create-users.component';
+import { AdminUserGuideComponent } from './admin/user-guide/user-guide';
 import { CourseBulkUploadComponent } from './pages/courses/course-bulk-upload/course-bulk-upload';
 import { BatchCommunicationComponent } from './admin/batches/batch-communication/batch-communication';
 import { AdminAdmissionsComponent } from './dashboard/admin/admin-admissions/admin-admissions';
@@ -153,6 +154,7 @@ export const routes: Routes = [
   { path: 'company/:name', component: Company },
   { path: 'certificate/:id', component: CertificateView },
   { path: 'checkout', component: Checkout },
+  { path: 'checkout-help', component: CheckoutHelp },
 
   { path: 'courses/:slug', component: CourseDetailsComponent },
   { path: 'practice', component: PublicPracticeComponent },
@@ -179,14 +181,14 @@ export const routes: Routes = [
   ========================= */
   { path: 'admin', component: Admin },
   { path: 'admin-home', component: AdminHomeComponent },
-  { path: 'admin/leads', component: LeadsComponent },
+  { path: 'admin/leads', redirectTo: 'dashboard/admin/leads', pathMatch: 'full' },
   { path: 'admin/bin', component: BinComponent },
-  { path: 'admin/jobs', component: JobPostAdmin },
-  { path: 'admin/companies', component: CompaniesComponent },
-  { path: 'admin/certificates', component: CertificateComponent },
-  { path: 'admin/questions', component: Questions },
-  { path: 'admin/invoice', component: InvoiceComponent },
-  { path: 'invoice-analytics', component: InvoiceAnalytics },
+  { path: 'admin/jobs', redirectTo: 'dashboard/admin/jobs', pathMatch: 'full' },
+  { path: 'admin/companies', redirectTo: 'dashboard/admin/companies', pathMatch: 'full' },
+  { path: 'admin/certificates', redirectTo: 'dashboard/admin/certificates', pathMatch: 'full' },
+  { path: 'admin/invoice', redirectTo: 'dashboard/admin/invoice', pathMatch: 'full' },
+  { path: 'invoice-analytics', redirectTo: 'dashboard/admin/invoice-analytics', pathMatch: 'full' },
+  { path: 'admin/invoice-analytics', redirectTo: 'dashboard/admin/invoice-analytics', pathMatch: 'full' },
   { path: 'coding-contests', component: CodingContestsComponent },
   { path: 'pricing-plans', component: PricingPlansComponent },
   /* =========================
@@ -344,6 +346,26 @@ export const routes: Routes = [
         canActivate: [roleGuard(['ADMIN'])],
       },
       {
+        path: 'admin/leads',
+        component: LeadsComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/certificates',
+        component: CertificateComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/invoice-analytics',
+        component: InvoiceAnalytics,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/invoice',
+        component: InvoiceComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
         path: 'admin/users',
         component: AdminUsersComponent,
         canActivate: [roleGuard(['ADMIN'])],
@@ -361,6 +383,16 @@ export const routes: Routes = [
       {
         path: 'admin/course-bulk',
         component: CourseBulkUploadComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/jobs',
+        component: JobPostAdmin,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/companies',
+        component: CompaniesComponent,
         canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
       },
       {
@@ -391,6 +423,11 @@ export const routes: Routes = [
       {
         path: 'admin/plan-access',
         component: AdminPlanAccessComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
+        path: 'admin/user-guide',
+        component: AdminUserGuideComponent,
         canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
       },
 
@@ -636,3 +673,4 @@ export const routes: Routes = [
   ========================= */
   { path: '**', redirectTo: '' },
 ];
+// Trigger rebuild for AdminUserGuideComponent integration

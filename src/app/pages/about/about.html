@@ -1,263 +1,789 @@
-<div class="about-toast success" *ngIf="successMessage">
-  <div>
-    <strong>Success</strong>
-    <span>{{ successMessage }}</span>
+<!-- SUCCESS / ERROR TOASTS -->
+<div class="toast-container" *ngIf="successMessage || errorMessage">
+  <div class="custom-toast success" *ngIf="successMessage">
+    <div class="toast-icon">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div class="toast-body">
+      <strong>Success</strong>
+      <span>{{ successMessage }}</span>
+    </div>
+    <button type="button" class="toast-close" (click)="successMessage = ''">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
-  <button type="button" (click)="successMessage = ''">x</button>
+
+  <div class="custom-toast error" *ngIf="errorMessage">
+    <div class="toast-icon">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <div class="toast-body">
+      <strong>Oops!</strong>
+      <span>{{ errorMessage }}</span>
+    </div>
+    <button type="button" class="toast-close" (click)="errorMessage = ''">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
 </div>
-<div class="about-toast error" *ngIf="errorMessage">
-  <div>
-    <strong>Oops</strong>
-    <span>{{ errorMessage }}</span>
-  </div>
-  <button type="button" (click)="errorMessage = ''">x</button>
-</div>
-<section class="about-hero">
-  <div class="container">
-    <div class="hero-grid">
-      <div>
-        <span class="eyebrow">Vidhura Tech</span>
-        <h1>Build your IT career with practical training and placement support.</h1>
-        <p>
-          We help students, freshers, and job seekers become job-ready through
-          real-time projects, interview preparation, career guidance, and daily job updates.
-        </p>
-        <div class="hero-actions">
-          <button class="primary-btn" type="button" (click)="openEnrollModal()">Join Free Demo</button>
-          <a class="ghost-btn" href="https://wa.me/919108057464" target="_blank" rel="noopener">
-            WhatsApp Us
-          </a>
+
+<div class="about-page">
+  <!-- HERO SECTION -->
+  <section class="about-hero">
+    <div class="hero-bg-glow-1"></div>
+    <div class="hero-bg-glow-2"></div>
+    <div class="hero-grid-lines"></div>
+    
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="eyebrow-wrapper">
+            <span class="eyebrow-badge">
+              <span class="pulse-dot"></span>
+              <i class="fa-solid fa-rocket"></i> Vidhura Tech Academy
+            </span>
+          </div>
+
+          <h1>
+            Build Your IT Career With <br />
+            <span class="gradient-text">Practical Experience</span>
+          </h1>
+
+          <p class="hero-para">
+            We help students, freshers, and working professionals transition into elite IT roles
+            through structured modules, live systems coding, expert mentorship, and direct placement
+            pipelines.
+          </p>
+
+          <div class="hero-actions">
+            <button type="button" class="btn-primary-glow" (click)="openEnrollModal()">
+              <span>Join Free Demo Class</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button type="button" class="btn-secondary-glass" (click)="openWhatsApp()">
+              <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
+              <span>WhatsApp Chat</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="hero-stat-card" *ngFor="let stat of animatedStats">
+            <div class="stat-icon-wrapper">
+              <i [class]="stat.icon"></i>
+            </div>
+            <div class="stat-data">
+              <strong class="stat-number">{{ stat.current }}{{ stat.suffix }}</strong>
+              <span class="stat-label">{{ stat.label }}</span>
+            </div>
+            <div class="card-glow"></div>
+          </div>
         </div>
       </div>
-      <div class="hero-panel">
-        <div>
-          <strong>500+</strong>
-          <span>Students Trained</span>
+    </div>
+  </section>
+
+  <!-- CAREER PATH FINDER (Interactive Tool) -->
+  <section class="path-finder-section">
+    <div class="path-glow-mesh"></div>
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Interactive Recommender</span>
+        <h2>Find Your Perfect IT Learning Path</h2>
+        <p class="section-desc">
+          Select your profile and target goal to discover your customized syllabus, timeline, and
+          industry expectations.
+        </p>
+      </div>
+
+      <div class="path-finder-card">
+        <div class="finder-grid">
+          <div class="finder-inputs">
+            <!-- Step 1: Current Status -->
+            <div class="input-group-custom">
+              <label class="finder-label">1. What is your current profile?</label>
+              <div class="options-grid">
+                <button
+                  type="button"
+                  *ngFor="let option of careerStatusOptions"
+                  [class.active]="selectedStatus === option.id"
+                  (click)="selectedStatus = option.id; findMyPath()"
+                  class="option-btn"
+                >
+                  <i [class]="option.icon"></i>
+                  <span>{{ option.label }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Goal -->
+            <div class="input-group-custom animate-fade-in" *ngIf="selectedStatus">
+              <label class="finder-label">2. What is your target career goal?</label>
+              <div class="options-grid">
+                <button
+                  type="button"
+                  *ngFor="let option of careerGoalOptions"
+                  [class.active]="selectedGoal === option.id"
+                  (click)="selectedGoal = option.id; findMyPath()"
+                  class="option-btn"
+                >
+                  <i [class]="option.icon"></i>
+                  <span>{{ option.label }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="finder-output">
+            <!-- No Selection State -->
+            <div class="output-placeholder animate-fade-in" *ngIf="!recommendationResult">
+              <div class="placeholder-icon">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </div>
+              <h3>Syllabus Pathfinder</h3>
+              <p>
+                Your custom roadmap, timeline, technology matrix and career trajectory calculations will appear here instantly.
+              </p>
+            </div>
+
+            <!-- Calculated Path Output -->
+            <div class="output-content animate-fade-in" *ngIf="recommendationResult">
+              <div class="output-header">
+                <div class="badge-row">
+                  <span class="path-badge duration">
+                    <i class="fa-solid fa-clock"></i> {{ recommendationResult.duration }}
+                  </span>
+                  <span class="path-badge difficulty">
+                    <i class="fa-solid fa-gauge-high"></i> {{ recommendationResult.difficulty }}
+                  </span>
+                </div>
+                <h3>Recommended Roadmap</h3>
+              </div>
+
+              <div class="roadmap-timeline">
+                <div
+                  class="timeline-step"
+                  *ngFor="let step of recommendationResult.careerSteps; let i = index"
+                >
+                  <div class="timeline-num">{{ i + 1 }}</div>
+                  <div class="timeline-detail">
+                    <p>{{ step }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tech-stack-suggestion">
+                <strong>Technologies to Master:</strong>
+                <div class="tech-pills-row">
+                  <span class="tech-pill" *ngFor="let tech of recommendationResult.primaryTech">
+                    {{ tech }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="outlook-box">
+                <i class="fa-solid fa-chart-line"></i>
+                <div>
+                  <strong>Job Market Outlook:</strong>
+                  <p>{{ recommendationResult.jobOutlook }}</p>
+                </div>
+              </div>
+
+              <div class="finder-cta">
+                <button type="button" class="btn-primary-sm" (click)="openEnrollModal()">
+                  Enroll for this Path
+                </button>
+                <button type="button" class="btn-text-icon" (click)="resetPathFinder()">
+                  <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <strong>100+</strong>
-          <span>Projects Completed</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT INTRO -->
+  <section class="about-intro">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">About Vidhura Tech</span>
+        <h2>Bridging the Academic-Industry Gap</h2>
+      </div>
+
+      <div class="intro-grid">
+        <div class="intro-card main-intro">
+          <div class="intro-icon-box">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h3>Who We Are</h3>
+          <p>
+            Vidhura Tech is a career-focused, high-engagement IT training ecosystem dedicated to
+            empowering ambitious engineers. We remove academic fluff and focus strictly on
+            production engineering skills.
+          </p>
+          <p>
+            Our students code daily, deploy systems to cloud providers, resolve pull requests, and
+            undergo rigorous mock assessments designed directly from recruitment patterns of top
+            tier firms.
+          </p>
+          <div class="card-bg-glow"></div>
         </div>
-        <div>
-          <strong>50+</strong>
-          <span>Students Placed</span>
+
+        <div class="intro-card">
+          <div class="intro-icon-box">
+            <i class="fa-solid fa-rocket"></i>
+          </div>
+          <h3>Our Mission</h3>
+          <p>
+            To deliver highly accessible, practical, and outcome-oriented software education that
+            replaces theoretical cramming with builders' experience.
+          </p>
+        </div>
+
+        <div class="intro-card">
+          <div class="intro-icon-box">
+            <i class="fa-solid fa-eye"></i>
+          </div>
+          <h3>Our Vision</h3>
+          <p>
+            To establish India's most effective job-readiness network, delivering skilled software
+            developers to leading engineering teams.
+          </p>
         </div>
       </div>
     </div>
-  </div>
-</section>
-<section class="about-intro">
-  <div class="container">
-    <div class="section-head">
-      <span>About Us</span>
-      <h2>Training that connects learning, practice, and career growth.</h2>
-    </div>
-    <div class="intro-grid">
-      <div class="intro-card large-card">
-        <h3>Who We Are</h3>
-        <p>
-          Vidhura Tech is a career-focused IT training platform designed to bridge
-          the gap between academic learning and real industry requirements.
-        </p>
-        <p>
-          Our mission is simple: make every learner confident, skilled, and ready
-          for interviews through practical learning and continuous mentorship.
-        </p>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="value-section">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Program Features</span>
+        <h2>Everything You Need to Succeed</h2>
       </div>
-      <div class="intro-card">
-        <h3>Our Mission</h3>
-        <p>
-          To make quality IT training accessible, practical, and result-oriented
-          for every student.
-        </p>
-      </div>
-      <div class="intro-card">
-        <h3>Our Promise</h3>
-        <p>
-          We guide you step by step from beginner level to job-ready professional.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="value-section">
-  <div class="container">
-    <div class="section-head text-center">
-      <span>What We Provide</span>
-      <h2>Everything you need to become job-ready</h2>
-    </div>
-    <div class="value-grid">
-      <div class="value-card">
-        <span>01</span>
-        <h3>Industry Based Training</h3>
-        <p>Courses designed around real company requirements and modern tools.</p>
-      </div>
-      <div class="value-card">
-        <span>02</span>
-        <h3>Hands-on Projects</h3>
-        <p>Build mini and major projects to gain real implementation confidence.</p>
-      </div>
-      <div class="value-card">
-        <span>03</span>
-        <h3>Interview Preparation</h3>
-        <p>Mock interviews, resume support, HR rounds, and technical preparation.</p>
-      </div>
-      <div class="value-card">
-        <span>04</span>
-        <h3>Placement Guidance</h3>
-        <p>Daily job updates, apply links, and support until you get placed.</p>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="job-support">
-  <div class="container">
-    <div class="support-box">
-      <div>
-        <span class="eyebrow dark">Job Support System</span>
-        <h2>Fresh job updates every day inside one platform.</h2>
-        <p>
-          Students get access to daily openings from multiple companies, direct
-          apply links, and opportunities for freshers and experienced candidates.
-        </p>
-      </div>
-      <ul>
-        <li>500+ company openings tracked</li>
-        <li>Fresh updates every morning</li>
-        <li>Direct apply links</li>
-        <li>Fresher and experienced roles</li>
-      </ul>
-    </div>
-  </div>
-</section>
-<section class="process-section">
-  <div class="container">
-    <div class="section-head text-center">
-      <span>Training Process</span>
-      <h2>A clear roadmap from learning to placement</h2>
-    </div>
-    <div class="process-grid">
-      <div class="process-card" *ngFor="let step of workflow">
-        <strong>{{ step.step }}</strong>
-        <h3>{{ step.title }}</h3>
-        <p>{{ step.desc }}</p>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="stories-section">
-  <div class="container">
-    <div class="section-head text-center">
-      <span>Success Stories</span>
-      <h2>Students who started with us and moved forward</h2>
-    </div>
-    <div class="story-grid">
-      <div class="story-card" *ngFor="let s of successStories">
-        <p>"{{ s.msg }}"</p>
-        <h3>{{ s.name }}</h3>
-        <span>{{ s.role }} at {{ s.company }}</span>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="stats-section">
-  <div class="container">
-    <div class="stats-grid">
-      <div>
-        <strong>500+</strong>
-        <span>Students Trained</span>
-      </div>
-      <div>
-        <strong>100+</strong>
-        <span>Projects Completed</span>
-      </div>
-      <div>
-        <strong>50+</strong>
-        <span>Students Placed</span>
-      </div>
-      <div>
-        <strong>24/7</strong>
-        <span>Support Available</span>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="cta-section">
-  <div class="container">
-    <h2>Start your IT career today</h2>
-    <p>Join our demo class and understand the roadmap before you begin.</p>
-    <button class="primary-btn" type="button" (click)="openEnrollModal()">Join Free Demo</button>
-  </div>
-</section>
-<section class="contact-section">
-  <div class="container">
-    <div class="section-head text-center">
-      <span>Contact Us</span>
-      <h2>Talk to our team</h2>
-    </div>
-    <div class="contact-grid">
-      <div class="contact-card">
-        <h3>Send us a message</h3>
-        <form (ngSubmit)="submitContact()" #contactForm="ngForm" class="contact-form">
-          <div class="form-group">
-            <input type="text" name="name" placeholder=" " [(ngModel)]="contactData.name" required />
-            <label>Full Name</label>
+
+      <div class="value-grid">
+        <div class="value-card" *ngFor="let feature of features">
+          <div class="value-icon-box">
+            <i [class]="feature.icon"></i>
           </div>
-          <div class="form-group">
-            <input type="email" name="email" placeholder=" " [(ngModel)]="contactData.email" required />
-            <label>Email Address</label>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.desc }}</p>
+          <div class="card-border-glow"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE TECHNOLOGIES -->
+  <section class="technology-section">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Tech Stack</span>
+        <h2>Learn High-Demand Tech Modules</h2>
+        <p class="section-desc">
+          Click filters to examine modules included in our training catalog.
+        </p>
+      </div>
+
+      <!-- Filters -->
+      <div class="tech-filters">
+        <button
+          type="button"
+          [class.active]="selectedTechCategory === 'all'"
+          (click)="selectedTechCategory = 'all'"
+        >
+          All Tech
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedTechCategory === 'backend'"
+          (click)="selectedTechCategory = 'backend'"
+        >
+          Backend
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedTechCategory === 'frontend'"
+          (click)="selectedTechCategory = 'frontend'"
+        >
+          Frontend
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedTechCategory === 'database'"
+          (click)="selectedTechCategory = 'database'"
+        >
+          Databases
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedTechCategory === 'cloud'"
+          (click)="selectedTechCategory = 'cloud'"
+        >
+          Cloud & DevOps
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedTechCategory === 'tools'"
+          (click)="selectedTechCategory = 'tools'"
+        >
+          Tools
+        </button>
+      </div>
+
+      <!-- Grid -->
+      <div class="technology-grid">
+        <div class="technology-item animate-fade-in" *ngFor="let tech of filteredTechnologies">
+          <div class="tech-icon-circle">
+            <i [class]="tech.icon"></i>
           </div>
-          <div class="form-group">
-            <input type="tel" name="phone" placeholder=" " [(ngModel)]="contactData.phone" required />
-            <label>Phone Number</label>
+          <span>{{ tech.name }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY CHOOSE US -->
+  <section class="why-section">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Comparison</span>
+        <h2>Why Engineers Choose Vidhura Tech</h2>
+      </div>
+
+      <div class="why-grid">
+        <div class="why-card" *ngFor="let item of whyChooseUs">
+          <div class="why-icon">
+            <i class="fa-solid fa-circle-check"></i>
           </div>
-          <div class="form-group">
-            <textarea rows="5" name="message" placeholder=" " [(ngModel)]="contactData.message" required></textarea>
-            <label>Message</label>
+          <span class="why-text">{{ item }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOB SUPPORT -->
+  <section class="job-support">
+    <div class="support-glow-1"></div>
+    <div class="support-glow-2"></div>
+    <div class="container">
+      <div class="support-box">
+        <div class="support-info-col">
+          <span class="eyebrow-badge dark">Career Platform</span>
+          <h2>Integrated Job Portal & Referral Pipelines</h2>
+          <p>
+            Vidhura Tech runs a dedicated internal channel matching candidates directly to active
+            recruiter pipelines, bypassing generic resume portals.
+          </p>
+          <div class="portal-visual">
+            <i class="fa-solid fa-briefcase"></i>
+            <span>Daily recruitment loops with direct references.</span>
           </div>
-          <button type="submit" [disabled]="contactForm.invalid || submitting">
-            {{ submitting ? 'Sending...' : 'Send Message' }}
+        </div>
+
+        <div class="support-list-col">
+          <ul>
+            <li *ngFor="let item of jobSupportFeatures">
+              <i class="fa-solid fa-caret-right"></i>
+              <span>{{ item }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEARNING TIMELINE/ROADMAP -->
+  <section class="process-section">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Learning Path</span>
+        <h2>A Streamlined Journey From 0 to Hired</h2>
+      </div>
+
+      <div class="process-grid">
+        <div class="process-card" *ngFor="let step of workflow">
+          <div class="process-header">
+            <strong>{{ step.step }}</strong>
+            <div class="connector-line"></div>
+          </div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.desc }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUES SECTION -->
+  <section class="values-section">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Our Ethics</span>
+        <h2>Values That Guide Our Coaching</h2>
+      </div>
+
+      <div class="values-grid">
+        <div class="value-box" *ngFor="let value of companyValues">
+          <div class="value-glow"></div>
+          <h3>{{ value.title }}</h3>
+          <p>{{ value.desc }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUCCESS STORIES CAROUSEL -->
+  <section class="stories-section">
+    <div class="stories-bg-glow"></div>
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Testimonials</span>
+        <h2>Placed Candidates Speak</h2>
+      </div>
+
+      <div class="carousel-container">
+        <button
+          type="button"
+          class="carousel-arrow prev"
+          (click)="prevStory()"
+          aria-label="Previous story"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div class="carousel-track">
+          <div class="testimonial-card">
+            <div class="quote-mark">
+              <i class="fa-solid fa-quote-left"></i>
+            </div>
+
+            <p class="testimonial-text">"{{ successStories[activeStoryIndex].msg }}"</p>
+
+            <div class="testimonial-author">
+              <div
+                class="author-avatar"
+                [style.background]="successStories[activeStoryIndex].color"
+              >
+                {{ successStories[activeStoryIndex].initial }}
+              </div>
+              <div class="author-info">
+                <h3>{{ successStories[activeStoryIndex].name }}</h3>
+                <span>
+                  {{ successStories[activeStoryIndex].role }} &middot;
+                  <strong class="company-tag">{{
+                    successStories[activeStoryIndex].company
+                  }}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="carousel-arrow next"
+          (click)="nextStory()"
+          aria-label="Next story"
+        >
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <!-- Carousel Indicators -->
+        <div class="carousel-indicators">
+          <button
+            type="button"
+            *ngFor="let story of successStories; let i = index"
+            [class.active]="i === activeStoryIndex"
+            (click)="setStory(i)"
+            [attr.aria-label]="'Go to slide ' + (i + 1)"
+          ></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ SECTION (With Live Search Engine) -->
+  <section class="faq-section">
+    <div class="container">
+      <div class="section-head text-center">
+        <span class="section-tag">Support Desk</span>
+        <h2>FAQ & Student Guidelines</h2>
+      </div>
+
+      <div class="faq-search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="text"
+          [(ngModel)]="faqSearchQuery"
+          placeholder="Search questions or keyword (e.g. projects, demo, etc.)..."
+          class="faq-search-input"
+        />
+        <button *ngIf="faqSearchQuery" (click)="faqSearchQuery = ''" class="faq-search-clear">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+      </div>
+
+      <div class="faq-grid">
+        <div
+          class="faq-card"
+          *ngFor="let faq of filteredFaqs; let i = index"
+          [class.expanded]="activeFaqIndex === i"
+          (click)="toggleFaq(i)"
+        >
+          <div class="faq-question">
+            <h3>{{ faq.question }}</h3>
+            <span class="faq-icon-toggle">
+              <i
+                class="fa-solid"
+                [class.fa-plus]="activeFaqIndex !== i"
+                [class.fa-minus]="activeFaqIndex === i"
+              ></i>
+            </span>
+          </div>
+          <div class="faq-answer">
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="faq-empty-state" *ngIf="filteredFaqs.length === 0">
+          <i class="fa-solid fa-circle-question"></i>
+          <p>
+            No matching questions found. Try searching another term, or send us a message below.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA SECTION -->
+  <section class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="container">
+      <div class="cta-card-premium">
+        <h2>Launch Your Engineering Journey Today</h2>
+        <p>
+          Book a seat in our upcoming demo sessions and build projects alongside industry mentors.
+        </p>
+        <div class="cta-btn-group">
+          <button type="button" class="btn-primary-glow" (click)="openEnrollModal()">
+            <span>Reserve Demo Seat</span>
+            <i class="fa-solid fa-calendar-check"></i>
           </button>
-        </form>
-      </div>
-      <div class="contact-info">
-        <h3>Contact Information</h3>
-        <p>Reach out for course details, demo classes, and career guidance.</p>
-        <div class="info-list">
-          <div class="info-item">
-            <span>PH</span>
-            <div>
-              <strong>Phone / WhatsApp</strong>
-              <a href="tel:9108057464">+91 9108057464</a>
-            </div>
-          </div>
-          <div class="info-item">
-            <span>@</span>
-            <div>
-              <strong>Email</strong>
-              <a href="mailto:support@vidhuratech.com">support@vidhuratech.com</a>
-            </div>
-          </div>
-          <div class="info-item">
-            <span>WEB</span>
-            <div>
-              <strong>Websites</strong>
-              <a href="https://vidhuratech.com" target="_blank" rel="noopener">vidhuratech.com</a>
-              <a href="https://uptrixhub.online" target="_blank" rel="noopener">uptrixhub.online</a>
-            </div>
-          </div>
-          <div class="info-item">
-            <span>IN</span>
-            <div>
-              <strong>Location</strong>
-              <p>India, Online Training Available</p>
-            </div>
-          </div>
+          <button type="button" class="btn-outline-glass" (click)="openWhatsApp()">
+            <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
+            <span>WhatsApp Advising</span>
+          </button>
         </div>
-        <a class="whatsapp-btn" href="https://wa.me/919108057464" target="_blank" rel="noopener">
-          Chat on WhatsApp
-        </a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <!-- CONTACT HERO -->
+  <section class="contact-hero">
+    <div class="contact-hero-glow-1"></div>
+    <div class="contact-hero-glow-2"></div>
+    <div class="container">
+      <div class="contact-hero-grid">
+        <div class="hero-text-col">
+          <span class="hero-tag">Reach Our Team</span>
+          <h1>Get In Touch</h1>
+          <p>
+            Have doubts about modules, curriculum timelines, or placement referrals? Contact us
+            directly. Our career counselors will solve your queries.
+          </p>
+          <div class="hero-quick-actions">
+            <button class="btn-accent-glow" type="button" (click)="callNow()">
+              <i class="fa-solid fa-phone"></i> Call Counselor
+            </button>
+            <button class="btn-secondary-border" type="button" (click)="sendMail()">
+              <i class="fa-solid fa-envelope"></i> Email Support
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-card-col">
+          <div class="quick-support-card">
+            <div class="pulse-ring"></div>
+            <p class="quick-title">Admissions Hotline</p>
+            <a href="tel:9108057464" class="phone-link">+91 9108057464</a>
+            <span>Available on Phone & WhatsApp (10 AM - 8 PM IST)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT SECTION (Form + Details) -->
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-wrapper-grid">
+        <!-- FORM CARD -->
+        <div class="contact-card-form">
+          <div class="card-header">
+            <span class="form-tag">Direct Inquiry</span>
+            <h2>Send a Message</h2>
+          </div>
+
+          <form (ngSubmit)="submitContact()" #contactForm="ngForm" class="premium-form" novalidate>
+            <div class="form-grid">
+              <div class="input-field">
+                <input
+                  type="text"
+                  name="name"
+                  id="fullName"
+                  [(ngModel)]="contactData.name"
+                  required
+                  placeholder=" "
+                  class="premium-input"
+                />
+                <label for="fullName">Full Name</label>
+                <div class="input-line"></div>
+              </div>
+
+              <div class="input-field">
+                <input
+                  type="email"
+                  name="email"
+                  id="emailAddr"
+                  [(ngModel)]="contactData.email"
+                  required
+                  placeholder=" "
+                  class="premium-input"
+                />
+                <label for="emailAddr">Email Address</label>
+                <div class="input-line"></div>
+              </div>
+
+              <div class="input-field full-width">
+                <input
+                  type="tel"
+                  name="phone"
+                  id="phoneNum"
+                  [(ngModel)]="contactData.phone"
+                  required
+                  placeholder=" "
+                  class="premium-input"
+                />
+                <label for="phoneNum">Phone Number</label>
+                <div class="input-line"></div>
+              </div>
+
+              <div class="input-field full-width">
+                <textarea
+                  name="message"
+                  id="messageBody"
+                  [(ngModel)]="contactData.message"
+                  required
+                  rows="4"
+                  placeholder=" "
+                  class="premium-textarea"
+                ></textarea>
+                <label for="messageBody">Message / Query Details</label>
+                <div class="input-line"></div>
+              </div>
+
+              <div class="form-submit-row">
+                <button
+                  type="submit"
+                  class="btn-form-submit"
+                  [disabled]="contactForm.invalid || submitting"
+                >
+                  <span *ngIf="!submitting">Submit Inquiry</span>
+                  <span *ngIf="submitting" class="loading-spinner-wrapper">
+                    <span class="spinner-circle"></span> Sending...
+                  </span>
+                  <i class="fa-solid fa-paper-plane" *ngIf="!submitting"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- DETAILS CARD -->
+        <div class="contact-card-info">
+          <div class="card-header">
+            <span class="form-tag">Contact Points</span>
+            <h2>Official Channels</h2>
+          </div>
+
+          <div class="info-list-details">
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fa-solid fa-phone"></i>
+              </div>
+              <div class="detail-content">
+                <strong>Phone & WhatsApp</strong>
+                <a href="tel:9108057464">+91 9108057464</a>
+              </div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fa-solid fa-envelope-open"></i>
+              </div>
+              <div class="detail-content">
+                <strong>Corporate Email</strong>
+                <a href="mailto:support@vidhuratech.com">support@vidhuratech.com</a>
+              </div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fa-solid fa-globe"></i>
+              </div>
+              <div class="detail-content">
+                <strong>Web Portals</strong>
+                <div class="links-vertical">
+                  <a href="https://vidhuratech.com" target="_blank">vidhuratech.com</a>
+                  <a href="https://uptrixhub.online" target="_blank">uptrixhub.online</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+              <div class="detail-content">
+                <strong>Location Hub</strong>
+                <span>India / Comprehensive Online Delivery</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="legal-badge-box">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Your data is protected. We do not share inquiries with third parties.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GEOLOCATION MAP -->
+  <section class="map-section">
+    <div class="map-container">
+      <iframe
+        title="Vidhura Tech Location"
+        width="100%"
+        height="450"
+        style="border: 0"
+        loading="lazy"
+        allowfullscreen
+        src="https://maps.google.com/maps?q=india&t=&z=5&ie=UTF8&iwloc=&output=embed"
+      >
+      </iframe>
+      <div class="map-overlay-card">
+        <h4>Vidhura Tech Hub</h4>
+        <p>Serving online cohorts across India and internationally.</p>
+        <button type="button" class="btn-primary-sm" (click)="openEnrollModal()">
+          Get Directions
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

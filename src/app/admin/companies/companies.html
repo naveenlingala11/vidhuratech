@@ -1,73 +1,314 @@
-<div class="company-container">
-    <!-- HEADER -->
-    <div class="top-bar">
-        <h2>🏢 Companies</h2>
-        <button class="refresh-btn" (click)="refresh()">🔄 Refresh</button>
+<section class="ac-page">
+  <!-- Interactive Frosted Glass Header -->
+  <header class="ac-hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-shield-lock-fill"></i>
+        Admin Control Console
+      </span>
+      <h1>Hiring Partners & Companies</h1>
+      <p class="hero-desc">
+        Configure hiring partners, careers job boards, and automated crawler endpoints. Monitor success/failure telemetry, customize scraping platforms, and toggle crawling statuses.
+      </p>
     </div>
-    <!-- FORM -->
-    <div class="company-form">
-        <input placeholder="Company Name" [(ngModel)]="newCompany.company" />
-        <input placeholder="Careers URL" [(ngModel)]="newCompany.url" />
-        <select [(ngModel)]="newCompany.type">
-            <option value="greenhouse">Greenhouse</option>
-            <option value="lever">Lever</option>
-            <option value="naukri">Naukri</option>
-        </select>
-        <button class="add-btn" (click)="addCompany()">➕ Add</button>
-        <!-- SEARCH -->
-        <input placeholder="🔍 Search..." [(ngModel)]="searchCompany" (input)="onSearchChange()" />
-        <!-- FILTER -->
-        <select [(ngModel)]="activeFilter" (change)="loadCompanies()">
-            <option value="">All</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-        </select>
+    
+    <div class="hero-actions">
+      <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise" [class.spin-animate]="isLoading"></i>
+        <span>Refresh Board</span>
+      </button>
     </div>
-    <!-- TABLE -->
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th (click)="changeSort('company')">Company ⬍</th>
-                    <th>Type</th>
-                    <th (click)="changeSort('successCount')">Success ⬍</th>
-                    <th (click)="changeSort('failCount')">Fail ⬍</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let c of companies">
-                    <td>
-                        <b>{{ c.company }}</b><br />
-                        <small>{{ c.url }}</small>
-                    </td>
-                    <td>{{ c.type }}</td>
-                    <td class="success">{{ c.successCount || 0 }}</td>
-                    <td class="fail">{{ c.failCount || 0 }}</td>
-                    <td>
-                        <span [class]="getStatusClass(c.active)">
-                            {{ c.active ? 'Active' : 'Inactive' }}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="toggle-btn" (click)="toggleCompany(c)">
-                            {{ c.active ? 'Disable' : 'Enable' }}
-                        </button>
-                        <button class="delete-btn" (click)="deleteCompany(c.id)">
-                            🗑
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- LOADING -->
-        <div *ngIf="isLoading" class="loading">⏳ Loading...</div>
+  </header>
+
+  <!-- Notification Banner Hud -->
+  <div class="ac-alerts-hud" *ngIf="successMessage || errorMessage">
+    <div class="hud-alert alert-success" *ngIf="successMessage">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>{{ successMessage }}</span>
+      <button type="button" class="btn-alert-close" (click)="successMessage = ''">&times;</button>
     </div>
-    <!-- PAGINATION -->
-    <div class="pagination">
-        <button (click)="prevCompanyPage()" [disabled]="companyPage === 0">⬅</button>
-        <span>Page {{ companyPage + 1 }}</span>
-        <button (click)="nextCompanyPage()" [disabled]="(companyPage + 1) * companySize >= totalCompanies">➡</button>
+    <div class="hud-alert alert-danger" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-octagon-fill"></i>
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="btn-alert-close" (click)="errorMessage = ''">&times;</button>
     </div>
-</div>
+  </div>
+
+  <!-- Workspace Grid: Add & Filter -->
+  <div class="ac-workspace-grid">
+    <!-- Left Column: Add Partner -->
+    <div class="ac-panel-card card-register-form">
+      <div class="card-header">
+        <i class="bi bi-plus-circle-fill text-primary"></i>
+        <h3>Register New Partner</h3>
+      </div>
+      <div class="card-body">
+        <div class="input-groups-vertical">
+          <!-- Company Name -->
+          <label class="modern-input-group">
+            <span class="input-label">Company Name *</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-building input-icon"></i>
+              <input
+                type="text"
+                placeholder="e.g. Google India"
+                [(ngModel)]="newCompany.company"
+                class="modern-input-field"
+              />
+            </div>
+          </label>
+
+          <!-- Careers URL -->
+          <label class="modern-input-group">
+            <span class="input-label">Careers Portal URL *</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-link-45deg input-icon"></i>
+              <input
+                type="url"
+                placeholder="https://careers.google.com/..."
+                [(ngModel)]="newCompany.url"
+                class="modern-input-field"
+              />
+            </div>
+          </label>
+
+          <!-- Board Type -->
+          <label class="modern-input-group">
+            <span class="input-label">Careers Integration API</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-robot input-icon"></i>
+              <select [(ngModel)]="newCompany.type" class="modern-input-field">
+                <option value="greenhouse">Greenhouse Crawler</option>
+                <option value="lever">Lever API</option>
+                <option value="naukri">Naukri Feed</option>
+              </select>
+            </div>
+          </label>
+        </div>
+
+        <button type="button" class="btn-submit-company" (click)="addCompany()" [disabled]="isLoading">
+          <i class="bi bi-plus-lg me-2"></i>
+          Register Partner Board
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Column: Filters & Telemetry Summary -->
+    <div class="ac-panel-card card-filter-form">
+      <div class="card-header">
+        <i class="bi bi-funnel-fill text-info"></i>
+        <h3>Search & Filters</h3>
+      </div>
+      <div class="card-body">
+        <div class="input-groups-vertical">
+          <!-- Keyword Search -->
+          <label class="modern-input-group">
+            <span class="input-label">Quick Search</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-search input-icon"></i>
+              <input
+                type="text"
+                placeholder="Search by company or URL..."
+                [(ngModel)]="searchCompany"
+                (input)="onSearchChange()"
+                class="modern-input-field"
+              />
+            </div>
+          </label>
+
+          <!-- Status Filters -->
+          <label class="modern-input-group">
+            <span class="input-label">Status Filter</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-filter-circle-fill input-icon"></i>
+              <select [(ngModel)]="activeFilter" (change)="loadCompanies()" class="modern-input-field">
+                <option value="">All Partners</option>
+                <option value="true">Active Boards Only</option>
+                <option value="false">Inactive Boards Only</option>
+              </select>
+            </div>
+          </label>
+        </div>
+
+        <!-- Mini Analytics Summary -->
+        <div class="mini-metrics-box">
+          <div class="metric-row">
+            <span class="label">Total Partners registered:</span>
+            <span class="value">{{ totalCompanies }}</span>
+          </div>
+          <div class="metric-row">
+            <span class="label">Current active page:</span>
+            <span class="value">Page {{ companyPage + 1 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registry Table Card -->
+  <div class="ac-panel-card card-registry-table">
+    <div class="card-header border-bottom-0 pb-1">
+      <i class="bi bi-journal-text text-secondary"></i>
+      <h3>Hiring Partner Registry</h3>
+      <span class="badge bg-light text-dark shadow-sm ms-auto">{{ totalCompanies }} Companies</span>
+    </div>
+
+    <div class="table-container">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th (click)="changeSort('company')" class="th-sortable">
+              <span>Partner Name</span>
+              <i class="bi sort-icon" [ngClass]="sortBy === 'company' ? (direction === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down') : 'bi-chevron-expand'"></i>
+            </th>
+            <th>Platform Type</th>
+            <th (click)="changeSort('successCount')" class="th-sortable text-center">
+              <span>Success Logs</span>
+              <i class="bi sort-icon" [ngClass]="sortBy === 'successCount' ? (direction === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down') : 'bi-chevron-expand'"></i>
+            </th>
+            <th (click)="changeSort('failCount')" class="th-sortable text-center">
+              <span>Failed Logs</span>
+              <i class="bi sort-icon" [ngClass]="sortBy === 'failCount' ? (direction === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down') : 'bi-chevron-expand'"></i>
+            </th>
+            <th>Crawler Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Empty State -->
+          <tr *ngIf="!isLoading && companies.length === 0">
+            <td colspan="6" class="table-empty-state">
+              <i class="bi bi-folder-x empty-icon"></i>
+              <p>No registered hiring partners match your filters.</p>
+            </td>
+          </tr>
+
+          <!-- Data Rows -->
+          <tr *ngFor="let c of companies" [class.row-inactive]="!c.active">
+            <!-- Name & Careers URL -->
+            <td class="td-company-profile">
+              <div class="company-avatar-chip">
+                {{ (c.company || 'C').substring(0,1).toUpperCase() }}
+              </div>
+              <div class="profile-details">
+                <span class="company-name">{{ c.company }}</span>
+                <a [href]="c.url" target="_blank" class="company-link" title="Open Careers Page">
+                  {{ c.url }}
+                  <i class="bi bi-box-arrow-up-right me-1"></i>
+                </a>
+              </div>
+            </td>
+
+            <!-- API Crawler Type -->
+            <td class="td-crawler-type">
+              <span class="type-badge" [ngClass]="'badge-' + c.type">
+                <i class="bi" [ngClass]="c.type === 'greenhouse' ? 'bi-tree-fill' : (c.type === 'lever' ? 'bi-layers-fill' : 'bi-newspaper')"></i>
+                {{ c.type | titlecase }}
+              </span>
+            </td>
+
+            <!-- Success Count -->
+            <td class="text-center font-monospace font-weight-bold text-success td-success-cell">
+              <span class="indicator-success" *ngIf="c.successCount > 0">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                {{ c.successCount }}
+              </span>
+              <span class="text-muted" *ngIf="!c.successCount">0</span>
+            </td>
+
+            <!-- Failed Count -->
+            <td class="text-center font-monospace font-weight-bold text-danger td-fail-cell">
+              <span class="indicator-fail" *ngIf="c.failCount > 0">
+                <i class="bi bi-x-circle-fill me-1"></i>
+                {{ c.failCount }}
+              </span>
+              <span class="text-muted" *ngIf="!c.failCount">0</span>
+            </td>
+
+            <!-- Status Badge -->
+            <td>
+              <span [class]="getStatusClass(c.active)">
+                <span class="pulse-dot" *ngIf="c.active"></span>
+                {{ c.active ? 'Monitoring' : 'Suspended' }}
+              </span>
+            </td>
+
+            <!-- Action Controls -->
+            <td class="text-end td-actions-cell">
+              <!-- Regular Controls -->
+              <div class="row-actions-group" *ngIf="deletingCompanyId !== c.id">
+                <button
+                  type="button"
+                  class="btn-action-toggle"
+                  [class.btn-toggle-active]="c.active"
+                  (click)="toggleCompany(c)"
+                  [title]="c.active ? 'Suspend Crawler' : 'Resume Crawler'"
+                >
+                  <i class="bi" [ngClass]="c.active ? 'bi-toggle-on text-primary' : 'bi-toggle-off text-muted'"></i>
+                  <span>{{ c.active ? 'Disable' : 'Enable' }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn-action-delete"
+                  (click)="confirmDelete(c.id)"
+                  title="Delete Partner Board"
+                >
+                  <i class="bi bi-trash3-fill"></i>
+                </button>
+              </div>
+
+              <!-- Inline Delete Confirmations -->
+              <div class="row-delete-confirm-group" *ngIf="deletingCompanyId === c.id">
+                <span class="confirm-label text-danger">Delete?</span>
+                <button type="button" class="btn-confirm-yes" (click)="deleteCompany(c.id)">
+                  Confirm
+                </button>
+                <button type="button" class="btn-confirm-no" (click)="cancelDelete()">
+                  Cancel
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Skeleton/Loader Spinnings -->
+      <div class="table-loading-overlay" *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Updating Partners Registry...</p>
+      </div>
+    </div>
+
+    <!-- Capsule Paginations -->
+    <div class="table-pagination-footer" *ngIf="totalCompanies > companySize">
+      <div class="pagination-index-summary">
+        Showing Page <strong>{{ companyPage + 1 }}</strong> of <strong>{{ Math.ceil(totalCompanies / companySize) }}</strong>
+      </div>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="btn-pag-prev"
+          [disabled]="companyPage === 0"
+          (click)="prevCompanyPage()"
+        >
+          <i class="bi bi-chevron-left me-1"></i> Prev
+        </button>
+        <span class="pag-current-indicator">{{ companyPage + 1 }}</span>
+        <button
+          type="button"
+          class="btn-pag-next"
+          [disabled]="(companyPage + 1) * companySize >= totalCompanies"
+          (click)="nextCompanyPage()"
+        >
+          Next <i class="bi bi-chevron-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

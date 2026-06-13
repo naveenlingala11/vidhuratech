@@ -20,6 +20,7 @@ import { AuthService } from '../../features/auth/services/auth.service';
 import { PublicCourseService } from '../courses/service/public-course';
 import { environment } from '../../../environments/environment';
 import { PublicPracticeService } from '../../features/services/public-practice.service';
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -38,10 +39,12 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   showPopup = signal(false);
   popupMessage = signal('');
   popupClosedUntil = signal<number | null>(null);
+
   // ================= DATA =================
   seats = 25;
   activeBatch: any;
   popupInterval: any;
+
   // =============== COURSES =================
   courses: any[] = [];
   featuredCourses: any[] = [];
@@ -87,6 +90,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     private courseService: PublicCourseService,
     private publicPracticeService: PublicPracticeService,
   ) {}
+
   // ================= INIT =================
   ngOnInit() {
     this.loadCourses();
@@ -98,7 +102,6 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
         }
       }, 10000);
     });
-    //this.loadBatch(2);
 
     this.authService.authState.subscribe((status) => {
       this.isLoggedIn.set(status);
@@ -214,6 +217,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       document.body.classList.add('light-mode');
     }
   }
+
   // ================= COURSE =================
   loading = false;
 
@@ -363,19 +367,6 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     const index = this.featuredCourses.findIndex((c) => c.id === course.id);
     this.setHeroCourse(course, index >= 0 ? index : 0);
   }
-
-  // startHeroRotation(): void {
-  //   if (this.heroRotation) {
-  //     clearInterval(this.heroRotation);
-  //   }
-
-  //   if (this.featuredCourses.length <= 1) return;
-
-  //   this.heroRotation = setInterval(() => {
-  //     const nextIndex = (this.heroCourseIndex + 1) % this.featuredCourses.length;
-  //     this.setHeroCourse(this.featuredCourses[nextIndex], nextIndex);
-  //   }, 4500);
-  // }
 
   startHeroRotation(): void {
     return;

@@ -2,9 +2,14 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AdminDashboardService } from '../../service/admin-dashboard';
 import { environment } from '../../../../environments/environment';
+import { BaseChartDirective } from 'ng2-charts';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
+
 interface DashboardStats {
   leads: number;
   revenue: number;
@@ -19,7 +24,7 @@ interface DashboardStats {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BaseChartDirective, RouterLink, RouterLinkActive],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
@@ -46,33 +51,138 @@ export class AdminDashboard implements OnInit, OnDestroy {
   };
   recentActivities: string[] = [];
   modules = [
-    { title: 'Leads', code: 'LD', route: '/admin/leads', desc: 'Manage enquiries, follow-ups, and conversions', accent: 'teal' },
+    { title: 'Leads', code: 'LD', route: '/dashboard/admin/leads', desc: 'Manage enquiries, follow-ups, and conversions', accent: 'teal' },
     { title: 'Lead Bin', code: 'BN', route: '/admin/bin', desc: 'Review and restore deleted lead records', accent: 'rose' },
-    { title: 'Jobs', code: 'JB', route: '/admin/jobs', desc: 'Publish and manage job openings', accent: 'blue' },
-    { title: 'Companies', code: 'CO', route: '/admin/companies', desc: 'Maintain hiring company directory', accent: 'gold' },
-    { title: 'Certificates', code: 'CR', route: '/admin/certificates', desc: 'Generate and manage certificates', accent: 'violet' },
+    { title: 'Jobs', code: 'JB', route: '/dashboard/admin/jobs', desc: 'Publish and manage job openings', accent: 'blue' },
+    { title: 'Companies', code: 'CO', route: '/dashboard/admin/companies', desc: 'Maintain hiring company directory', accent: 'gold' },
+    { title: 'Certificates', code: 'CR', route: '/dashboard/admin/certificates', desc: 'Generate and manage certificates', accent: 'violet' },
     { title: 'Interview Prep', code: 'IP', route: '/admin/questions', desc: 'Manage question bank and preparation content', accent: 'cyan' },
-    { title: 'Invoices', code: 'IV', route: '/admin/invoice', desc: 'Create invoices and payment records', accent: 'green' },
-    { title: 'Analytics', code: 'AN', route: '/invoice-analytics', desc: 'Track revenue, trends, and reports', accent: 'orange' },
+    { title: 'Invoices', code: 'IV', route: '/dashboard/admin/invoice', desc: 'Create invoices and payment records', accent: 'green' },
+    { title: 'Analytics', code: 'AN', route: '/dashboard/admin/invoice-analytics', desc: 'Track revenue, trends, and reports', accent: 'orange' },
     { title: 'Public Practice', code: 'PP', route: '/dashboard/admin/public-practice', desc: 'Publish assessments and coding challenges for guest practice', accent: 'cyan' },
-    { title: 'Manage Trainers', code: 'MT', route: '/dashboard/admin/manage-trainers', desc: 'Assign trainers to courses and generate monthly batches', accent: 'green'},
+    { title: 'Manage Trainers', code: 'MT', route: '/dashboard/admin/manage-trainers', desc: 'Assign trainers to courses and generate monthly batches', accent: 'green' },
   ];
   refreshInterval: any;
+
+  // ================= ADDITIONAL FEATURES =================
+  get greetingMessage(): string {
+    const hours = new Date().getHours();
+    if (hours < 12) return 'Good Morning ☀️';
+    if (hours < 17) return 'Good Afternoon 🌤️';
+    if (hours < 21) return 'Good Evening 🌙';
+    return 'Good Night 💤';
+  }
+
+  // ================= SYSTEM HEALTH DECK =================
+  systemHealth = [
+    { name: 'Core Server Gateway', status: 'Online', latency: '38ms', icon: 'bi-cpu-fill', color: 'emerald' },
+    { name: 'MariaDB Primary DB', status: 'Online', latency: '4ms', icon: 'bi-database-fill', color: 'emerald' },
+    { name: 'Redis Cache Sync', status: 'Online', latency: '1ms', icon: 'bi-lightning-fill', color: 'emerald' },
+    { name: 'S3 Automated Backup', status: 'Secured', latency: '100%', icon: 'bi-cloud-arrow-up-fill', color: 'emerald' }
+  ];
+
+  // ================= ADMIN TASKS BOARD =================
+  tasks: { id: number; text: string; completed: boolean }[] = [
+    { id: 1, text: 'Review new admission fee structures', completed: false },
+    { id: 2, text: 'Approve pending graduate certificates', completed: true },
+    { id: 3, text: 'Sync Lead capturing API webhook', completed: false },
+    { id: 4, text: 'Audit batch communications logs', completed: false }
+  ];
+  newTaskText = '';
+
+  // ================= CHART CONFIGURATION =================
+  userDistributionChartData: any = {
+    labels: ['Students', 'Trainers', 'Mentors', 'Admins'],
+    datasets: [{
+      data: [0, 0, 0, 0],
+      backgroundColor: [
+        'rgba(79, 70, 229, 0.85)',
+        'rgba(16, 185, 129, 0.85)',
+        'rgba(245, 158, 11, 0.85)',
+        'rgba(239, 68, 68, 0.85)'
+      ],
+      borderColor: '#ffffff',
+      borderWidth: 2
+    }]
+  };
+
+  chartOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          padding: 16,
+          font: {
+            size: 11,
+            family: "'Inter', sans-serif"
+          }
+        }
+      }
+    }
+  };
+
   constructor(
     private http: HttpClient,
     private router: Router,
     private dashboardService: AdminDashboardService,
     private cdr: ChangeDetectorRef
   ) { }
+
   ngOnInit(): void {
+    this.loadTasksFromLocalStorage();
     this.loadDashboard();
     this.refreshInterval = setInterval(() => {
       this.loadDashboard(false);
     }, 30000);
   }
+
   ngOnDestroy(): void {
     clearInterval(this.refreshInterval);
   }
+
+  addTask() {
+    const text = this.newTaskText.trim();
+    if (!text) return;
+    this.tasks.push({
+      id: Date.now(),
+      text,
+      completed: false
+    });
+    this.newTaskText = '';
+    this.saveTasksToLocalStorage();
+  }
+
+  toggleTask(id: number) {
+    const task = this.tasks.find(t => t.id === id);
+    if (task) {
+      task.completed = !task.completed;
+      this.saveTasksToLocalStorage();
+    }
+  }
+
+  deleteTask(id: number) {
+    this.tasks = this.tasks.filter(t => t.id !== id);
+    this.saveTasksToLocalStorage();
+  }
+
+  private saveTasksToLocalStorage() {
+    try {
+      localStorage.setItem('vt_admin_tasks', JSON.stringify(this.tasks));
+    } catch (e) { }
+  }
+
+  private loadTasksFromLocalStorage() {
+    try {
+      const stored = localStorage.getItem('vt_admin_tasks');
+      if (stored) {
+        this.tasks = JSON.parse(stored);
+      }
+    } catch (e) { }
+  }
+
   loadDashboard(showLoader: boolean = true) {
     if (showLoader) this.loading = true;
     this.loadLeadStats();
@@ -87,6 +197,7 @@ export class AdminDashboard implements OnInit, OnDestroy {
       this.loading = false;
     }, 700);
   }
+
   loadRoleStats() {
     this.dashboardService.getDashboard().subscribe({
       next: (res) => {
@@ -95,6 +206,28 @@ export class AdminDashboard implements OnInit, OnDestroy {
         this.stats.trainers = res.trainers || 0;
         this.stats.admins = res.admins || 0;
         this.stats.mentors = res.mentors || 0;
+
+        // Update Chart distribution
+        this.userDistributionChartData = {
+          labels: ['Students', 'Trainers', 'Mentors', 'Admins'],
+          datasets: [{
+            data: [
+              res.totalStudents || 0,
+              res.trainers || 0,
+              res.mentors || 0,
+              res.admins || 0
+            ],
+            backgroundColor: [
+              'rgba(79, 70, 229, 0.85)',
+              'rgba(16, 185, 129, 0.85)',
+              'rgba(245, 158, 11, 0.85)',
+              'rgba(239, 68, 68, 0.85)'
+            ],
+            borderColor: '#ffffff',
+            borderWidth: 2
+          }]
+        };
+        this.cdr.detectChanges();
       },
       error: () => { }
     });

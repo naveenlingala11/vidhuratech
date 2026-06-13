@@ -91,19 +91,46 @@ export class InvoiceAnalytics {
         datasets: [{
           data: res.monthly.map(x => x.revenue),
           label: 'Monthly Revenue',
-          borderRadius: 8
+          backgroundColor: 'rgba(79, 70, 229, 0.85)',
+          hoverBackgroundColor: 'rgba(67, 56, 202, 1)',
+          borderColor: '#4f46e5',
+          borderWidth: 1,
+          borderRadius: 6
         }]
       };
       this.paymentMethodChartData = {
         labels: res.methods.map(x => x.paymentMethod),
         datasets: [{
-          data: res.methods.map(x => x.revenue)
+          data: res.methods.map(x => x.revenue),
+          backgroundColor: [
+            'rgba(79, 70, 229, 0.85)',
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(245, 158, 11, 0.85)',
+            'rgba(59, 130, 246, 0.85)',
+            'rgba(236, 72, 153, 0.85)',
+            'rgba(139, 92, 246, 0.85)'
+          ],
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          hoverOffset: 4
         }]
       };
       this.courseRevenueChartData = {
         labels: res.courses.map(x => x.course),
         datasets: [{
-          data: res.courses.map(x => x.revenue)
+          data: res.courses.map(x => x.revenue),
+          backgroundColor: [
+            'rgba(99, 102, 241, 0.85)',
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(245, 158, 11, 0.85)',
+            'rgba(239, 68, 68, 0.85)',
+            'rgba(6, 182, 212, 0.85)',
+            'rgba(236, 72, 153, 0.85)',
+            'rgba(139, 92, 246, 0.85)',
+            'rgba(20, 184, 166, 0.85)'
+          ],
+          borderColor: '#ffffff',
+          borderWidth: 2
         }]
       };
       this.lastUpdated = new Date();

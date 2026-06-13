@@ -53,7 +53,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   form = {
     name: '',
     phone: '',
+    aboutMe: '',
   };
+
+  aboutMe = '';
+  skillTags: string[] = [];
+  newSkillText = '';
 
   preferences: PreferenceItem[] = [
     {
@@ -99,13 +104,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     public userPlanBadgeService: UserPlanBadgeService,
     private cdr: ChangeDetectorRef,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.restorePreferences();
     this.loadNotificationPreferences();
     this.loadProfile();
     this.userPlanBadgeService.load();
+    this.loadLocalProfileData();
   }
 
   ngOnDestroy(): void {
@@ -555,5 +561,63 @@ export class ProfileComponent implements OnInit, OnDestroy {
         },
       ]
     );
+  }
+
+  // === DYNAMIC PROFILE SKILLS & BADGES ===
+  loadLocalProfileData(): void {
+    this.aboutMe = localStorage.getItem('vt_profile_bio') || 'Passionate software developer learning code logic, system design, and building web architectures.';
+    this.form.aboutMe = this.aboutMe;
+    try {
+      this.skillTags = JSON.parse(localStorage.getItem('vt_profile_skills') || '[]');
+      if (this.skillTags.length === 0) {
+        this.skillTags = ['TypeScript', 'Angular', 'Algorithms', 'OOP Design', 'Web Tech'];
+        this.saveLocalProfileData();
+      }
+    } catch {
+      this.skillTags = [];
+    }
+  }
+
+  saveLocalProfileData(): void {
+    localStorage.setItem('vt_profile_bio', this.aboutMe);
+    localStorage.setItem('vt_profile_skills', JSON.stringify(this.skillTags));
+  }
+
+  addSkillTag(): void {
+    if (!this.newSkillText.trim()) return;
+    const tag = this.newSkillText.trim();
+    if (!this.skillTags.includes(tag)) {
+      this.skillTags.push(tag);
+      this.saveLocalProfileData();
+      this.showMessage('Skill tag added successfully!');
+    }
+    this.newSkillText = '';
+  }
+
+  removeSkillTag(tag: string): void {
+    this.skillTags = this.skillTags.filter(t => t !== tag);
+    this.saveLocalProfileData();
+    this.showMessage('Skill tag removed');
+    this.cdr.detectChanges();
+  }
+
+  get earnedBadges() {
+    const list = [];
+    const email = this.user?.email || '';
+
+    if (this.user?.name) {
+      list.push({ title: 'Identified Dev', desc: 'Profile name is verified', icon: 'bi-patch-check-fill', tone: 'blue' });
+    }
+    if (this.user?.phone) {
+      list.push({ title: 'Connected User', desc: 'Phone details verified', icon: 'bi-telephone-fill', tone: 'emerald' });
+    }
+    if (email.endsWith('.com')) {
+      list.push({ title: 'Vidhura Scholar', desc: 'Official student member', icon: 'bi-mortarboard-fill', tone: 'violet' });
+    }
+    if (this.profileCompletion >= 80) {
+      list.push({ title: 'Profile Elite', desc: '100% account strength unlocked', icon: 'bi-award-fill', tone: 'gold' });
+    }
+
+    return list;
   }
 }

@@ -25,6 +25,9 @@ export class BatchCommunicationComponent implements OnInit {
     zoomTime: '',
     zoomCalendarLink: ''
   };
+  get selectedBatchName(): string {
+    return this.batches.find(b => b.id === this.selectedBatchId)?.name || '';
+  }
   constructor(private service: BatchCommunicationService) {}
   ngOnInit(): void {
     this.loadBatches();
@@ -72,6 +75,26 @@ export class BatchCommunicationComponent implements OnInit {
     this.form.zoomSchedule = 'Every day till Jun 15, 2026';
     this.form.zoomCalendarLink = 'https://us06web.zoom.us/meeting/tZMsdu2rqT4uH9wgCVQjq2RlbX7_3dawgTp3/ics?icsToken=DPzZzr_7WlADHUiuYQAALAAAAAJuy2AxzOnPdiZyJDH0bijnMAeErYgjeDZBKulb9uvv6jRsDTV74Nqj69_MVd5VO-dbiJuQRyP69wBAZTAwMDAwMQ&meetingMasterEventId=MkicPAKwR2utjCV-G7HViQ';
     this.setMessage('Sample Zoom details applied', 'success');
+  }
+  copyZoomInvite() {
+    if (!this.form.zoomJoinLink && !this.form.zoomMeetingId) {
+      this.setMessage('No Zoom details to copy', 'error');
+      return;
+    }
+    const text = `✨ *Live Class Details for ${this.selectedBatchName || 'Batch'}* ✨\n\n` +
+      (this.form.zoomSchedule ? `📅 *Schedule:* ${this.form.zoomSchedule}\n` : '') +
+      (this.form.zoomTime ? `⏰ *Time:* ${this.form.zoomTime}\n` : '') +
+      `🔗 *Zoom Join Link:* ${this.form.zoomJoinLink}\n` +
+      `🆔 *Meeting ID:* ${this.form.zoomMeetingId}\n` +
+      (this.form.zoomPasscode ? `🔑 *Passcode:* ${this.form.zoomPasscode}\n` : '') +
+      (this.form.zoomCalendarLink ? `📅 *Calendar Link (.ics):* ${this.form.zoomCalendarLink}\n` : '') +
+      `\nSee you in the class! 🚀`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      this.setMessage('Zoom Invitation copied to clipboard!', 'success');
+    }).catch(() => {
+      this.setMessage('Failed to copy invitation', 'error');
+    });
   }
   save() {
     if (!this.selectedBatchId) {

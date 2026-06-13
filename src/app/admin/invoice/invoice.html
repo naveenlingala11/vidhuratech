@@ -1,326 +1,530 @@
-<div class="invoice-wrapper">
-    <!-- LEFT FORM PANEL -->
-    <div class="control-panel">
-        <div class="panel-header">
-            <h2>Generate Invoice</h2>
-            <p>Create and manage professional student invoices</p>
-        </div>
-        <!-- SEARCH -->
-        <div class="form-group search-box">
-            <label>Search Lead by Mobile</label>
-            <input type="text" placeholder="Search by student mobile number..." [(ngModel)]="searchMobile"
-                (input)="onSearchMobile()">
-            <div class="suggestions" *ngIf="showSuggestions">
-                <div class="suggestion-item" *ngFor="let lead of leadSuggestions" (click)="selectLead(lead)">
-                    <strong>{{lead.phone}}</strong>
-                    <span>{{lead.name}}</span>
-                </div>
-            </div>
-        </div>
-        <!-- STUDENT INFO -->
-        <div class="form-group">
-            <label>Student Name</label>
-            <input type="text" placeholder="Enter student's full name" [(ngModel)]="invoiceData.name">
-        </div>
-        <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" placeholder="Enter student's email address" [(ngModel)]="invoiceData.email">
-        </div>
-        <div class="form-group">
-            <label>Mobile Number</label>
-            <input type="text" placeholder="Enter mobile number" [(ngModel)]="invoiceData.mobile">
-        </div>
-        <div class="form-group">
-            <label>Student Address</label>
-            <textarea rows="2" placeholder="Enter complete student address"
-                [(ngModel)]="invoiceData.studentAddress"></textarea>
-        </div>
-        <!-- COURSE INFO -->
-        <div class="form-group">
-            <label>Course Name</label>
-            <input type="text" placeholder="Enter enrolled course name" [(ngModel)]="invoiceData.course">
-        </div>
-        <div class="form-group">
-            <label>Batch / Timing</label>
-            <input type="text" placeholder="Enter batch / timing" [(ngModel)]="invoiceData.batch">
-        </div>
-        <!-- PAYMENT -->
-        <div class="form-row">
-            <div class="form-group">
-                <label>Course Fee</label>
-                <input type="number" placeholder="Enter course fee" [(ngModel)]="invoiceData.amount">
-            </div>
-            <div class="form-group">
-                <label>Discount (%)</label>
-                <input type="number" placeholder="Discount %" [(ngModel)]="invoiceData.discount">
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label>Scholarship Amount</label>
-                <input type="number" placeholder="Scholarship amount" [(ngModel)]="invoiceData.scholarship">
-            </div>
-            <div class="form-group">
-                <label>Coupon Code</label>
-                <input type="text" placeholder="Coupon / Offer code (Optional)" [(ngModel)]="invoiceData.couponCode">
-            </div>
-        </div>
-        <!-- STATUS -->
-        <div class="form-row">
-            <div class="form-group">
-                <label>Payment Status</label>
-                <select [(ngModel)]="invoiceData.paymentStatus">
-                    <option>Paid</option>
-                    <option>Pending</option>
-                    <option>Partial</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Payment Method</label>
-                <select [(ngModel)]="invoiceData.paymentMethod">
-                    <option>UPI</option>
-                    <option>Cash</option>
-                    <option>Bank Transfer</option>
-                    <option>Card</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-group installment-toggle">
-            <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="invoiceData.installmentEnabled">
-                <span>Enable Installments</span>
-            </label>
-        </div>
-        <div class="installment-section" *ngIf="invoiceData.installmentEnabled">
-            <!-- HEADER -->
-            <div class="installment-header">
-                <div>
-                    <div class="installment-title">
-                        Installment Schedule
-                    </div>
-                    <p class="installment-subtitle">
-                        Configure payment breakdown for this invoice
-                    </p>
-                </div>
-                <button class="add-installment-btn" (click)="addInstallment()">
-                    + Add Installment
-                </button>
-            </div>
-            <div class="installment-summary" *ngIf="invoiceData.installments?.length">
-                <div class="summary-card">
-                    <span>Total Invoice</span>
-                    <strong>₹{{finalInvoiceAmount}}</strong>
-                </div>
-                <div class="summary-card">
-                    <span>Installment Total</span>
-                    <strong>₹{{totalInstallmentAmount}}</strong>
-                </div>
-                <div class="summary-card">
-                    <span>Remaining Balance</span>
-                    <strong>₹{{finalInvoiceAmount - totalInstallmentAmount}}</strong>
-                </div>
-                <div class="summary-card">
-                    <span>Completion</span>
-                    <strong>{{installmentCompletionPercentage}}%</strong>
-                </div>
-            </div>
-            <div class="progress-section" *ngIf="invoiceData.installments?.length">
-                <div class="progress-label">
-                    Installment Completion Tracker
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" [style.width.%]="installmentCompletionPercentage">
-                    </div>
-                </div>
-            </div>
-            <div class="validation-warning" *ngIf="installmentAmountMismatch">
-                ⚠ Installment total must equal invoice amount.
-                Difference:
-                ₹{{finalInvoiceAmount - totalInstallmentAmount}}
-            </div>
-            <!-- EMPTY STATE -->
-            <div class="empty-installment-state" *ngIf="!invoiceData.installments?.length">
-                No installments added yet.
-                Click <b>Add Installment</b> to begin.
-            </div>
-            <!-- INSTALLMENT CARDS -->
-            <div class="installment-card" [class.overdue]="isOverdue(inst)" *ngFor="let inst of
-                invoiceData.installments; let i = index">
-                <div class="installment-top">
-                    <span class="overdue-badge" *ngIf="isOverdue(inst)">
-                        OVERDUE
-                    </span>
-                    <span class="installment-badge">
-                        Installment #{{inst.installmentNo}}
-                    </span>
-                    <button class="remove-installment-btn" (click)="removeInstallment(i)">
-                        ✕
-                    </button>
-                </div>
-                <div class="form-group">
-                    <label>Installment Amount</label>
-                    <input type="number" [(ngModel)]="inst.amount" placeholder="Enter installment amount">
-                </div>
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="date" [(ngModel)]="inst.dueDate">
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select [(ngModel)]="inst.status">
-                        <option>Pending</option>
-                        <option>Paid</option>
-                    </select>
-                </div>
-            </div>
-            <!-- FOOTER -->
-            <div class="installment-footer" *ngIf="invoiceData.installments?.length">
-                <button class="save-installments-btn" type="button">
-                    Save Installments
-                </button>
-            </div>
-        </div>
-        <!-- NOTES -->
-        <div class="form-group">
-            <label>Additional Notes</label>
-            <textarea rows="3" placeholder="Additional invoice notes..." [(ngModel)]="invoiceData.notes"></textarea>
-        </div>
-        <!-- ACTION BUTTONS -->
-        <div class="btn-group">
-            <button class="preview-btn" (click)="openPreview()">
-                Preview
-            </button>
-            <button class="generate-btn" (click)="generateInvoice()">
-                Generate
-            </button>
-            <button class="generate-btn" (click)="generateInvoice()">
-                {{editingInvoiceId ? 'Update Invoice' : 'Generate'}}
-            </button>
-        </div>
+<div class="dashboard-page invoice-page">
+  <div class="dashboard-bg"></div>
+
+  <!-- Header Section -->
+  <header class="top-header">
+    <div class="header-intro">
+      <span class="kicker">
+        <i class="bi bi-wallet2 me-1"></i> Vidhura Tech Billing
+      </span>
+      <h1>Billing & Invoices Suite</h1>
+      <p class="subtitle">
+        Create student invoices, schedule installment allocations, track payment collections, and view statistics.
+      </p>
     </div>
-    <!-- LIVE PREVIEW -->
-    <app-invoice-template [data]="invoiceData" [today]="today">
-    </app-invoice-template>
-</div>
-<!-- HISTORY -->
-<div class="history-panel">
-    <div class="history-header">
+    <div class="header-actions">
+      <button type="button" class="btn-action btn-analytics" routerLink="/dashboard/admin/invoice-analytics">
+        <i class="bi bi-graph-up-arrow me-2"></i>
+        <span>Revenue Analytics</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Two-Column Form & Preview Workspace -->
+  <section class="invoice-workspace-grid">
+    <!-- Left Panel: Billing Form Editor -->
+    <div class="glass-panel editor-panel">
+      <div class="panel-header-row">
         <div>
-            <h2>Generated Invoices</h2>
-            <p>Manage, track and analyze all billing records</p>
+          <span class="panel-kicker">Billing Form</span>
+          <h3 class="panel-title">{{ editingInvoiceId ? 'Modify Invoice #' + editingInvoiceId : 'Generate Student Invoice' }}</h3>
         </div>
-        <button class="analytics-btn" routerLink="/invoice-analytics">
-            📊 Revenue Analytics
+        <button type="button" class="btn-reset" (click)="resetForm()" title="Clear Form Fields">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset
         </button>
+      </div>
+
+      <div class="form-container">
+        <!-- Search Inbound Lead Autofill -->
+        <div class="form-group search-group">
+          <label class="form-label">Search Lead Mobile (Autofill)</label>
+          <div class="search-input-wrapper">
+            <i class="bi bi-search input-search-icon"></i>
+            <input type="text" placeholder="Type at least 3 digits of student phone..." [(ngModel)]="searchMobile" (input)="onSearchMobile()">
+          </div>
+          <!-- Auto-suggestions panel -->
+          <div class="suggestions-dropdown shadow-lg" *ngIf="showSuggestions">
+            <div class="suggestion-row-item" *ngFor="let lead of leadSuggestions" (click)="selectLead(lead)">
+              <div class="suggestion-lead-info">
+                <strong>{{ lead.phone }}</strong>
+                <span>{{ lead.name }}</span>
+              </div>
+              <span class="badge bg-teal-subtle text-teal uppercase">{{ lead.course || 'Unknown Track' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 1: Student Information -->
+        <div class="form-section-card">
+          <h4 class="section-title"><i class="bi bi-person-bounding-box me-2"></i> Student Details</h4>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" placeholder="Student name" [(ngModel)]="invoiceData.name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" placeholder="email@address.com" [(ngModel)]="invoiceData.email">
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Mobile Number</label>
+              <input type="text" placeholder="Phone number" [(ngModel)]="invoiceData.mobile">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batch Code / Timing</label>
+              <input type="text" placeholder="e.g. Morning 8AM" [(ngModel)]="invoiceData.batch">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Postal / Billing Address</label>
+            <textarea rows="2" placeholder="Complete address details..." [(ngModel)]="invoiceData.studentAddress"></textarea>
+          </div>
+        </div>
+
+        <!-- Section 2: Course & Financial Config -->
+        <div class="form-section-card">
+          <h4 class="section-title"><i class="bi bi-cash-stack me-2"></i> Pricing & Course Allocation</h4>
+          <div class="form-group">
+            <label class="form-label">Enrolled Course Track</label>
+            <input type="text" placeholder="Enter course name" [(ngModel)]="invoiceData.course">
+          </div>
+          
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Base Course Fee</label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" placeholder="0.00" [(ngModel)]="invoiceData.amount">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Discount Percentage (%)</label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">%</span>
+                <input type="number" placeholder="0" [(ngModel)]="invoiceData.discount">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Scholarship / Deductions</label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" placeholder="0.00" [(ngModel)]="invoiceData.scholarship">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Promo / Coupon Code</label>
+              <input type="text" placeholder="Optional" [(ngModel)]="invoiceData.couponCode">
+            </div>
+          </div>
+
+          <div class="computed-fee-panel">
+            <div class="computed-row">
+              <span>Gross Fee:</span>
+              <span>₹{{ invoiceData.amount || 0 }}</span>
+            </div>
+            <div class="computed-row text-rose">
+              <span>Discounts & Scholarships:</span>
+              <span>-₹{{ totalDeductions }}</span>
+            </div>
+            <div class="computed-row total-row text-success">
+              <span>Consolidated Net Due:</span>
+              <strong>₹{{ finalInvoiceAmount }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Status & Installment Details -->
+        <div class="form-section-card">
+          <h4 class="section-title"><i class="bi bi-credit-card-2-front me-2"></i> Payment Settings</h4>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Collection Status</label>
+              <select [(ngModel)]="invoiceData.paymentStatus">
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Partial">Partial</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Channel</label>
+              <select [(ngModel)]="invoiceData.paymentMethod">
+                <option value="UPI">UPI / QR Scan</option>
+                <option value="Cash">Cash Handover</option>
+                <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                <option value="Card">Credit/Debit Card</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Installment Schedule Toggle Switch -->
+          <div class="form-group installment-toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Enable Installment Schedule</span>
+              <p class="toggle-desc">Break down this invoice into scheduled recurring payment dates</p>
+            </div>
+            <label class="switch-container">
+              <input type="checkbox" [(ngModel)]="invoiceData.installmentEnabled">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <!-- Installments Allocation Section -->
+          <div class="installments-manager-deck" *ngIf="invoiceData.installmentEnabled">
+            <div class="installment-manager-header">
+              <h5>Installments Planner</h5>
+              <button type="button" class="btn-add-installment" (click)="addInstallment()">
+                <i class="bi bi-plus-lg me-1"></i> Add Split
+              </button>
+            </div>
+
+            <!-- Summary metrics -->
+            <div class="installments-metrics-summary" *ngIf="invoiceData.installments?.length">
+              <div class="metric-card bg-light">
+                <span>Net Due</span>
+                <strong>₹{{ finalInvoiceAmount }}</strong>
+              </div>
+              <div class="metric-card bg-light">
+                <span>Planned</span>
+                <strong>₹{{ totalInstallmentAmount }}</strong>
+              </div>
+              <div class="metric-card" [class.bg-rose-subtle]="installmentAmountMismatch" [class.bg-success-subtle]="!installmentAmountMismatch">
+                <span>Remaining</span>
+                <strong [class.text-rose]="installmentAmountMismatch" [class.text-success]="!installmentAmountMismatch">
+                  ₹{{ finalInvoiceAmount - totalInstallmentAmount }}
+                </strong>
+              </div>
+              <div class="metric-card bg-indigo-subtle">
+                <span>Paid Ratio</span>
+                <strong class="text-indigo">{{ installmentCompletionPercentage }}%</strong>
+              </div>
+            </div>
+
+            <!-- Tracker progress track -->
+            <div class="installment-tracker-progress" *ngIf="invoiceData.installments?.length">
+              <div class="progress-info">
+                <span>Completion Status</span>
+                <span>{{ installmentCompletionPercentage }}%</span>
+              </div>
+              <div class="progress-track-bg">
+                <div class="progress-track-fill" [style.width.%]="installmentCompletionPercentage"></div>
+              </div>
+            </div>
+
+            <!-- Amount mismatch validation alerts -->
+            <div class="validation-error-alert" *ngIf="installmentAmountMismatch">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <span>Installment total must match invoice amount. Balance offset: <strong>₹{{ finalInvoiceAmount - totalInstallmentAmount }}</strong></span>
+            </div>
+
+            <!-- Installment Empty State -->
+            <div class="installment-empty-state" *ngIf="!invoiceData.installments?.length">
+              <i class="bi bi-calendar-range me-2 text-indigo"></i>
+              <p>No installments scheduled. Click <strong>Add Split</strong> to divide the payment.</p>
+            </div>
+
+            <!-- Installment Forms Loop -->
+            <div class="installment-plan-card" [class.is-overdue]="isOverdue(inst)" *ngFor="let inst of invoiceData.installments; let idx = index">
+              <div class="installment-card-header">
+                <span class="badge bg-indigo-subtle text-indigo font-bold">Split #{{ inst.installmentNo }}</span>
+                <div class="card-header-actions">
+                  <span class="overdue-tag bg-rose text-white" *ngIf="isOverdue(inst)">Overdue</span>
+                  <button type="button" class="btn-remove-split" (click)="removeInstallment(idx)" title="Remove this split">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="installment-inputs-row">
+                <div class="form-group mb-0">
+                  <label class="form-label-xs">Amount</label>
+                  <input type="number" [(ngModel)]="inst.amount" placeholder="₹ Amount">
+                </div>
+                <div class="form-group mb-0">
+                  <label class="form-label-xs">Due Date</label>
+                  <input type="date" [(ngModel)]="inst.dueDate">
+                </div>
+                <div class="form-group mb-0">
+                  <label class="form-label-xs">Status</label>
+                  <select [(ngModel)]="inst.status">
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Notes text area -->
+        <div class="form-group">
+          <label class="form-label">Terms / Notes</label>
+          <textarea rows="3" placeholder="Specify invoice notes, terms, or bank directives..." [(ngModel)]="invoiceData.notes"></textarea>
+        </div>
+
+        <!-- Panel Form Actions Group -->
+        <div class="form-actions-row">
+          <button type="button" class="btn-console btn-preview-toggle" (click)="openPreview()">
+            <i class="bi bi-eye-fill me-2"></i> Preview Draft
+          </button>
+          <button type="button" class="btn-console btn-save-invoice" (click)="generateInvoice()">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span>{{ editingInvoiceId ? 'Update Record' : 'Generate Invoice' }}</span>
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="history-filters">
-        <input type="text" placeholder="Search Name" [(ngModel)]="filterData.name" (input)="onFilterChange()">
-        <input type="text" placeholder="Search Course" [(ngModel)]="filterData.course" (input)="onFilterChange()">
+
+    <!-- Right Panel: Live Invoice Print preview mockup -->
+    <div class="glass-panel preview-console-panel">
+      <div class="panel-header-row">
+        <div>
+          <span class="panel-kicker">Live Viewport</span>
+          <h3 class="panel-title">Print Invoice Sheet Preview</h3>
+        </div>
+        <div class="preview-viewport-actions">
+          <button type="button" class="btn-action-sm btn-print" (click)="downloadInvoice()" [disabled]="!invoiceData.id" title="Save PDF to device">
+            <i class="bi bi-download"></i> Save PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview Sheet Mockup Container -->
+      <div class="invoice-viewport-container">
+        <div class="viewport-zoom-wrapper">
+          <app-invoice-template [data]="invoiceData" [today]="today"></app-invoice-template>
+        </div>
+      </div>
+
+      <!-- Helper guide text -->
+      <p class="viewport-helper-text">
+        <i class="bi bi-info-circle me-1"></i> Showing live scaled preview. The layout is formatted for standard A4 printing.
+      </p>
+    </div>
+  </section>
+
+  <!-- Generated Invoices Registry Table -->
+  <section class="glass-panel registry-panel">
+    <div class="panel-header-row">
+      <div>
+        <span class="panel-kicker">Invoices Registry</span>
+        <h3 class="panel-title">Transaction Streams & Billing History</h3>
+      </div>
+    </div>
+
+    <!-- Registry Advanced Search Filters -->
+    <div class="registry-filters-bar">
+      <div class="filter-input-wrapper">
+        <i class="bi bi-person input-filter-icon"></i>
+        <input type="text" placeholder="Search by name..." [(ngModel)]="filterData.name" (input)="onFilterChange()">
+      </div>
+      <div class="filter-input-wrapper">
+        <i class="bi bi-journal-bookmark input-filter-icon"></i>
+        <input type="text" placeholder="Search by course..." [(ngModel)]="filterData.course" (input)="onFilterChange()">
+      </div>
+      <div class="filter-input-wrapper">
+        <i class="bi bi-credit-card input-filter-icon"></i>
         <select [(ngModel)]="filterData.paymentStatus" (change)="onFilterChange()">
-            <option value="">All Status</option>
-            <option>PAID</option>
-            <option>PENDING</option>
-            <option>PARTIAL</option>
+          <option value="">All Statuses</option>
+          <option value="PAID">PAID</option>
+          <option value="PENDING">PENDING</option>
+          <option value="PARTIAL">PARTIAL</option>
         </select>
-        <input type="number" placeholder="Min Amount" [(ngModel)]="filterData.minAmount" (input)="onFilterChange()">
-        <input type="number" placeholder="Max Amount" [(ngModel)]="filterData.maxAmount" (input)="onFilterChange()">
+      </div>
+      <div class="filter-input-wrapper">
+        <i class="bi bi-currency-rupee input-filter-icon"></i>
+        <input type="number" placeholder="Min Amount..." [(ngModel)]="filterData.minAmount" (input)="onFilterChange()">
+      </div>
+      <div class="filter-input-wrapper">
+        <i class="bi bi-currency-rupee input-filter-icon"></i>
+        <input type="number" placeholder="Max Amount..." [(ngModel)]="filterData.maxAmount" (input)="onFilterChange()">
+      </div>
+      <div class="filter-input-wrapper">
+        <i class="bi bi-calendar input-filter-icon"></i>
         <input type="date" [(ngModel)]="filterData.fromDate" (change)="onFilterChange()">
+      </div>
+      <div class="filter-input-wrapper">
+        <i class="bi bi-calendar input-filter-icon"></i>
         <input type="date" [(ngModel)]="filterData.toDate" (change)="onFilterChange()">
-        <button class="preview-btn" (click)="clearFilters()">
-            Clear Filters
-        </button>
+      </div>
+      <button type="button" class="btn-clear-filters" (click)="clearFilters()">
+        <i class="bi bi-x-circle me-1"></i> Clear
+      </button>
     </div>
-    <table>
+
+    <!-- Registry Data Table -->
+    <div class="registry-table-scroll">
+      <table class="registry-data-table">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Course</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Action</th>
-            </tr>
+          <tr>
+            <th>Invoice ID</th>
+            <th>Student Profile</th>
+            <th>Allocated Course Track</th>
+            <th>Net Amount</th>
+            <th>Payment Status</th>
+            <th>Issue Date</th>
+            <th class="text-center">Operations</th>
+          </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let inv of invoices">
-                <td>{{inv.id}}</td>
-                <td>{{inv.name}}</td>
-                <td>{{inv.course}}</td>
-                <td>₹{{inv.amount}}</td>
-                <td>{{inv.paymentStatus}}</td>
-                <td>{{inv.createdAt | date:'dd/MM/yyyy'}}</td>
-                <td class="action-buttons">
-                    <button class="preview-btn" (click)="openPreview(inv)">
-                        Preview
-                    </button>
-                    <button class="download-btn" (click)="downloadSavedInvoice(inv)">
-                        Download
-                    </button>
-                    <button class="preview-btn" (click)="editInvoice(inv)">
-                        Edit
-                    </button>
-                    <button class="generate-btn" *ngIf="inv.installmentEnabled" (click)="manageInstallments(inv)">
-                        Installments
-                    </button>
-                    <!-- NEW APPROVE BUTTON -->
-                    <button class="approve-btn" *ngIf="inv.paymentStatus === 'UNDER_REVIEW'"
-                        (click)="approvePayment(inv.id)">
-                        Approve Payment
-                    </button>
-                </td>
-            </tr>
+          <tr *ngFor="let inv of invoices" [class.editing-active]="editingInvoiceId === inv.id">
+            <td class="td-id">
+              <code>{{ inv.id }}</code>
+            </td>
+            <td class="td-student">
+              <span class="student-name">{{ inv.name }}</span>
+              <span class="student-mobile"><i class="bi bi-phone me-1"></i>{{ inv.mobile }}</span>
+            </td>
+            <td class="td-course">
+              <span class="course-text">{{ inv.course }}</span>
+              <span class="batch-text" *ngIf="inv.batch">{{ inv.batch }}</span>
+            </td>
+            <td class="td-amount">
+              <strong>₹{{ inv.amount }}</strong>
+            </td>
+            <td class="td-status">
+              <span class="status-badge" [class]="inv.paymentStatus ? inv.paymentStatus.toLowerCase() : 'pending'">
+                {{ inv.paymentStatus }}
+              </span>
+            </td>
+            <td class="td-date">
+              <span>{{ inv.createdAt | date:'dd MMM yyyy' }}</span>
+            </td>
+            <td class="td-actions">
+              <div class="row-actions-group">
+                <button type="button" class="btn-row-action btn-preview" (click)="openPreview(inv)" title="Preview Invoice Details">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button type="button" class="btn-row-action btn-download" (click)="downloadSavedInvoice(inv)" title="Download PDF File">
+                  <i class="bi bi-download"></i>
+                </button>
+                <button type="button" class="btn-row-action btn-edit" (click)="editInvoice(inv)" title="Modify Invoice Data">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="btn-row-action btn-installments" *ngIf="inv.installmentEnabled" (click)="manageInstallments(inv)" title="Schedule Installment Payments">
+                  <i class="bi bi-calendar-week"></i>
+                </button>
+                <button type="button" class="btn-row-action btn-approve" *ngIf="inv.paymentStatus === 'UNDER_REVIEW'" (click)="approvePayment(inv.id)" title="Approve Payment Stream">
+                  <i class="bi bi-shield-check"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="invoices.length === 0">
+            <td colspan="7" class="text-center table-empty-row">
+              <i class="bi bi-receipt-cutoff empty-table-icon"></i>
+              <p>No billing records found matching the active search parameters.</p>
+            </td>
+          </tr>
         </tbody>
-    </table>
-    <div class="pagination">
-        <button (click)="prevPage()">Prev</button>
-        <span>{{page+1}} / {{totalPages}}</span>
-        <button (click)="nextPage()">Next</button>
+      </table>
     </div>
-</div>
-<!-- PREVIEW MODAL -->
-<div class="preview-modal" *ngIf="showPreviewModal">
-    <div class="preview-overlay" (click)="closePreview()"></div>
-    <div class="preview-content">
-        <div class="preview-header">
-            <h3>Invoice Preview</h3>
-            <button (click)="closePreview()">✕</button>
-        </div>
-        <div class="preview-body">
-            <app-invoice-template [data]="invoiceData" [today]="today">
-            </app-invoice-template>
-        </div>
+
+    <!-- Registry Pagination footer -->
+    <div class="registry-pagination-row">
+      <div class="pagination-summary">
+        Showing Page <strong>{{ page + 1 }}</strong> of <strong>{{ totalPages }}</strong>
+      </div>
+      <div class="pagination-buttons">
+        <button type="button" class="btn-page" (click)="prevPage()" [disabled]="page === 0">
+          <i class="bi bi-chevron-left"></i> Previous
+        </button>
+        <button type="button" class="btn-page" (click)="nextPage()" [disabled]="page >= totalPages - 1">
+          Next <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
     </div>
-</div>
-<div class="preview-modal" *ngIf="showInstallmentModal">
-    <div class="preview-overlay" (click)="showInstallmentModal=false">
-    </div>
-    <div class="preview-content">
-        <div class="preview-header">
-            <h3>Manage Installments</h3>
-            <button (click)="showInstallmentModal=false">✕</button>
+  </section>
+
+  <!-- POPUP DRAWERS / MODALS -->
+  <!-- PREVIEW MODAL DRAWERS -->
+  <div class="preview-backdrop-modal" *ngIf="showPreviewModal">
+    <div class="backdrop-blur" (click)="closePreview()"></div>
+    <div class="modal-console-content shadow-2xl">
+      <div class="modal-console-header">
+        <div>
+          <span class="modal-kicker">Document Draft</span>
+          <h3>Tax Invoice Review</h3>
         </div>
-        <div class="preview-body">
-            <table class="invoice-main-table">
-                <tr>
-                    <th>No</th>
-                    <th>Due Date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-                <tr *ngFor="let inst of selectedInstallments">
-                    <td>{{inst.installmentNo}}</td>
-                    <td>{{inst.dueDate}}</td>
-                    <td>₹{{inst.amount}}</td>
-                    <td>{{inst.status}}</td>
-                    <td>
-                        <button class="generate-btn" *ngIf="inst.status !== 'PAID'" (click)="payInstallment(inst)">
-                            Mark Paid
-                        </button>
-                    </td>
-                </tr>
-            </table>
+        <button type="button" class="btn-close-modal" (click)="closePreview()">✕</button>
+      </div>
+      <div class="modal-console-body">
+        <div class="modal-viewport-wrapper">
+          <app-invoice-template [data]="invoiceData" [today]="today"></app-invoice-template>
         </div>
+      </div>
+      <div class="modal-console-footer">
+        <button type="button" class="btn-modal-action btn-download" (click)="downloadInvoice()">
+          <i class="bi bi-download me-2"></i> Save PDF Document
+        </button>
+        <button type="button" class="btn-modal-action btn-close-secondary" (click)="closePreview()">
+          Dismiss
+        </button>
+      </div>
     </div>
+  </div>
+
+  <!-- MANAGE INSTALLMENTS MODAL -->
+  <div class="preview-backdrop-modal" *ngIf="showInstallmentModal">
+    <div class="backdrop-blur" (click)="showInstallmentModal = false"></div>
+    <div class="modal-console-content shadow-2xl installments-modal">
+      <div class="modal-console-header">
+        <div>
+          <span class="modal-kicker">Split Collection</span>
+          <h3>Manage Installment Accounts</h3>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="showInstallmentModal = false">✕</button>
+      </div>
+      <div class="modal-console-body">
+        <div class="modal-table-scroll">
+          <table class="modal-data-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Due Date</th>
+                <th>Planned Amount</th>
+                <th>Payment Status</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let inst of selectedInstallments">
+                <td>
+                  <strong>#{{ inst.installmentNo }}</strong>
+                </td>
+                <td>
+                  <span>{{ inst.dueDate | date:'dd MMM yyyy' }}</span>
+                </td>
+                <td>
+                  <strong>₹{{ inst.amount }}</strong>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="inst.status ? inst.status.toLowerCase() : 'pending'">
+                    {{ inst.status }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <button type="button" class="btn-mark-paid" *ngIf="inst.status !== 'PAID'" (click)="payInstallment(inst)">
+                    <i class="bi bi-check-circle me-1"></i> Mark Paid
+                  </button>
+                  <span class="text-success fw-bold" *ngIf="inst.status === 'PAID'">
+                    <i class="bi bi-shield-check me-1"></i> Settled
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-console-footer">
+        <button type="button" class="btn-modal-action btn-close-secondary" (click)="showInstallmentModal = false">
+          Close Manager
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

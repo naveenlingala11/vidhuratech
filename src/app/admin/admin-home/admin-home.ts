@@ -45,14 +45,14 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
   loading = signal(false);
   recentActivities = signal<string[]>([]);
   modules = [
-    { title: 'Leads', icon: '📋', route: '/admin/leads' },
+    { title: 'Leads', icon: '📋', route: '/dashboard/admin/leads' },
     { title: 'Bin', icon: '🗑️', route: '/admin/bin' },
-    { title: 'Jobs', icon: '💼', route: '/admin/jobs' },
-    { title: 'Companies', icon: '🏢', route: '/admin/companies' },
-    { title: 'Certificates', icon: '🎓', route: '/admin/certificates' },
+    { title: 'Jobs', icon: '💼', route: '/dashboard/admin/jobs' },
+    { title: 'Companies', icon: '🏢', route: '/dashboard/admin/companies' },
+    { title: 'Certificates', icon: '🎓', route: '/dashboard/admin/certificates' },
     { title: 'Interview Prep', icon: '🧠', route: '/admin/questions' },
-    { title: 'Invoices', icon: '🧾', route: '/admin/invoice' },
-    { title: 'Analytics', icon: '📊', route: '/invoice-analytics' },
+    { title: 'Invoices', icon: '🧾', route: '/dashboard/admin/invoice' },
+    { title: 'Analytics', icon: '📊', route: '/dashboard/admin/invoice-analytics' },
     { title: 'Public Practice', icon: 'PP', route: '/dashboard/admin/public-practice' },
     { title: 'Manage Trainers', icon: 'MT', route: '/dashboard/admin/manage-trainers' },
   ];

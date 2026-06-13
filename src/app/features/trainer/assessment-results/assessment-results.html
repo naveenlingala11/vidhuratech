@@ -1,171 +1,279 @@
-<section class="assessment-results-page">
-  <div class="toast" *ngIf="toast">{{ toast }}</div>
-
-  <div class="results-hero">
-    <div>
-      <button class="back-link" type="button" routerLink="/dashboard/trainer/assessments">
-        ← Assessments
-      </button>
-      <span>Results Center</span>
-      <h1>Assessment Results</h1>
-      <p>Review student attempts, scores, pass rate, and detailed answer breakdowns.</p>
+<section class="ar-page">
+  <!-- Dynamic Alert Toast -->
+  <div class="ar-toast" *ngIf="toast">
+    <div class="toast-indicator"></div>
+    <div class="toast-content">
+      <i class="bi bi-info-circle-fill text-primary"></i>
+      <span>{{ toast }}</span>
     </div>
-
-    <button type="button" class="refresh-btn" (click)="loadResults()">Refresh</button>
   </div>
 
-  <div class="loading" *ngIf="loading">Loading results...</div>
+  <!-- Frosted Glass Hero Banner -->
+  <header class="ar-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="hero-mesh"></div>
 
+    <div class="ar-hero__body">
+      <div class="ar-hero__text">
+        <div class="ar-hero__eyebrow">
+          <button class="back-link ghost-btn action-btn" type="button" routerLink="/dashboard/trainer/assessments">
+            <i class="bi bi-arrow-left"></i> Back to Assessments
+          </button>
+          <span class="ms-2">Results Center</span>
+        </div>
+        <h1>Assessment <span>Results Studio</span></h1>
+        <p>Review student attempts, scores, pass rate, and detailed answer breakdowns.</p>
+      </div>
+      <div class="ar-hero__cta">
+        <button type="button" class="primary-btn action-btn white-style" (click)="loadResults()">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="ar-empty" *ngIf="loading">
+    <div class="spinner-loader"></div>
+    <h3>Synchronizing results</h3>
+    <p>Please wait while we update the attempt records...</p>
+  </div>
+
+  <!-- Roster Overview -->
   <ng-container *ngIf="!loading && !showDetailedView">
-    <div class="statistics-cards">
-      <div class="stat-card blue">
-        <span>Attempts</span>
-        <strong>{{ attempts.length }}</strong>
+    <!-- Telemetry Stats Cards Grid -->
+    <div class="ar-stats">
+      <div class="ar-stat total-card">
+        <div class="card-glow"></div>
+        <div class="ar-stat__icon ar-stat__icon--indigo"><i class="bi bi-people-fill"></i></div>
+        <div class="ar-stat__data">
+          <small>Total Attempts</small>
+          <strong>{{ attempts.length }}</strong>
+          <span>Submitted papers</span>
+        </div>
       </div>
 
-      <div class="stat-card purple">
-        <span>Average</span>
-        <strong>{{ getAverageScore() }}%</strong>
+      <div class="ar-stat average-card">
+        <div class="card-glow"></div>
+        <div class="ar-stat__icon ar-stat__icon--violet"><i class="bi bi-bar-chart-line-fill"></i></div>
+        <div class="ar-stat__data">
+          <small>Average Score</small>
+          <strong>{{ getAverageScore() }}%</strong>
+          <span>Mean grade</span>
+        </div>
       </div>
 
-      <div class="stat-card green">
-        <span>Pass Rate</span>
-        <strong>{{ getPassRate() }}%</strong>
+      <div class="ar-stat passrate-card">
+        <div class="card-glow"></div>
+        <div class="ar-stat__icon ar-stat__icon--emerald"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="ar-stat__data">
+          <small>Pass Rate</small>
+          <strong>{{ getPassRate() }}%</strong>
+          <span>>= 40% score</span>
+        </div>
       </div>
 
-      <div class="stat-card gold">
-        <span>Highest</span>
-        <strong>{{ getHighestScore() }}%</strong>
+      <div class="ar-stat highest-card">
+        <div class="card-glow"></div>
+        <div class="ar-stat__icon ar-stat__icon--gold"><i class="bi bi-trophy-fill"></i></div>
+        <div class="ar-stat__data">
+          <small>Highest Score</small>
+          <strong>{{ getHighestScore() }}%</strong>
+          <span>Top submission</span>
+        </div>
       </div>
     </div>
 
-    <div class="empty" *ngIf="!attempts.length">
-      <h2>No attempts yet</h2>
+    <!-- Empty attempts state -->
+    <div class="ar-empty" *ngIf="!attempts.length">
+      <div class="ar-empty__icon"><i class="bi bi-clipboard2-data-fill"></i></div>
+      <h3>No attempts yet</h3>
       <p>Student attempts will appear here after they submit this assessment.</p>
     </div>
 
-    <div class="results-table-wrapper" *ngIf="attempts.length">
-      <table class="results-table">
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>Score</th>
-            <th>Percentage</th>
-            <th>Status</th>
-            <th>Submitted</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let attempt of attempts" [ngClass]="getStatusClass(attempt)">
-            <td>
-              <strong>{{ attempt.studentName || attempt.student || 'Student' }}</strong>
-              <small>{{ attempt.email || '' }}</small>
-            </td>
-
-            <td>
-              <strong>{{ attempt.totalScore || 0 }}/{{ attempt.totalMarks || 0 }}</strong>
-            </td>
-
-            <td>
-              <strong>{{ attempt.percentageScore || 0 }}%</strong>
-            </td>
-
-            <td>
-              <span class="status-badge" [ngClass]="getStatusClass(attempt)">
-                {{ getStatusClass(attempt) === 'pass' ? 'PASS' : 'FAIL' }}
-              </span>
-            </td>
-
-            <td>{{ formatDate(attempt.submittedAt) }}</td>
-
-            <td>
-              <button class="details-btn" type="button" (click)="viewAttemptDetails(attempt)">
-                View Details
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Roster Panel Table -->
+    <div class="ar-card-panel" *ngIf="attempts.length">
+      <div class="ar-card-panel__head">
+        <h3>Student Roster & Scores</h3>
+      </div>
+      <div class="ar-table-wrapper">
+        <table class="ar-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Score</th>
+              <th>Percentage</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let attempt of attempts" [ngClass]="getStatusClass(attempt)">
+               <td>
+                 <div class="ar-student-profile">
+                   <div class="ar-avatar">{{ getInitials(attempt.studentName || attempt.student || 'Student') }}</div>
+                   <div class="ar-student-copy">
+                     <strong>{{ attempt.studentName || attempt.student || 'Student' }}</strong>
+                     <small>{{ attempt.email || '' }}</small>
+                   </div>
+                 </div>
+               </td>
+               <td>
+                 <span class="ar-score-badge">
+                   {{ attempt.totalScore || 0 }}<small>/{{ attempt.totalMarks || 0 }}</small>
+                 </span>
+               </td>
+               <td>
+                 <div class="ar-percentage-wrapper">
+                   <strong>{{ attempt.percentageScore || 0 }}%</strong>
+                   <div class="ar-percentage-bar-bg">
+                     <div class="ar-percentage-bar-fill" [style.width]="(attempt.percentageScore || 0) + '%'" [ngClass]="getStatusClass(attempt)"></div>
+                   </div>
+                 </div>
+               </td>
+               <td>
+                 <span class="status-badge" [ngClass]="getStatusClass(attempt)">
+                   <i class="bi" [ngClass]="getStatusClass(attempt) === 'pass' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                   <span>{{ getStatusClass(attempt) === 'pass' ? 'PASS' : 'FAIL' }}</span>
+                 </span>
+               </td>
+               <td>
+                 <div class="ar-date-item">
+                   <i class="bi bi-calendar3"></i>
+                   <span>{{ formatDate(attempt.submittedAt) }}</span>
+                 </div>
+               </td>
+               <td class="text-end">
+                 <button class="details-btn action-btn" type="button" (click)="viewAttemptDetails(attempt)">
+                   <i class="bi bi-eye-fill"></i> View Details
+                 </button>
+               </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </ng-container>
 
-  <div *ngIf="!loading && showDetailedView && selectedAttempt" class="attempt-details">
-    <button class="back-btn" type="button" (click)="closeDetailedView()">← Back to Results</button>
+  <!-- Detailed View of Student Attempt -->
+  <div *ngIf="!loading && showDetailedView && selectedAttempt" class="ar-details">
+    <div class="ar-details__nav">
+      <button class="ghost-btn action-btn back-btn" type="button" (click)="closeDetailedView()">
+        <i class="bi bi-arrow-left"></i> Back to Results
+      </button>
+    </div>
 
-    <div class="detail-head">
-      <div>
-        <span>Student Attempt</span>
-        <h2>{{ selectedAttempt.studentName || selectedAttempt.student }}'s Attempt</h2>
-        <p>Submitted {{ formatDate(selectedAttempt.submittedAt) }}</p>
+    <!-- Student Detail Header Card -->
+    <div class="ar-card-panel ar-details__header">
+      <div class="ar-student-profile ar-student-profile--large">
+        <div class="ar-avatar ar-avatar--lg">{{ getInitials(selectedAttempt.studentName || selectedAttempt.student || 'Student') }}</div>
+        <div class="ar-student-copy">
+          <span>Student Attempt Review</span>
+          <h2>{{ selectedAttempt.studentName || selectedAttempt.student }}'s Attempt</h2>
+          <p class="ar-timestamp"><i class="bi bi-clock-history"></i> Submitted {{ formatDate(selectedAttempt.submittedAt) }}</p>
+        </div>
       </div>
-
-      <span class="status-badge" [ngClass]="getStatusClass(selectedAttempt)">
-        {{ getStatusClass(selectedAttempt) === 'pass' ? 'PASS' : 'FAIL' }}
+      <span class="status-badge status-badge--large" [ngClass]="getStatusClass(selectedAttempt)">
+        <i class="bi" [ngClass]="getStatusClass(selectedAttempt) === 'pass' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+        <span>{{ getStatusClass(selectedAttempt) === 'pass' ? 'PASSED' : 'FAILED' }}</span>
       </span>
     </div>
 
-    <div class="attempt-summary">
-      <div>
-        <span>Score</span>
-        <strong>{{ selectedAttempt.totalScore || 0 }}/{{ selectedAttempt.totalMarks || 0 }}</strong>
+    <!-- Attempt Summary Tiles -->
+    <div class="ar-stats ar-stats--summary">
+      <div class="ar-stat ar-stat--summary">
+        <div class="ar-stat__icon ar-stat__icon--indigo"><i class="bi bi-award-fill"></i></div>
+        <div class="ar-stat__data">
+          <small>Awarded Score</small>
+          <strong>{{ selectedAttempt.totalScore || 0 }}/{{ selectedAttempt.totalMarks || 0 }}</strong>
+          <span>Points earned</span>
+        </div>
       </div>
-      <div>
-        <span>Percentage</span>
-        <strong>{{ selectedAttempt.percentageScore || 0 }}%</strong>
+
+      <div class="ar-stat ar-stat--summary">
+        <div class="ar-stat__icon ar-stat__icon--violet"><i class="bi bi-percent"></i></div>
+        <div class="ar-stat__data">
+          <small>Percentage</small>
+          <strong>{{ selectedAttempt.percentageScore || 0 }}%</strong>
+          <span>Performance tier</span>
+        </div>
       </div>
-      <div>
-        <span>Status</span>
-        <strong>{{ getStatusClass(selectedAttempt) === 'pass' ? 'Passed' : 'Failed' }}</strong>
+
+      <div class="ar-stat ar-stat--summary">
+        <div class="ar-stat__icon" [ngClass]="getStatusClass(selectedAttempt) === 'pass' ? 'ar-stat__icon--emerald' : 'ar-stat__icon--rose'">
+          <i class="bi" [ngClass]="getStatusClass(selectedAttempt) === 'pass' ? 'bi-shield-check' : 'bi-shield-slash'"></i>
+        </div>
+        <div class="ar-stat__data">
+          <small>Status Outcome</small>
+          <strong>{{ getStatusClass(selectedAttempt) === 'pass' ? 'Passed' : 'Failed' }}</strong>
+          <span>{{ getStatusClass(selectedAttempt) === 'pass' ? 'Met target criteria' : 'Below passing cutoff' }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="questions-review" *ngIf="selectedAttemptDetails?.answers?.length">
-      <h3>Question Breakdown</h3>
+    <!-- Question Breakdown -->
+    <div class="ar-questions-section" *ngIf="selectedAttemptDetails?.answers?.length">
+      <div class="section-title-wrapper">
+        <i class="bi bi-card-checklist text-primary"></i>
+        <h3>Question Breakdown & Review</h3>
+      </div>
 
-      <div
-        class="question-item"
-        *ngFor="let answer of selectedAttemptDetails.answers; let i = index"
-      >
-        <div
-          class="question-header"
-          [class.correct]="answer.correct"
-          [class.incorrect]="!answer.correct"
-        >
-          <h4>Question {{ i + 1 }}</h4>
-          <span
-            >{{ answer.marksAwarded || 0 }}/{{ answer.marks || answer.totalMarks || 0 }} Marks</span
-          >
-        </div>
-
-        <div class="question-content">
-          <p>{{ answer.questionText || answer.question || 'Question text unavailable' }}</p>
-        </div>
-
-        <div class="options-review" *ngIf="answer.options">
-          <div class="option-item" *ngFor="let key of optionKeys">
-            <span class="option-label">{{ key }}</span>
-            <span class="option-text">{{ getOptionValue(answer.options, key) }}</span>
-            <span class="badge correct-badge" *ngIf="answer.correctOption === key">Correct</span>
-            <span
-              class="badge incorrect-badge"
-              *ngIf="answer.selectedOption === key && answer.correctOption !== key"
-            >
-              Selected
+      <div class="ar-question-card" *ngFor="let answer of selectedAttemptDetails.answers; let i = index">
+        <div class="ar-question-card__header" [class.correct]="answer.correct" [class.incorrect]="!answer.correct">
+          <div class="ar-question-title">
+            <span class="question-number">Question {{ i + 1 }}</span>
+            <span class="ar-badge" [ngClass]="answer.correct ? 'ar-badge--green' : 'ar-badge--rose'">
+              <i class="bi" [ngClass]="answer.correct ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+              {{ answer.correct ? 'Correct' : 'Incorrect' }}
             </span>
           </div>
+          <span class="ar-question-marks">
+            <strong>{{ answer.marksAwarded || 0 }}</strong> / {{ answer.marks || answer.totalMarks || 0 }} Marks
+          </span>
         </div>
 
-        <div class="explanation-box" *ngIf="answer.explanation">
-          <h5>Explanation</h5>
-          <p>{{ answer.explanation }}</p>
+        <div class="ar-question-card__body">
+          <div class="ar-question-text">
+            <p>{{ answer.questionText || answer.question || 'Question text unavailable' }}</p>
+          </div>
+
+          <div class="ar-options" *ngIf="answer.options">
+            <div class="ar-option-item" *ngFor="let key of optionKeys"
+                 [class.ar-option-item--correct]="answer.correctOption === key"
+                 [class.ar-option-item--selected-incorrect]="answer.selectedOption === key && answer.correctOption !== key">
+              
+              <span class="ar-option-circle">{{ key }}</span>
+              <span class="ar-option-text">{{ getOptionValue(answer.options, key) }}</span>
+              
+              <div class="ar-option-badges">
+                <span class="badge correct-badge" *ngIf="answer.correctOption === key">
+                  <i class="bi bi-patch-check-fill"></i> Correct Option
+                </span>
+                <span class="badge incorrect-badge" *ngIf="answer.selectedOption === key && answer.correctOption !== key">
+                  <i class="bi bi-exclamation-triangle-fill"></i> Your Selection
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ar-explanation" *ngIf="answer.explanation">
+            <div class="ar-explanation__header">
+              <i class="bi bi-info-circle-fill"></i>
+              <h5>Explanation Details</h5>
+            </div>
+            <p>{{ answer.explanation }}</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="empty" *ngIf="!selectedAttemptDetails?.answers?.length">
-      No detailed answer breakdown available for this attempt.
+    <!-- Detailed empty state -->
+    <div class="ar-empty" *ngIf="!selectedAttemptDetails?.answers?.length">
+      <div class="ar-empty__icon"><i class="bi bi-clipboard2-x-fill"></i></div>
+      <h3>No details available</h3>
+      <p>No detailed answer breakdown available for this attempt.</p>
     </div>
   </div>
 </section>

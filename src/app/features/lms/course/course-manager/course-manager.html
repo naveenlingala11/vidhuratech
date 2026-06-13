@@ -1,305 +1,533 @@
 <section class="course-manager">
-  <header class="manager-header">
-    <div>
-      <span class="eyebrow">Admin LMS Control</span>
+  <!-- Frosted Glass Header Banner -->
+  <header class="manager-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="hero-mesh"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-shield-lock-fill me-1"></i> Operations Command
+      </span>
       <h2>Course Operations Manager</h2>
-      <p>Manage course batches, class updates, Zoom/WhatsApp links, and student curriculum.</p>
+      <p>
+        Orchestrate class cohorts, dispatch real-time WhatsApp & Zoom updates, configure calendar mappings, and author course curricula.
+      </p>
     </div>
 
-    <button type="button" class="primary-action" (click)="newBatch()">New Batch</button>
+    <div class="hero-actions">
+      <button type="button" class="primary-btn action-btn" (click)="newBatch()">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>New Batch</span>
+      </button>
+    </div>
   </header>
 
+  <!-- Control & Filter Bar (Floating Glass Widget) -->
   <section class="control-bar">
-    <label>
-      <span>Course</span>
-      <select [(ngModel)]="selectedCourseId" (ngModelChange)="onCourseChange()">
-        <option [ngValue]="null">Select course</option>
-        <option *ngFor="let course of courses" [ngValue]="course.id">
-          {{ course.title }} - {{ course.code }}
-        </option>
-      </select>
-    </label>
+    <div class="control-select-group">
+      <label class="select-label">
+        <span>Course Filter</span>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-journal-bookmark field-icon"></i>
+          <select [(ngModel)]="selectedCourseId" (ngModelChange)="onCourseChange()" class="filter-select">
+            <option [ngValue]="null">All Courses</option>
+            <option *ngFor="let course of courses" [ngValue]="course.id">
+              {{ course.title }} ({{ course.code }})
+            </option>
+          </select>
+        </div>
+      </label>
 
-    <label>
-      <span>Batch</span>
-      <select [(ngModel)]="selectedBatchId" (ngModelChange)="onBatchChange()">
-        <option [ngValue]="null">Select batch</option>
-        <option *ngFor="let batch of filteredBatches" [ngValue]="batch.id">
-          {{ batch.name }}
-        </option>
-      </select>
-    </label>
+      <label class="select-label">
+        <span>Batch Selection</span>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-layers field-icon"></i>
+          <select [(ngModel)]="selectedBatchId" (ngModelChange)="onBatchChange()" class="filter-select">
+            <option [ngValue]="null">Select batch</option>
+            <option *ngFor="let batch of filteredBatches" [ngValue]="batch.id">
+              {{ batch.name }}
+            </option>
+          </select>
+        </div>
+      </label>
+    </div>
 
-    <div class="course-summary" *ngIf="selectedCourse">
-      <strong>{{ selectedCourse.title }}</strong>
-      <span>{{ filteredBatches.length }} batches linked</span>
+    <div class="course-summary-card" *ngIf="selectedCourse">
+      <div class="summary-icon">
+        <i class="bi bi-bookmark-star-fill"></i>
+      </div>
+      <div class="summary-details">
+        <strong>{{ selectedCourse.title }}</strong>
+        <span>{{ filteredBatches.length }} active cohorts linked</span>
+      </div>
     </div>
   </section>
 
+  <!-- Segmented Tabs Navigation -->
   <nav class="manager-tabs">
-    <button type="button" [class.active]="activeTab === 'BATCHES'" (click)="setTab('BATCHES')">
-      Batch Manage
+    <button type="button" [class.active]="activeTab === 'BATCHES'" (click)="setTab('BATCHES')" class="tab-btn">
+      <i class="bi bi-folder-symlink"></i>
+      <span>Cohort Setup</span>
     </button>
-    <button type="button" [class.active]="activeTab === 'UPDATES'" (click)="setTab('UPDATES')">
-      Course & Batch Updates
+    <button type="button" [class.active]="activeTab === 'UPDATES'" (click)="setTab('UPDATES')" class="tab-btn">
+      <i class="bi bi-broadcast"></i>
+      <span>Broadcast Channels</span>
     </button>
-    <button
-      type="button"
-      [class.active]="activeTab === 'CURRICULUM'"
-      (click)="setTab('CURRICULUM')"
-    >
-      Curriculum Builder
+    <button type="button" [class.active]="activeTab === 'CURRICULUM'" (click)="setTab('CURRICULUM')" class="tab-btn">
+      <i class="bi bi-file-earmark-ruled"></i>
+      <span>Curriculum Builder</span>
     </button>
   </nav>
 
+  <!-- Split Screen Manager Workspace -->
   <section class="manager-layout">
+    <!-- Left Cohort Roster Sidebar -->
     <aside class="batch-list-panel">
-      <div class="panel-title">
-        <div>
-          <span>Batches</span>
-          <h3>{{ selectedCourse?.title || 'All courses' }}</h3>
+      <div class="panel-head">
+        <div class="head-title">
+          <span>Active Registry</span>
+          <h3>{{ selectedCourse?.title || 'All Programs' }}</h3>
         </div>
-        <button type="button" class="ghost-action" (click)="newBatch()">Add</button>
+        <button type="button" class="ghost-btn icon-only-btn" (click)="newBatch()" title="Add Cohort">
+          <i class="bi bi-plus-lg"></i>
+        </button>
       </div>
 
-      <div class="loading-state" *ngIf="loading">Loading batches...</div>
+      <div class="loading-state" *ngIf="loading">
+        <div class="shimmer-pulse spinner"></div>
+        <span>Loading rosters...</span>
+      </div>
 
-      <article
-        class="batch-card"
-        *ngFor="let batch of filteredBatches"
-        [class.active]="selectedBatchId === batch.id"
-        (click)="selectBatch(batch)"
-      >
-        <div>
-          <strong>{{ batch.name }}</strong>
-          <span>{{ batch.courseName || selectedCourse?.title || 'Course' }}</span>
+      <div class="roster-scroll" *ngIf="!loading">
+        <article
+          class="batch-card"
+          *ngFor="let batch of filteredBatches"
+          [class.active]="selectedBatchId === batch.id"
+          [class.card-active]="batch.status === 'ACTIVE'"
+          [class.card-upcoming]="batch.status === 'UPCOMING'"
+          [class.card-completed]="batch.status === 'COMPLETED'"
+          [class.card-cancelled]="batch.status === 'CANCELLED'"
+          (click)="selectBatch(batch)"
+        >
+          <div class="card-status-bar"></div>
+          <div class="card-content">
+            <div class="card-header-row">
+              <strong>{{ batch.name }}</strong>
+              <span class="status-badge" [class]="'badge-' + (batch.status || 'ACTIVE').toLowerCase()">
+                {{ batch.status || 'ACTIVE' }}
+              </span>
+            </div>
+            <div class="card-footer-row">
+              <span class="course-sub"><i class="bi bi-journal-code"></i> {{ batch.courseName || selectedCourse?.title || 'Program' }}</span>
+              <span class="date-sub" *ngIf="batch.startDate"><i class="bi bi-calendar3"></i> {{ batch.startDate | date:'mediumDate' }}</span>
+            </div>
+          </div>
+        </article>
+
+        <div class="empty-state" *ngIf="!filteredBatches.length">
+          <i class="bi bi-inbox-fill"></i>
+          <strong>No Cohorts Listed</strong>
+          <p>No cohorts have been created under this program track yet.</p>
         </div>
-        <b>{{ batch.status || 'ACTIVE' }}</b>
-      </article>
-
-      <div class="empty-state" *ngIf="!loading && !filteredBatches.length">
-        No batches found for this course.
       </div>
     </aside>
 
+    <!-- Right Workspace Form Control -->
     <main class="workspace-panel">
+      <!-- TAB 1: COHORT SETUP -->
       <ng-container *ngIf="activeTab === 'BATCHES'">
-        <div class="panel-title">
-          <div>
-            <span>{{ selectedBatchId ? 'Edit Batch' : 'Create Batch' }}</span>
-            <h3>{{ batchForm.name || 'Batch details' }}</h3>
+        <div class="panel-title-bar">
+          <div class="title-copy">
+            <span class="step-label">Tab Workspace 01</span>
+            <h3>{{ selectedBatchId ? 'Edit Cohort Parameters' : 'Create New Cohort' }}</h3>
+            <p>Define operational runtimes, course assignments, and trainer ownership tags.</p>
           </div>
         </div>
 
-        <div class="form-grid">
-          <label>
-            <span>Batch Name</span>
-            <input [(ngModel)]="batchForm.name" placeholder="June Java Full Stack Batch" />
-          </label>
-
-          <label>
-            <span>Course</span>
-            <select [(ngModel)]="batchForm.courseId">
-              <option *ngFor="let course of courses" [ngValue]="course.id">
-                {{ course.title }}
-              </option>
-            </select>
-          </label>
-
-          <label>
-            <span>Trainer</span>
-            <select [(ngModel)]="batchForm.trainerId">
-              <option value="">Assign trainer</option>
-              <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">
-                {{ trainer.name || trainer.fullName || trainer.email }}
-              </option>
-            </select>
-          </label>
-
-          <label>
-            <span>Status</span>
-            <select [(ngModel)]="batchForm.status">
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="UPCOMING">UPCOMING</option>
-              <option value="COMPLETED">COMPLETED</option>
-              <option value="CANCELLED">CANCELLED</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Start Date</span>
-            <input type="date" [(ngModel)]="batchForm.startDate" />
-          </label>
-
-          <label>
-            <span>End Date</span>
-            <input type="date" [(ngModel)]="batchForm.endDate" />
-          </label>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="secondary-action" (click)="resetBatchForm()">Clear</button>
-          <button type="button" class="primary-action" [disabled]="saving" (click)="saveBatch()">
-            {{ saving ? 'Saving...' : selectedBatchId ? 'Update Batch' : 'Create Batch' }}
-          </button>
-          <button
-            type="button"
-            class="danger-action"
-            *ngIf="selectedBatch"
-            (click)="deleteBatch(selectedBatch)"
-          >
-            Delete
-          </button>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="activeTab === 'UPDATES'">
-        <div class="panel-title">
-          <div>
-            <span>Batch Communication</span>
-            <h3>{{ selectedBatch?.name || 'Select a batch' }}</h3>
+        <div class="form-card premium-card">
+          <div class="card-headline">
+            <i class="bi bi-sliders2-vertical"></i> Cohort Parameters
           </div>
-        </div>
-
-        <div class="form-grid">
-          <label>
-            <span>WhatsApp Group Link</span>
-            <input
-              [(ngModel)]="communicationForm.whatsappGroupLink"
-              placeholder="https://chat.whatsapp.com/..."
-            />
-          </label>
-
-          <label>
-            <span>Zoom Join Link</span>
-            <input
-              [(ngModel)]="communicationForm.zoomJoinLink"
-              placeholder="https://zoom.us/j/..."
-            />
-          </label>
-
-          <label>
-            <span>Zoom Meeting ID</span>
-            <input [(ngModel)]="communicationForm.zoomMeetingId" />
-          </label>
-
-          <label>
-            <span>Zoom Passcode</span>
-            <input [(ngModel)]="communicationForm.zoomPasscode" />
-          </label>
-
-          <label>
-            <span>Zoom Schedule</span>
-            <input [(ngModel)]="communicationForm.zoomSchedule" placeholder="Mon-Fri" />
-          </label>
-
-          <label>
-            <span>Class Time</span>
-            <input [(ngModel)]="communicationForm.zoomTime" placeholder="7:30 PM IST" />
-          </label>
-        </div>
-
-        <label class="full-field">
-          <span>Calendar Link</span>
-          <input [(ngModel)]="communicationForm.zoomCalendarLink" />
-        </label>
-
-        <div class="form-actions">
-          <button
-            type="button"
-            class="primary-action"
-            [disabled]="saving"
-            (click)="saveCommunication()"
-          >
-            {{ saving ? 'Sharing...' : 'Save & Share Updates' }}
-          </button>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="activeTab === 'CURRICULUM'">
-        <div class="panel-title">
-          <div>
-            <span>Curriculum Builder</span>
-            <h3>{{ selectedBatch?.name || 'Select a batch' }}</h3>
-          </div>
-          <button type="button" class="ghost-action" (click)="addModule()">Add Module</button>
-        </div>
-
-        <div class="form-grid">
-          <label>
-            <span>Curriculum Title</span>
-            <input [(ngModel)]="curriculumMeta.title" />
-          </label>
-
-          <label>
-            <span>Version</span>
-            <input [(ngModel)]="curriculumMeta.version" />
-          </label>
-        </div>
-
-        <label class="full-field">
-          <span>Description</span>
-          <textarea rows="3" [(ngModel)]="curriculumMeta.description"></textarea>
-        </label>
-
-        <section class="module-list">
-          <article class="module-editor" *ngFor="let module of modules; let i = index">
-            <header>
-              <strong>Module {{ i + 1 }}</strong>
-              <button type="button" class="danger-link" (click)="removeModule(i)">Remove</button>
-            </header>
-
-            <div class="form-grid">
+          <div class="form-grid">
+            <div class="form-group">
               <label>
-                <span>Module Title</span>
-                <input [(ngModel)]="module.title" placeholder="HTML, CSS, JavaScript Basics" />
-              </label>
-
-              <label>
-                <span>Duration</span>
-                <input [(ngModel)]="module.duration" placeholder="1 week / 8 hours" />
+                <span class="input-label">Cohort Batch Name</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-tag input-icon"></i>
+                  <input [(ngModel)]="batchForm.name" placeholder="e.g. June Java Full Stack Elite" class="modern-input" />
+                </div>
               </label>
             </div>
 
-            <label class="full-field">
-              <span>Outcome</span>
-              <input
-                [(ngModel)]="module.outcome"
-                placeholder="Student can build responsive pages"
-              />
-            </label>
-
-            <div class="topics">
-              <label *ngFor="let topic of module.topics; let j = index">
-                <span>Topic {{ j + 1 }}</span>
-                <div class="topic-row">
-                  <input [(ngModel)]="module.topics[j]" />
-                  <button type="button" (click)="removeTopic(module, j)">Remove</button>
+            <div class="form-group">
+              <label>
+                <span class="input-label">Linked Program Course</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-journal-code input-icon"></i>
+                  <select [(ngModel)]="batchForm.courseId" class="modern-select">
+                    <option *ngFor="let course of courses" [ngValue]="course.id">
+                      {{ course.title }}
+                    </option>
+                  </select>
                 </div>
               </label>
+            </div>
 
-              <button type="button" class="ghost-action" (click)="addTopic(module)">
-                Add Topic
+            <div class="form-group">
+              <label>
+                <span class="input-label">Assigned Core Trainer</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-person-badge input-icon"></i>
+                  <select [(ngModel)]="batchForm.trainerId" class="modern-select">
+                    <option value="">Select Trainer / Assistant</option>
+                    <option *ngFor="let trainer of trainers" [ngValue]="trainer.id">
+                      {{ trainer.name || trainer.fullName || trainer.email }}
+                    </option>
+                  </select>
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Cohort Status</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-check-circle input-icon"></i>
+                  <select [(ngModel)]="batchForm.status" class="modern-select">
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="UPCOMING">UPCOMING</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Cohort Launch Date</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-calendar-event input-icon"></i>
+                  <input type="date" [(ngModel)]="batchForm.startDate" class="modern-input" />
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Cohort Target End Date</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-calendar-check input-icon"></i>
+                  <input type="date" [(ngModel)]="batchForm.endDate" class="modern-input" />
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <div class="left-actions">
+            <button type="button" class="danger-btn action-btn" *ngIf="selectedBatch" (click)="deleteBatch(selectedBatch)">
+              <i class="bi bi-trash3"></i> <span>Delete Cohort</span>
+            </button>
+          </div>
+          <div class="right-actions">
+            <button type="button" class="ghost-btn action-btn" (click)="resetBatchForm()">
+              <i class="bi bi-arrow-counterclockwise"></i> <span>Reset Fields</span>
+            </button>
+            <button type="button" class="primary-btn action-btn" [disabled]="saving" (click)="saveBatch()">
+              <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-check-circle-fill'"></i>
+              <span>{{ saving ? 'Saving Changes...' : selectedBatchId ? 'Update Batch' : 'Create Batch' }}</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- TAB 2: BROADCAST CHANNELS -->
+      <ng-container *ngIf="activeTab === 'UPDATES'">
+        <div class="panel-title-bar">
+          <div class="title-copy">
+            <span class="step-label">Tab Workspace 02</span>
+            <h3>Broadcast & Session Channels</h3>
+            <p>Provide communication endpoints, Zoom coordinates, schedules, and group invites to students.</p>
+          </div>
+        </div>
+
+        <div class="form-card premium-card whatsapp-card">
+          <div class="card-headline">
+            <i class="bi bi-whatsapp color-whatsapp"></i> Chat Community Invite Link
+          </div>
+          <div class="form-group">
+            <label>
+              <span class="input-label">WhatsApp Group URL</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-link-45deg input-icon"></i>
+                <input
+                  [(ngModel)]="communicationForm.whatsappGroupLink"
+                  placeholder="https://chat.whatsapp.com/invite/..."
+                  class="modern-input"
+                />
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-card premium-card zoom-card">
+          <div class="card-headline">
+            <i class="bi bi-camera-video color-zoom"></i> Class Meeting Parameters
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-row-mobile">
+              <label>
+                <span class="input-label">Zoom Session Launch Link</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-laptop input-icon"></i>
+                  <input
+                    [(ngModel)]="communicationForm.zoomJoinLink"
+                    placeholder="https://zoom.us/j/..."
+                    class="modern-input"
+                  />
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Meeting Access ID</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-key input-icon"></i>
+                  <input [(ngModel)]="communicationForm.zoomMeetingId" placeholder="e.g. 892 4110 5928" class="modern-input" />
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Meeting Secure Passcode</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-shield-lock input-icon"></i>
+                  <input [(ngModel)]="communicationForm.zoomPasscode" placeholder="e.g. vtAdmin90" class="modern-input" />
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Weekly Routine Schedule</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-calendar3 input-icon"></i>
+                  <input [(ngModel)]="communicationForm.zoomSchedule" placeholder="e.g. Monday - Friday" class="modern-input" />
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Session Daily Time</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-clock input-icon"></i>
+                  <input [(ngModel)]="communicationForm.zoomTime" placeholder="e.g. 07:30 PM IST" class="modern-input" />
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group calendar-row">
+            <label>
+              <span class="input-label">Google / Outlook Calendar Integration Link</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-calendar-plus input-icon"></i>
+                <input [(ngModel)]="communicationForm.zoomCalendarLink" placeholder="https://calendar.google.com/..." class="modern-input" />
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <div class="left-actions"></div>
+          <div class="right-actions">
+            <button
+              type="button"
+              class="primary-btn action-btn"
+              [disabled]="saving"
+              (click)="saveCommunication()"
+            >
+              <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-send-fill'"></i>
+              <span>{{ saving ? 'Sharing Updates...' : 'Broadcast to Cohort' }}</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- TAB 3: CURRICULUM BUILDER -->
+      <ng-container *ngIf="activeTab === 'CURRICULUM'">
+        <div class="panel-title-bar">
+          <div class="title-copy">
+            <span class="step-label">Tab Workspace 03</span>
+            <h3>Interactive Curriculum Designer</h3>
+            <p>Compose sequential learning modules, target durations, core outcomes, and specific topics.</p>
+          </div>
+          <button type="button" class="primary-btn action-btn secondary-style" (click)="addModule()">
+            <i class="bi bi-plus-circle-fill"></i> <span>Add Module</span>
+          </button>
+        </div>
+
+        <!-- Curriculum Meta details -->
+        <div class="form-card premium-card curriculum-meta-card">
+          <div class="card-headline">
+            <i class="bi bi-file-earmark-medical"></i> Curriculum Blueprint Info
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>
+                <span class="input-label">Curriculum Directory Title</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-type input-icon"></i>
+                  <input [(ngModel)]="curriculumMeta.title" placeholder="e.g. Spring Boot Microservices Track" class="modern-input" />
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <span class="input-label">Blueprint Version</span>
+                <div class="input-icon-wrapper">
+                  <i class="bi bi-git input-icon"></i>
+                  <input [(ngModel)]="curriculumMeta.version" placeholder="e.g. 2.1-stable" class="modern-input" />
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group mt-3">
+            <label>
+              <span class="input-label">Detailed Program Roadmap Description</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-text-paragraph input-icon textarea-icon"></i>
+                <textarea rows="3" [(ngModel)]="curriculumMeta.description" placeholder="Provide a summary of the outcomes of this roadmap..." class="modern-textarea"></textarea>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Modules Loop -->
+        <section class="module-list" *ngIf="modules.length">
+          <article class="module-editor-card" *ngFor="let module of modules; let i = index">
+            <div class="card-accent-bar"></div>
+            <header class="module-card-head">
+              <div class="module-badge">
+                <span class="mod-num">Module {{ i + 1 }}</span>
+              </div>
+              <button type="button" class="danger-btn-text" (click)="removeModule(i)">
+                <i class="bi bi-trash3-fill"></i> <span>Remove Module</span>
               </button>
+            </header>
+
+            <div class="module-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>
+                    <span class="input-label">Module Title</span>
+                    <div class="input-icon-wrapper">
+                      <i class="bi bi-type-h1 input-icon"></i>
+                      <input [(ngModel)]="module.title" placeholder="e.g. Hibernate ORM & JPA" class="modern-input" />
+                    </div>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label>
+                    <span class="input-label">Target Duration</span>
+                    <div class="input-icon-wrapper">
+                      <i class="bi bi-hourglass-split input-icon"></i>
+                      <input [(ngModel)]="module.duration" placeholder="e.g. 2 Weeks / 12 Hours" class="modern-input" />
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group mt-3">
+                <label>
+                  <span class="input-label">Core Learning Outcome</span>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-trophy input-icon"></i>
+                    <input
+                      [(ngModel)]="module.outcome"
+                      placeholder="e.g. Student can manage relational db links with Hibernate cache mechanisms"
+                      class="modern-input"
+                    />
+                  </div>
+                </label>
+              </div>
+
+              <!-- Topics Sub-system -->
+              <div class="topics-workspace">
+                <div class="topics-headline">
+                  <i class="bi bi-list-check"></i> <span>Module Lesson Topics</span>
+                </div>
+
+                <div class="topic-rows-grid">
+                  <div class="topic-row" *ngFor="let topic of module.topics; let j = index">
+                    <div class="topic-number">#{{ j + 1 }}</div>
+                    <div class="input-icon-wrapper">
+                      <i class="bi bi-bookmark-fill input-icon"></i>
+                      <input [(ngModel)]="module.topics[j]" placeholder="Topic title/concept..." class="modern-input" />
+                    </div>
+                    <button type="button" class="danger-icon-btn" (click)="removeTopic(module, j)" title="Remove Topic">
+                      <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="button" class="ghost-btn action-btn secondary-style add-topic-btn" (click)="addTopic(module)">
+                  <i class="bi bi-plus-circle-dotted"></i> <span>Add Topic Row</span>
+                </button>
+              </div>
             </div>
           </article>
         </section>
 
-        <div class="form-actions">
-          <button type="button" class="secondary-action" (click)="previewCurriculum()">
-            Preview JSON
-          </button>
-          <button
-            type="button"
-            class="primary-action"
-            [disabled]="saving"
-            (click)="saveCurriculum()"
-          >
-            {{ saving ? 'Posting...' : 'Post / Update Curriculum' }}
+        <!-- Empty state for Curriculum modules -->
+        <div class="empty-state curriculum-empty" *ngIf="!modules.length">
+          <i class="bi bi-signpost-2-fill"></i>
+          <strong>No Modules Created Yet</strong>
+          <p>Add module groups to define the educational content structure of this program blueprint.</p>
+          <button type="button" class="primary-btn action-btn secondary-style mt-2" (click)="addModule()">
+            <i class="bi bi-plus-circle-fill"></i> <span>Create First Module</span>
           </button>
         </div>
 
-        <pre class="raw-json" *ngIf="rawPreview">{{ rawPreview | json }}</pre>
+        <div class="form-actions-bar mt-4">
+          <div class="left-actions"></div>
+          <div class="right-actions">
+            <button type="button" class="ghost-btn action-btn" (click)="previewCurriculum()">
+              <i class="bi bi-eye-fill"></i> <span>Compile & Preview JSON</span>
+            </button>
+            <button
+              type="button"
+              class="primary-btn action-btn"
+              [disabled]="saving"
+              (click)="saveCurriculum()"
+            >
+              <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-send-fill'"></i>
+              <span>{{ saving ? 'Posting Curriculum...' : 'Post / Update Curriculum' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Raw JSON Live Preview (IDE Terminal styling) -->
+        <div class="json-preview-container" *ngIf="rawPreview">
+          <div class="json-preview-header">
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="terminal-title"><i class="bi bi-code-slash"></i> JSON Preview Console</span>
+          </div>
+          <pre class="raw-json">{{ rawPreview | json }}</pre>
+        </div>
       </ng-container>
     </main>
   </section>
