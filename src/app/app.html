@@ -4,40 +4,105 @@
   <router-outlet></router-outlet>
 </div>
 <!-- CHAT (COMMON) -->
-<div class="chat-toggle" *ngIf="!authService.isLoggedIn()" (click)="toggleChat()"> 💬 </div>
-<div class="chat-backdrop" *ngIf="chatOpen && !authService.isLoggedIn()" (click)="toggleChat()"></div>
-<div class="chat-box" *ngIf="chatOpen && !authService.isLoggedIn()">
-  <div class="chat-header">
-    <div>
-      <h6>Vidhura Tech</h6>
-      <small>Online • Replies instantly</small>
-    </div>
-    <span (click)="toggleChat()">✖</span>
-  </div>
-  <div class="chat-body" #chatContainer>
-    <div *ngFor="let msg of messages" class="msg" [ngClass]="msg.type">
-      <pre>{{ msg.text }}</pre>
-      <div *ngIf="msg.options" class="options">
-        <button *ngFor="let opt of msg.options" (click)="handleOption(opt)">
-          {{ opt }}
-        </button>
+<div class="chat-toggle-btn" *ngIf="!authService.isLoggedIn()" (click)="toggleChat()" [class.active]="chatOpen" title="Chat with Us">
+  <i class="fa-solid" [class.fa-comments]="!chatOpen" [class.fa-xmark]="chatOpen"></i>
+  <span class="toggle-notification-ping" *ngIf="!chatOpen"></span>
+</div>
+
+<div class="chat-backdrop-dim" *ngIf="chatOpen && !authService.isLoggedIn()" (click)="toggleChat()"></div>
+
+<div class="chat-box-premium" *ngIf="chatOpen && !authService.isLoggedIn()">
+  
+  <!-- Chat Header -->
+  <div class="chat-header-premium">
+    <div class="header-agent-info">
+      <div class="agent-avatar-container">
+        <div class="agent-avatar-glowing">VT</div>
+        <span class="active-pulse-dot"></span>
       </div>
-      <div *ngIf="msg.showCTA" class="whatsapp-cta" (click)="openWhatsApp(selectedCourse)">
-        <span>Continue on WhatsApp</span>
-        <img src="whatsapp-svgrepo-com.svg" />
+      <div class="agent-text-block">
+        <h6 class="agent-name">Vidhura Tech Assistant</h6>
+        <span class="agent-status-label"><i class="fa-solid fa-circle"></i> Online • Replies Instantly</span>
       </div>
     </div>
-    <div class="typing" *ngIf="typing">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  </div>
-  <div class="chat-input">
-    <input [(ngModel)]="userInput" placeholder="Type your message..." (keyup.enter)="sendUserMessage()" />
-    <button (click)="sendUserMessage()">
-      ➤
+    <button class="chat-close-header-btn" (click)="toggleChat()" aria-label="Close Chat">
+      <i class="fa-solid fa-xmark"></i>
     </button>
+  </div>
+
+  <!-- Chat Body -->
+  <div class="chat-body-premium" #chatContainer>
+    <div *ngFor="let msg of messages" class="msg-bubble-row" [ngClass]="msg.type === 'bot' ? 'row-bot' : 'row-user'">
+      
+      <!-- Bot avatar icon -->
+      <div class="msg-avatar-icon" *ngIf="msg.type === 'bot'">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      
+      <!-- Message bubble container -->
+      <div class="msg-bubble animate-message-in">
+        <div class="msg-text-content">
+          <pre>{{ msg.text }}</pre>
+        </div>
+
+        <!-- Direct Navigation Route Links -->
+        <div *ngIf="msg.suggestedRoutes" class="suggested-routes-wrapper">
+          <button *ngFor="let route of msg.suggestedRoutes" class="route-link-chip" (click)="navigateToRoute(route.path, $event)">
+            <i class="fa-solid {{ route.icon }} route-icon"></i>
+            <span class="route-label">{{ route.label }}</span>
+            <i class="fa-solid fa-angle-right chevron-icon"></i>
+          </button>
+        </div>
+
+        <!-- Quick reply action buttons -->
+        <div *ngIf="msg.options" class="chat-quick-options-row">
+          <button *ngFor="let opt of msg.options" class="quick-option-pill" (click)="handleOption(opt)">
+            {{ opt }}
+          </button>
+        </div>
+
+        <!-- WhatsApp CTA -->
+        <div *ngIf="msg.showCTA" class="premium-whatsapp-cta-card" (click)="openWhatsApp(selectedCourse)">
+          <div class="cta-inner-content">
+            <i class="fa-brands fa-whatsapp whatsapp-icon-cta"></i>
+            <div class="cta-text-info">
+              <span class="cta-main-title">Continue on WhatsApp</span>
+              <span class="cta-subtitle">Connect with Admissions Counselor</span>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right cta-chevron"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="msg-bubble-row row-bot" *ngIf="typing">
+      <div class="msg-avatar-icon">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <div class="msg-bubble typing-bubble">
+        <div class="typing-indicator-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input Footer -->
+  <div class="chat-input-footer-premium">
+    <div class="input-inner-wrapper">
+      <i class="fa-solid fa-circle-info info-icon-left" title="How can we help?"></i>
+      <input 
+        [(ngModel)]="userInput" 
+        placeholder="Type a message or ask a question..." 
+        (keyup.enter)="sendUserMessage()" 
+        class="premium-chat-text-input" />
+      <button class="premium-chat-send-btn" (click)="sendUserMessage()" aria-label="Send Message">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
   </div>
 </div>
 <app-footer></app-footer>

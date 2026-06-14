@@ -260,6 +260,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     fixedOverflowWidgets: false,
     mouseWheelScrollSensitivity: 1,
     fastScrollSensitivity: 5,
+    spellcheck: true,
     scrollbar: {
       vertical: 'visible',
       horizontal: 'visible',
@@ -554,7 +555,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   }
 
   formatCode(): void {
-    if (this.editorInstance?.getAction) {
+    const builtInFormatLanguages = ['typescript', 'javascript', 'html', 'css', 'json'];
+    const isBuiltIn = builtInFormatLanguages.includes(this.editorLanguage);
+
+    if (isBuiltIn && this.editorInstance?.getAction) {
       const action = this.editorInstance.getAction('editor.action.formatDocument');
 
       if (action) {
@@ -568,7 +572,48 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     }
 
     if (this.language === 'PYTHON') {
-      this.showToast('Auto format disabled for Python to preserve indentation');
+      let indent = 0;
+      this.sourceCode = this.sourceCode
+        .split('\n')
+        .map((line) => {
+          const trimmed = line.trim();
+          if (!trimmed) return '';
+
+          if (trimmed.startsWith('def ') || trimmed.startsWith('class ')) {
+            indent = 0;
+          } else if (
+            trimmed.startsWith('elif ') ||
+            trimmed.startsWith('else:') ||
+            trimmed.startsWith('else ') ||
+            trimmed.startsWith('except ') ||
+            trimmed.startsWith('except:') ||
+            trimmed.startsWith('finally:') ||
+            trimmed.startsWith('finally ')
+          ) {
+            indent = Math.max(indent - 1, 0);
+          }
+
+          const formatted = `${'    '.repeat(indent)}${trimmed}`;
+
+          if (trimmed.endsWith(':')) {
+            indent += 1;
+          } else if (
+            trimmed.startsWith('return') ||
+            trimmed.startsWith('break') ||
+            trimmed.startsWith('continue') ||
+            trimmed.startsWith('pass')
+          ) {
+            indent = Math.max(indent - 1, 0);
+          }
+
+          return formatted;
+        })
+        .join('\n');
+
+      setTimeout(() => {
+        this.syncEditorValue();
+        this.validateCode();
+      });
       return;
     }
 
@@ -587,7 +632,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       })
       .join('\n');
 
-    setTimeout(() => this.validateCode());
+    setTimeout(() => {
+      this.syncEditorValue();
+      this.validateCode();
+    });
   }
 
   insertSnippet(type: 'input' | 'loop' | 'print'): void {
@@ -1049,19 +1097,46 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const firstLine = trimmed.split(/\r?\n/)[0].trim().toLowerCase();
-    const pattern = /^(find|cat|ls|pwd|whoami|id|uname|ps|env|printenv|curl|wget|nc|netcat|bash|sh|zsh|python|python3|perl|ruby)\b.*/;
+    const firstLine = trimmed.split(/\r?\n/)[0].trim();
+    const firstLineLower = firstLine.toLowerCase();
 
-    return pattern.test(firstLine)
-      || firstLine.includes('2>/dev/null')
-      || firstLine.includes('/etc/passwd')
-      || firstLine.includes('/home')
-      || firstLine.includes('/proc')
-      || firstLine.includes('/root')
-      || firstLine.includes('&&')
-      || firstLine.includes('||')
-      || firstLine.includes(';')
-      || firstLine.includes('|');
+    // If it's a comment or common programming starting construct, it's not a shell command
+    const codeStarters = [
+      'import ', 'from ', 'package ', 'using ', 'public ', 'class ', 'private ', 
+      'protected ', 'void ', 'int ', 'float ', 'double ', 'char ', 'bool ', 'boolean ',
+      'let ', 'const ', 'var ', 'function ', 'def ', 'namespace ', 
+      '#include', 'include ', 'struct ', 'enum ', '//', '/*', '*', '<?php', '<?',
+      'const', 'let', 'var', 'def', 'import', 'from'
+    ];
+
+    const startsWithCodeKeyword = codeStarters.some(starter => {
+      if (starter.startsWith('#') || starter.startsWith('//') || starter.startsWith('/*') || starter.startsWith('*')) {
+        return firstLine.startsWith(starter);
+      }
+      return firstLineLower.startsWith(starter);
+    });
+
+    if (startsWithCodeKeyword) {
+      return false;
+    }
+
+    // Shell command pattern matching actual commands
+    const isShell = /^(find|cat|ls|pwd|whoami|id|uname|ps|env|printenv|curl|wget|nc|netcat|bash|sh|zsh|python|python3|perl|ruby|chmod|chown|rm|mv|cp|mkdir|rmdir|touch|grep|egrep|fgrep|sed|awk|tar|zip|unzip|git|docker|kubectl|systemctl|service|apt|yum|dnf|pacman|pip|npm|yarn|npx)\b.*/.test(firstLineLower)
+      || firstLineLower.startsWith('./')
+      || firstLineLower.startsWith('/')
+      || firstLineLower.startsWith('../');
+
+    if (isShell) {
+      return true;
+    }
+
+    // Suspicious file paths or redirection operators on the first line
+    const suspicious = ['/etc/passwd', '/proc/', '/root/', '2>/dev/null', '> /dev/null'];
+    if (suspicious.some(p => firstLineLower.includes(p))) {
+      return true;
+    }
+
+    return false;
   }
 
   private readable(pattern: string): string {
@@ -1217,8 +1292,15 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   private collectLocalDiagnostics(): CompilerDiagnostic[] {
     const diagnostics: CompilerDiagnostic[] = [];
     const lines = this.sourceCode.split('\n');
-    if (this.language === 'PYTHON') this.collectPythonDiagnostics(lines, diagnostics);
-    if (this.language === 'JAVA') this.collectJavaDiagnostics(lines, diagnostics);
+    const language = String(this.language || '').toUpperCase();
+
+    if (language === 'PYTHON') {
+      this.collectPythonDiagnostics(lines, diagnostics);
+    } else if (language === 'JAVA') {
+      this.collectJavaDiagnostics(lines, diagnostics);
+    } else {
+      this.collectGenericDiagnostics(lines, diagnostics, language);
+    }
 
     const security = this.collectSecurityDiagnostics(this.sourceCode, this.language);
     diagnostics.push(...security);
@@ -1256,17 +1338,50 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
         });
       }
 
+      if (trimmed.endsWith(':')) {
+        let nextIndex = index + 1;
+        while (nextIndex < lines.length) {
+          const nextTrimmed = lines[nextIndex].trim();
+          if (nextTrimmed && !nextTrimmed.startsWith('#')) {
+            break;
+          }
+          nextIndex++;
+        }
+
+        if (
+          nextIndex < lines.length &&
+          !lines[nextIndex].startsWith(' ') &&
+          !lines[nextIndex].startsWith('\t')
+        ) {
+          diagnostics.push({
+            line: nextIndex + 1,
+            column: 1,
+            message: 'IndentationError: expected an indented block after ":".',
+            raw: lines[nextIndex],
+          });
+        }
+      }
+
+      // Check for incomplete expression ending in operator
+      if (/[+\-*/=<>]$/.test(trimmed) && !trimmed.endsWith('\\')) {
+        diagnostics.push({
+          line: lineNumber,
+          column: line.length,
+          message: `SyntaxError: incomplete expression ending with operator '${trimmed.slice(-1)}'.`,
+          raw: line,
+        });
+      }
+
+      // Check for standalone single undefined word/variable typos (e.g. uniqu)
       if (
-        trimmed.endsWith(':') &&
-        lines[index + 1]?.trim() &&
-        !lines[index + 1].startsWith(' ') &&
-        !lines[index + 1].startsWith('\t')
+        /^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed) &&
+        !/^(pass|break|continue|return|True|False|None)$/.test(trimmed)
       ) {
         diagnostics.push({
-          line: lineNumber + 1,
-          column: 1,
-          message: 'IndentationError: expected an indented block after ":".',
-          raw: lines[index + 1],
+          line: lineNumber,
+          column: line.indexOf(trimmed) + 1,
+          message: `SyntaxError: incomplete statement or name '${trimmed}' is not defined.`,
+          raw: line,
         });
       }
 
@@ -1335,6 +1450,16 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       const realTrimmed = line.trim();
       const lineNumber = index + 1;
       if (!realTrimmed || realTrimmed.startsWith('//') || realTrimmed.startsWith('*')) return;
+
+      const statementOnly = trimmed.split('//')[0].trim();
+      if (/^(import|package)\b/.test(statementOnly) && !statementOnly.endsWith(';')) {
+        diagnostics.push({
+          line: lineNumber,
+          column: line.length + 1,
+          message: `Line ${lineNumber}: Java compile error: ';' expected at the end of this statement.`,
+          raw: line,
+        });
+      }
 
       if (/\bsystem\.out\b/.test(realTrimmed)) {
         diagnostics.push({
@@ -1496,6 +1621,88 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
 
   private stripStrings(line: string): string {
     return line.replace(/"([^"\\]|\\.)*"/g, '""').replace(/'([^'\\]|\\.)*'/g, "''");
+  }
+
+  private collectGenericDiagnostics(lines: string[], diagnostics: CompilerDiagnostic[], language: string): void {
+    let braceBalance = 0;
+    const needsSemicolon = ['C', 'CPP', 'CSHARP', 'PHP', 'RUST'].includes(language);
+
+    lines.forEach((line, index) => {
+      const withoutString = this.stripStrings(line);
+      const trimmed = withoutString.trim();
+      const realTrimmed = line.trim();
+      const lineNumber = index + 1;
+      if (!realTrimmed || realTrimmed.startsWith('//') || realTrimmed.startsWith('/*') || realTrimmed.startsWith('*') || realTrimmed.startsWith('#')) return;
+
+      // Unclosed string check
+      const stringDiag = this.getUnclosedStringDiagnostic(line, lineNumber);
+      if (stringDiag) diagnostics.push(stringDiag);
+
+      // Bracket matching check
+      this.addBracketDiagnostics(line, lineNumber, diagnostics, `${language} syntax error`);
+
+      // Semicolon check
+      const statementOnly = trimmed.split('//')[0].trim();
+      if (/^(import|package|using|use)\b/.test(statementOnly) && !statementOnly.endsWith(';')) {
+        diagnostics.push({
+          line: lineNumber,
+          column: line.length + 1,
+          message: `Syntax Error: missing ';' at the end of statement.`,
+          raw: line,
+        });
+      }
+
+      if (needsSemicolon) {
+        const skipSemicolon =
+          !trimmed ||
+          trimmed.startsWith('import ') ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith('using ') ||
+          trimmed.endsWith('{') ||
+          trimmed.endsWith('}') ||
+          trimmed.endsWith(';') ||
+          trimmed.startsWith('if') ||
+          trimmed.startsWith('else') ||
+          trimmed.startsWith('for') ||
+          trimmed.startsWith('while') ||
+          trimmed.startsWith('switch') ||
+          trimmed.startsWith('try') ||
+          trimmed.startsWith('catch') ||
+          trimmed.startsWith('finally') ||
+          trimmed.startsWith('fn ') ||
+          trimmed.startsWith('pub ') ||
+          trimmed.startsWith('struct ') ||
+          trimmed.startsWith('class ');
+
+        if (!skipSemicolon) {
+          diagnostics.push({
+            line: lineNumber,
+            column: line.length + 1,
+            message: `Syntax Error: missing ';' at the end of statement.`,
+            raw: line,
+          });
+        }
+      }
+
+      braceBalance += (withoutString.match(/{/g) || []).length;
+      braceBalance -= (withoutString.match(/}/g) || []).length;
+    });
+
+    if (braceBalance > 0) {
+      diagnostics.push({
+        line: lines.length,
+        column: Math.max(1, lines[lines.length - 1]?.length || 1),
+        message: `Syntax Error: missing closing brace \`}\`.`,
+        raw: lines[lines.length - 1] || '',
+      });
+    } else if (braceBalance < 0) {
+      diagnostics.push({
+        line: lines.length,
+        column: Math.max(1, lines[lines.length - 1]?.length || 1),
+        message: `Syntax Error: unmatched closing brace \`}\`.`,
+        raw: lines[lines.length - 1] || '',
+      });
+    }
   }
 
   private extractCompilerDiagnostics(error?: string): CompilerDiagnostic[] {

@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { BatchService } from '../../features/lms/batch/services/batch';
 import { PublicCourseService } from './service/public-course';
+import { COURSES } from '../../data/courses.data';
 
 type ViewMode = 'GRID' | 'LIST';
 type SortMode = 'FEATURED' | 'PRICE_LOW' | 'PRICE_HIGH' | 'DURATION' | 'TITLE' | 'LIVE';
@@ -48,6 +49,8 @@ export class CoursesComponent implements OnInit, OnDestroy {
 
   savedCourseIds = new Set<number>();
   compareCourseIds = new Set<number>();
+  showComparisonDashboard = false;
+  comparisonCourses: any[] = [];
 
   levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
   priceFilters = [
@@ -178,14 +181,14 @@ export class CoursesComponent implements OnInit, OnDestroy {
       if (!course.batch?.id) return;
 
       this.http
-        .get(`${environment.apiUrl}/api/lms/batches/${course.batch.id}/is-enrolled`)
-        .subscribe({
-          next: (res: any) => {
-            course.isEnrolled = !!res?.data;
-            this.applyFilters(false);
-            this.cdr.detectChanges();
-          },
-        });
+          .get(`${environment.apiUrl}/api/lms/batches/${course.batch.id}/is-enrolled`)
+          .subscribe({
+            next: (res: any) => {
+              course.isEnrolled = !!res?.data;
+              this.applyFilters(false);
+              this.cdr.detectChanges();
+            },
+          });
     });
   }
 
@@ -196,19 +199,19 @@ export class CoursesComponent implements OnInit, OnDestroy {
 
     if (term) {
       data = data.filter((c) =>
-        [
-          c.title,
-          c.code,
-          c.desc,
-          c.level,
-          c.batch?.name,
-          ...(c.highlights || []),
-          ...(c.outcomes || []),
-          ...(c.tools || []),
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(term),
+          [
+            c.title,
+            c.code,
+            c.desc,
+            c.level,
+            c.batch?.name,
+            ...(c.highlights || []),
+            ...(c.outcomes || []),
+            ...(c.tools || []),
+          ]
+              .join(' ')
+              .toLowerCase()
+              .includes(term),
       );
     }
 
@@ -261,25 +264,25 @@ export class CoursesComponent implements OnInit, OnDestroy {
   toggleSaved(course: any, event?: Event): void {
     event?.stopPropagation();
     this.savedCourseIds.has(course.id)
-      ? this.savedCourseIds.delete(course.id)
-      : this.savedCourseIds.add(course.id);
+        ? this.savedCourseIds.delete(course.id)
+        : this.savedCourseIds.add(course.id);
 
     this.showToast(
-      this.savedCourseIds.has(course.id) ? 'Saved to shortlist' : 'Removed from shortlist',
+        this.savedCourseIds.has(course.id) ? 'Saved to shortlist' : 'Removed from shortlist',
     );
   }
 
   toggleCompare(course: any, event?: Event): void {
     event?.stopPropagation();
 
-    if (!this.compareCourseIds.has(course.id) && this.compareCourseIds.size >= 3) {
-      this.showToast('You can compare up to 3 courses');
+    if (!this.compareCourseIds.has(course.id) && this.compareCourseIds.size >= 2) {
+      this.showToast('Please select exactly 2 courses to compare');
       return;
     }
 
     this.compareCourseIds.has(course.id)
-      ? this.compareCourseIds.delete(course.id)
-      : this.compareCourseIds.add(course.id);
+        ? this.compareCourseIds.delete(course.id)
+        : this.compareCourseIds.add(course.id);
   }
 
   isSaved(course: any): boolean {
@@ -294,8 +297,156 @@ export class CoursesComponent implements OnInit, OnDestroy {
     this.compareCourseIds.clear();
   }
 
+  openComparisonDashboard(): void {
+    if (this.compareCourseIds.size !== 2) {
+      this.showToast('Please select exactly 2 courses to compare');
+      return;
+    }
+
+    const selected = this.courses.filter((c) => this.compareCourseIds.has(c.id));
+    this.comparisonCourses = selected.map((course) => {
+      const details = this.getCourseCompareDetails(course);
+      return {
+        ...course,
+        compareDetails: details
+      };
+    });
+
+    this.showComparisonDashboard = true;
+  }
+
+  closeComparisonDashboard(): void {
+    this.showComparisonDashboard = false;
+  }
+
+  getCourseCompareDetails(course: any): any {
+    const title = (course?.title || '').toLowerCase();
+    const code = (course?.code || '').toLowerCase();
+
+    // 1. DevOps & Cloud
+    if (title.includes('devops') || title.includes('aws') || title.includes('cloud') || code.includes('devops') || code.includes('aws')) {
+      return {
+        pros: [
+          'Commands some of the highest salaries in the IT sector due to platform expertise.',
+          'Crucial for modern SaaS businesses, bridging developer speed with infrastructure reliability.',
+          'Skills are highly transferable across diverse public clouds (AWS, Azure, GCP).'
+        ],
+        cons: [
+          'Broad learning scope requiring understanding of networking, security, OS, and cloud.',
+          'High-responsibility role; deployment outages carry significant business risks.'
+        ],
+        growth: 'Top priority for digital-first enterprises. Cloud adoption and Infrastructure-as-Code (IaC) drives 25% YoY increase in DevOps engineering roles.',
+        salary: '₹5.5 LPA - ₹20 LPA (Avg: ₹10.5 LPA)',
+        targetRoles: ['DevOps Engineer', 'Cloud Solutions Architect', 'SRE (Site Reliability Engineer)', 'Platform Systems Lead'],
+        techStack: ['AWS Cloud', 'Docker Containers', 'Kubernetes Orchestration', 'Terraform IaC', 'GitHub Actions / Jenkins'],
+        difficulty: 'Advanced'
+      };
+    }
+
+    // 2. Java / Spring Boot
+    if (title.includes('java') || code.includes('java') || code.includes('spring')) {
+      return {
+        pros: [
+          'Extremely high market demand; cornerstone of enterprise backend applications.',
+          'Rich ecosystem with Spring Boot, robust security, and deep database integrations.',
+          'Vast community support and long-term career stability in MNCs & tech giants.'
+        ],
+        cons: [
+          'Steep learning curve due to rigid syntax rules and object-oriented boilerplate.',
+          'Slower initial setup and execution overhead compared to lighter scripting runtimes.'
+        ],
+        growth: 'Consistently stable and expanding. Enterprise adoption of microservices architecture and cloud-native systems ensures 15%+ YoY job opening growth.',
+        salary: '₹4.5 LPA - ₹16 LPA (Avg: ₹8.5 LPA)',
+        targetRoles: ['Java Backend Developer', 'Spring Boot Engineer', 'Enterprise Systems Analyst', 'Software Development Engineer (SDE)'],
+        techStack: ['Java 17+', 'Spring Boot Framework', 'Hibernate ORM', 'Microservices Architecture', 'PostgreSQL / Oracle'],
+        difficulty: 'Intermediate to Advanced'
+      };
+    }
+
+    // 3. Python & Data Science
+    if (title.includes('python') || code.includes('python') || title.includes('data')) {
+      return {
+        pros: [
+          'Clean, readable syntax that is extremely beginner-friendly and fast to write.',
+          'De facto standard language for Data Science, Machine Learning, and GenAI applications.',
+          'Vast library ecosystem (Pandas, NumPy, Scikit-Learn) for math and statistical modeling.'
+        ],
+        cons: [
+          'Slower execution speed (interpreted nature) makes it less suitable for high-performance systems.',
+          'Dynamic typing can lead to runtime issues in large-scale enterprise deployments if untested.'
+        ],
+        growth: 'Explosive growth due to the Generative AI and Big Data wave. The demand for Python-savvy professionals has grown by over 30% YoY.',
+        salary: '₹4.0 LPA - ₹15 LPA (Avg: ₹7.8 LPA)',
+        targetRoles: ['Python Developer', 'Data Scientist', 'Data Analyst', 'Machine Learning Engineer'],
+        techStack: ['Python 3', 'Pandas & NumPy', 'Jupyter Notebooks', 'Django / FastAPI', 'Scikit-Learn'],
+        difficulty: 'Beginner to Intermediate'
+      };
+    }
+
+    // 4. React / Front-End / Web
+    if (title.includes('react') || title.includes('front') || title.includes('angular') || title.includes('web') || code.includes('react') || code.includes('angular') || code.includes('ui_ux')) {
+      return {
+        pros: [
+          'Instant visual feedback makes the learning process engaging and satisfying.',
+          'Dominant library for modern web interfaces; backed by Meta and huge open-source contribution.',
+          'High demand in startups and tech companies looking to build fast, interactive single-page apps.'
+        ],
+        cons: [
+          'Fast-paced ecosystem where packages, state managers, and standards change frequently.',
+          'SEO optimization requires server-side framework setup (Next.js/Remix) adding configuration layer.'
+        ],
+        growth: 'Highly active. Startups to enterprises continue migrating legacy portals to React/NextJS, sustaining 18% YoY growth in front-end talent demand.',
+        salary: '₹3.8 LPA - ₹12 LPA (Avg: ₹6.5 LPA)',
+        targetRoles: ['Front-End Engineer', 'React Developer', 'UI Developer', 'Full-Stack Web Engineer'],
+        techStack: ['ReactJS Library', 'JavaScript (ES6+) / TypeScript', 'Tailwind CSS / Sass', 'Next.js Framework', 'HTML5 & CSS3'],
+        difficulty: 'Beginner to Intermediate'
+      };
+    }
+
+    // 5. Node.js / Express / Backend
+    if (title.includes('node') || code.includes('node') || title.includes('backend') || title.includes('express')) {
+      return {
+        pros: [
+          'Allows developers to build full-stack apps using only JavaScript across front & back end.',
+          'High asynchronous scalability with event-driven non-blocking I/O model.',
+          'Rapid development cycles using npm registry with thousands of pre-built packages.'
+        ],
+        cons: [
+          'Single-threaded loop makes it ill-suited for heavy CPU computing tasks like image processing.',
+          'Vulnerability to dependency bloating and security vulnerability risks in external packages.'
+        ],
+        growth: 'Sustained by APIs and microservices. Node.js backend pipelines scale efficiently, yielding a 12% YoY demand expansion in JavaScript-centric backends.',
+        salary: '₹4.0 LPA - ₹14 LPA (Avg: ₹7.2 LPA)',
+        targetRoles: ['Node.js Developer', 'Backend API Engineer', 'Full-Stack JS Engineer', 'Backend Specialist'],
+        techStack: ['Node.js runtime', 'Express.js Framework', 'MongoDB / Mongoose', 'REST API Design', 'JSON Web Tokens (JWT)'],
+        difficulty: 'Intermediate'
+      };
+    }
+
+    // 6. Generic fallback
+    return {
+      pros: [
+        'Focused on building hands-on industry relevant projects and portfolio pieces.',
+        'Designed around active mentor guidance to avoid tutorial hell.',
+        'Provides fundamental technical foundations to transition into any coding path.'
+      ],
+      cons: [
+        'Requires self-discipline to complete weekly assignments and coding challenges.',
+        'Job placements depend on active execution and compilation of portfolio projects.'
+      ],
+      growth: 'Tech industries continue prioritizing skills over degrees, making structured courses highly valuable (10%+ growth YoY).',
+      salary: '₹3.5 LPA - ₹11 LPA (Avg: ₹5.8 LPA)',
+      targetRoles: ['Associate Software Engineer', 'QA Automation Engineer', 'Full Stack Intern', 'Support Systems Engineer'],
+      techStack: ['Git & GitHub', 'Visual Studio Code', 'Data Structures & Algorithms', 'JSON API Integrations', 'Agile Principles'],
+      difficulty: 'Beginner'
+    };
+  }
   viewDetails(course: any): void {
     this.router.navigate(['/courses', course.slug || this.getCourseSlug(course)]);
+  }
+
+  goToExploreTracks(): void {
+    this.router.navigate(['/explore-tracks']);
   }
 
   goToCheckout(course: any): void {
@@ -315,11 +466,45 @@ export class CoursesComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/student/lms', course.batch.id]);
   }
 
+  loadStaticCurriculumFallback(course: any): void {
+    const title = (course?.title || '').toLowerCase();
+    let staticId = 'java';
+    if (title.includes('python')) {
+      staticId = 'python';
+    } else if (title.includes('devops') || title.includes('cloud')) {
+      staticId = 'devops';
+    }
+    const localCourse = COURSES.find(c => c.id === staticId) || COURSES[0];
+    
+    this.selectedCurriculum = {
+      name: course?.title || localCourse.name,
+      title: course?.title || localCourse.name,
+      curriculum: JSON.parse(JSON.stringify(localCourse.curriculum)) // deep clone to prevent mutation
+    };
+
+    // If not logged in, limit preview to 2 weeks
+    if (!this.auth.isLoggedIn()) {
+      this.selectedCurriculum.curriculum = this.selectedCurriculum.curriculum.slice(0, 2);
+    }
+
+    this.selectedCurriculum.curriculum.forEach((m: any, index: number) => {
+      m.open = index === 0;
+    });
+
+    this.showCurriculum = true;
+
+    setTimeout(() => {
+      document
+        .getElementById('curriculum-section')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
   viewCurriculum(course: any): void {
     const batchId = course?.batch?.id;
 
     if (!batchId) {
-      this.showToast('Curriculum will be available when a batch is active');
+      this.loadStaticCurriculumFallback(course);
       return;
     }
 
@@ -331,21 +516,20 @@ export class CoursesComponent implements OnInit, OnDestroy {
         next: (res) => {
           const raw = res?.data;
           if (!raw) {
-            this.showToast('Curriculum not available');
+            this.loadStaticCurriculumFallback(course);
             return;
           }
 
           let full: any;
-
           try {
             full = typeof raw === 'string' ? JSON.parse(raw) : raw;
           } catch {
-            this.showToast('Curriculum data corrupted');
+            this.loadStaticCurriculumFallback(course);
             return;
           }
 
           if (!full?.curriculum || !Array.isArray(full.curriculum)) {
-            this.showToast('Curriculum not available');
+            this.loadStaticCurriculumFallback(course);
             return;
           }
 
@@ -365,7 +549,9 @@ export class CoursesComponent implements OnInit, OnDestroy {
               ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
         },
-        error: () => this.showToast('Failed to load curriculum'),
+        error: () => {
+          this.loadStaticCurriculumFallback(course);
+        },
       });
   }
 

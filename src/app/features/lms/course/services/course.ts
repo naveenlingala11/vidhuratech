@@ -101,4 +101,12 @@ export class CourseService {
       params: new HttpParams().set('role', 'TRAINER'),
     });
   }
+
+  getPendingCurriculums(): Observable<any> {
+    return this.http.get(`${this.ADMIN_MANAGER_API}/curriculums/pending`);
+  }
+
+  publishCurriculum(id: number): Observable<any> {
+    return this.http.post(`${this.ADMIN_MANAGER_API}/curriculums/${id}/publish`, {});
+  }
 }

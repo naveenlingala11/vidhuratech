@@ -15,6 +15,9 @@ interface PreparationCompany {
   hiringRoute: string;
   featured: boolean;
   accent: 'teal' | 'blue' | 'amber' | 'green';
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  avgSalary: string;
+  syllabusCount: number;
 }
 
 @Component({
@@ -42,6 +45,9 @@ export class Preparation {
       hiringRoute: 'NQT Practice',
       featured: true,
       accent: 'teal',
+      difficulty: 'Easy',
+      avgSalary: '3.6 - 7.2 LPA',
+      syllabusCount: 12
     },
     {
       name: 'Infosys',
@@ -52,6 +58,9 @@ export class Preparation {
       hiringRoute: 'Placement Tests',
       featured: true,
       accent: 'blue',
+      difficulty: 'Easy',
+      avgSalary: '3.6 - 8.0 LPA',
+      syllabusCount: 10
     },
     {
       name: 'Wipro',
@@ -62,6 +71,9 @@ export class Preparation {
       hiringRoute: 'Elite Practice',
       featured: true,
       accent: 'green',
+      difficulty: 'Easy',
+      avgSalary: '3.5 - 7.0 LPA',
+      syllabusCount: 9
     },
     {
       name: 'Cognizant',
@@ -72,6 +84,9 @@ export class Preparation {
       hiringRoute: 'GenC Track',
       featured: false,
       accent: 'blue',
+      difficulty: 'Easy',
+      avgSalary: '4.0 - 8.5 LPA',
+      syllabusCount: 11
     },
     {
       name: 'EY',
@@ -82,6 +97,9 @@ export class Preparation {
       hiringRoute: 'Consulting Track',
       featured: false,
       accent: 'amber',
+      difficulty: 'Medium',
+      avgSalary: '5.0 - 9.5 LPA',
+      syllabusCount: 8
     },
     {
       name: 'IBM',
@@ -92,6 +110,9 @@ export class Preparation {
       hiringRoute: 'Technical Track',
       featured: false,
       accent: 'blue',
+      difficulty: 'Medium',
+      avgSalary: '6.0 - 15.0 LPA',
+      syllabusCount: 14
     },
     {
       name: 'Amazon',
@@ -102,6 +123,9 @@ export class Preparation {
       hiringRoute: 'SDE Practice',
       featured: true,
       accent: 'amber',
+      difficulty: 'Hard',
+      avgSalary: '18.0 - 44.0 LPA',
+      syllabusCount: 22
     },
     {
       name: 'Zoho',
@@ -112,6 +136,9 @@ export class Preparation {
       hiringRoute: 'Developer Track',
       featured: true,
       accent: 'green',
+      difficulty: 'Medium',
+      avgSalary: '6.5 - 12.0 LPA',
+      syllabusCount: 15
     },
     {
       name: 'Deloitte',
@@ -122,6 +149,9 @@ export class Preparation {
       hiringRoute: 'NLA Practice',
       featured: true,
       accent: 'green',
+      difficulty: 'Medium',
+      avgSalary: '5.5 - 10.0 LPA',
+      syllabusCount: 10
     },
     {
       name: 'KPMG',
@@ -132,6 +162,9 @@ export class Preparation {
       hiringRoute: 'Advisory Track',
       featured: false,
       accent: 'blue',
+      difficulty: 'Medium',
+      avgSalary: '5.0 - 9.0 LPA',
+      syllabusCount: 7
     },
     {
       name: 'Meta',
@@ -142,6 +175,9 @@ export class Preparation {
       hiringRoute: 'Engineering Track',
       featured: false,
       accent: 'blue',
+      difficulty: 'Hard',
+      avgSalary: '22.0 - 50.0 LPA',
+      syllabusCount: 25
     },
     {
       name: 'Microsoft',
@@ -152,6 +188,9 @@ export class Preparation {
       hiringRoute: 'SDE Practice',
       featured: true,
       accent: 'teal',
+      difficulty: 'Hard',
+      avgSalary: '20.0 - 48.0 LPA',
+      syllabusCount: 24
     },
     {
       name: 'PwC',
@@ -162,6 +201,9 @@ export class Preparation {
       hiringRoute: 'Advisory Track',
       featured: false,
       accent: 'amber',
+      difficulty: 'Medium',
+      avgSalary: '5.2 - 9.8 LPA',
+      syllabusCount: 9
     },
     {
       name: 'Tech Mahindra',
@@ -172,6 +214,9 @@ export class Preparation {
       hiringRoute: 'Graduate Track',
       featured: false,
       accent: 'teal',
+      difficulty: 'Easy',
+      avgSalary: '3.2 - 6.5 LPA',
+      syllabusCount: 8
     },
     {
       name: 'Salesforce',
@@ -182,12 +227,41 @@ export class Preparation {
       hiringRoute: 'Developer Track',
       featured: true,
       accent: 'blue',
+      difficulty: 'Hard',
+      avgSalary: '16.0 - 38.0 LPA',
+      syllabusCount: 18
     },
+  ];
+
+  readonly popularTags = [
+    'Coding',
+    'DSA',
+    'Aptitude',
+    'SQL',
+    'Java',
+    'Python',
+    'Reasoning',
+    'Cloud',
+    'Case Skills',
+    'HR',
+    'Verbal',
+    'Technical'
   ];
 
   search = '';
   selectedTrack: CompanyTrack = 'ALL';
   sortMode: SortMode = 'FEATURED';
+  selectedTag = '';
+
+  // Placement Readiness self-assessment checkboxes
+  readinessChecklist = {
+    aptitude: false,
+    dsa: false,
+    sql: false,
+    systemDesign: false,
+    hr: false,
+    projects: false,
+  };
 
   constructor(private router: Router) {}
 
@@ -209,10 +283,11 @@ export class Preparation {
         .join(' ')
         .toLowerCase();
 
-      return (
-        (!term || searchableText.includes(term)) &&
-        (this.selectedTrack === 'ALL' || company.track === this.selectedTrack)
-      );
+      const matchesSearch = !term || searchableText.includes(term);
+      const matchesTrack = this.selectedTrack === 'ALL' || company.track === this.selectedTrack;
+      const matchesTag = !this.selectedTag || company.focus.some(t => t.toLowerCase() === this.selectedTag.toLowerCase());
+
+      return matchesSearch && matchesTrack && matchesTag;
     });
 
     if (this.sortMode === 'AZ') {
@@ -242,14 +317,44 @@ export class Preparation {
     return this.companies.filter((company) => company.track === 'CONSULTING').length;
   }
 
+  // Self-assessment readiness calculation logic
+  get readinessScore(): number {
+    const items = Object.values(this.readinessChecklist);
+    const completed = items.filter(Boolean).length;
+    return Math.round((completed / items.length) * 100);
+  }
+
+  get readinessFeedback(): string {
+    const score = this.readinessScore;
+    if (score === 0) return 'Select your completed milestones to calculate your placement readiness score!';
+    if (score < 40) return 'Early stages! Target Aptitude and basic Coding to build foundational logic.';
+    if (score < 70) return 'Getting ready! Good fit for IT Services cohorts. Level up on SQL & core DSA.';
+    if (score < 100) return 'Excellent progress! Well positioned for Consulting and Medium-tier Product roles.';
+    return '100% Ready! Ideal profile for SDE at Tier-1 Product Companies. Go ace those interviews!';
+  }
+
+  get readinessStatus(): string {
+    const score = this.readinessScore;
+    if (score === 0) return 'Not Started';
+    if (score < 40) return 'Beginner';
+    if (score < 70) return 'Intermediate';
+    if (score < 100) return 'Advanced';
+    return 'Elite Ready';
+  }
+
   selectTrack(track: CompanyTrack): void {
     this.selectedTrack = track;
+  }
+
+  selectTag(tag: string): void {
+    this.selectedTag = this.selectedTag === tag ? '' : tag;
   }
 
   resetFilters(): void {
     this.search = '';
     this.selectedTrack = 'ALL';
     this.sortMode = 'FEATURED';
+    this.selectedTag = '';
   }
 
   trackLabel(track: Exclude<CompanyTrack, 'ALL'>): string {

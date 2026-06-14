@@ -38,7 +38,7 @@
           <i class="fa-solid fa-circle-play"></i>
           Enroll Featured Program
         </button>
-        <button type="button" class="glass-btn" (click)="resetFilters()">
+        <button type="button" class="glass-btn" (click)="goToExploreTracks()">
           <i class="fa-solid fa-compass"></i>
           Explore All Tracks
         </button>
@@ -469,7 +469,7 @@
     <div class="drawer-left">
       <div class="compare-info-title">
         <i class="fa-solid fa-left-right drawer-compare-icon"></i>
-        <strong>Compare Courses ({{ comparedCourses.length }}/3)</strong>
+        <strong>Compare Courses ({{ comparedCourses.length }}/2)</strong>
       </div>
       <div class="compared-courses-chips">
         <span class="compared-chip" *ngFor="let c of comparedCourses">
@@ -485,9 +485,218 @@
       <button type="button" class="drawer-clear-btn" (click)="clearCompare()">
         <i class="fa-solid fa-trash-can"></i> Clear All
       </button>
-      <button type="button" class="drawer-compare-action-btn" (click)="activeCourse && viewDetails(activeCourse)">
+      <button
+        type="button"
+        class="drawer-compare-action-btn"
+        [class.disabled-btn]="comparedCourses.length !== 2"
+        [disabled]="comparedCourses.length !== 2"
+        (click)="openComparisonDashboard()"
+      >
         <i class="fa-solid fa-circle-play"></i> Compare Now
       </button>
     </div>
   </section>
+
+  <!-- Premium Side-by-Side Comparison Overlay Modal -->
+  <div class="comparison-overlay" *ngIf="showComparisonDashboard" (click)="closeComparisonDashboard()">
+    <div class="comparison-modal-card" (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="comparison-modal-header">
+        <div class="header-title-block">
+          <h2>
+            <i class="fa-solid fa-left-right compare-modal-icon"></i>
+            Compare Programs
+          </h2>
+          <p>Analyzing side-by-side curriculum differences, growth forecasts, and job outcomes.</p>
+        </div>
+        <button type="button" class="close-comparison-btn" (click)="closeComparisonDashboard()" title="Close Dashboard">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Main Grid Container -->
+      <div class="comparison-grid-container">
+        <div class="comparison-columns-row" *ngIf="comparisonCourses.length === 2">
+          
+          <!-- VS Divider Badge -->
+          <div class="vs-divider-badge">VS</div>
+
+          <!-- Course Column 1 (Left Option) -->
+          <div class="comparison-course-column theme-left">
+            <!-- Header Card -->
+            <div class="course-header-card">
+              <span class="compare-badge theme-color-badge">
+                <i class="fa-solid fa-star"></i> Primary Option
+              </span>
+              <h3>{{ comparisonCourses[0].title }}</h3>
+              <div class="card-meta-row" style="margin: 8px 0 16px 0;">
+                <span class="meta-item"><i class="fa-regular fa-clock"></i>{{ comparisonCourses[0].duration }}</span>
+                <span class="meta-item"><i class="fa-solid fa-chart-line"></i>{{ comparisonCourses[0].level | titlecase }}</span>
+              </div>
+              <div class="price-chip">
+                Rs. {{ formatPrice(comparisonCourses[0].price) }}
+              </div>
+            </div>
+
+            <!-- Tech Stack Covered -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-cubes text-blue"></i> Technology Stack
+              </h4>
+              <div class="card-tags-cloud" style="margin-top: 10px;">
+                <span class="card-tag" *ngFor="let tech of comparisonCourses[0].compareDetails.techStack">{{ tech }}</span>
+              </div>
+            </div>
+
+            <!-- Pros List -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-circle-check text-emerald"></i> Advantages & Pros
+              </h4>
+              <ul class="bullet-list">
+                <li *ngFor="let pro of comparisonCourses[0].compareDetails.pros">
+                  <i class="fa-solid fa-check text-emerald"></i>
+                  <span>{{ pro }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Cons List -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-circle-exclamation text-rose"></i> Considerations & Cons
+              </h4>
+              <ul class="bullet-list">
+                <li *ngFor="let con of comparisonCourses[0].compareDetails.cons">
+                  <i class="fa-solid fa-triangle-exclamation text-rose"></i>
+                  <span>{{ con }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Market Growth & Salaries -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-chart-line text-blue"></i> Market Growth & Potential
+              </h4>
+              <p class="growth-text">{{ comparisonCourses[0].compareDetails.growth }}</p>
+              <div class="salary-callout">
+                <span class="label">Average Package</span>
+                <span class="val">{{ comparisonCourses[0].compareDetails.salary }}</span>
+              </div>
+            </div>
+
+            <!-- Target Job Roles -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-briefcase text-blue"></i> Target Career Roles
+              </h4>
+              <ul class="bullet-list">
+                <li *ngFor="let role of comparisonCourses[0].compareDetails.targetRoles">
+                  <i class="fa-solid fa-circle-chevron-right text-blue"></i>
+                  <strong>{{ role }}</strong>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Action Button -->
+            <div class="column-actions">
+              <button type="button" class="compare-enroll-btn" (click)="goToCheckout(comparisonCourses[0]); closeComparisonDashboard()">
+                Enroll in {{ comparisonCourses[0].code || 'Option 1' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Course Column 2 (Right Option) -->
+          <div class="comparison-course-column theme-right">
+            <!-- Header Card -->
+            <div class="course-header-card">
+              <span class="compare-badge theme-accent-badge">
+                <i class="fa-solid fa-code-compare"></i> Secondary Option
+              </span>
+              <h3>{{ comparisonCourses[1].title }}</h3>
+              <div class="card-meta-row" style="margin: 8px 0 16px 0;">
+                <span class="meta-item"><i class="fa-regular fa-clock"></i>{{ comparisonCourses[1].duration }}</span>
+                <span class="meta-item"><i class="fa-solid fa-chart-line"></i>{{ comparisonCourses[1].level | titlecase }}</span>
+              </div>
+              <div class="price-chip">
+                Rs. {{ formatPrice(comparisonCourses[1].price) }}
+              </div>
+            </div>
+
+            <!-- Tech Stack Covered -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-cubes text-blue"></i> Technology Stack
+              </h4>
+              <div class="card-tags-cloud" style="margin-top: 10px;">
+                <span class="card-tag" *ngFor="let tech of comparisonCourses[1].compareDetails.techStack">{{ tech }}</span>
+              </div>
+            </div>
+
+            <!-- Pros List -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-circle-check text-emerald"></i> Advantages & Pros
+              </h4>
+              <ul class="bullet-list">
+                <li *ngFor="let pro of comparisonCourses[1].compareDetails.pros">
+                  <i class="fa-solid fa-check text-emerald"></i>
+                  <span>{{ pro }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Cons List -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-circle-exclamation text-rose"></i> Considerations & Cons
+              </h4>
+              <ul class="bullet-list">
+                <li *ngFor="let con of comparisonCourses[1].compareDetails.cons">
+                  <i class="fa-solid fa-triangle-exclamation text-rose"></i>
+                  <span>{{ con }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Market Growth & Salaries -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-chart-line text-blue"></i> Market Growth & Potential
+              </h4>
+              <p class="growth-text">{{ comparisonCourses[1].compareDetails.growth }}</p>
+              <div class="salary-callout">
+                <span class="label">Average Package</span>
+                <span class="val">{{ comparisonCourses[1].compareDetails.salary }}</span>
+              </div>
+            </div>
+
+            <!-- Target Job Roles -->
+            <div class="compare-section-card">
+              <h4 class="section-card-title">
+                <i class="fa-solid fa-briefcase text-blue"></i> Target Career Roles
+              </h4>
+              <ul class="bullet-list">
+                <li *ngFor="let role of comparisonCourses[1].compareDetails.targetRoles">
+                  <i class="fa-solid fa-circle-chevron-right text-blue"></i>
+                  <strong>{{ role }}</strong>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Action Button -->
+            <div class="column-actions">
+              <button type="button" class="compare-enroll-btn highlight" (click)="goToCheckout(comparisonCourses[1]); closeComparisonDashboard()">
+                Enroll in {{ comparisonCourses[1].code || 'Option 2' }}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>

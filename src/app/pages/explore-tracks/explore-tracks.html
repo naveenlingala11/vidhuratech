@@ -1,0 +1,271 @@
+<div class="explore-tracks-page" [class]="'theme-' + activeTrackId">
+  
+  <!-- Hero Section -->
+  <section class="tracks-hero">
+    <div class="hero-pattern"></div>
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+
+    <div class="hero-content">
+      <span class="eyebrow-tag">
+        <i class="fa-solid fa-compass"></i> Explore Learning Paths
+      </span>
+      <h1 class="hero-title">
+        Visualize Your Journey.<br>
+        <span class="gradient-text">Interactive Video Playbacks & Flows.</span>
+      </h1>
+      <p class="hero-desc">
+        Click through our primary tracks, watch simulated class playbacks with chapter seeking, 
+        and follow the step-by-step workflow from day 1 to career placement.
+      </p>
+    </div>
+  </section>
+
+  <!-- Interactive Selection Tab Row -->
+  <section class="track-selector-section">
+    <div class="track-tab-row">
+      <button 
+        type="button" 
+        *ngFor="let track of tracks" 
+        class="track-tab-btn" 
+        [class.active]="activeTrackId === track.id"
+        (click)="selectTrack(track.id)"
+      >
+        <i [class]="track.icon" class="tab-icon"></i>
+        <div class="tab-text">
+          <strong>{{ track.name.split(' ')[0] }} Track</strong>
+          <span>{{ track.difficulty }}</span>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- Interactive Mock Video Player Section -->
+  <section class="interactive-player-section">
+    <div class="section-title-block">
+      <span class="section-subtitle">Playback Dashboard</span>
+      <h2>Simulated Lecture Video Playback</h2>
+      <p>Click on chapters on the right to seek, change speed, or play/pause the recording layout.</p>
+    </div>
+
+    <div class="player-grid-layout" [class.mock-fullscreen]="isFullscreen">
+      
+      <!-- Video Screen Card (Left) -->
+      <div class="video-player-container">
+        <div class="video-screen" (click)="togglePlay()">
+          <!-- Canvas Illustration backdrop -->
+          <div class="screen-backdrop" [class.darkened]="!isPlaying">
+            
+            <div class="screen-content-layout">
+              <!-- Code Editor Window -->
+              <div class="code-editor-mock">
+                <div class="editor-header">
+                  <span class="editor-dot red"></span>
+                  <span class="editor-dot yellow"></span>
+                  <span class="editor-dot green"></span>
+                  <span class="file-name">{{ activeTrack.id }}_demo_snippet.{{ activeTrack.id === 'java' ? 'java' : activeTrack.id === 'python' ? 'py' : activeTrack.id === 'frontend' ? 'jsx' : 'yaml' }}</span>
+                </div>
+                <div class="editor-body">
+                  <pre class="code-lines"><code [innerHTML]="getHighlightedCode()"></code></pre>
+                </div>
+              </div>
+
+              <!-- Console Execution Log Screen -->
+              <div class="console-box-mock">
+                <div class="console-header">
+                  <span><i class="fa-solid fa-terminal"></i> Output Console</span>
+                  <span class="live-pulse" *ngIf="isPlaying">RUNNING</span>
+                </div>
+                <div class="console-body">
+                  <div *ngFor="let log of activeChapterLogs" class="console-line">
+                    <span class="prompt">></span> {{ log }}
+                  </div>
+                  <div class="console-line cursor-line" *ngIf="isPlaying">
+                    <span class="prompt">></span> <span class="blinking-cursor">_</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="instructor-preview-bubble">
+              <div class="pulse-indicator" *ngIf="isPlaying"></div>
+              <i class="fa-solid fa-user-tie"></i>
+              <span>Vidhura Live</span>
+            </div>
+          </div>
+
+          <!-- Play/Pause Overlay Toggle -->
+          <div class="play-overlay" *ngIf="!isPlaying">
+            <button type="button" class="center-play-btn">
+              <i class="fa-solid fa-play"></i>
+            </button>
+            <span>Click to Preview Playback</span>
+          </div>
+        </div>
+
+        <!-- Custom Player Controller Bar -->
+        <div class="player-controls-bar">
+          <!-- Play Action -->
+          <button type="button" class="control-btn play-pause-toggle" (click)="togglePlay()" title="Play/Pause">
+            <i class="fa-solid" [ngClass]="isPlaying ? 'fa-pause' : 'fa-play'"></i>
+          </button>
+
+          <!-- Volume Toggle Mute -->
+          <button type="button" class="control-btn volume-toggle" (click)="toggleMute()" title="Mute/Unmute">
+            <i class="fa-solid" [ngClass]="isMuted ? 'fa-volume-xmark' : 'fa-volume-high'"></i>
+          </button>
+
+          <!-- Current Time -->
+          <span class="time-display">{{ playbackTime }} / {{ activeChapter.duration.split(' ')[0] }}:00</span>
+
+          <!-- Interactive Progress Bar -->
+          <div class="progress-bar-track" (click)="seekPlayback($event)">
+            <div class="progress-bar-fill" [style.width.%]="playbackProgress"></div>
+            <div class="progress-handle" [style.left.%]="playbackProgress"></div>
+          </div>
+
+          <!-- Speed Controls -->
+          <div class="speed-selector-group">
+            <span class="control-label">Speed</span>
+            <button 
+              type="button" 
+              *ngFor="let spd of ['1.0x', '1.25x', '1.5x', '2.0x']" 
+              class="speed-chip-btn"
+              [class.active]="playbackSpeed === spd"
+              (click)="setSpeed(spd)"
+            >
+              {{ spd }}
+            </button>
+          </div>
+
+          <!-- Fullscreen simulation toggle -->
+          <button type="button" class="control-btn fullscreen-toggle" (click)="toggleFullscreen()" title="Simulate Fullscreen">
+            <i class="fa-solid" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+          </button>
+
+          <!-- Live HD Badge -->
+          <span class="hd-badge">
+            <span class="red-dot" *ngIf="isPlaying"></span>
+            {{ isPlaying ? 'RECORDING' : 'PAUSED' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Chapter Sidebar (Right) -->
+      <div class="chapters-sidebar">
+        <div class="sidebar-header">
+          <h3>
+            <i class="fa-solid fa-photo-film"></i>
+            Lecture Chapters
+          </h3>
+          <span>Select a chapter to seek playback</span>
+        </div>
+
+        <div class="chapters-list-scroll">
+          <button 
+            type="button" 
+            *ngFor="let chapter of activeTrack.chapters; let idx = index" 
+            class="chapter-item-row"
+            [class.active]="activeChapterIndex === idx"
+            (click)="selectChapter(idx)"
+          >
+            <div class="chapter-left-info">
+              <span class="chapter-index-bubble">{{ idx + 1 }}</span>
+              <div class="chapter-meta">
+                <strong>{{ chapter.title }}</strong>
+                <span>Lecture Video Playback Demo</span>
+              </div>
+            </div>
+            <span class="chapter-duration">{{ chapter.duration }}</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Complete Course Information Flows Timeline -->
+  <section class="learning-flow-section">
+    <div class="section-title-block">
+      <span class="section-subtitle">Day 1 to Placement</span>
+      <h2>Student Learning Lifecycle Flow</h2>
+      <p>Follow the daily workflow steps completed by every student in the {{ activeTrack.name }} program.</p>
+    </div>
+
+    <!-- Timeline Grid Cards -->
+    <div class="lifecycle-timeline-grid">
+      <div 
+        *ngFor="let step of activeTrack.flowSteps; let idx = index" 
+        class="lifecycle-timeline-card"
+        [style.animation-delay.ms]="idx * 150"
+      >
+        <div class="timeline-step-badge">{{ step.step }}</div>
+        
+        <div class="timeline-card-header">
+          <div class="step-icon-wrapper">
+            <i class="fa-solid" [ngClass]="{
+              '01': 'fa-desktop',
+              '02': 'fa-circle-play',
+              '03': 'fa-code',
+              '04': 'fa-circle-check',
+              '05': 'fa-user-tie'
+            }[step.step]"></i>
+          </div>
+          <h4>{{ step.title }}</h4>
+        </div>
+
+        <p class="timeline-card-desc">{{ step.desc }}</p>
+
+        <!-- Dynamic completion tag -->
+        <span class="step-completion-status">
+          <i class="fa-solid fa-circle-check text-emerald"></i>
+          Active Step
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Premium Bottom Course Specs & Checkout Grid -->
+  <section class="bottom-cta-dock">
+    <div class="cta-card-wrapper">
+      <div class="cta-specs-grid">
+        <div class="cta-spec-item">
+          <span>Target Salary Package</span>
+          <strong>{{ activeTrack.salary }}</strong>
+        </div>
+        <div class="cta-spec-item">
+          <span>Track Duration</span>
+          <strong>{{ activeTrack.duration }}</strong>
+        </div>
+        <div class="cta-spec-item">
+          <span>Class Mode</span>
+          <strong>Live Cohort + Recording Playbacks</strong>
+        </div>
+        <div class="cta-spec-item">
+          <span>Difficulty level</span>
+          <strong>{{ activeTrack.difficulty }}</strong>
+        </div>
+      </div>
+
+      <div class="cta-details-box">
+        <h3>Enroll in {{ activeTrack.name }}</h3>
+        <p>{{ activeTrack.shortDesc }}</p>
+        
+        <div class="tools-cloud" style="margin: 16px 0 24px 0;">
+          <span class="tool-tag" *ngFor="let tool of activeTrack.techStack">{{ tool }}</span>
+        </div>
+
+        <div class="cta-buttons-row">
+          <button type="button" class="primary-enroll-btn ripple" (click)="goToCheckout()">
+            <i class="fa-solid fa-graduation-cap"></i> Join Active Cohort
+          </button>
+          
+          <button type="button" class="outline-back-btn" [routerLink]="['/courses']">
+            <i class="fa-solid fa-arrow-left"></i> Back to Catalog
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

@@ -117,10 +117,15 @@
         <div class="course-actions">
           <button type="button" routerLink="/dashboard/trainer/batches">
             <i class="bi bi-collection"></i>
-            View Batches
+            Batches
           </button>
 
-          <button type="button" class="light" routerLink="/dashboard/trainer/create-assessment">
+          <button type="button" class="light" (click)="openCurriculumEditor(course)">
+            <i class="bi bi-pencil-square"></i>
+            Curriculum
+          </button>
+
+          <button type="button" class="ghost" routerLink="/dashboard/trainer/create-assessment" style="grid-column: span 2;">
             <i class="bi bi-plus-circle"></i>
             Create Assessment
           </button>
@@ -137,4 +142,72 @@
       courses from Manage Trainers.
     </p>
   </section>
+
+  <!-- CURRICULUM EDITOR MODAL -->
+  <div class="curriculum-modal-backdrop" *ngIf="showEditor" (click)="closeEditor()">
+    <div class="curriculum-modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="badge">Syllabus Editor</span>
+          <h2>Customize {{ editingCourse?.title }}</h2>
+          <p>Draft a week-by-week timeline of conceptual lectures, practical labs, and tool milestones.</p>
+        </div>
+        <button type="button" class="close-btn" (click)="closeEditor()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </header>
+
+      <div class="modal-body-scroll">
+        <div class="curriculum-builder-container" *ngIf="editingCurriculum">
+          <div class="editor-instructions">
+             <i class="bi bi-info-circle-fill"></i> Add modules (weeks) and fill out the daily lesson topics below. These changes will be sent to the Admin for approval.
+          </div>
+
+          <!-- Weeks List -->
+          <div class="editor-weeks-list">
+            <div class="week-editor-block" *ngFor="let week of editingCurriculum.curriculum; let wIdx = index">
+              <header class="week-editor-header">
+                <div class="week-title-input-wrapper">
+                  <label>Week {{ wIdx + 1 }} Title</label>
+                  <input type="text" [(ngModel)]="week.title" placeholder="e.g. Week 1: Foundations" />
+                </div>
+                <button type="button" class="btn-delete-week" (click)="removeWeekFromEditor(wIdx)" title="Remove Week">
+                  <i class="bi bi-trash3-fill"></i> Remove Week
+                </button>
+              </header>
+
+              <div class="week-topics-editor">
+                <label class="topics-title-label">Daily Lessons & Concepts</label>
+                <div class="topic-row-input" *ngFor="let topic of week.topics; let tIdx = index; trackBy: trackByIndex">
+                  <span class="day-num-label">Day {{ tIdx + 1 }}:</span>
+                  <input type="text" [(ngModel)]="week.topics[tIdx]" placeholder="e.g. Day 1: Concept details" class="topic-text-input" />
+                  <button type="button" class="btn-delete-topic" (click)="removeTopicFromWeek(wIdx, tIdx)" title="Remove Day">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+
+                <button type="button" class="btn-add-topic" (click)="addTopicToWeek(wIdx)">
+                  <i class="bi bi-plus"></i> Add Day
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-actions-row">
+            <button type="button" class="btn-add-week" (click)="addWeekToEditor()">
+              <i class="bi bi-plus-lg"></i> Add New Week
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="ghost" (click)="closeEditor()">Cancel</button>
+        <button type="button" [disabled]="editorSaving" (click)="saveCurriculumDraft()">
+          <i class="bi" [ngClass]="editorSaving ? 'bi-arrow-repeat spin' : 'bi-send'"></i>
+          {{ editorSaving ? 'Saving Draft...' : 'Submit Draft for Approval' }}
+        </button>
+      </footer>
+    </div>
+  </div>
 </section>

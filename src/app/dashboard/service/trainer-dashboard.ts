@@ -69,4 +69,12 @@ export class TrainerDashboardService {
   uploadContent(formData: FormData) {
     return this.http.post(`${this.API}/content`, formData);
   }
+
+  getCourseCurriculum(courseId: number) {
+    return this.http.get(`${this.API}/courses/${courseId}/curriculum`);
+  }
+
+  saveCourseCurriculumDraft(courseId: number, payload: any) {
+    return this.http.post(`${this.API}/courses/${courseId}/curriculum`, payload);
+  }
 }

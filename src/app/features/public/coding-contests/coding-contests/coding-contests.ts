@@ -200,6 +200,7 @@ export class CodingContestsComponent implements OnInit {
   get freeChallengeCount(): number {
     return this.challenges.length - this.premiumChallengeCount;
   }
+
   loadContestData(): void {
     this.loading = true;
     this.publicPracticeService.getLibrary().subscribe({
@@ -219,32 +220,9 @@ export class CodingContestsComponent implements OnInit {
       },
     });
     this.loadPeriodLeaderboard('weekly');
-    this.preloadTopThree();
     this.loadAnnouncements();
   }
-  preloadTopThree(): void {
-    this.publicPracticeService.getDailyLeaderboard().subscribe({
-      next: (res: any) => {
-        const entries = this.extractEntries(res);
-        this.dailyTopThree = this.extractTopThree(res, entries);
-      },
-      error: () => (this.dailyTopThree = []),
-    });
-    this.publicPracticeService.getWeeklyLeaderboard().subscribe({
-      next: (res: any) => {
-        const entries = this.extractEntries(res);
-        this.weeklyTopThree = this.extractTopThree(res, entries);
-      },
-      error: () => (this.weeklyTopThree = []),
-    });
-    this.publicPracticeService.getMonthlyLeaderboard().subscribe({
-      next: (res: any) => {
-        const entries = this.extractEntries(res);
-        this.monthlyTopThree = this.extractTopThree(res, entries);
-      },
-      error: () => (this.monthlyTopThree = []),
-    });
-  }
+
   loadAnnouncements(): void {
     this.publicPracticeService.getContestAnnouncements().subscribe({
       next: (res: any) => (this.announcements = res?.data || []),
