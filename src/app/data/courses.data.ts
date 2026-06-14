@@ -508,5 +508,103 @@ export const COURSES: Course[] = [{
         { text: "Restore IP Addresses", level: "Medium" },
         { text: "N-Queens Problem", level: "Hard" }
     ]
+},
+{
+  id: 'devops',
+  name: 'DevOps & Cloud (45 Days)',
+  curriculum: [
+    {
+      title: "Week 1: Linux Foundations & Shell Scripting",
+      topics: [
+        "Day 1: Linux Architecture, Basic Commands & File System",
+        "Day 2: File Permissions, User & Group Management",
+        "Day 3: Package Management & Network Config",
+        "Day 4: Shell Scripting Variables & Flow Controls",
+        "Day 5: Linux Shell Automation & Cron Jobs",
+        "Day 6: Hands-on scripting lab",
+        "Day 7: Linux System Troubleshooting & Review"
+      ]
+    },
+    {
+      title: "Week 2: Git, GitHub & CI Basics",
+      topics: [
+        "Day 8: Git Architecture & Configuration",
+        "Day 9: Staging, Commits & Branching Strategies",
+        "Day 10: Merging, Rebase & Conflicts Resolution",
+        "Day 11: GitHub Actions Introduction",
+        "Day 12: Creating Simple CI Pipelines",
+        "Day 13: CI pipeline integration project",
+        "Day 14: Version Control Best Practices"
+      ]
+    },
+    {
+      title: "Week 3: Docker Containerization",
+      topics: [
+        "Day 15: Introduction to Containers vs VMs",
+        "Day 16: Docker Engine & CLI Core Commands",
+        "Day 17: Writing Custom Dockerfiles",
+        "Day 18: Docker Volumes & Networking",
+        "Day 19: Containerizing Web Applications",
+        "Day 20: Multi-Container Setup using Docker Compose",
+        "Day 21: Container Security & Best Practices"
+      ]
+    },
+    {
+      title: "Week 4: Kubernetes Orchestration",
+      topics: [
+        "Day 22: Kubernetes Architecture & Concepts",
+        "Day 23: Deployment & ReplicaSets",
+        "Day 24: K8s Service Discovery & Networking",
+        "Day 25: ConfigMaps, Secrets & Volumes",
+        "Day 26: Kubernetes Ingress Controller Setup",
+        "Day 27: Multi-container Pod Deployment project",
+        "Day 28: K8s Troubleshooting & Diagnostics"
+      ]
+    },
+    {
+      title: "Week 5: CI/CD Pipelines with Jenkins",
+      topics: [
+        "Day 29: Jenkins Architecture & Setup",
+        "Day 30: Declarative Pipeline Syntax",
+        "Day 31: Automated Builds & GitHub Webhooks",
+        "Day 32: Docker integration inside Jenkins",
+        "Day 33: Multi-branch Pipeline structures",
+        "Day 34: Hands-on Jenkins Pipeline lab",
+        "Day 35: Jenkins Administration & Credentials"
+      ]
+    },
+    {
+      title: "Week 6: Infrastructure as Code (IaC)",
+      topics: [
+        "Day 36: IaC Principles & Terraform Basics",
+        "Day 37: Providers, Resources & Variables",
+        "Day 38: State Management & Backends",
+        "Day 39: Terraform Modules & Reusability",
+        "Day 40: Provisioning AWS Infrastructure (EC2, VPC)",
+        "Day 41: Terraform Workspace & Deployment project",
+        "Day 42: Terraform Best Practices & Security"
+      ]
+    },
+    {
+      title: "Week 7: Config Management & AWS",
+      topics: [
+        "Day 43: Ansible Architecture & Playbooks",
+        "Day 44: Configuration deployment to EC2 using Ansible",
+        "Day 45: AWS Core Services (EC2, S3, IAM, VPC)"
+      ]
+    }
+  ],
+  questions: [
+    { text: "Explain Git rebase vs merge", level: "Easy" },
+    { text: "How do you handle merge conflicts in Git?", level: "Easy" },
+    { text: "Explain Docker virtualization vs VM", level: "Medium" },
+    { text: "What is a Dockerfile and how do you optimize it?", level: "Medium" },
+    { text: "What are Kubernetes Deployments vs Pods?", level: "Medium" },
+    { text: "Explain K8s Service types (ClusterIP, NodePort, LoadBalancer)", level: "Medium" },
+    { text: "How do you manage secrets in Kubernetes?", level: "Hard" },
+    { text: "What is Jenkins Declarative Pipeline?", level: "Medium" },
+    { text: "Explain Terraform State files and locking", level: "Hard" },
+    { text: "What is Ansible playbook and role?", level: "Easy" }
+  ]
 }
 ];

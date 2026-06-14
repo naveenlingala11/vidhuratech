@@ -78,6 +78,10 @@
       <i class="bi bi-file-earmark-ruled"></i>
       <span>Curriculum Builder</span>
     </button>
+    <button type="button" [class.active]="activeTab === 'APPROVALS'" (click)="setTab('APPROVALS')" class="tab-btn">
+      <i class="bi bi-shield-check"></i>
+      <span>Curriculum Approvals</span>
+    </button>
   </nav>
 
   <!-- Split Screen Manager Workspace -->
@@ -527,6 +531,53 @@
             <span class="terminal-title"><i class="bi bi-code-slash"></i> JSON Preview Console</span>
           </div>
           <pre class="raw-json">{{ rawPreview | json }}</pre>
+        </div>
+      </ng-container>
+
+      <!-- TAB 4: CURRICULUM APPROVALS -->
+      <ng-container *ngIf="activeTab === 'APPROVALS'">
+        <div class="panel-title-bar">
+          <div class="title-copy">
+            <span class="step-label">Tab Workspace 04</span>
+            <h3>Pending Curriculum Submissions</h3>
+            <p>Review and publish curriculums proposed by trainer staff for course listings.</p>
+          </div>
+          <button type="button" class="primary-btn action-btn secondary-style" (click)="loadPendingCurriculums()">
+            <i class="bi bi-arrow-clockwise"></i> <span>Refresh</span>
+          </button>
+        </div>
+
+        <div class="pending-submissions-list" *ngIf="pendingCurriculums.length">
+          <article class="form-card premium-card submission-card" *ngFor="let curr of pendingCurriculums">
+            <header class="submission-card-header">
+              <div>
+                <span class="badge badge-warning"><i class="bi bi-clock-history"></i> Pending Approval</span>
+                <h4>{{ getCourseNameById(curr.courseId) }}</h4>
+                <span class="submitted-by-label">Proposed by: <strong>{{ curr.trainerEmail }}</strong></span>
+              </div>
+              <button type="button" class="primary-btn action-btn approve-btn" [disabled]="saving" (click)="approveCurriculum(curr.id)">
+                <i class="bi bi-check-circle-fill"></i> Approve & Publish
+              </button>
+            </header>
+
+            <div class="submission-card-body" *ngIf="parsedJson(curr.jsonData) as parsed">
+              <h5 class="section-sub-title"><i class="bi bi-list-nested"></i> Proposed Timeline Modules ({{ parsed.curriculum?.length || 0 }} Weeks)</h5>
+              <div class="preview-weeks-grid">
+                <div class="preview-week-item" *ngFor="let week of parsed.curriculum; let wIdx = index">
+                  <h6>{{ week.title }}</h6>
+                  <ul class="preview-topics-bullet">
+                    <li *ngFor="let topic of week.topics">{{ topic }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="empty-state curriculum-empty" *ngIf="!pendingCurriculums.length">
+          <i class="bi bi-shield-check-fill color-green"></i>
+          <strong>All Clear!</strong>
+          <p>No pending curriculum drafts require admin approval at this time.</p>
         </div>
       </ng-container>
     </main>

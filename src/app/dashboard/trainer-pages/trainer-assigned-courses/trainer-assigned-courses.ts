@@ -111,4 +111,108 @@ export class TrainerAssignedCoursesComponent implements OnInit {
   trackByCourse(_: number, course: any): number {
     return course.courseId || course.assignmentId;
   }
+
+  showEditor = false;
+  editingCourse: any = null;
+  editingCurriculum: any = null;
+  editorSaving = false;
+
+  openCurriculumEditor(course: any): void {
+    this.loading = true;
+    this.editingCourse = course;
+    this.trainerService.getCourseCurriculum(course.courseId).subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        const curriculumObj = res?.data || res;
+        if (curriculumObj && curriculumObj.jsonData) {
+          try {
+            this.editingCurriculum = JSON.parse(curriculumObj.jsonData);
+          } catch (e) {
+            console.error('Error parsing curriculum JSON:', e);
+            this.editingCurriculum = {
+              id: course.courseId.toString(),
+              name: course.title,
+              curriculum: []
+            };
+          }
+        } else {
+          this.editingCurriculum = {
+            id: course.courseId.toString(),
+            name: course.title,
+            curriculum: []
+          };
+        }
+        // Ensure curriculum array exists
+        if (!this.editingCurriculum.curriculum) {
+          this.editingCurriculum.curriculum = [];
+        }
+        this.showEditor = true;
+      },
+      error: () => {
+        this.loading = false;
+        this.editingCurriculum = {
+          id: course.courseId.toString(),
+          name: course.title,
+          curriculum: []
+        };
+        this.showEditor = true;
+      }
+    });
+  }
+
+  closeEditor(): void {
+    this.showEditor = false;
+    this.editingCourse = null;
+    this.editingCurriculum = null;
+  }
+
+  addWeekToEditor(): void {
+    if (!this.editingCurriculum.curriculum) {
+      this.editingCurriculum.curriculum = [];
+    }
+    const weekNum = this.editingCurriculum.curriculum.length + 1;
+    this.editingCurriculum.curriculum.push({
+      title: `Week ${weekNum}: New Module`,
+      topics: [
+        `Day 1: Lesson Topic`
+      ]
+    });
+  }
+
+  removeWeekFromEditor(wIndex: number): void {
+    this.editingCurriculum.curriculum.splice(wIndex, 1);
+  }
+
+  addTopicToWeek(wIndex: number): void {
+    const week = this.editingCurriculum.curriculum[wIndex];
+    if (!week.topics) {
+      week.topics = [];
+    }
+    const dayNum = week.topics.length + 1;
+    week.topics.push(`Day ${dayNum}: New Lesson Topic`);
+  }
+
+  removeTopicFromWeek(wIndex: number, tIndex: number): void {
+    this.editingCurriculum.curriculum[wIndex].topics.splice(tIndex, 1);
+  }
+
+  trackByIndex(index: number, obj: any): any {
+    return index;
+  }
+
+  saveCurriculumDraft(): void {
+    if (!this.editingCourse) return;
+    this.editorSaving = true;
+    this.trainerService.saveCourseCurriculumDraft(this.editingCourse.courseId, { json: this.editingCurriculum }).subscribe({
+      next: () => {
+        this.editorSaving = false;
+        this.showToast('Curriculum draft saved successfully. Awaiting Admin publication.');
+        this.closeEditor();
+      },
+      error: (err: any) => {
+        this.editorSaving = false;
+        this.showToast(err?.error?.message || 'Failed to save curriculum draft');
+      }
+    });
+  }
 }

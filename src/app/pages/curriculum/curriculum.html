@@ -1,65 +1,195 @@
-<section class="hero">
-  <div class="hero-content">
-    <h1>Explore Course Curriculum 📘</h1>
-    <p>Select a course and dive into complete structured learning</p>
-    <div class="hero-actions">
-      <select [(ngModel)]="selectedCourseId" (change)="loadCurriculum()">
-        <option *ngFor="let c of courses" [value]="c.id">
-          {{ c.title }}
-        </option>
-      </select>
-      <button class="primary-btn" (click)="downloadPDF()">
-        📄 Download Curriculum
-      </button>
+<div class="curriculum-page-container light-theme">
+  <!-- HERO BANNER -->
+  <section class="curriculum-hero">
+    <!-- Background visual decorations -->
+    <div class="hero-bg-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
     </div>
-  </div>
-</section>
-<!-- 🔥 LIVE COURSE CARD -->
-<div class="live-card" *ngIf="selectedCourse">
-  <div class="live-header">
-    <h2>{{ selectedCourse.name }}</h2>
-    <span class="live-badge">🔥 Live Curriculum</span>
-  </div>
-  <!-- 📘 CURRICULUM -->
-  <div class="curriculum">
-    <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module">
-      <div class="module-header" (click)="toggleModule(module)" [class.active]="module.open">
-        <span>{{ mIndex + 1 }}. {{ module.title }}</span>
+    <div class="hero-grid-overlay"></div>
+    
+    <div class="hero-container-inner">
+      <div class="hero-content">
+        <div class="hero-badge-container">
+          <span class="hero-badge">
+            <span class="badge-pulse"></span>
+            <i class="fa-solid fa-graduation-cap"></i> 
+            Vidhura Tech Academy
+          </span>
+          <span class="hero-status-tag"><i class="fa-solid fa-bolt"></i> Industry Syllabus V2.0</span>
+        </div>
+        
+        <h1 class="hero-title">
+          Explore Course <span class="gradient-text">Curriculums</span>
+        </h1>
+        
+        <p class="hero-subtitle">
+          Select a domain below and preview our detailed university-standard syllabus structure. Master modular coding practices, review dynamic algorithms, and download target guidelines.
+        </p>
       </div>
-      <div class="module-body" *ngIf="module.open">
-        <div class="topics-grid">
-          <div class="topic-item" *ngFor="let topic of module.topics; let i = index">
-            <span class="topic-number">
-              {{ mIndex + 1 }}.{{ i + 1 }}
-            </span>
-            <span class="topic-text">
-              {{ topic }}
-            </span>
+    </div>
+  </section>
+
+  <!-- COURSE SELECTOR CARDS -->
+  <section class="course-selector-section">
+    <div class="selector-container">
+      <span class="selector-title"><i class="fa-solid fa-cubes"></i> Choose Learning Path:</span>
+      <div class="course-cards-row">
+        <button 
+          *ngFor="let c of courses"
+          [class.active]="selectedCourseId === c.id"
+          [ngClass]="getCourseIconClass(c)"
+          (click)="selectedCourseId = c.id; loadCurriculum()"
+          class="course-select-card">
+          <div class="course-card-icon" [ngClass]="getCourseIconClass(c)">
+            <i [ngClass]="getCourseIcon(c)"></i>
+          </div>
+          <div class="course-card-meta">
+            <h3 class="course-meta-name">{{ (c.title || c.name || '').split('(')[0].trim() }}</h3>
+            <span class="course-meta-duration"><i class="fa-solid fa-clock"></i> {{ c.durationHours ? c.durationHours + ' Hours' : '45 Days' }}</span>
+          </div>
+          <div class="active-indicator"></div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="workspace-wrapper" *ngIf="selectedCourse">
+    <div class="workspace-grid">
+      
+      <!-- LEFT COLUMN: COLLAPSIBLE SYLLABUS TIMELINE -->
+      <div class="curriculum-timeline-panel">
+        <div class="panel-header-row">
+          <h2 class="panel-title"><i class="fa-solid fa-route"></i> Detailed Weekly Syllabus Breakdown</h2>
+          <span class="panel-badge">{{ selectedCourse.curriculum.length }} Weeks Complete</span>
+        </div>
+
+        <div class="curriculum-timeline-track">
+          <div *ngFor="let module of selectedCourse.curriculum; let mIndex = index" class="module-timeline-item">
+            <!-- Timeline connector line/dots -->
+            <div class="timeline-node">
+              <div class="node-circle" [class.active]="module.open">
+                <span class="node-number">0{{ mIndex + 1 }}</span>
+              </div>
+              <div class="node-line" *ngIf="mIndex < selectedCourse.curriculum.length - 1"></div>
+            </div>
+
+            <!-- Module Card -->
+            <div class="module-card" [class.expanded]="module.open">
+              <div class="module-header" (click)="toggleModule(module)" [class.active]="module.open">
+                <div class="module-header-left">
+                  <span class="module-week-tag">Week 0{{ mIndex + 1 }}</span>
+                  <h3 class="module-title-text">{{ module.title.includes(':') ? module.title.split(':')[1].trim() : module.title }}</h3>
+                </div>
+                <div class="module-header-right">
+                  <span class="topics-count-badge">{{ module.topics.length }} Daily Lessons</span>
+                  <i class="fa-solid fa-chevron-down accordion-caret"></i>
+                </div>
+              </div>
+
+              <div class="module-body" *ngIf="module.open">
+                <div class="topics-grid">
+                  <div class="topic-item animate-fade-in" *ngFor="let topic of module.topics; let i = index">
+                    <div class="topic-item-left">
+                      <span class="topic-number">Day {{ topic.includes('Day ') ? topic.split(':')[0].replace('Day ', '').trim() : (mIndex * 7 + i + 1) }}</span>
+                    </div>
+                    <div class="topic-item-right">
+                      <span class="topic-text">{{ topic.includes(':') ? topic.substring(topic.indexOf(':')+1).trim() : topic }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <!-- 💻 QUESTIONS -->
-  <div class="questions">
-    <h3>Coding Questions</h3>
-    <select [(ngModel)]="selectedLevel">
-      <option>All</option>
-      <option>Easy</option>
-      <option>Medium</option>
-      <option>Hard</option>
-    </select>
-    <div class="grid">
-      <div class="card" *ngFor="let q of filterQuestions()">
-        {{ q.text }}
-        <span class="badge" [ngClass]="{
-          easy: q.level === 'Easy',
-          medium: q.level === 'Medium',
-          hard: q.level === 'Hard'
-        }">
-          {{ q.level }}
-        </span>
+
+      <!-- RIGHT COLUMN: STICKY QUICK PREVIEW PANEL -->
+      <div class="curriculum-preview-panel">
+        <div class="sticky-preview-container">
+          <div class="quick-preview-card">
+            <div class="preview-glow-border"></div>
+            
+            <div class="preview-meta-badge">
+              <span class="preview-meta-tag"><i class="fa-solid fa-eye"></i> Quick Syllabus Preview</span>
+            </div>
+
+            <h2 class="preview-course-title">{{ selectedCourse.name }}</h2>
+            <p class="preview-course-desc">
+              Get an instant high-level overview of the topics, structures, and coding labs included in this learning track.
+            </p>
+
+            <!-- Profile Parameters -->
+            <div class="preview-parameters-grid">
+              <div class="param-chip">
+                <div class="param-icon"><i class="fa-solid fa-clock text-sky"></i></div>
+                <div class="param-info">
+                  <span class="param-label">Duration</span>
+                  <span class="param-value">45 Days</span>
+                </div>
+              </div>
+
+              <div class="param-chip">
+                <div class="param-icon"><i class="fa-solid fa-code text-teal-bright"></i></div>
+                <div class="param-info">
+                  <span class="param-label">Coding Labs</span>
+                  <span class="param-value">150+ Exercises</span>
+                </div>
+              </div>
+
+              <div class="param-chip">
+                <div class="param-icon"><i class="fa-solid fa-graduation-cap text-purple-bright"></i></div>
+                <div class="param-info">
+                  <span class="param-label">Level</span>
+                  <span class="param-value">Beginner to Pro</span>
+                </div>
+              </div>
+
+              <div class="param-chip">
+                <div class="param-icon"><i class="fa-solid fa-briefcase text-pink-bright"></i></div>
+                <div class="param-info">
+                  <span class="param-label">Job Targets</span>
+                  <span class="param-value">Junior / Associate</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Skills Checklist -->
+            <div class="preview-skills-checklist">
+              <h4 class="checklist-title"><i class="fa-solid fa-shield-halved text-sky"></i> Key Domains Covered:</h4>
+              <ul class="skills-bullet-list">
+                <li><i class="fa-solid fa-circle-check bullet-check"></i> Basic Syntaxes & Operators</li>
+                <li><i class="fa-solid fa-circle-check bullet-check"></i> Data Types, Variables & Loops</li>
+                <li><i class="fa-solid fa-circle-check bullet-check"></i> Object-Oriented Principles (OOPs)</li>
+                <li><i class="fa-solid fa-circle-check bullet-check"></i> Collections Framework & API Logic</li>
+                <li><i class="fa-solid fa-circle-check bullet-check"></i> Data Structures & Complex Algorithms</li>
+              </ul>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="preview-actions">
+              <div class="actions-row-split">
+                <button class="btn-download-curriculum" (click)="downloadPDF()">
+                  <i class="fa-solid fa-file-pdf"></i> Download Complete PDF
+                  <span class="btn-shine"></span>
+                </button>
+                <button class="btn-preview-eye-curriculum" (click)="previewPDF()" title="Preview Curriculum PDF">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+              
+              <button class="btn-whatsapp-consult" (click)="requestCurriculumConsultation(selectedCourse.name)">
+                <i class="fa-brands fa-whatsapp"></i> Chat with Counselor
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
+
 </div>

@@ -5,7 +5,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Course } from '../model/course.model';
 import { CourseService } from '../services/course';
 
-type ManagerTab = 'BATCHES' | 'UPDATES' | 'CURRICULUM';
+type ManagerTab = 'BATCHES' | 'UPDATES' | 'CURRICULUM' | 'APPROVALS';
 
 interface CurriculumModule {
   title: string;
@@ -27,6 +27,7 @@ export class CourseManagerComponent implements OnInit {
   courses: Course[] = [];
   batches: any[] = [];
   trainers: any[] = [];
+  pendingCurriculums: any[] = [];
 
   selectedCourseId: number | null = null;
   selectedBatchId: number | null = null;
@@ -69,6 +70,9 @@ export class CourseManagerComponent implements OnInit {
 
   setTab(tab: ManagerTab): void {
     this.activeTab = tab;
+    if (tab === 'APPROVALS') {
+      this.loadPendingCurriculums();
+    }
   }
 
   loadCourses(): void {
@@ -383,5 +387,47 @@ export class CourseManagerComponent implements OnInit {
       zoomTime: '',
       zoomCalendarLink: '',
     };
+  }
+
+  loadPendingCurriculums(): void {
+    this.loading = true;
+    this.courseService.getPendingCurriculums().subscribe({
+      next: (res: any) => {
+        this.pendingCurriculums = res?.data || [];
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.toastr.error('Unable to load pending curriculum submissions');
+      }
+    });
+  }
+
+  approveCurriculum(id: number): void {
+    this.saving = true;
+    this.courseService.publishCurriculum(id).subscribe({
+      next: () => {
+        this.saving = false;
+        this.toastr.success('Curriculum draft approved and published successfully!');
+        this.loadPendingCurriculums();
+      },
+      error: (err) => {
+        this.saving = false;
+        this.toastr.error(err?.error?.message || 'Failed to approve curriculum');
+      }
+    });
+  }
+
+  parsedJson(jsonStr: string): any {
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      return null;
+    }
+  }
+
+  getCourseNameById(courseId: number): string {
+    const matched = this.courses.find(c => Number(c.id) === Number(courseId));
+    return matched?.title || 'Unknown Course';
   }
 }

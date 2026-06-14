@@ -18,6 +18,8 @@ import { CertificateView } from './certificate-view/certificate-view';
 import { Checkout } from './pages/checkout/checkout';
 import { CheckoutHelp } from './pages/checkout-help/checkout-help';
 import { CoursesComponent } from './pages/courses/courses';
+import { ExploreTracksComponent } from './pages/explore-tracks/explore-tracks';
+import { Projects } from './pages/projects/projects';
 import { PublicPracticeComponent } from './features/public/public-practice/public-practice/public-practice';
 import { NotificationsComponent } from './components/notifications/notifications';
 
@@ -142,6 +144,8 @@ export const routes: Routes = [
   ========================= */
   { path: '', component: Home },
   { path: 'courses', component: CoursesComponent },
+  { path: 'explore-tracks', component: ExploreTracksComponent },
+  { path: 'projects', component: Projects },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
   { path: 'curriculum', component: Curriculum },
