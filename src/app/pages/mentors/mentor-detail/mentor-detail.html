@@ -1,0 +1,639 @@
+<div class="detail-container">
+  <!-- Back Link -->
+  <div class="navigation-row">
+    <a routerLink="/mentors" class="btn-back">← Back to Mentors</a>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="state-container">
+    <div class="spinner-loader"></div>
+    <p>Loading mentor details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage" class="state-container error">
+    <p>{{errorMessage}}</p>
+    <a routerLink="/mentors" class="btn-primary">Back to Directory</a>
+  </div>
+
+  <!-- Main Profile View -->
+  <div *ngIf="!loading && mentor" class="profile-layout">
+    <!-- Left Column: Biography & Details -->
+    <div class="profile-main">
+      <!-- Profile Header Card -->
+      <div class="header-card">
+        <div class="profile-banner"></div>
+        <div class="profile-intro-row">
+          <div class="avatar-wrap">
+            <img 
+              *ngIf="mentor.profileImageUrl" 
+              [src]="mentor.profileImageUrl" 
+              [alt]="mentor.name" 
+              class="detail-avatar"
+            />
+            <div *ngIf="!mentor.profileImageUrl" class="detail-avatar-fallback">
+              {{ mentor.name ? mentor.name.charAt(0).toUpperCase() : 'M' }}
+            </div>
+          </div>
+
+          <div class="intro-details">
+            <div class="headline">
+              <h1>{{mentor.name}}</h1>
+              <span *ngIf="mentor.featured" class="badge-featured">Featured</span>
+            </div>
+            
+            <p class="role-company">
+              <span class="role">{{mentor.currentRole}}</span> 
+              <span *ngIf="mentor.currentCompany" class="company">at <strong>{{mentor.currentCompany}}</strong></span>
+            </p>
+
+            <div class="stats-ribbon">
+              <span class="ribbon-item">💼 <strong>{{mentor.yearsOfExperience}} Years</strong> Experience</span>
+              <span class="ribbon-item">⭐ <strong>{{mentor.rating}}</strong> ({{mentor.reviewsCount}} Reviews)</span>
+              <span class="ribbon-item" *ngIf="mentor.languages">🗣️ <strong>{{mentor.languages}}</strong></span>
+            </div>
+
+            <div class="trust-stats-ribbon" *ngIf="extraMetadata">
+              <span class="ribbon-item minutes">⏱️ <strong>{{extraMetadata.mentorshipMinutes}}+</strong> Mins Mentoring</span>
+              <span class="ribbon-item mentees">👥 <strong>{{extraMetadata.menteesCount}}+</strong> Mentees Guided</span>
+            </div>
+
+            <!-- Social Links -->
+            <div class="social-links-row">
+              <a *ngIf="mentor.linkedinUrl" [href]="mentor.linkedinUrl" target="_blank" class="social-link linkedin">
+                🔗 LinkedIn
+              </a>
+              <a *ngIf="mentor.githubUrl" [href]="mentor.githubUrl" target="_blank" class="social-link github">
+                💻 GitHub
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- About Me -->
+      <div class="section-card biography-card">
+        <h2>About Me</h2>
+        <p class="bio-text">{{ mentor.biography || 'No biography details provided by the mentor yet.' }}</p>
+      </div>
+
+      <!-- Skills & Expertise -->
+      <div class="section-card skills-card">
+        <h2>Expertise & Skills</h2>
+        <div class="skills-grid">
+          <span *ngFor="let skill of getSkillsList(mentor.skills)" class="detail-skill-tag">
+            {{skill}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Languages Spoken -->
+      <div class="section-card languages-card" *ngIf="mentor.languages">
+        <h2>Languages</h2>
+        <div class="languages-grid">
+          <span *ngFor="let lang of getLanguagesList(mentor.languages)" class="detail-language-tag">
+            🗣️ {{lang}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Upcoming Masterclasses & Group Sessions -->
+      <div class="section-card group-sessions-card animate-fadeIn" *ngIf="extraMetadata && extraMetadata.groupSessions && extraMetadata.groupSessions.length > 0">
+        <div class="section-card-header">
+          <span class="section-tag-pill font-semibold">LIVE WEBINARS</span>
+          <h2>Upcoming Masterclasses & Group Sessions</h2>
+        </div>
+        <div class="group-sessions-list">
+          <div *ngFor="let session of extraMetadata.groupSessions" class="session-strip-card">
+            <div class="session-strip-image">
+              <img [src]="session.bannerUrl" alt="Session Banner" />
+            </div>
+            <div class="session-strip-info">
+              <h3>{{ session.title }}</h3>
+              <div class="session-meta-details">
+                <span class="session-meta-pill date">📅 {{ session.dateLabel }}</span>
+                <span class="session-meta-pill time">⏱️ {{ session.timeLabel }}</span>
+              </div>
+            </div>
+            <div class="session-strip-action">
+              <a [href]="session.link" class="btn-session-register">Register Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Career Timeline Ascent -->
+      <div class="section-card timeline-ascent-card animate-fadeIn" *ngIf="extraMetadata && extraMetadata.timeline && extraMetadata.timeline.length > 0">
+        <div class="section-card-header">
+          <span class="section-tag-pill font-semibold">CAREER ROADMAP</span>
+          <h2>Professional Ascent & Career Timeline</h2>
+        </div>
+        <div class="ascent-timeline-container">
+          <div class="timeline-line-path"></div>
+          <div class="timeline-milestones-list">
+            <div *ngFor="let item of extraMetadata.timeline" class="timeline-milestone-item">
+              <div class="milestone-bullet-outer">
+                <div class="milestone-bullet-inner"></div>
+              </div>
+              <div class="milestone-info-card">
+                <div class="milestone-header-row">
+                  <div>
+                    <h3 class="milestone-role">{{ item.role }}</h3>
+                    <h4 class="milestone-company">at {{ item.company }}</h4>
+                  </div>
+                  <span class="milestone-tenure">{{ item.tenure }}</span>
+                </div>
+                <p class="milestone-description">{{ item.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mentorship Curriculum Plans -->
+      <div class="section-card curriculum-plans-card animate-fadeIn" *ngIf="extraMetadata && extraMetadata.curriculums && extraMetadata.curriculums.length > 0">
+        <div class="section-card-header">
+          <span class="section-tag-pill font-semibold">ROADMAP CURRICULUM</span>
+          <h2>Month-Wise Mentorship Blueprints</h2>
+          <p class="curriculum-subtitle">Select a target timeline track to view the month-by-month syllabus breakdown.</p>
+        </div>
+
+        <!-- Curriculum Duration tabs -->
+        <div class="curriculum-tabs-bar">
+          <button 
+            type="button" 
+            *ngFor="let track of extraMetadata.curriculums; let idx = index"
+            class="curriculum-tab-btn"
+            [class.active]="activeCurriculumIndex === idx"
+            (click)="activeCurriculumIndex = idx; activeMonthIndex = 0"
+          >
+            🎯 {{ track.durationLabel }} Track
+          </button>
+        </div>
+
+        <!-- Curriculum Summary Row -->
+        <div class="curriculum-summary-banner" *ngIf="extraMetadata.curriculums[activeCurriculumIndex]">
+          <span class="summary-stat-pill">🧩 <strong>{{ extraMetadata.curriculums[activeCurriculumIndex].sessionsCount }}</strong> Live 1:1 Sessions</span>
+          <span class="summary-stat-pill">📚 <strong>{{ extraMetadata.curriculums[activeCurriculumIndex].topicsCount }}</strong> Core Topics Covered</span>
+        </div>
+
+        <!-- Month Breakdown Accordions -->
+        <div class="curriculum-months-list" *ngIf="extraMetadata.curriculums[activeCurriculumIndex]">
+          <div 
+            *ngFor="let month of extraMetadata.curriculums[activeCurriculumIndex].months; let mIdx = index"
+            class="curriculum-month-accordion"
+            [class.expanded]="activeMonthIndex === mIdx"
+          >
+            <!-- Accordion Header -->
+            <div class="accordion-header-row" (click)="activeMonthIndex = (activeMonthIndex === mIdx ? -1 : mIdx)">
+              <div class="month-headline-wrap">
+                <span class="month-number-indicator">M{{ month.monthNumber }}</span>
+                <h3>{{ month.title }}</h3>
+              </div>
+              <div class="accordion-header-right">
+                <span class="month-session-badge">{{ month.sessionCount }} sessions</span>
+                <span class="accordion-chevron"></span>
+              </div>
+            </div>
+
+            <!-- Accordion Content Body -->
+            <div class="accordion-body-content" *ngIf="activeMonthIndex === mIdx">
+              <div class="month-section-block">
+                <h4>What you will master this month:</h4>
+                <ul class="month-topics-checklist">
+                  <li *ngFor="let topic of month.topics">
+                    <span class="checklist-bullet">✓</span> {{ topic }}
+                  </li>
+                </ul>
+              </div>
+
+              <div class="month-section-block" *ngIf="month.sessionTypes && month.sessionTypes.length > 0">
+                <h4>Planned 1:1 Session formats:</h4>
+                <div class="session-formats-row">
+                  <span *ngFor="let format of month.sessionTypes" class="session-format-tag">
+                    🎤 {{ format }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placements Success Wall -->
+      <div class="section-card video-placements-card animate-fadeIn" *ngIf="extraMetadata && extraMetadata.videoTestimonials && extraMetadata.videoTestimonials.length > 0">
+        <div class="section-card-header">
+          <span class="section-tag-pill font-semibold">PLACEMENTS STORY</span>
+          <h2>Mentees Placement Success Wall</h2>
+        </div>
+        <div class="video-placements-grid">
+          <div *ngFor="let item of extraMetadata.videoTestimonials" class="video-testimonial-item">
+            <div class="iframe-container-frame">
+              <iframe 
+                [src]="getSafeVideoUrl(item.youtubeUrl)" 
+                title="Mentee Placement Story" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen
+              ></iframe>
+            </div>
+            <div class="video-testimonial-info">
+              <h4>{{ item.menteeName }}</h4>
+              <p class="transition-milestone">{{ item.transition }}</p>
+              <span class="outcome-badge">Placed at {{ item.company }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Availability Schedule -->
+      <div class="section-card availability-card" *ngIf="getAvailabilityDays().length > 0">
+        <h2>📅 Availability Schedule</h2>
+        <div class="availability-content">
+          <div class="avail-days-row">
+            <span class="avail-label">Available Days:</span>
+            <div class="avail-days-chips">
+              <span *ngFor="let d of getAvailabilityDays()" class="day-chip active">{{ getDayShort(d) }}</span>
+            </div>
+          </div>
+          <div class="avail-slots-row" *ngIf="getAvailabilitySlots().length > 0">
+            <span class="avail-label">Time Slots:</span>
+            <div class="avail-slots-list">
+              <span *ngFor="let s of getAvailabilitySlots()" class="slot-chip">{{ getSlotLabel(s) }}</span>
+            </div>
+          </div>
+          <div class="avail-daily-info" *ngIf="mentor.allowDailySessions">
+            <span class="daily-badge">✅ Daily 1-Hour Sessions Available</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="section-card reviews-section">
+        <div class="reviews-header">
+          <h2>⭐ Student Reviews</h2>
+          <button class="btn-write-review" (click)="openReviewModal()">✍️ Write a Review</button>
+        </div>
+
+        <!-- Rating Summary -->
+        <div class="rating-summary" *ngIf="reviewStats.totalReviews > 0">
+          <div class="rating-big">
+            <span class="rating-number">{{ reviewStats.averageRating }}</span>
+            <div class="stars-row">
+              <span *ngFor="let s of getStarArray(reviewStats.averageRating)" class="star"
+                    [ngClass]="s <= reviewStats.averageRating ? 'filled' : 'empty'">★</span>
+            </div>
+            <span class="review-count">{{ reviewStats.totalReviews }} reviews</span>
+          </div>
+          <div class="rating-breakdown">
+            <div *ngFor="let s of [5,4,3,2,1]" class="breakdown-row">
+              <span class="breakdown-label">{{ s }} ★</span>
+              <div class="breakdown-bar-track">
+                <div class="breakdown-bar-fill" [style.width.%]="getBreakdownPercent(s)"></div>
+              </div>
+              <span class="breakdown-count">{{ reviewStats.ratingBreakdown[s] || 0 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="reviews-list" *ngIf="reviews.length > 0">
+          <div class="review-item" *ngFor="let r of reviews">
+            <div class="review-top-row">
+              <div class="review-author">
+                <div class="author-avatar">{{ r.studentAvatar }}</div>
+                <div class="author-info">
+                  <strong>{{ r.studentName }}</strong>
+                  <span class="review-time">{{ getTimeAgo(r.createdAt) }}</span>
+                </div>
+              </div>
+              <div class="review-stars">
+                <span *ngFor="let s of getStarArray(r.rating)" class="star"
+                      [ngClass]="s <= r.rating ? 'filled' : 'empty'">★</span>
+              </div>
+            </div>
+            <div class="review-session-type" *ngIf="r.sessionType">
+              <span class="session-badge">{{ r.sessionType }}</span>
+            </div>
+            <p class="review-text">{{ r.reviewText }}</p>
+          </div>
+        </div>
+
+        <!-- No Reviews -->
+        <div class="no-reviews" *ngIf="!reviewsLoading && reviews.length === 0">
+          <span class="no-reviews-icon">📝</span>
+          <p>No reviews yet. Be the first to review this mentor!</p>
+        </div>
+      </div>
+
+      <!-- How Mentorship Works -->
+      <div class="section-card how-it-works">
+        <h2>How 1:1 Mentorship Works</h2>
+        <div class="steps-grid">
+          <div class="step-item">
+            <span class="step-num">1</span>
+            <h4>Fill out Booking Form</h4>
+            <p>Select your topic of interest, fill in your details, and submit.</p>
+          </div>
+          <div class="step-item">
+            <span class="step-num">2</span>
+            <h4>Connect with Coordinator</h4>
+            <p>You connect directly with our Support Coordinator on WhatsApp to mediate scheduling and session coordination.</p>
+          </div>
+          <div class="step-item">
+            <span class="step-num">3</span>
+            <h4>Schedule & Grow</h4>
+            <p>Vidhura Tech coordinates the session, and hosts it on our portal for a safe, verified learning environment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Sticky Booking Widget -->
+    <div class="profile-sidebar">
+      <!-- Premium Dual Package Selector Cards -->
+      <div class="packages-selector-container">
+        <h3 class="packages-title">💎 Choose Mentorship Package</h3>
+        
+        <div class="package-selection-cards">
+          <!-- Trial Session Card Option -->
+          <div 
+            class="package-selection-card" 
+            [class.active]="selectedBookingPackage === 'trial'"
+            (click)="selectedBookingPackage = 'trial'; selectedPlan = 'HOURLY'"
+          >
+            <div class="pkg-header-row">
+              <span class="pkg-badge-pill trial">⚡ TRIAL</span>
+              <span class="pkg-price-val">₹99</span>
+            </div>
+            <h4>Book a Trial Session</h4>
+            <p class="pkg-desc-text">Understand how {{ mentor.name.split(' ')[0] }} can help you</p>
+            <ul class="pkg-checklist-details">
+              <li>✓ Right-fit check</li>
+              <li>✓ Action plan</li>
+              <li>✓ Timeline clarity</li>
+              <li>✓ Pricing alignment</li>
+              <li>✓ Identify top bottlenecks</li>
+              <li>✓ Role-focused guidance</li>
+              <li>✓ Weekly milestones</li>
+              <li>✓ 30-45 min session</li>
+            </ul>
+            <div class="pkg-availability-footer">
+              📅 Next Available: <strong>Mon Jun 22 2026</strong>
+            </div>
+          </div>
+
+          <!-- Monthly Retainer Card Option -->
+          <div 
+            class="package-selection-card" 
+            [class.active]="selectedBookingPackage === 'monthly'"
+            (click)="selectedBookingPackage = 'monthly'; selectedPlan = 'MONTHLY'"
+          >
+            <div class="pkg-header-row">
+              <span class="pkg-badge-pill retainer">💼 RETAINER</span>
+              <span class="pkg-price-val">
+                {{ mentor.pricePerMonth && mentor.pricePerMonth > 0 ? '₹' + mentor.pricePerMonth : (mentor.pricePerHour ? '₹' + (mentor.pricePerHour * 4) : '₹3,999') }}
+              </span>
+            </div>
+            <h4>Monthly Retainer</h4>
+            <p class="pkg-desc-text">Take the next step in 4 sessions/month</p>
+            <ul class="pkg-checklist-details">
+              <li>✓ 1:1 Sessions</li>
+              <li>✓ Guaranteed Referrals</li>
+              <li>✓ Community of mentors</li>
+              <li>✓ LinkedIn & Resume</li>
+              <li>✓ Get noticed by recruiters</li>
+              <li>✓ Completion Certificate</li>
+              <li>✓ Shareable certificate</li>
+              <li>✓ AI Summary & Recording (Revisit anytime)</li>
+              <li>✓ Relationship Manager (Support for needs)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Widget -->
+      <div class="booking-widget-card" #bookingCard>
+        <div class="price-header">
+          <span class="price-title">
+            {{ selectedBookingPackage === 'trial' ? 'Book Trial Session' : 'Enroll in Monthly Retainer' }}
+          </span>
+          <span class="price-amount">
+            {{ selectedBookingPackage === 'trial' ? '₹99' : (mentor.pricePerMonth && mentor.pricePerMonth > 0 ? '₹' + mentor.pricePerMonth + '/mo' : (mentor.pricePerHour ? '₹' + (mentor.pricePerHour * 4) + '/mo' : '₹3,999/mo')) }}
+          </span>
+        </div>
+
+        <div class="widget-divider"></div>
+
+        <div class="booking-form">
+          <!-- Secure Trust Banner -->
+          <div class="secure-mediation-banner animate-scaleUp" style="display: flex; align-items: flex-start; gap: 10px; background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 12px; padding: 12px; margin-bottom: 20px;">
+            <span class="shield-icon" style="font-size: 16px;">🛡️</span>
+            <div class="banner-text" style="font-size: 11.5px; line-height: 1.4; color: #064e3b;">
+              <strong>Secure Vidhura Match:</strong> Mentor contact details are protected. 
+              Vidhura Tech mediates, coordinates scheduling, and conducts the session on our portal.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Topic of Interest</label>
+            <select [(ngModel)]="bookingTopic" class="form-control-select">
+              <option *ngFor="let topic of topics" [value]="topic">{{topic}}</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label>Select Timing / Slot Option</label>
+            <select [(ngModel)]="selectedBookingSlot" class="form-control-select">
+              <option *ngFor="let slot of mockSlots" [value]="slot">{{ slot }}</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label>My Goals / Core Coding Gaps *</label>
+            <textarea 
+              [(ngModel)]="customMessage" 
+              rows="3" 
+              placeholder="Describe your goals, coding doubts, or what you hope to achieve..."
+              class="form-control-textarea"
+            ></textarea>
+          </div>
+
+          <!-- Terms and Conditions Checkbox Row -->
+          <div class="terms-consent-row">
+            <label class="terms-consent-label">
+              <input 
+                type="checkbox" 
+                [checked]="hasAgreedToTerms" 
+                (click)="onTermsCheckboxClick($event)"
+                class="consent-chk"
+              />
+              <span class="consent-text">
+                I agree to the <a href="javascript:void(0)" (click)="openTermsModal(); $event.stopPropagation()">VidhuraTech Mentorship Agreement, Legal Terms & Privacy Policy</a>. I understand VidhuraTech is not responsible for off-platform discussions or unverified direct payments.
+              </span>
+            </label>
+          </div>
+
+          <!-- Submit Request Button -->
+          <button class="btn-submit-mediated-booking" (click)="submitMediatedBooking()" [disabled]="submittingBooking || !hasAgreedToTerms">
+            <span class="btn-icon">💼</span> {{ submittingBooking ? 'Registering Request...' : 'Submit Request & Coordinate' }}
+          </button>
+
+          <p class="secure-footer" style="text-align: center; margin-top: 12px; font-size: 11px; color: var(--text-muted);">
+            🔒 Secure transaction & coordination mediated by Vidhura Support.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" *ngIf="showReviewModal" (click)="closeReviewModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <h3>Write a Review</h3>
+        <button class="modal-close" (click)="closeReviewModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="rating-selector">
+          <label>Your Rating</label>
+          <div class="star-selector">
+            <span *ngFor="let s of getStarArray(5)" class="star-btn"
+                  [ngClass]="s <= reviewRating ? 'filled' : 'empty'"
+                  (click)="setRating(s)">★</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Session Type</label>
+          <select [(ngModel)]="reviewSessionType" class="form-control-select">
+            <option *ngFor="let t of topics" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Your Review *</label>
+          <textarea 
+            [(ngModel)]="reviewText"
+            rows="5"
+            placeholder="Share your experience with this mentor..."
+            class="form-control-textarea"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeReviewModal()">Cancel</button>
+        <button class="btn-submit-review" (click)="submitReview()" [disabled]="submittingReview">
+          {{ submittingReview ? 'Submitting...' : '⭐ Submit Review' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TERMS & CONDITIONS PREVIEW MODAL
+       ========================================== -->
+  <div class="modal-overlay animate-fadeIn terms-overlay-z" *ngIf="showTermsModal" (click)="closeTermsModal()">
+    <div class="modal-card terms-document-modal animate-scaleUp" (click)="$event.stopPropagation()">
+      <div class="terms-header">
+        <div class="header-icon-title">
+          <span class="scale-glowing-shield">🛡️</span>
+          <div class="title-sub">
+            <h3>VidhuraTech Legal Agreement</h3>
+            <p>Direct Mentorship Terms of Service & Privacy Policy</p>
+          </div>
+        </div>
+        <button class="btn-close-modal-round" (click)="closeTermsModal()">✕</button>
+      </div>
+
+      <div class="terms-body">
+        <div class="document-frame">
+          <div class="doc-header">
+            <h2>VIDHURATECH MENTORSHIP SERVICES AGREEMENT</h2>
+            <span class="doc-meta">Effective Date: June 20, 2026 | Version 2.0</span>
+          </div>
+          
+          <div class="doc-content">
+            <p class="intro-paragraph">
+              Please read this legal agreement carefully before requesting or scheduling any mentorship, consultation, or trial session on the VidhuraTech platform. By accepting this agreement, you acknowledge that you are bound by these terms. This Agreement is an electronic record in terms of the Information Technology Act, 2000 and rules made thereunder, and constitutes a legally binding agreement under the Indian Contract Act, 1872 between you (the Student/User) and VidhuraTech.
+            </p>
+
+            <div class="doc-section">
+              <h4>1. Intermediary Status & Section 79 Compliance</h4>
+              <p>
+                VidhuraTech operates as an online marketplace and "Intermediary" under Section 2(1)(w) of the Information Technology Act, 2000 and Section 79 of the IT Act. VidhuraTech does not initiate transmission, select the receiver of transmission, or select/modify the information contained in the transmission. Our role is strictly limited to providing automated match coordination and facilitated support channels. Safe harbor protections apply under Indian law.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>2. Strict Ban on Off-Platform Communication & Personal Data Sharing</h4>
+              <p class="highlight-clause danger">
+                <strong>CRITICAL DISCLOSURE:</strong> Students must NOT share personal contact details (including private phone numbers, personal email IDs, social media handles like LinkedIn or Twitter, or communication accounts like Slack or Discord) directly with the Mentor. All trial requests, slot bookings, and coordination remain mediated by the VidhuraTech Support Team. VidhuraTech is <strong>completely exempt from liability</strong> and will not be held responsible for any identity theft, personal data leakage, stalking, harassment, or data breaches arising from the voluntary disclosure of personal information outside VidhuraTech's portal.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>3. Unverified Payments & Financial Indemnity (Direct UPI / Cash Ban)</h4>
+              <p class="highlight-clause danger">
+                <strong>FINANCIAL DISCLAIMER:</strong> All payments for trial sessions (₹99) and monthly retainer packages must be processed exclusively through the official VidhuraTech Billing System and verified payment links. Direct transfers of funds (via UPI, GPAY, PhonePe, Net Banking, cash, or otherwise) to a Mentor's personal bank accounts are strictly prohibited. If you engage in out-of-portal financial discussions or pay a mentor directly:
+                <br/>• VidhuraTech has <strong>ZERO responsibility</strong> to recover or refund such funds.
+                <br/>• VidhuraTech is not liable for mentor default, no-shows, overpayments, or fraudulent transactions.
+                <br/>• Any such action constitutes a material breach of this Agreement and may lead to permanent account suspension.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>4. Academic Integrity & Anti-Dishonesty Clause</h4>
+              <p>
+                Pursuant to the guidelines of the University Grants Commission (UGC) and AICTE, mentorship sessions are strictly for educational and guidance purposes. Mentors are prohibited from completing homework, assignments, university projects, ghostwriting dissertations, or participating in examinations (live test cheating) on behalf of the student. The student assumes full legal and disciplinary responsibility for academic actions. VidhuraTech holds zero liability for academic misconduct.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>5. Independent Contractor Status (No Vicarious Liability)</h4>
+              <p>
+                Mentors listed on VidhuraTech are independent consultants and contractors. There is no employer-employee, agency, partnership, or joint venture relationship between VidhuraTech and the Mentors. VidhuraTech is not vicariously liable for any statements, behavior, guidance, code advice, architectural errors, or omissions of the Mentors.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>6. Intellectual Property Protection</h4>
+              <p>
+                All code snippets, system design diagrams, learning guides, or documentation shared during the sessions are the intellectual property of their respective creators. No ownership transfer takes place. Students are granted a limited, personal, non-commercial license to use shared educational materials solely for self-learning purposes. Commercial replication, public publication, or sharing of mentor-provided custom assets is strictly prohibited.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>7. Limitation of Liability & Indemnification</h4>
+              <p>
+                To the maximum extent permitted by applicable Indian law, VidhuraTech's aggregate liability for all claims arising out of this service shall be capped at the total amount paid by the student to VidhuraTech during the last 30 days. The student agrees to indemnify, defend, and hold harmless VidhuraTech, its founders, directors, employees, and agents from any third-party claims, legal actions, losses, damages, or costs (including attorney fees) arising from the student's violation of these terms or academic dishonesty.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>8. Governing Law and Arbitration Jurisdiction</h4>
+              <p>
+                This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes, claims, or controversies arising out of this agreement shall be settled through binding arbitration under the Arbitration and Conciliation Act, 1996. The seat of arbitration shall be **Hyderabad, Telangana, India**, and the proceedings shall be conducted in English. Subject to arbitration, the courts of Hyderabad, India shall have exclusive jurisdiction.
+              </p>
+            </div>
+
+            <div class="doc-section">
+              <h4>9. Intermediary Due Diligence & Grievance Redressal</h4>
+              <p>
+                In accordance with Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021, any user grievances regarding platform content, mentor listing, or terms violation should be addressed to our Grievance Officer at: <strong>grievance@vidhuratech.com</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="terms-footer">
+        <p class="footer-notice">By clicking "Accept & Agree", you confirm that you have read, understood, and accept all clauses in this agreement.</p>
+        <div class="footer-actions">
+          <button class="btn-decline" (click)="declineTerms()">Decline</button>
+          <button class="btn-accept" (click)="acceptTerms()">Accept & Agree</button>
+        </div>
+      </div>
+    </div>
+  </div>

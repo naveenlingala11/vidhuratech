@@ -1,0 +1,92 @@
+<div class="student-sessions-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>Mentor Sessions</strong></span>
+      <h1>Session History</h1>
+      <p class="header-desc">View all your scheduled, upcoming, and completed mentoring sessions.</p>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-chip total">
+      <span class="stat-icon">📋</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Sessions</span>
+      </div>
+    </div>
+    <div class="stat-chip upcoming">
+      <span class="stat-icon">📅</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.upcoming }}</span>
+        <span class="stat-label">Upcoming</span>
+      </div>
+    </div>
+    <div class="stat-chip completed">
+      <span class="stat-icon">✅</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.completed }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchText" (input)="onSearch()" placeholder="Search by mentor name or session type..." class="search-input" />
+    </div>
+    <select [(ngModel)]="filterStatus" (change)="applyFilters()" class="filter-select">
+      <option value="">All Status</option>
+      <option value="SCHEDULED">Scheduled</option>
+      <option value="COMPLETED">Completed</option>
+      <option value="CANCELLED">Cancelled</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-box">
+    <div class="spinner"></div>
+    <p>Loading session history...</p>
+  </div>
+
+  <!-- Sessions List -->
+  <div *ngIf="!loading && filteredSessions.length > 0" class="sessions-list">
+    <div class="session-card" *ngFor="let s of filteredSessions">
+      <div class="session-time-col">
+        <div class="time-badge" [ngClass]="s.status === 'COMPLETED' ? 'completed-badge' : 'upcoming-badge'">
+          <span class="day">{{ s.date }}</span>
+          <span class="time">{{ s.time }}</span>
+        </div>
+      </div>
+      <div class="session-mentor-col">
+        <div class="mentor-avatar-sm">{{ s.mentorAvatar }}</div>
+        <div class="session-info">
+          <h3>{{ s.mentorName }}</h3>
+          <div class="session-meta">
+            <span class="type-badge">{{ s.type }}</span>
+            <span class="status-label" [ngClass]="s.status === 'SCHEDULED' ? 'scheduled' : s.status === 'COMPLETED' ? 'completed' : 'cancelled'">
+              {{ s.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="session-action-col">
+        <a *ngIf="s.meetingLink && s.status === 'SCHEDULED'" [href]="s.meetingLink" target="_blank" class="btn-join">
+          📹 Join Session
+        </a>
+        <span *ngIf="s.status === 'COMPLETED'" class="completed-tag">✅ Done</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredSessions.length === 0" class="empty-state">
+    <span class="empty-icon">📅</span>
+    <h3>No Sessions Found</h3>
+    <p>You don't have any mentor sessions yet. Your mentor will schedule sessions for you once you're assigned.</p>
+  </div>
+</div>

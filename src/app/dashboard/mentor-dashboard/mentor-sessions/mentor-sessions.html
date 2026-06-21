@@ -1,0 +1,120 @@
+<div class="mentor-page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>Sessions</strong></span>
+      <h1>Session Manager</h1>
+      <p class="header-desc">Schedule, manage, and track all your mentoring sessions in one place.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-action primary" (click)="openScheduleModal()">
+        <span class="icon">📅</span> Schedule Session
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="stat-value">{{ stats.total }}</span>
+      <span class="stat-label">Total Sessions</span>
+    </div>
+    <div class="stat-chip upcoming">
+      <span class="stat-value">{{ stats.upcoming }}</span>
+      <span class="stat-label">Upcoming</span>
+    </div>
+    <div class="stat-chip completed">
+      <span class="stat-value">{{ stats.completed }}</span>
+      <span class="stat-label">Completed</span>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchText" (input)="onSearch()" placeholder="Search by mentee name or topic..." class="search-input" />
+    </div>
+    <select [(ngModel)]="filterType" (change)="applyFilters()" class="filter-select">
+      <option value="">All Types</option>
+      <option *ngFor="let t of getUniqueTypes()" [value]="t">{{ t }}</option>
+    </select>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-box">
+    <div class="spinner"></div>
+    <p>Loading sessions...</p>
+  </div>
+
+  <!-- Sessions List -->
+  <div *ngIf="!loading && filteredSessions.length > 0" class="sessions-list">
+    <div class="session-card" *ngFor="let s of filteredSessions">
+      <div class="session-time-col">
+        <div class="time-badge">
+          <span class="day">{{ s.date }}</span>
+          <span class="time">{{ s.time }}</span>
+        </div>
+      </div>
+      <div class="session-info-col">
+        <div class="session-title-row">
+          <h3>{{ s.mentee }}</h3>
+          <span class="type-badge">{{ s.type }}</span>
+        </div>
+        <span class="session-status" [ngClass]="s.statusClass">{{ s.status }}</span>
+      </div>
+      <div class="session-actions-col">
+        <a *ngIf="s.meetingLink" [href]="s.meetingLink" target="_blank" class="btn-join">
+          📹 Join Session
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredSessions.length === 0" class="empty-state">
+    <span class="empty-icon">📅</span>
+    <h3>No Sessions Found</h3>
+    <p>You don't have any scheduled sessions yet. Click "Schedule Session" to create one.</p>
+  </div>
+
+  <!-- Schedule Session Modal -->
+  <div class="modal-overlay animate-fade" *ngIf="showScheduleModal">
+    <div class="modal-card animate-scaleUp">
+      <div class="modal-header">
+        <h3>Schedule Mentorship Session</h3>
+        <button type="button" class="btn-modal-close" (click)="closeScheduleModal()">×</button>
+      </div>
+      <form (ngSubmit)="submitSchedule()" class="modal-form">
+        <div class="form-group">
+          <label for="sched-mentee">Select Mentee</label>
+          <select id="sched-mentee" name="sched-mentee" [(ngModel)]="scheduleForm.mentee" class="form-control" required>
+            <option *ngFor="let m of mentees" [value]="m.name">{{ m.name }}</option>
+          </select>
+        </div>
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="sched-date">Session Date</label>
+            <input type="text" id="sched-date" name="sched-date" [(ngModel)]="scheduleForm.date" placeholder="e.g. Today, Tomorrow, Jun 20" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="sched-time">Session Time</label>
+            <input type="text" id="sched-time" name="sched-time" [(ngModel)]="scheduleForm.time" placeholder="e.g. 5:00 PM, 11:30 AM" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="sched-type">Session Focus</label>
+          <input type="text" id="sched-type" name="sched-type" [(ngModel)]="scheduleForm.type" placeholder="e.g. Mock Interview, Resume Review, DSA Practice" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label for="sched-link">Session Video Link</label>
+          <input type="url" id="sched-link" name="sched-link" [(ngModel)]="scheduleForm.link" class="form-control" required />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-secondary" (click)="closeScheduleModal()">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Confirm & Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

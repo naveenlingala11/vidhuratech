@@ -1,0 +1,134 @@
+<div class="mentor-page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>Mentees</strong></span>
+      <h1>My Mentees</h1>
+      <p class="header-desc">Track progress, write feedback notes, and manage your student roster.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-action primary" (click)="openFeedbackModal()">
+        <span class="icon">📝</span> Write Review
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="stat-value">{{ stats.total }}</span>
+      <span class="stat-label">Total Mentees</span>
+    </div>
+    <div class="stat-chip active">
+      <span class="stat-value">{{ stats.active }}</span>
+      <span class="stat-label">Active Mentees</span>
+    </div>
+    <div class="stat-chip progress">
+      <span class="stat-value">{{ stats.avgProgress }}%</span>
+      <span class="stat-label">Avg. Progress</span>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchText" (input)="onSearch()" placeholder="Search mentees by name..." class="search-input" />
+    </div>
+    <select [(ngModel)]="filterStatus" (change)="applyFilters()" class="filter-select">
+      <option value="">All Levels</option>
+      <option value="Beginner">Beginner</option>
+      <option value="Intermediate">Intermediate</option>
+      <option value="Advanced">Advanced</option>
+    </select>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-box">
+    <div class="spinner"></div>
+    <p>Loading mentees roster...</p>
+  </div>
+
+  <!-- Mentees Grid -->
+  <div *ngIf="!loading && filteredMentees.length > 0" class="mentees-grid">
+    <div class="mentee-card" *ngFor="let m of filteredMentees">
+      <div class="card-top-row">
+        <div class="mentee-avatar-circle">{{ m.avatar }}</div>
+        <div class="mentee-meta">
+          <h3>{{ m.name }}</h3>
+          <span class="last-active">Last Active: <strong>{{ m.lastMeetingDate }}</strong></span>
+        </div>
+        <span class="status-badge" [ngClass]="m.statusClass">{{ m.status }}</span>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-header">
+          <span>Overall Progress</span>
+          <strong>{{ m.progress }}%</strong>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="m.progress" [ngClass]="m.statusClass"></div>
+        </div>
+      </div>
+
+      <div class="target-section">
+        <span class="target-icon">🎯</span>
+        <span>Next Target: <strong>{{ m.targetMilestone || 'Not set' }}</strong></span>
+      </div>
+
+      <div class="card-actions">
+        <a [routerLink]="['/dashboard/mentor/chat', m.relationId]" class="btn-mentee-action">
+          💬 Chat
+        </a>
+        <button type="button" class="btn-mentee-action" (click)="openFeedbackModal(m.name)">
+          📝 Review
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredMentees.length === 0" class="empty-state">
+    <span class="empty-icon">📂</span>
+    <h3>No Mentees Found</h3>
+    <p>You don't have any assigned mentees yet, or your search filters returned no results.</p>
+  </div>
+
+  <!-- Feedback Modal -->
+  <div class="modal-overlay animate-fade" *ngIf="showFeedbackModal">
+    <div class="modal-card animate-scaleUp">
+      <div class="modal-header">
+        <h3>Log Student Progress & Feedback</h3>
+        <button type="button" class="btn-modal-close" (click)="closeFeedbackModal()">×</button>
+      </div>
+      <form (ngSubmit)="submitFeedback()" class="modal-form">
+        <div class="form-group">
+          <label for="fb-mentee">Select Student</label>
+          <select id="fb-mentee" name="fb-mentee" [(ngModel)]="feedbackForm.mentee" class="form-control" required>
+            <option *ngFor="let m of mentees" [value]="m.name">{{ m.name }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="fb-progress">Current Progress ({{ feedbackForm.progressValue }}%)</label>
+          <input type="range" id="fb-progress" name="fb-progress" min="0" max="100" step="5" [(ngModel)]="feedbackForm.progressValue" class="slider-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="fb-milestone">Set Next Target Milestone</label>
+          <input type="text" id="fb-milestone" name="fb-milestone" [(ngModel)]="feedbackForm.milestone" placeholder="e.g. Redux integration, REST API build" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="fb-note">Feedback Notes</label>
+          <textarea id="fb-note" name="fb-note" rows="4" [(ngModel)]="feedbackForm.note" placeholder="Write feedback notes, study material links, and topics for the student..." class="form-control textarea" required></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-secondary" (click)="closeFeedbackModal()">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Save Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

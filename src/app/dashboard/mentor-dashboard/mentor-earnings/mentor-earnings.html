@@ -1,0 +1,102 @@
+<div class="mentor-page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>Earnings</strong></span>
+      <h1>Earnings & Revenue</h1>
+      <p class="header-desc">Track your income, set rates, and view projected monthly earnings.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/dashboard/mentor" class="btn-action secondary">
+        <span class="icon">📊</span> Go to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-box">
+    <div class="spinner"></div>
+    <p>Loading earnings data...</p>
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Earnings Stats -->
+    <div class="earnings-grid">
+      <div class="earnings-card total">
+        <div class="card-icon">💰</div>
+        <div class="card-data">
+          <span class="card-label">Total Estimated Earnings</span>
+          <h2>₹{{ stats.totalEarnings | number }}</h2>
+        </div>
+      </div>
+      <div class="earnings-card sessions">
+        <div class="card-icon">✅</div>
+        <div class="card-data">
+          <span class="card-label">Completed Sessions</span>
+          <h2>{{ stats.completedSessionsCount }}</h2>
+        </div>
+      </div>
+      <div class="earnings-card mentees">
+        <div class="card-icon">👥</div>
+        <div class="card-data">
+          <span class="card-label">Active Mentees</span>
+          <h2>{{ stats.menteesCount }}</h2>
+        </div>
+      </div>
+      <div class="earnings-card projected">
+        <div class="card-icon">📈</div>
+        <div class="card-data">
+          <span class="card-label">Projected Monthly</span>
+          <h2>₹{{ projectedMonthly | number }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rate Breakdown Section -->
+    <div class="rate-breakdown-section">
+      <h3>Your Rate Breakdown</h3>
+      <p class="section-desc">Your current pricing tiers as configured in your dashboard.</p>
+
+      <div class="rate-cards">
+        <div class="rate-card">
+          <div class="rate-header">
+            <span class="rate-emoji">⏱️</span>
+            <span class="rate-type">Hourly Rate</span>
+          </div>
+          <div class="rate-value">₹{{ hourlyRate | number }}</div>
+          <span class="rate-unit">per session hour</span>
+        </div>
+        <div class="rate-card">
+          <div class="rate-header">
+            <span class="rate-emoji">📅</span>
+            <span class="rate-type">Weekly Plan</span>
+          </div>
+          <div class="rate-value">₹{{ weeklyRate | number }}</div>
+          <span class="rate-unit">per week</span>
+        </div>
+        <div class="rate-card">
+          <div class="rate-header">
+            <span class="rate-emoji">📆</span>
+            <span class="rate-type">Monthly Cohort</span>
+          </div>
+          <div class="rate-value">₹{{ monthlyRate | number }}</div>
+          <span class="rate-unit">per month</span>
+        </div>
+      </div>
+
+      <div class="update-rates-cta">
+        <a routerLink="/dashboard/mentor" class="btn-action primary">
+          <span class="icon">⚙️</span> Update Rates in Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+      <span class="info-icon">💡</span>
+      <div class="info-text">
+        <strong>How are earnings calculated?</strong>
+        <p>Earnings are estimated based on your completed sessions multiplied by your hourly rate. Actual payments depend on session arrangements with students via WhatsApp. Vidhura Tech facilitates connections but does not process payments.</p>
+      </div>
+    </div>
+  </div>
+</div>

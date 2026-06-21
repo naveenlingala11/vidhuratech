@@ -203,13 +203,13 @@
         
         <div class="timeline-card-header">
           <div class="step-icon-wrapper">
-            <i class="fa-solid" [ngClass]="{
-              '01': 'fa-desktop',
-              '02': 'fa-circle-play',
-              '03': 'fa-code',
-              '04': 'fa-circle-check',
-              '05': 'fa-user-tie'
-            }[step.step]"></i>
+            <i class="fa-solid" [ngClass]="
+              step.step === '01' ? 'fa-desktop' :
+              step.step === '02' ? 'fa-circle-play' :
+              step.step === '03' ? 'fa-code' :
+              step.step === '04' ? 'fa-circle-check' :
+              'fa-user-tie'
+            "></i>
           </div>
           <h4>{{ step.title }}</h4>
         </div>
@@ -221,6 +221,114 @@
           <i class="fa-solid fa-circle-check text-emerald"></i>
           Active Step
         </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Outreach & Multi-Format Programs Section -->
+  <section class="outreach-programs-section">
+    <div class="section-title-block">
+      <span class="section-subtitle">Multi-Format Training Ecosystem</span>
+      <h2>Online & Offline Impact Programs</h2>
+      <p>We run diverse programs to make high-quality developer education accessible and transfer real-world engineering experience.</p>
+    </div>
+
+    <div class="programs-dashboard-layout">
+      <!-- Tabs Sidebar (Left) -->
+      <div class="programs-tabs-sidebar">
+        <button 
+          type="button" 
+          *ngFor="let prog of programTypes" 
+          class="program-tab-btn" 
+          [class.active]="activeProgramId === prog.id"
+          (click)="selectProgram(prog.id)"
+        >
+          <span class="tab-badge" [class]="prog.badgeType">
+            {{ prog.badge }}
+          </span>
+          <div class="tab-btn-content">
+            <i [class]="prog.icon"></i>
+            <div class="tab-btn-text">
+              <strong>{{ prog.name }}</strong>
+              <span>{{ prog.subtitle }}</span>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right arrow-indicator"></i>
+        </button>
+      </div>
+
+      <!-- Detail Card Display (Right) -->
+      <div class="program-detail-card animated-card" [style.--prog-primary]="activeProgram.color" [style.--prog-glow]="activeProgram.glow">
+        <div class="detail-header">
+          <div class="detail-title-group">
+            <span class="detail-subtitle-eyebrow">{{ activeProgram.subtitle }}</span>
+            <h3>{{ activeProgram.name }}</h3>
+          </div>
+          <span class="mode-badge" [class]="activeProgram.badgeType">
+            <i class="fa-solid" [ngClass]="
+              activeProgram.badgeType === 'online' ? 'fa-globe' : 
+              activeProgram.badgeType === 'offline' ? 'fa-building-columns' : 
+              'fa-layer-group'
+            "></i>
+            {{ activeProgram.badge }}
+          </span>
+        </div>
+
+        <p class="program-main-desc">{{ activeProgram.description }}</p>
+
+        <!-- Target Audience Section -->
+        <div class="target-audience-block" *ngIf="activeProgram.targetAudience">
+          <span class="audience-label-badge">
+            <i class="fa-solid fa-users"></i> Ideal For
+          </span>
+          <span class="audience-text">{{ activeProgram.targetAudience }}</span>
+        </div>
+
+        <!-- College Outreach Highlight Block -->
+        <div class="college-outreach-callout" *ngIf="activeProgram.id === 'seminar'">
+          <div class="callout-icon">
+            <i class="fa-solid fa-certificate text-amber"></i>
+          </div>
+          <div class="callout-content">
+            <h5>On-Campus Certifications & Impact</h5>
+            <p>{{ activeProgram.collegeImpact }}</p>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="program-metrics-grid">
+          <div *ngFor="let metric of activeProgram.metrics" class="metric-block-card">
+            <span class="metric-value">{{ metric.value }}</span>
+            <span class="metric-label">{{ metric.label }}</span>
+          </div>
+        </div>
+
+        <!-- Detailed Curriculum Timeline Steps -->
+        <div class="program-blueprint-wrapper" *ngIf="activeProgram.curriculumSteps && activeProgram.curriculumSteps.length > 0">
+          <h4>Program Agenda & Blueprint</h4>
+          <div class="curriculum-steps-flow">
+            <div *ngFor="let step of activeProgram.curriculumSteps; let idx = index" class="curriculum-step-card">
+              <div class="step-marker-line">
+                <span class="step-num-bubble">{{ idx + 1 }}</span>
+                <div class="step-line-connector" *ngIf="idx < activeProgram.curriculumSteps.length - 1"></div>
+              </div>
+              <div class="step-text-bubble">
+                <p>{{ step }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key Highlights -->
+        <div class="program-highlights-wrapper">
+          <h4>Program Key Pillars</h4>
+          <ul class="highlights-list">
+            <li *ngFor="let highlight of activeProgram.highlights">
+              <i class="fa-solid fa-circle-check text-emerald"></i>
+              <span>{{ highlight }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>

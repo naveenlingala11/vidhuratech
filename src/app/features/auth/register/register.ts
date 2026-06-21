@@ -20,6 +20,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../../../environments/environment';
+import { MentorService } from '../../../services/mentor.service';
 
 @Component({
   selector: 'app-register',
@@ -53,6 +54,7 @@ export class Register implements OnDestroy {
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
+    private mentorService: MentorService,
   ) {
     this.form = this.fb.group(
       {
@@ -150,7 +152,7 @@ export class Register implements OnDestroy {
       next: () => {
         const user = this.authService.getUser();
         this.toastr.success('Registration successful');
-        this.router.navigateByUrl(this.getDashboardRoute(user?.role));
+        this.checkAndProcessPendingBooking(user);
       },
       error: () => this.toastr.error('GitHub registration failed'),
       complete: () => {
@@ -170,7 +172,7 @@ export class Register implements OnDestroy {
       next: () => {
         const user = this.authService.getUser();
         this.toastr.success('Registration successful');
-        this.router.navigateByUrl(this.getDashboardRoute(user?.role));
+        this.checkAndProcessPendingBooking(user);
       },
       error: () => this.toastr.error('Google registration failed'),
     });
@@ -188,6 +190,20 @@ export class Register implements OnDestroy {
     };
 
     return routes[role] || '/dashboard/student';
+  }
+
+  getRedirectRoute(role: string): string {
+    const redirect = this.route.snapshot.queryParamMap.get('redirect');
+
+    if (
+      redirect &&
+      redirect.startsWith('/') &&
+      !redirect.startsWith('//') &&
+      (redirect.startsWith('/practice') || redirect.startsWith('/coding-contests') || redirect.startsWith('/resume'))
+    ) {
+      return redirect;
+    }
+    return this.getDashboardRoute(role);
   }
 
   toggleConfirmPassword() {
@@ -390,7 +406,8 @@ export class Register implements OnDestroy {
         );
 
         this.toastr.success('Registration successful');
-        this.router.navigate(['/dashboard/student']);
+        const user = this.authService.getUser();
+        this.checkAndProcessPendingBooking(user);
       },
       error: () => {
         this.triggerOtpError();
@@ -418,5 +435,70 @@ export class Register implements OnDestroy {
     setTimeout(() => {
       this.otpBoxes?.toArray()[0]?.nativeElement.focus();
     }, 150);
+  }
+
+  checkAndProcessPendingBooking(user: any) {
+    const pendingBookingStr = localStorage.getItem('vt_pending_booking');
+    if (!pendingBookingStr) {
+      this.router.navigateByUrl(this.getRedirectRoute(user?.role || 'STUDENT'));
+      return;
+    }
+
+    try {
+      const pendingBooking = JSON.parse(pendingBookingStr);
+      const payload = {
+        mentorId: pendingBooking.mentorId,
+        topic: pendingBooking.topic,
+        message: pendingBooking.message,
+        preferredPlan: pendingBooking.preferredPlan
+      };
+
+      this.mentorService.createBookingRequest(payload).subscribe({
+        next: () => {
+          this.toastr.success('Trial booking request registered successfully!');
+          localStorage.removeItem('vt_pending_booking');
+
+          // Generate the WhatsApp message text
+          const planLabel = pendingBooking.selectedBookingPackage === 'trial' ? 'Direct 1:1 Trial Session' : 'Monthly Retainer package';
+          const priceVal = pendingBooking.selectedBookingPackage === 'trial' ? '₹99' : (pendingBooking.pricePerMonth ? `₹${pendingBooking.pricePerMonth}/mo` : '₹3,999/mo');
+
+          let text = `Hello Vidhura Tech Support,\n\n`;
+          text += `I just submitted a booking request on the portal for a mediated trial session with mentor *${pendingBooking.mentorName}* under the *${planLabel}* (${priceVal}).\n`;
+          text += `*Preferred Slot:* ${pendingBooking.selectedBookingSlot}\n`;
+          if (pendingBooking.message && pendingBooking.message.trim()) {
+            text += `*My Goals:* ${pendingBooking.message.trim()}\n`;
+          }
+          text += `\nPlease coordinate the trial session and details. Thanks!`;
+
+          const encodedText = encodeURIComponent(text);
+          const supportPhone = '919108057464'; // Official Vidhura Tech Support Number
+
+          // Open WhatsApp link
+          window.open(`https://wa.me/${supportPhone}?text=${encodedText}`, '_blank');
+
+          // Redirect user to dashboard
+          this.router.navigateByUrl(this.getRedirectRoute(user?.role || 'STUDENT'));
+        },
+        error: (err) => {
+          console.error('Pending booking failed to submit:', err);
+          let errMsg = 'Failed to submit the trial request automatically, but your registration is complete.';
+          if (err.status === 0) {
+            errMsg = 'Connection Error: Cannot contact the server to complete booking request.';
+          } else if (err.status === 401 || err.status === 403) {
+            errMsg = 'Access Denied: Please make sure you are logged in as a Student to request booking.';
+          } else if (err?.error?.message && err.error.message !== 'No message available') {
+            errMsg = err.error.message;
+          }
+          this.toastr.warning(errMsg);
+
+          // Redirect user to dashboard anyway since registration succeeded
+          this.router.navigateByUrl(this.getRedirectRoute(user?.role || 'STUDENT'));
+        }
+      });
+    } catch (e) {
+      console.error('Error parsing pending booking:', e);
+      localStorage.removeItem('vt_pending_booking');
+      this.router.navigateByUrl(this.getRedirectRoute(user?.role || 'STUDENT'));
+    }
   }
 }

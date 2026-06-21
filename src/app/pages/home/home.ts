@@ -20,6 +20,7 @@ import { AuthService } from '../../features/auth/services/auth.service';
 import { PublicCourseService } from '../courses/service/public-course';
 import { environment } from '../../../environments/environment';
 import { PublicPracticeService } from '../../features/services/public-practice.service';
+import { MentorService, MentorProfile } from '../../services/mentor.service';
 
 @Component({
   selector: 'app-home',
@@ -48,6 +49,72 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   // =============== COURSES =================
   courses: any[] = [];
   featuredCourses: any[] = [];
+
+  // =============== MENTORS =================
+  featuredMentors: MentorProfile[] = [];
+  mentorsLoading = false;
+  fallbackMentors: MentorProfile[] = [
+    {
+      userId: 1001,
+      name: 'Naveen Lingala',
+      email: 'naveen@vidhuratech.com',
+      phone: '',
+      profileImageUrl: '',
+      currentCompany: 'Vidhura Tech',
+      currentRole: 'Founder & Principal Engineer',
+      yearsOfExperience: 10,
+      biography: 'Specialized in building scalable backend systems, Java Spring Boot microservices, and modern Angular frontend architectures.',
+      skills: 'System Design, Angular, Java, Spring Boot, PostgreSQL, Microservices',
+      languages: 'English, Telugu, Hindi',
+      linkedinUrl: 'https://linkedin.com',
+      githubUrl: 'https://github.com',
+      rating: 5.0,
+      reviewsCount: 78,
+      pricePerHour: 1500,
+      featured: true,
+      active: true
+    },
+    {
+      userId: 1002,
+      name: 'Sundeep Kumar',
+      email: 'sundeep@vidhuratech.com',
+      phone: '',
+      profileImageUrl: '',
+      currentCompany: 'Amazon',
+      currentRole: 'Senior Systems Architect',
+      yearsOfExperience: 8,
+      biography: 'Ex-Amazonian developer. Passionate about solving complex algorithms, mock interviews prep, and database optimizations.',
+      skills: 'Algorithms, AWS, Python, MySQL, Redis, Mock Interviews',
+      languages: 'English, Hindi, Telugu',
+      linkedinUrl: 'https://linkedin.com',
+      githubUrl: 'https://github.com',
+      rating: 4.9,
+      reviewsCount: 54,
+      pricePerHour: 1800,
+      featured: true,
+      active: true
+    },
+    {
+      userId: 1003,
+      name: 'Priya Sharma',
+      email: 'priya@vidhuratech.com',
+      phone: '',
+      profileImageUrl: '',
+      currentCompany: 'Google',
+      currentRole: 'Senior Software Engineer',
+      yearsOfExperience: 7,
+      biography: 'Specialist in frontend frameworks, product engineering, and helping college graduates transition to big-tech roles.',
+      skills: 'React, JavaScript, CSS3, System Design, Career Mentoring',
+      languages: 'English, Hindi, Tamil',
+      linkedinUrl: 'https://linkedin.com',
+      githubUrl: 'https://github.com',
+      rating: 5.0,
+      reviewsCount: 46,
+      pricePerHour: 2000,
+      featured: true,
+      active: true
+    }
+  ];
 
   heroCourse: any = null;
   heroCourseIndex = 0;
@@ -89,6 +156,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     private authService: AuthService,
     private courseService: PublicCourseService,
     private publicPracticeService: PublicPracticeService,
+    private mentorService: MentorService,
   ) {}
 
   // ================= INIT =================
@@ -109,6 +177,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     });
 
     this.loadWeeklyContestTopThree();
+    this.loadFeaturedMentors();
   }
 
   ngAfterViewInit() {
@@ -605,6 +674,35 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       python: 2,
     };
     this.loadBatch(courseMap[course]);
+  }
+
+  loadFeaturedMentors() {
+    this.mentorsLoading = true;
+    this.mentorService.getPublicMentors().subscribe({
+      next: (res) => {
+        const active = (res?.data || []).filter(m => m.active);
+        if (active.length > 0) {
+          this.featuredMentors = active.slice(0, 3);
+        } else {
+          this.featuredMentors = this.fallbackMentors;
+        }
+        this.mentorsLoading = false;
+      },
+      error: () => {
+        this.featuredMentors = this.fallbackMentors;
+        this.mentorsLoading = false;
+      }
+    });
+  }
+
+  getSkillsList(skills: string): string[] {
+    if (!skills) return [];
+    return skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  }
+
+  getMentorInitial(name: string): string {
+    const text = String(name || '').trim();
+    return text ? text.charAt(0).toUpperCase() : 'M';
   }
 
   formatPrice(price: number): string {

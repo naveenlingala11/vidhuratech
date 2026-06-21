@@ -1,0 +1,448 @@
+<div class="qa-detail-container">
+  <!-- Back Nav -->
+  <div class="back-navigation">
+    <a routerLink="/ping-room" class="btn-back">
+      <svg class="svg-icon back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Discussion Feed
+    </a>
+  </div>
+
+  <div class="loading-box" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading discussion detail...</p>
+  </div>
+
+  <!-- Question Detail Card -->
+  <div class="question-main-card" *ngIf="!loading && question">
+    <div class="q-header">
+      <div class="author-block">
+        <div class="avatar-circle">
+          <img *ngIf="question.authorProfileImageUrl" [src]="question.authorProfileImageUrl" alt="Avatar" class="avatar-img" />
+          <span *ngIf="!question.authorProfileImageUrl">{{ question.authorAvatar }}</span>
+        </div>
+        <div class="meta">
+          <span class="name">
+            <a *ngIf="isProfileLinkable(question.authorId, question.tags)" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: question.authorId}" class="author-profile-link">{{ question.authorName }}</a>
+            <span *ngIf="!isProfileLinkable(question.authorId, question.tags)" class="author-name-text">{{ question.authorName }}</span>
+            <span class="reputation-badge" [class]="'level-' + (question.authorLevel?.toLowerCase() || 'beginner')" 
+                  [title]="(question.authorLevel || 'BEGINNER') + ' (' + (question.authorReputation || 0) + ' reputation)'"
+                  (click)="openReputationModal(question.authorId, $event)">
+              <span class="badge-emoji">{{ getReputationEmoji(question.authorLevel) }}</span>
+              <span class="badge-points">{{ question.authorReputation || 0 }}</span>
+            </span>
+          </span>
+          <span class="date">Posted on {{ question.createdAt | date:'mediumDate' }} at {{ question.createdAt | date:'shortTime' }}</span>
+        </div>
+      </div>
+      <div class="solved-controls-row">
+        <span class="pinned-badge-detail" *ngIf="question.isPinned" title="Pinned Post">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="8" x2="22" y2="12"></line><line x1="12" y1="2" x2="16" y2="6"></line><path d="M12 2l-3.5 3.5L13 10l-6 6H3v2h2v-4l6-6L5 2.5 8.5 2z"></path></svg>
+          Pinned
+        </span>
+        <span class="views-badge" *ngIf="question.viewsCount" title="Total views">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          {{ question.viewsCount }}
+        </span>
+        <span class="solved-indicator" *ngIf="question.isSolved">✓ Solved</span>
+        
+        <button type="button" class="btn-accept-action solved-btn" [class.active]="question.isSolved" *ngIf="canToggleSolved()" (click)="toggleSolved()">
+          <span class="btn-icon-wrapper">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="question.isSolved"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="!question.isSolved"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </span>
+          {{ question.isSolved ? 'Reopen Topic' : 'Mark Solved' }}
+        </button>
+
+        <button type="button" class="btn-accept-action" *ngIf="isQuestionAuthor() && !editingQuestion" (click)="startEditQuestion()">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          Edit Post
+        </button>
+
+        <button type="button" class="btn-pin-action" *ngIf="isMentorOrAdmin()" (click)="togglePin()">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="8" x2="22" y2="12"></line><line x1="12" y1="2" x2="16" y2="6"></line><path d="M12 2l-3.5 3.5L13 10l-6 6H3v2h2v-4l6-6L5 2.5 8.5 2z"></path></svg>
+          {{ question.isPinned ? 'Unpin' : 'Pin Post' }}
+        </button>
+        <button type="button" class="btn-follow-action" [class.active]="question.isFollowing" *ngIf="isLoggedIn" (click)="toggleFollow()">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          {{ question.isFollowing ? 'Following' : 'Follow' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Question View Mode -->
+    <div *ngIf="!editingQuestion">
+      <div class="q-body">
+        <h2>{{ question.title }}</h2>
+        <div class="q-content">{{ getNonCodeContent(question.content) }}</div>
+
+        <!-- Code Block Snippet -->
+        <div class="post-code-block" *ngIf="hasCodeSnippet(question.content)">
+          <div class="code-header">
+            <span class="code-lang-label">{{ getCodeSnippet(question.content).lang | uppercase }}</span>
+            <button class="btn-copy-code" (click)="copyCode(getCodeSnippet(question.content).code)">
+              Copy Code
+            </button>
+          </div>
+          <pre class="code-pre"><code>{{ getCodeSnippet(question.content).code }}</code></pre>
+        </div>
+
+        <!-- Post Media Attachment -->
+        <div class="post-media-container animate-fade" *ngIf="question.mediaUrl">
+          <!-- Image / GIF attachment -->
+          <img *ngIf="question.mediaType === 'IMAGE' || question.mediaType === 'GIF'" [src]="question.mediaUrl" alt="Shared attachment" class="feed-media-img" />
+
+          <!-- Video player attachment -->
+          <div *ngIf="question.mediaType === 'VIDEO'" class="feed-media-video-wrapper">
+            <video controls [src]="question.mediaUrl" class="feed-media-video">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+
+        <!-- Poll Widget -->
+        <div class="question-poll-widget" *ngIf="question.poll">
+          <div class="poll-header">
+            <span class="poll-icon">📊</span>
+            <div class="poll-title-meta">
+              <h4>Community Poll</h4>
+              <p class="poll-votes-count">{{ question.poll.totalVotes }} {{ question.poll.totalVotes === 1 ? 'vote' : 'votes' }} cast</p>
+            </div>
+          </div>
+
+          <div class="poll-options-container">
+            <!-- Results View (Voted) -->
+            <div *ngIf="question.poll.hasVoted" class="poll-results-view">
+              <div class="poll-result-bar-wrapper" *ngFor="let opt of question.poll.options" [class.voted-option]="question.poll.votedOptionId === opt.id">
+                <div class="poll-result-info">
+                  <span class="opt-text">
+                    {{ opt.optionText }}
+                    <span class="voted-checkmark" *ngIf="question.poll.votedOptionId === opt.id" title="Your vote">✓</span>
+                  </span>
+                  <span class="opt-pct">{{ getPercentage(opt.votesCount, question.poll.totalVotes) }}%</span>
+                </div>
+                <div class="poll-bar-track">
+                  <div class="poll-bar-fill" [style.width.%]="getPercentage(opt.votesCount, question.poll.totalVotes)"></div>
+                </div>
+                <span class="poll-bar-votes-count">{{ opt.votesCount }} {{ opt.votesCount === 1 ? 'vote' : 'votes' }}</span>
+              </div>
+            </div>
+
+            <!-- Voting View (Not Voted yet) -->
+            <div *ngIf="!question.poll.hasVoted" class="poll-voting-view">
+              <button type="button" class="btn-poll-option-vote" *ngFor="let opt of question.poll.options" (click)="votePoll(opt.id)">
+                <span class="btn-opt-bullet">○</span>
+                <span class="btn-opt-text">{{ opt.optionText }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-footer" *ngIf="question.tags">
+        <div class="tags-flex">
+          <span class="tag-chip" *ngFor="let tag of getTagsArray(question.tags)">
+            #{{ tag }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question Edit Mode -->
+    <div class="q-body edit-mode-body animate-fade" *ngIf="editingQuestion" style="margin-top: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 850;">Edit Discussion</h3>
+        <div class="history-controls">
+          <button type="button" class="btn-history" [disabled]="historyIndex <= 0" (click)="undoQuestionEdit()" title="Undo">
+            ↩️ Undo
+          </button>
+          <button type="button" class="btn-history" [disabled]="historyIndex >= questionHistory.length - 1" (click)="redoQuestionEdit()" title="Redo">
+            Redo ↪️
+          </button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label style="font-size: 0.82rem; font-weight: 750; color: #475569; display: block; margin-bottom: 0.4rem;">Discussion Title</label>
+        <input type="text" [(ngModel)]="editTitle" (input)="recordHistoryState()" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.92rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" />
+      </div>
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label style="font-size: 0.82rem; font-weight: 750; color: #475569; display: block; margin-bottom: 0.4rem;">Content Description</label>
+        <textarea rows="8" [(ngModel)]="editContent" (input)="recordHistoryState()" class="form-control textarea" style="width: 100%;"></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="font-size: 0.82rem; font-weight: 750; color: #475569; display: block; margin-bottom: 0.4rem;">Tags (comma-separated)</label>
+        <input type="text" [(ngModel)]="editTags" (input)="recordHistoryState()" class="form-control" style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.92rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" placeholder="Angular, RxJS, SpringBoot" />
+      </div>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="button" class="btn-action primary" (click)="saveQuestionEdit()">
+          Save Changes
+        </button>
+        <button type="button" class="btn-action" (click)="editingQuestion = false" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Likes count and actions -->
+    <div class="post-social-counts">
+      <span>❤️ {{ question.likesCount || 0 }} {{ (question.likesCount || 0) === 1 ? 'like' : 'likes' }}</span>
+    </div>
+
+    <div class="post-action-bar">
+      <button class="social-action-btn" [class.active]="question.isLikedByMe" (click)="toggleLike()">
+        <span class="action-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </span> 
+        <span>Like</span>
+      </button>
+      <button class="social-action-btn" (click)="sharePost()">
+        <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="8.59" y1="10.49" x2="15.42" y2="6.51"></line></svg>
+        <span>Share</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Answers List Section -->
+  <div class="answers-section" *ngIf="!loading && question">
+    <div class="section-header">
+      <h3>{{ question.answers.length }} {{ question.answers.length === 1 ? 'Comment' : 'Comments' }}</h3>
+    </div>
+
+    <!-- Empty Answers State -->
+    <div class="empty-answers" *ngIf="question.answers.length === 0">
+      <div class="empty-icon">💡</div>
+      <h4>No Comments Yet</h4>
+      <p>Do you know the answer? Share your knowledge and help a fellow developer out!</p>
+    </div>
+
+    <!-- Answers Cards -->
+    <div class="answers-list" *ngIf="flattenedAnswers.length > 0">
+      <div class="answer-card" *ngFor="let a of flattenedAnswers" [ngClass]="{'accepted-answer': a.isAccepted, 'mentor-answer': a.isMentor, 'answer-card-reply': (a.depth || 0) > 0}">
+        
+        <!-- Nested reply connector line -->
+        <div class="reply-connector-rail" *ngIf="(a.depth || 0) > 0" [style.left.px]="-24"></div>
+
+        <!-- Accepted Ribbon -->
+        <div class="answer-badge-ribbon accepted" *ngIf="a.isAccepted">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Accepted Answer
+        </div>
+
+        <!-- Mentor Ribbon -->
+        <div class="answer-badge-ribbon mentor" *ngIf="a.isMentor && !a.isAccepted">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Verified Mentor
+        </div>
+
+        <div class="answer-header">
+          <div class="author-block">
+            <div class="avatar-circle mini" [class.mentor-avatar]="a.isMentor">
+              <img *ngIf="a.authorProfileImageUrl" [src]="a.authorProfileImageUrl" alt="Avatar" class="avatar-img" />
+              <span *ngIf="!a.authorProfileImageUrl">{{ a.authorAvatar }}</span>
+            </div>
+            <div class="meta">
+              <span class="name">
+                <a *ngIf="isProfileLinkable(a.authorId, a.isMentor ? 'mentor' : '')" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: a.authorId}" class="author-profile-link">{{ a.authorName }}</a>
+                <span *ngIf="!isProfileLinkable(a.authorId, a.isMentor ? 'mentor' : '')" class="author-name-text">{{ a.authorName }}</span>
+                <span class="reputation-badge" [class]="'level-' + (a.authorLevel?.toLowerCase() || 'beginner')" 
+                      [title]="(a.authorLevel || 'BEGINNER') + ' (' + (a.authorReputation || 0) + ' reputation)'"
+                      (click)="openReputationModal(a.authorId, $event)">
+                  <span class="badge-emoji">{{ getReputationEmoji(a.authorLevel) }}</span>
+                  <span class="badge-points">{{ a.authorReputation || 0 }}</span>
+                </span>
+                <span class="mentor-tag" *ngIf="a.isMentor">MENTOR</span>
+                <span class="edited-badge" *ngIf="a.isEdited">(edited)</span>
+              </span>
+              <span class="date">answered on {{ a.createdAt | date:'mediumDate' }} at {{ a.createdAt | date:'shortTime' }}</span>
+            </div>
+          </div>
+
+          <!-- Accept Action Button -->
+          <button type="button" class="btn-accept-action" *ngIf="isQuestionAuthor() && !a.isAccepted" (click)="acceptAnswer(a.id)">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Accept Answer
+          </button>
+        </div>
+
+        <div class="answer-body-with-votes">
+          <!-- Vote Column -->
+          <div class="vote-column">
+            <button class="vote-btn upvote" [class.active]="a.userVote === 'UP'" (click)="voteAnswer(a, 'UP')" title="Upvote">
+              ▲
+            </button>
+            <span class="vote-score" [class.positive]="(a.votesScore || 0) > 0" [class.negative]="(a.votesScore || 0) < 0">
+              {{ a.votesScore || 0 }}
+            </span>
+            <button class="vote-btn downvote" [class.active]="a.userVote === 'DOWN'" (click)="voteAnswer(a, 'DOWN')" title="Downvote">
+              ▼
+            </button>
+          </div>
+
+          <!-- Answer Content & Edits & Replies -->
+          <div class="answer-body" style="flex: 1;">
+            <div class="answer-content" *ngIf="editingAnswerId !== a.id">{{ a.content }}</div>
+
+            <!-- Inline Answer Edit Box -->
+            <div class="answer-edit-container animate-fade" *ngIf="editingAnswerId === a.id" style="margin-bottom: 0.75rem;">
+              <textarea [(ngModel)]="editAnswerText" rows="4" class="form-control textarea" style="margin-bottom: 0.5rem;"></textarea>
+              <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn-action primary" (click)="saveAnswerEdit(a)" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+                  Save
+                </button>
+                <button type="button" class="btn-action" (click)="cancelEditAnswer()" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; background: #e2e8f0; color: #475569;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+            
+            <!-- Reactions Row -->
+            <div class="answer-reactions-row" style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <!-- Existing Reaction Pills -->
+              <span class="reaction-pill" [class.user-reacted]="hasUserReacted(a, emoji)" *ngFor="let emoji of getActiveReactions(a)" (click)="toggleReaction(a, emoji)" [title]="emoji + ' (' + getReactionCount(a, emoji) + ' users reacted)'" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.5rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s;">
+                <span class="emoji-char">{{ emoji }}</span>
+                <span class="emoji-count" style="font-size: 0.75rem; color: #64748b;">{{ getReactionCount(a, emoji) }}</span>
+              </span>
+
+              <!-- React Selector Trigger Button -->
+              <div class="react-picker-wrapper" style="position: relative;" *ngIf="isLoggedIn">
+                <button type="button" class="btn-react-picker-trigger" style="border: none; background: #f8fafc; border: 1px dashed #cbd5e1; font-size: 0.8rem; font-weight: 700; color: #64748b; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" (click)="a.showPicker = !a.showPicker; $event.stopPropagation()">
+                  ＋
+                </button>
+
+                <!-- Emoji Selection Box -->
+                <div class="emoji-picker-dropdown animate-fade" *ngIf="a.showPicker" style="position: absolute; bottom: 35px; left: 0; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); border-radius: 8px; padding: 0.35rem; display: flex; gap: 0.35rem; z-index: 100;" (click)="$event.stopPropagation()">
+                  <button type="button" class="picker-emoji-btn" *ngFor="let emoji of availableReactions" (click)="toggleReaction(a, emoji); a.showPicker = false;" style="border: none; background: transparent; font-size: 1.15rem; padding: 0.25rem; cursor: pointer; border-radius: 4px; transition: transform 0.15s ease;">
+                    {{ emoji }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment Actions Row -->
+            <div class="answer-actions-row">
+              <button type="button" class="subtle-action-btn" (click)="toggleReplyForm(a.id)">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Reply
+              </button>
+              
+              <!-- Only answer author can edit -->
+              <button type="button" class="subtle-action-btn" *ngIf="isAnswerAuthor(a)" (click)="startEditAnswer(a)">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                Edit
+              </button>
+            </div>
+
+            <!-- Inline Reply Box -->
+            <div class="reply-input-box animate-fade" *ngIf="replyingToAnswerId === a.id">
+              <textarea [id]="'reply-textarea-' + a.id" [(ngModel)]="replyText" (keyup)="onInputKeyUp($event, a.id)" (click)="onInputKeyUp($event, a.id)" rows="3" placeholder="Write your reply... Use @ to mention people." class="form-control textarea" style="margin-bottom: 0.5rem;" [disabled]="submittingReply"></textarea>
+              
+              <!-- Inline Mentions Dropdown -->
+              <div class="mention-autocomplete-dropdown" *ngIf="showMentionDropdown && activeInputId === a.id">
+                <div class="mention-item" *ngFor="let u of mentionResults" (click)="selectMention(u)">
+                  <div class="mention-avatar-placeholder">
+                    <img *ngIf="u.profileImageUrl" [src]="u.profileImageUrl" class="mention-avatar-img" />
+                    <span *ngIf="!u.profileImageUrl">{{ u.name.substring(0, 1).toUpperCase() }}</span>
+                  </div>
+                  <div class="mention-details">
+                    <span class="mention-name">{{ u.name }}</span>
+                    <span class="mention-email">{{ u.email }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <button type="button" class="btn-action primary" (click)="submitReply(a.id)" [disabled]="!replyText.trim() || submittingReply" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+                  {{ submittingReply ? 'Posting...' : 'Post Reply' }}
+                </button>
+                <button type="button" class="btn-action" (click)="toggleReplyForm(a.id)" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Write Answer Section -->
+  <div class="post-answer-section" *ngIf="!loading && question">
+    <h3>Your Comment</h3>
+    
+    <form (ngSubmit)="submitAnswer()" *ngIf="isLoggedIn" class="answer-form">
+      <div class="form-group" style="position: relative;">
+        <textarea id="main-textarea" name="answer-text" rows="6" [(ngModel)]="newAnswerText" (keyup)="onInputKeyUp($event, 'main')" (click)="onInputKeyUp($event, 'main')" placeholder="Write your constructive answer or feedback here. Provide code examples where helpful... Use @ to mention users." class="form-control textarea" required [disabled]="submittingAnswer"></textarea>
+        
+        <!-- Mentions Dropdown -->
+        <div class="mention-autocomplete-dropdown" *ngIf="showMentionDropdown && activeInputId === 'main'">
+          <div class="mention-item" *ngFor="let u of mentionResults" (click)="selectMention(u)">
+            <div class="mention-avatar-placeholder">
+              <img *ngIf="u.profileImageUrl" [src]="u.profileImageUrl" class="mention-avatar-img" />
+              <span *ngIf="!u.profileImageUrl">{{ u.name.substring(0, 1).toUpperCase() }}</span>
+            </div>
+            <div class="mention-details">
+              <span class="mention-name">{{ u.name }}</span>
+              <span class="mention-email">{{ u.email }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-action primary" [disabled]="!newAnswerText.trim() || submittingAnswer">
+        {{ submittingAnswer ? 'Submitting...' : 'Post Your Comment' }}
+      </button>
+    </form>
+
+    <div class="login-prompt-box" *ngIf="!isLoggedIn">
+      <p>You must be logged in to participate in the discussions.</p>
+      <a routerLink="/login" class="btn-action primary">Log In / Sign Up</a>
+    </div>
+  </div>
+</div>
+
+<!-- Reputation Details Modal -->
+<div class="premium-modal-overlay" *ngIf="showReputationModal" (click)="closeReputationModal()">
+  <div class="premium-modal reputation-details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <span class="header-icon">🏆</span>
+        {{ selectedUserReputation?.userName }}'s Achievements
+      </h3>
+      <button class="btn-close-modal" (click)="closeReputationModal()">×</button>
+    </div>
+    
+    <div class="modal-body reputation-modal-body" *ngIf="selectedUserReputation">
+      <div class="rep-summary-card">
+        <div class="rep-score-block">
+          <span class="rep-label">Reputation Points</span>
+          <span class="rep-value">{{ selectedUserReputation.points }}</span>
+        </div>
+        <div class="rep-level-block">
+          <span class="rep-label">Current Status</span>
+          <span class="level-badge-large" [class]="'level-' + selectedUserReputation.level.toLowerCase()">
+            {{ getReputationEmoji(selectedUserReputation.level) }} {{ selectedUserReputation.level }}
+          </span>
+        </div>
+      </div>
+      
+      <h4 class="history-title">Points History</h4>
+      <div class="rep-logs-list">
+        <div class="rep-log-item" *ngFor="let log of selectedUserReputation.logs">
+          <div class="log-left">
+            <span class="log-points" [class.points-positive]="log.points > 0" [class.points-negative]="log.points < 0">
+              {{ log.points > 0 ? '+' : '' }}{{ log.points }}
+            </span>
+            <span class="log-reason">{{ log.reason }}</span>
+          </div>
+          <span class="log-date">{{ log.createdAt | date:'short' }}</span>
+        </div>
+        <div class="empty-logs" *ngIf="selectedUserReputation.logs?.length === 0">
+          No reputation events logged yet.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,373 @@
+<div class="resume-workspace light-workspace no-sidebar">
+  <!-- Main Workspace Panels Area -->
+  <div class="workspace-main-area">
+    <!-- Header Controls Bar -->
+    <header class="workspace-header light-header">
+      <div class="header-left">
+        <button type="button" class="btn-back-to-editor-premium" (click)="selectTab('editor', 'contact')">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Back to Editor</span>
+        </button>
+        <div class="header-title-row">
+          <div class="title-icon-wrapper bg-amber-light">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div>
+            <h2>Design Studio</h2>
+            <p>Fine-tune typography, spacing margins, and visual accent elements</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Download CTA Header Row -->
+      <div class="header-actions">
+        <div class="quick-export-wrap">
+          <button type="button" class="btn-workspace-download-header btn-premium-solid" (click)="service.downloadPDF()">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Export Premium PDF</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace-columns-split">
+      <!-- COLUMN 2: WORKSPACE EDITOR (CUSTOMIZER SECTION) -->
+      <main class="workspace-editor custom-scrollbar">
+        <div class="tab-content-wrapper customizer-tab-wrapper">
+          <!-- Filter bar at the top -->
+          <div class="light-card customizer-filter-card animate-slide-up">
+            <div class="customizer-bar-title border-b-light">
+              <i class="fa-solid fa-palette text-amber-icon"></i>
+              <span>Select Theme Filters</span>
+            </div>
+
+            <div class="filters-grid">
+              <div class="filter-group">
+                <label>Filter by Headshot</label>
+                <div class="custom-select-wrap">
+                  <select [(ngModel)]="service.filterHeadshot">
+                    <option value="ALL">All Layouts</option>
+                    <option value="YES">With Headshot</option>
+                    <option value="NO">No Headshot</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-caret"></i>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label>Graphics Style</label>
+                <div class="custom-select-wrap">
+                  <select [(ngModel)]="service.filterGraphics">
+                    <option value="ALL">All Styles</option>
+                    <option value="CLEAN">Clean Style</option>
+                    <option value="CREATIVE">Creative Style</option>
+                    <option value="MINIMALIST">Minimalist Style</option>
+                    <option value="MODERNIST">Modernist Style</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-caret"></i>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label>Layout Columns</label>
+                <div class="custom-select-wrap">
+                  <select [(ngModel)]="service.filterColumns">
+                    <option value="ALL">All Columns</option>
+                    <option value="1">1 Column</option>
+                    <option value="2">2 Columns</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-caret"></i>
+                </div>
+              </div>
+
+              <div class="filter-group colors-preset-group">
+                <label>Colors</label>
+                <div class="presets-color-bubbles">
+                  <button *ngFor="let color of service.colorPresets" type="button" class="color-bubble"
+                    [style.background]="color" [class.active]="service.themeColor === color" (click)="service.themeColor = color">
+                    <i class="fa-solid fa-check" *ngIf="service.themeColor === color"></i>
+                  </button>
+                  <div class="custom-color-picker-wrap" title="Choose Custom Color">
+                    <input type="color" [(ngModel)]="service.themeColor" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Split area inside customizer -->
+          <div class="customizer-content-split mt-4">
+            <!-- Left Panel: Style Controls Form -->
+            <div class="customizer-style-controls">
+              <!-- Typography Card -->
+              <div class="light-card style-group-card mb-4">
+                <div class="card-header border-b-light mb-3">
+                  <div class="header-avatar bg-indigo-light">
+                    <i class="fa-solid fa-font"></i>
+                  </div>
+                  <h3>Typography Settings</h3>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">Heading Font Family</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.headingFont">
+                      <option *ngFor="let font of service.fontPresets" [value]="font">{{ font }}</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">Body Font Family</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.bodyFont">
+                      <option *ngFor="let font of service.fontPresets" [value]="font">{{ font }}</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="slider-label-row">
+                    <span>Heading Font Size</span>
+                    <span class="threshold-value">{{ service.headingSize }}px</span>
+                  </label>
+                  <div class="slider-track-wrap">
+                    <input type="range" min="16" max="36" step="1" [(ngModel)]="service.headingSize" class="customizer-slider premium-slider" />
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="slider-label-row">
+                    <span>Body Font Size</span>
+                    <span class="threshold-value">{{ service.bodySize }}px</span>
+                  </label>
+                  <div class="slider-track-wrap">
+                    <input type="range" min="10" max="20" step="1" [(ngModel)]="service.bodySize" class="customizer-slider premium-slider" />
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">Heading Display Format</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.headingStyle">
+                      <option value="uppercase">ALL UPPERCASE</option>
+                      <option value="titlecase">Title Case Format</option>
+                      <option value="accent-line">Accent Color Underline</option>
+                      <option value="bordered">Bordered Accent Slab</option>
+                      <option value="left-accent">Left Border Stripe</option>
+                      <option value="bottom-dashed">Dashed Accent Underline</option>
+                      <option value="double-underline">Double Accent Underline</option>
+                      <option value="minimal-accent">Muted Accent Color Tag</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-field-label">Subheading Style</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.subheadingStyle">
+                      <option value="bold-dark">Bold Dark Slate</option>
+                      <option value="italic-theme">Italicized Accent Color</option>
+                      <option value="muted-caps">Muted Small-Caps</option>
+                      <option value="semibold-theme">Semibold Accent Color</option>
+                      <option value="accent-bullet">Bullet Prefix Accent</option>
+                      <option value="underlined-light">Underlined Slate</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advanced Layout & Accents Card -->
+              <div class="light-card style-group-card mb-4 animate-slide-up">
+                <div class="card-header border-b-light mb-3">
+                  <div class="header-avatar bg-emerald-light">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  </div>
+                  <h3>Advanced Layout & Accents</h3>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">Header Alignment Layout</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.headerLayout">
+                      <option value="centered">Centered Title & Subtext</option>
+                      <option value="left">Left-Aligned Corporate Style</option>
+                      <option value="split">Split Layout (Contact Right)</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">Section Divider Accent</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.dividerStyle">
+                      <option value="line">Single Thin Accent Line</option>
+                      <option value="double-line">Double Thin Border</option>
+                      <option value="dotted">Dotted Divider</option>
+                      <option value="gradient">Gradient Fading Stripe</option>
+                      <option value="icon">Icon Ornamented</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">List Bullet Symbols</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.bulletStyle">
+                      <option value="disc">Standard Dot (•)</option>
+                      <option value="triangle">Play Icon (▸)</option>
+                      <option value="check">Check Mark (✓)</option>
+                      <option value="square">Square Block (■)</option>
+                      <option value="dash">Muted Dash (—)</option>
+                      <option value="numbered">Numbered List (1, 2...)</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-field-label">Work Dates Format</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.dateFormat">
+                      <option value="standard">Jan 2024</option>
+                      <option value="slash">01/2024</option>
+                      <option value="full">January 2024</option>
+                      <option value="year">2024 Only</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-field-label">Skills Block Layout</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.skillsStyle">
+                      <option value="pills">Pills/Tags Grid</option>
+                      <option value="comma">Comma-Separated Inline</option>
+                      <option value="bullets">Standard Bulleted List</option>
+                      <option value="grid">Two-Column Clean Grid</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Spacing & Margins Card -->
+              <div class="light-card style-group-card mb-4">
+                <div class="card-header border-b-light mb-3">
+                  <div class="header-avatar bg-violet-light">
+                    <i class="fa-solid fa-arrows-up-down-left-right"></i>
+                  </div>
+                  <h3>Spacing & Margins</h3>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="slider-label-row">
+                    <span>Line Height Spacing</span>
+                    <span class="threshold-value">{{ service.lineSpacing }}x</span>
+                  </label>
+                  <div class="slider-track-wrap">
+                    <input type="range" min="1.1" max="2.0" step="0.05" [(ngModel)]="service.lineSpacing" class="customizer-slider premium-slider" />
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="slider-label-row">
+                    <span>Section Vertical Spacing</span>
+                    <span class="threshold-value">{{ service.sectionSpacing }}px</span>
+                  </label>
+                  <div class="slider-track-wrap">
+                    <input type="range" min="8" max="40" step="1" [(ngModel)]="service.sectionSpacing" class="customizer-slider premium-slider" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="slider-label-row">
+                    <span>Page Outer Margin</span>
+                    <span class="threshold-value">{{ service.pageMargin }}px</span>
+                  </label>
+                  <div class="slider-track-wrap">
+                    <input type="range" min="12" max="48" step="1" [(ngModel)]="service.pageMargin" class="customizer-slider premium-slider" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Rename Labels Card -->
+              <div class="light-card style-group-card">
+                <div class="card-header border-b-light mb-3">
+                  <div class="header-avatar bg-amber-light">
+                    <i class="fa-solid fa-file-signature"></i>
+                  </div>
+                  <h3>Rename Section Labels</h3>
+                </div>
+                <p class="section-helper mb-4"><i class="fa-solid fa-circle-info text-sky"></i> Tailor standard section headers according to your localized industry standards.</p>
+                
+                <div class="section-labels-form">
+                  <div class="form-group mb-3">
+                    <label class="form-field-label">Profile Summary</label>
+                    <input type="text" [(ngModel)]="service.customSectionTitles.summary" class="custom-label-input light-input" />
+                  </div>
+                  <div class="form-group mb-3">
+                    <label class="form-field-label">Technical Skills</label>
+                    <input type="text" [(ngModel)]="service.customSectionTitles.skills" class="custom-label-input light-input" />
+                  </div>
+                  <div class="form-group mb-3">
+                    <label class="form-field-label">Work History</label>
+                    <input type="text" [(ngModel)]="service.customSectionTitles.employment" class="custom-label-input light-input" />
+                  </div>
+                  <div class="form-group mb-3">
+                    <label class="form-field-label">Featured Projects</label>
+                    <input type="text" [(ngModel)]="service.customSectionTitles.projects" class="custom-label-input light-input" />
+                  </div>
+                  <div class="form-group mb-3">
+                    <label class="form-field-label">Education Details</label>
+                    <input type="text" [(ngModel)]="service.customSectionTitles.education" class="custom-label-input light-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-field-label">Personal Information</label>
+                    <input type="text" [(ngModel)]="service.customSectionTitles.personal" class="custom-label-input light-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Panel: Layout Switcher Gallery -->
+            <div class="customizer-layouts-gallery">
+              <div class="gallery-title-box border-b-light mb-4">
+                <h4>Accent Layout Design</h4>
+                <span>Showing <strong>{{ service.customizerFilteredTemplates.length }}</strong> layouts matching selected parameters.</span>
+              </div>
+
+              <div class="layouts-grid-presets">
+                <div *ngFor="let t of service.customizerFilteredTemplates" class="layout-preset-card light-preset-card"
+                  [class.active]="service.selectedTemplate === t.id" (click)="service.selectTemplate(t.id)">
+                  <div class="preset-header-strip" [style.background]="t.color"></div>
+                  <div class="preset-body-info">
+                    <strong>{{ t.name }}</strong>
+                    <div class="preset-meta-tags">
+                      <span class="badge-tier" [class.pro]="t.tier === 'PRO'" [class.elite]="t.tier === 'ELITE'">{{ t.tier }}</span>
+                      <span class="badge-col"><i class="fa-solid fa-columns"></i> {{ t.columns || 1 }} Col</span>
+                      <span class="badge-graphics" *ngIf="t.photo"><i class="fa-solid fa-image-portrait"></i> Photo</span>
+                    </div>
+                  </div>
+                  <div class="preset-active-glow" *ngIf="service.selectedTemplate === t.id"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- COLUMN 3: REAL-TIME PREVIEW PANEL -->
+      <app-resume-preview class="preview-column-wrapper"></app-resume-preview>
+    </div>
+  </div>
+</div>
+
+

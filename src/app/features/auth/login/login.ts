@@ -579,7 +579,8 @@ export class Login implements OnDestroy {
       savedPublicRedirect.startsWith('/') &&
       !savedPublicRedirect.startsWith('//') &&
       (savedPublicRedirect.startsWith('/practice') ||
-        savedPublicRedirect.startsWith('/coding-contests'))
+        savedPublicRedirect.startsWith('/coding-contests') ||
+        savedPublicRedirect.startsWith('/resume'))
     ) {
       sessionStorage.removeItem('publicPracticeRedirect');
       return savedPublicRedirect;
@@ -591,7 +592,7 @@ export class Login implements OnDestroy {
       redirect &&
       redirect.startsWith('/') &&
       !redirect.startsWith('//') &&
-      (redirect.startsWith('/practice') || redirect.startsWith('/coding-contests'))
+      (redirect.startsWith('/practice') || redirect.startsWith('/coding-contests') || redirect.startsWith('/resume'))
     ) {
       return redirect;
     }

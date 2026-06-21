@@ -1,4 +1,11 @@
 <div class="detail-page-wrapper" *ngIf="job$ | async as job; else notFound">
+  <!-- Ambient background glows -->
+  <div class="policy-ambient-glow">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
   <!-- Back Action -->
   <button class="back-action-btn" (click)="goBack()">
     <i class="bi bi-arrow-left"></i> Back to Jobs
@@ -21,6 +28,15 @@
           <div class="company-row">
             <span class="company-name-bold">{{ job.companyName }}</span>
             <span *ngIf="job.remote" class="remote-badge-glow"><i class="bi bi-globe"></i> Remote</span>
+            <span class="highlight-badge badge-walkin" style="margin-left: 8px;" *ngIf="job.jobType === 'Walk-in' || (job.title && (job.title.toLowerCase().includes('walk-in') || job.title.toLowerCase().includes('walkin')))">
+              <i class="bi bi-lightning-fill"></i> 🚶 Walk-In Interview Drive
+            </span>
+            <span class="highlight-badge badge-internship" style="margin-left: 8px;" *ngIf="job.jobType === 'Internship' || (job.title && job.title.toLowerCase().includes('intern'))">
+              <i class="bi bi-mortarboard-fill"></i> 🎓 Internship
+            </span>
+            <span class="highlight-badge badge-fresher" style="margin-left: 8px;" *ngIf="job.jobType !== 'Internship' && !(job.title && job.title.toLowerCase().includes('intern')) && job.jobType !== 'Walk-in' && !(job.title && job.title.toLowerCase().includes('walk-in')) && !(job.title && job.title.toLowerCase().includes('walkin')) && (job.experience && (job.experience.includes('0-1') || job.experience.includes('0-2') || job.experience.startsWith('0')))">
+              <i class="bi bi-patch-check-fill"></i> 🌱 Fresher Role
+            </span>
           </div>
         </div>
       </div>
@@ -33,79 +49,368 @@
       </div>
     </header>
 
-    <!-- METADATA INFORMATION GRID -->
-    <section class="detail-meta-grid">
-      <div class="meta-info-card m-blue">
-        <div class="meta-icon"><i class="bi bi-geo-alt"></i></div>
-        <div class="meta-content">
-          <span class="meta-label">Location</span>
-          <span class="meta-value">{{ job.location }}</span>
-        </div>
+    <!-- PREMIUM NAVIGATION TABS -->
+    <div class="detail-navigation-tabs">
+      <button class="detail-tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+        <i class="bi bi-file-text-fill"></i> Overview
+      </button>
+      <button class="detail-tab-btn" [class.active]="activeTab === 'prep'" (click)="setTab('prep')">
+        <i class="bi bi-mortarboard-fill"></i> Interview Prep
+      </button>
+      <button class="detail-tab-btn" [class.active]="activeTab === 'mentors'" (click)="setTab('mentors')">
+        <i class="bi bi-people-fill"></i> Booking Mocks
+      </button>
+      <button class="detail-tab-btn" [class.active]="activeTab === 'benefits'" (click)="setTab('benefits')">
+        <i class="bi bi-heart-pulse-fill"></i> Compensation & Perks
+      </button>
+      <button class="detail-tab-btn" [class.active]="activeTab === 'compatibility'" (click)="setTab('compatibility')">
+        <i class="bi bi-cpu-fill"></i> Compatibility Check
+      </button>
+    </div>
+
+    <!-- TABBED CONTENT PANES -->
+    <div class="detail-panes-card">
+      
+      <!-- TAB 1: OVERVIEW -->
+      <div class="detail-pane-content animated fadeIn" *ngIf="activeTab === 'overview'">
+        <!-- METADATA INFORMATION GRID -->
+        <section class="detail-meta-grid">
+          <div class="meta-info-card m-blue">
+            <div class="meta-icon"><i class="bi bi-geo-alt"></i></div>
+            <div class="meta-content">
+              <span class="meta-label">Location</span>
+              <span class="meta-value">{{ job.location }}</span>
+            </div>
+          </div>
+
+          <div class="meta-info-card m-amber">
+            <div class="meta-icon"><i class="bi bi-briefcase"></i></div>
+            <div class="meta-content">
+              <span class="meta-label">Experience</span>
+              <span class="meta-value">{{ job.experience || 'Entry Level (0+ yrs)' }}</span>
+            </div>
+          </div>
+
+          <div class="meta-info-card m-pink">
+            <div class="meta-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="meta-content">
+              <span class="meta-label">Job Nature</span>
+              <span class="meta-value">{{ job.employmentType || 'Full-time' }}</span>
+            </div>
+          </div>
+
+          <div class="meta-info-card m-emerald">
+            <div class="meta-icon"><i class="bi bi-wallet2"></i></div>
+            <div class="meta-content">
+              <span class="meta-label">Compensation</span>
+              <span class="meta-value">{{ getSimulatedSalary(job) }}</span>
+            </div>
+          </div>
+
+          <div class="meta-info-card m-purple">
+            <div class="meta-icon"><i class="bi bi-tags"></i></div>
+            <div class="meta-content">
+              <span class="meta-label">Category</span>
+              <span class="meta-value">{{ job.category || 'Engineering' }}</span>
+            </div>
+          </div>
+
+          <div class="meta-info-card m-orange">
+            <div class="meta-icon"><i class="bi bi-calendar-check"></i></div>
+            <div class="meta-content">
+              <span class="meta-label">Listing Date</span>
+              <span class="meta-value">{{ getPostedAgo(job.postedAt || '') }}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- REQUIRED SKILLS -->
+        <section class="detail-section">
+          <h3 class="section-title"><i class="bi bi-award"></i> Required Competencies</h3>
+          <div class="skills-marquee-wrap">
+            <span class="premium-skill-tag" *ngFor="let s of getJobKeywords(job)">
+              {{ s }}
+            </span>
+            <span class="no-skills-notice" *ngIf="getJobKeywords(job).length === 0">
+              <i class="bi bi-info-circle"></i> General IT engineering background matching this position.
+            </span>
+          </div>
+        </section>
+
+        <!-- JOB DESCRIPTION -->
+        <section class="detail-section">
+          <h3 class="section-title"><i class="bi bi-file-earmark-text"></i> Role Overview & Responsibilities</h3>
+          <div class="description-content-box" [innerHTML]="job.description || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features and maintain scalability.'">
+          </div>
+        </section>
       </div>
 
-      <div class="meta-info-card m-amber">
-        <div class="meta-icon"><i class="bi bi-briefcase"></i></div>
-        <div class="meta-content">
-          <span class="meta-label">Experience</span>
-          <span class="meta-value">{{ job.experience || 'Entry Level (0+ yrs)' }}</span>
-        </div>
+      <!-- TAB 2: INTERVIEW PREP ROADMAP -->
+      <div class="detail-pane-content animated fadeIn" *ngIf="activeTab === 'prep'">
+        <section class="detail-section">
+          <h3 class="section-title"><i class="bi bi-ladder"></i> Standard Interview Stages</h3>
+          <p class="section-desc">Typical evaluation pipeline configured by corporate hiring managers for this technology domain:</p>
+          
+          <div class="timeline-wrapper">
+            <div class="timeline-step">
+              <div class="step-num-ring">1</div>
+              <div class="step-details">
+                <h5>Technical Screening Round</h5>
+                <p>Coding assessment testing core computer science foundations, algorithm efficiency, and code clarity. Expect 1 LeetCode easy and 1 medium question.</p>
+              </div>
+            </div>
+            
+            <div class="timeline-step">
+              <div class="step-num-ring">2</div>
+              <div class="step-details">
+                <h5>Core Framework & System Design</h5>
+                <p>Deep evaluation of technical competencies. Expect problem-solving around system architecture, database optimization, scalability patterns, and framework lifecycle depth (e.g. {{ getJobKeywords(job).slice(0, 3).join(', ') || 'Modern IT stacks' }}).</p>
+              </div>
+            </div>
+
+            <div class="timeline-step">
+              <div class="step-num-ring">3</div>
+              <div class="step-details">
+                <h5>Techno-Managerial & Behavioral Round</h5>
+                <p>Discussion around system tradeoffs, past project architectures, collaborative values, and cultural fit. Focuses on resolving engineering deadlocks.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <h3 class="section-title"><i class="bi bi-book-half"></i> Highly Recommended Core Materials</h3>
+          <div class="prep-materials-grid">
+            <div class="prep-material-card" *ngFor="let skill of (getJobKeywords(job).length > 0 ? getJobKeywords(job).slice(0, 3) : ['Engineering', 'System Design'])">
+              <div class="material-hdr">
+                <i class="bi bi-patch-check-fill text-primary"></i>
+                <h5>{{ skill }} Depth</h5>
+              </div>
+              <p>Solve advanced interview questionnaires, mock rounds, and architecture patterns specific to <strong>{{ skill }}</strong> on the Vidhura Learning Portal.</p>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div class="meta-info-card m-pink">
-        <div class="meta-icon"><i class="bi bi-clock-history"></i></div>
-        <div class="meta-content">
-          <span class="meta-label">Job Nature</span>
-          <span class="meta-value">{{ job.employmentType || 'Full-time' }}</span>
-        </div>
+      <!-- TAB 3: BOOKING MOCK ROUNDS -->
+      <div class="detail-pane-content animated fadeIn" *ngIf="activeTab === 'mentors'">
+        <section class="detail-section text-center py-4">
+          <div class="mentor-matching-card">
+            <div class="matching-icon-wrap">
+              <i class="bi bi-people-fill text-accent"></i>
+            </div>
+            <h3>Direct 1:1 Mentor Matching</h3>
+            <p class="mx-auto" style="max-width: 580px; margin-bottom: 24px;">
+              Get a competitive advantage by booking a mock session with our verified mentors. We match you with senior engineers who have successfully cleared interviews at Microsoft, Amazon, Google, and Razorpay.
+            </p>
+            
+            <div class="mentor-benefits-grid">
+              <div class="m-benefit">
+                <i class="bi bi-shield-check"></i>
+                <span>Direct Referrals</span>
+              </div>
+              <div class="m-benefit">
+                <i class="bi bi-shield-check"></i>
+                <span>System Design feedback</span>
+              </div>
+              <div class="m-benefit">
+                <i class="bi bi-shield-check"></i>
+                <span>Salary negotiations tips</span>
+              </div>
+            </div>
+            
+            <button class="apply-action-btn-main" [routerLink]="['/mentors']">
+              Find Matching Mentors <i class="bi bi-arrow-right-short"></i>
+            </button>
+          </div>
+        </section>
       </div>
 
-      <div class="meta-info-card m-emerald">
-        <div class="meta-icon"><i class="bi bi-wallet2"></i></div>
-        <div class="meta-content">
-          <span class="meta-label">Compensation</span>
-          <span class="meta-value">{{ job.salary || 'Not Disclosed' }}</span>
-        </div>
+      <!-- TAB 4: COMPENSATION & PERKS -->
+      <div class="detail-pane-content animated fadeIn" *ngIf="activeTab === 'benefits'">
+        <section class="detail-section">
+          <h3 class="section-title"><i class="bi bi-wallet2"></i> Estimated CTC & Benefits Breakdown</h3>
+          <p class="section-desc">Simulated comprehensive package layout for verified candidates in this location:</p>
+          
+          <div class="perks-detailed-grid">
+            <div class="perk-detail-card">
+              <i class="bi bi-shield-plus text-emerald"></i>
+              <div class="perk-card-content">
+                <h5>Medical Cover</h5>
+                <p>Premium medical, dental, and hospitalization cover for you and 2 direct family members.</p>
+              </div>
+            </div>
+
+            <div class="perk-detail-card">
+              <i class="bi bi-house-door-fill text-primary"></i>
+              <div class="perk-card-content">
+                <h5>Remote Allowances</h5>
+                <p>One-time setup allowance of ₹40,000 for remote setup, workspace utilities, and high-speed fiber connection.</p>
+              </div>
+            </div>
+
+            <div class="perk-detail-card">
+              <i class="bi bi-mortarboard-fill text-warning"></i>
+              <div class="perk-card-content">
+                <h5>Learning & Development</h5>
+                <p>Annual budget of ₹30,000 to cover cloud certification fees, engineering books, and tech events.</p>
+              </div>
+            </div>
+
+            <div class="perk-detail-card">
+              <i class="bi bi-suit-heart-fill text-danger"></i>
+              <div class="perk-card-content">
+                <h5>Wellness Time-Off</h5>
+                <p>Flexible wellness leaves, standard holidays, and direct care leaves to keep you healthy and motivated.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div class="meta-info-card m-purple">
-        <div class="meta-icon"><i class="bi bi-tags"></i></div>
-        <div class="meta-content">
-          <span class="meta-label">Category</span>
-          <span class="meta-value">{{ job.category || 'Engineering' }}</span>
-        </div>
+      <!-- TAB 5: COMPATIBILITY SCAN -->
+      <div class="detail-pane-content animated fadeIn" *ngIf="activeTab === 'compatibility'">
+        <section class="detail-section text-center py-4">
+          <div class="compatibility-checker-card">
+            <!-- Hidden File Input for Resume Upload -->
+            <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event, job)" accept=".pdf,.docx,.doc,.txt,.odt,.odf,.md">
+            
+            <!-- 1. Drag & Drop Upload Zone (Idle state when no file parsed & no scan runs) -->
+            <div class="compat-status-wrapper" *ngIf="analysisScore === 0 && !isParsing && !isAnalyzing">
+              <div class="compat-ring">
+                <span class="score-percent">?</span>
+                <span class="score-title">COMPATIBILITY</span>
+              </div>
+              
+              <div class="compat-verdict">
+                <h3>Vidhura Real-time ATS Scan</h3>
+                <p style="max-width: 580px; margin: 0 auto 24px;">
+                  Upload your resume in any format (.pdf, .docx, .txt, etc.) to calculate matching score against this job's skills, title, and requirements.
+                </p>
+                
+                <!-- Drag and Drop Container -->
+                <div class="upload-drag-zone" 
+                     [class.drag-over]="isDragOver"
+                     (dragover)="onDragOver($event)"
+                     (dragleave)="onDragLeave($event)"
+                     (drop)="onDrop($event, job)"
+                     (click)="fileInput.click()">
+                  <div class="upload-icon-wrap">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                  </div>
+                  <div class="upload-text">
+                    <span class="upload-cta">Drag & drop your resume here</span>
+                    <span class="upload-sub">or click to browse from device (PDF, DOCX, TXT)</span>
+                  </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                  <button class="apply-action-btn-main secondary-btn" (click)="runCompatibilityTest(job.title)">
+                    Simulate Match Without Upload <i class="bi bi-cpu"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Parsing Document Text State -->
+            <div class="compat-status-wrapper" *ngIf="isParsing">
+              <div class="spinner-circle-wrapper">
+                <div class="compat-spinner"></div>
+                <i class="bi bi-file-earmark-text text-primary" style="font-size: 28px; position: absolute;"></i>
+              </div>
+              <h3>Extracting Document Content...</h3>
+              <p>Reading text layers from: <strong>{{ uploadedFileName }}</strong></p>
+            </div>
+
+            <!-- 3. Analyzing Match Scorer State -->
+            <div class="compat-status-wrapper" *ngIf="isAnalyzing">
+              <div class="spinner-circle-wrapper">
+                <div class="compat-spinner"></div>
+                <span class="percent-counter">{{ analysisProgress }}%</span>
+              </div>
+              <h3>Analyzing Profile Keyword Alignment...</h3>
+              <p>Scanning terms: {{ getJobKeywords(job).join(', ') || 'Listed stack values' }}</p>
+              <div class="analysis-progress-bar">
+                <div class="progress-bar-fill" [style.width.%]="analysisProgress"></div>
+              </div>
+            </div>
+
+            <!-- 4. Analysis Results Loaded Screen -->
+            <div class="compat-status-wrapper" *ngIf="analysisScore > 0 && !isAnalyzing && !isParsing">
+              <div class="compat-ring score-loaded" [class.score-low]="analysisScore < 50" [class.score-mid]="analysisScore >= 50 && analysisScore < 75" [class.score-high]="analysisScore >= 75">
+                <span class="score-percent">{{ analysisScore }}%</span>
+                <span class="score-title">ATS MATCH SCORE</span>
+              </div>
+              
+              <div class="compat-verdict">
+                <h3>ATS Match Analysis</h3>
+                <div class="verdict-tag-wrapper">
+                  <span class="v-badge verdict-green" *ngIf="analysisScore >= 75">Highly Compatible Candidate</span>
+                  <span class="v-badge verdict-orange" *ngIf="analysisScore >= 50 && analysisScore < 75">Moderate Compatibility</span>
+                  <span class="v-badge verdict-red" *ngIf="analysisScore < 50">Requires Preparation</span>
+                </div>
+                
+                <p class="uploaded-doc-label" *ngIf="uploadedFileName">
+                  Scanned Document: <i class="bi bi-file-check-fill text-emerald"></i> <strong>{{ uploadedFileName }}</strong>
+                </p>
+
+                <!-- Keywords Match Dual Panel -->
+                <div class="scan-details-grid">
+                  <div class="scan-detail-pane">
+                    <h5 class="pane-hdr text-emerald"><i class="bi bi-check-circle-fill"></i> Matched Keywords ({{ matchedKeywords.length }})</h5>
+                    <div class="keywords-wrap">
+                      <span class="k-tag matched" *ngFor="let kw of matchedKeywords">{{ kw }}</span>
+                      <span class="no-keywords" *ngIf="matchedKeywords.length === 0">No direct skill matches found.</span>
+                    </div>
+                  </div>
+
+                  <div class="scan-detail-pane">
+                    <h5 class="pane-hdr text-danger"><i class="bi bi-x-circle-fill"></i> Missing Keywords ({{ missingKeywords.length }})</h5>
+                    <div class="keywords-wrap">
+                      <span class="k-tag missing" *ngFor="let kw of missingKeywords">{{ kw }}</span>
+                      <span class="no-keywords green-text" *ngIf="missingKeywords.length === 0">No missing skills detected!</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Formatting Issues -->
+                <div class="diagnostic-feedback-box mt-3" *ngIf="formattingIssues.length > 0">
+                  <h6 class="text-danger-title"><i class="bi bi-exclamation-octagon-fill"></i> Formatting Compliance Warnings:</h6>
+                  <div class="feedback-item-line text-danger-item" *ngFor="let issue of formattingIssues">
+                    <i class="bi bi-x-circle-fill text-danger" style="font-size: 13px;"></i> {{ issue }}
+                  </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="diagnostic-feedback-box mt-3">
+                  <h6 class="text-warning-title"><i class="bi bi-lightbulb-fill"></i> Actionable ATS Recommendations:</h6>
+                  <div class="feedback-item-line" *ngFor="let rec of recommendations">
+                    <i class="bi bi-arrow-right-short text-warning" style="font-size: 18px;"></i> {{ rec }}
+                  </div>
+                  <!-- Simulated Feedback Fallback -->
+                  <ng-container *ngIf="recommendations.length === 0">
+                    <div class="feedback-item-line" *ngFor="let item of analysisFeedback">
+                      <i class="bi bi-arrow-right-short text-warning" style="font-size: 18px;"></i> {{ item }}
+                    </div>
+                  </ng-container>
+                </div>
+                
+                <div class="scan-action-row" style="margin-top: 24px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+                  <button class="apply-action-btn-main" (click)="fileInput.click()">
+                    Upload Different Resume <i class="bi bi-cloud-arrow-up"></i>
+                  </button>
+                  <button class="apply-action-btn-main secondary-btn" (click)="resetScanner()">
+                    Reset Scan <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
       </div>
 
-      <div class="meta-info-card m-orange">
-        <div class="meta-icon"><i class="bi bi-calendar-check"></i></div>
-        <div class="meta-content">
-          <span class="meta-label">Listing Date</span>
-          <span class="meta-value">{{ getPostedAgo(job.postedAt || '') }}</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- REQUIRED SKILLS (FIXED LOOP BUG) -->
-    <section class="detail-section">
-      <h3 class="section-title"><i class="bi bi-award"></i> Required Competencies</h3>
-      <div class="skills-marquee-wrap">
-        <!-- Loop over actual job skills (Fixed missing list renderer bug!) -->
-        <span class="premium-skill-tag" *ngFor="let s of job.skills">
-          {{ s }}
-        </span>
-        
-        <span class="no-skills-notice" *ngIf="!job.skills || job.skills.length === 0">
-          <i class="bi bi-info-circle"></i> General IT engineering background matching this position.
-        </span>
-      </div>
-    </section>
-
-    <!-- JOB DESCRIPTION -->
-    <section class="detail-section">
-      <h3 class="section-title"><i class="bi bi-file-earmark-text"></i> Role Overview & Responsibilities</h3>
-      <div class="description-content-box">
-        <p>{{ job.description || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features and maintain scalability.' }}</p>
-      </div>
-    </section>
+    </div>
 
     <!-- FOOTER APPLY BOX -->
     <footer class="detail-footer-row">

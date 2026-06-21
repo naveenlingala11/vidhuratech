@@ -33,6 +33,28 @@ interface Track {
   shortDesc: string;
 }
 
+interface ProgramMetric {
+  label: string;
+  value: string;
+}
+
+interface ProgramType {
+  id: string;
+  name: string;
+  subtitle: string;
+  icon: string;
+  badge: string;
+  badgeType: 'online' | 'offline' | 'hybrid';
+  color: string;
+  glow: string;
+  description: string;
+  metrics: ProgramMetric[];
+  highlights: string[];
+  collegeImpact?: string;
+  curriculumSteps?: string[];
+  targetAudience?: string;
+}
+
 @Component({
   selector: 'app-explore-tracks',
   standalone: true,
@@ -342,6 +364,132 @@ export class ExploreTracksComponent implements OnInit, OnDestroy {
       ]
     }
   ];
+
+  activeProgramId = 'bootcamp';
+
+  programTypes: ProgramType[] = [
+    {
+      id: 'bootcamp',
+      name: 'Accelerated Bootcamps',
+      subtitle: 'Structured Cohort-Based Learning Paths',
+      icon: 'fa-solid fa-graduation-cap',
+      badge: 'Hybrid Model',
+      badgeType: 'hybrid',
+      color: '#3b82f6',
+      glow: 'rgba(59, 130, 246, 0.15)',
+      description: 'Our flagship 16 to 24 week professional bootcamps are meticulously engineered to transform students and switchers into job-ready full-stack and cloud professionals. Combines daily mentor-led classes, structured code challenges, and capstone production development portfolios.',
+      metrics: [
+        { label: 'Average CTC Package', value: '₹8.4 L.P.A' },
+        { label: 'Active Cohorts', value: '12+ Annually' },
+        { label: 'Completion Rate', value: '94.8%' }
+      ],
+      highlights: [
+        'Dedicated 1-on-1 industry mentor assignments',
+        'Daily automation-graded system design & coding tasks',
+        'Direct company referrals and placement drive slots'
+      ],
+      targetAudience: 'Final-year college students, recent graduates, and career switchers aiming to break into product-based tech companies.',
+      curriculumSteps: [
+        'Phase 1 (Week 1-4): Advanced Programming Syntax & Data Structure Fundamentals',
+        'Phase 2 (Week 5-12): Full Stack Frameworks & Database Orchestration (Spring/React/Postgres)',
+        'Phase 3 (Week 13-18): Real-World Distributed Portfolio Projects & Microservices',
+        'Phase 4 (Week 19-24): ATS Optimization, Unlimited System Design Drills & Placement Drives'
+      ]
+    },
+    {
+      id: 'workshop',
+      name: 'Interactive Coding Workshops',
+      subtitle: 'Hands-On Technology Sprints',
+      icon: 'fa-solid fa-laptop-code',
+      badge: 'Online & Offline',
+      badgeType: 'hybrid',
+      color: '#a855f7',
+      glow: 'rgba(168, 85, 247, 0.15)',
+      description: 'Intense, practice-first sprints spanning 2 to 3 days to demystify complex architectures. Instead of boring slides, students write real code alongside mentors to build operational distributed components, setup cloud clusters, or write deployment workflows.',
+      metrics: [
+        { label: 'Duration', value: '2 - 3 Days Sprints' },
+        { label: 'Hands-on Labs', value: '5+ Real Tasks' },
+        { label: 'Student Rating', value: '4.9 / 5.0' }
+      ],
+      highlights: [
+        'Step-by-step code-alongs in modern sandbox stacks',
+        'Real-time classroom debugging assistance',
+        'Workshop completion badge and credentials'
+      ],
+      targetAudience: 'Developers and students wanting to master specific tools like Docker, Kubernetes, AWS, or NextJS quickly.',
+      curriculumSteps: [
+        'Day 1: Setup Local Sandboxes, Core Architecture Maps & Basic Route APIs',
+        'Day 2: Advanced Integrations, Security Implementations & Middleware Sprints',
+        'Day 3: Containerization, CI/CD Pipeline Triggers & Production Launch'
+      ]
+    },
+    {
+      id: 'webinar',
+      name: 'Live Tech Webinars',
+      subtitle: 'Global Industry Insights & Audits',
+      icon: 'fa-solid fa-video',
+      badge: 'Online Broadcasts',
+      badgeType: 'online',
+      color: '#06b6d4',
+      glow: 'rgba(6, 182, 212, 0.15)',
+      description: 'High-energy bi-weekly online live broadcasts hosting engineering directors, tech leads, and recruiters from MAANG and global companies. We cover trending technology stacks, perform live resume ATS audits, solve coding challenges in real-time, and host active Q&A panels.',
+      metrics: [
+        { label: 'Live Attendees', value: '1,500+ / Session' },
+        { label: 'Frequency', value: 'Bi-Weekly Broadcast' },
+        { label: 'Live Q&A Duration', value: '30+ Mins Session' }
+      ],
+      highlights: [
+        'Live ATS audit of student-submitted profiles',
+        'Interactive Q&A covering placement preparation strategies',
+        'Recording archives accessible on dashboard anytime'
+      ],
+      targetAudience: 'Any aspiring developer wanting to stay ahead of market trends and optimize their recruitment strategy.',
+      curriculumSteps: [
+        'Segment 1: Industry Trend Analysis & Modern Developer Competencies',
+        'Segment 2: Live ATS Resume Scanning & Profile Enhancement Audits',
+        'Segment 3: Expert Tech Panel Discussion & System Design Walkthroughs',
+        'Segment 4: Open Floor Interactive Q&A & Mentor Referral Allocations'
+      ]
+    },
+    {
+      id: 'seminar',
+      name: 'College Seminars & Outreach',
+      subtitle: 'Direct On-Campus Experience Transfer',
+      icon: 'fa-solid fa-building-columns',
+      badge: 'Offline Campus Visits',
+      badgeType: 'offline',
+      color: '#f59e0b',
+      glow: 'rgba(245, 158, 11, 0.15)',
+      description: 'We believe real motivation happens face-to-face. Our engineering leadership team travels directly to engineering institutions and universities nationwide to host highly energetic tech seminars. We pack auditoriums to conduct interactive live quizzes, discuss career roadmaps, address tech career anxieties, and deliver structured merit certifications that directly bridge the classroom-to-corporate gap.',
+      metrics: [
+        { label: 'Campuses Visited', value: '45+ Institutions' },
+        { label: 'Students Inspired', value: '18,000+ Engaged' },
+        { label: 'Certificates Awarded', value: '12,000+ Earned' }
+      ],
+      highlights: [
+        'Face-to-face career mentorship and tech roadmap alignment',
+        'Hands-on interactive group seminars and auditorium quizzes',
+        'Direct distribution of merit-based certifications on-the-spot',
+        'Transferring absolute industry coding experience & codebase practices'
+      ],
+      collegeImpact: 'Through these direct college partnerships, we identify exceptional raw talent, provide academic institutions with structured coding resources, and equip students with verifiable merit certificates that unlock direct placement drives.',
+      targetAudience: 'College engineering students, computer science branches, and academic institutions wanting direct industry exposure.',
+      curriculumSteps: [
+        'Phase 1: Auditorium Address - Igniting Technical Career Passion',
+        'Phase 2: Live Coding Battles & Interactive Tech Roadmap Quizzes',
+        'Phase 3: Group Interactive Q&A - Addressing Coding Roadblock Anxieties',
+        'Phase 4: Experience Transfer & Spot Merit Certifications Handouts'
+      ]
+    }
+  ];
+
+  get activeProgram(): ProgramType {
+    return this.programTypes.find(p => p.id === this.activeProgramId) || this.programTypes[0];
+  }
+
+  selectProgram(id: string): void {
+    this.activeProgramId = id;
+  }
 
   activeTrackId = 'java';
   isPlaying = false;

@@ -1,0 +1,120 @@
+<div class="student-progress-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>Mentorship Progress</strong></span>
+      <h1>Progress Tracker</h1>
+      <p class="header-desc">Track your growth journey with each mentor. See milestones, session counts, and overall development.</p>
+    </div>
+  </div>
+
+  <!-- Overall Progress Hero -->
+  <div class="hero-progress-card">
+    <div class="hero-left">
+      <div class="hero-circle-wrap">
+        <svg viewBox="0 0 120 120" class="hero-circle-svg">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+          <circle cx="60" cy="60" r="52" fill="none" [attr.stroke]="getProgressColor(stats.avgProgress)"
+                  stroke-width="10" stroke-linecap="round"
+                  [attr.stroke-dasharray]="326.73"
+                  [attr.stroke-dashoffset]="326.73 - (326.73 * stats.avgProgress / 100)"
+                  transform="rotate(-90 60 60)" class="progress-ring" />
+        </svg>
+        <div class="hero-circle-text">
+          <span class="hero-percent">{{ stats.avgProgress }}%</span>
+          <span class="hero-label">Overall</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <h2>Your Mentorship Journey</h2>
+      <p>You're making great progress! Keep attending sessions and hitting milestones to level up your career development.</p>
+      <div class="hero-stats-row">
+        <div class="hero-stat">
+          <span class="hs-value">{{ stats.totalMentors }}</span>
+          <span class="hs-label">Mentors</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hs-value">{{ stats.completedSessions }}</span>
+          <span class="hs-label">Sessions Done</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hs-value">{{ stats.upcomingSessions }}</span>
+          <span class="hs-label">Upcoming</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-box">
+    <div class="spinner"></div>
+    <p>Loading progress data...</p>
+  </div>
+
+  <!-- Per-Mentor Progress Cards -->
+  <div *ngIf="!loading && mentors.length > 0" class="progress-list">
+    <h3 class="section-title">Progress by Mentor</h3>
+
+    <div class="progress-card" *ngFor="let m of mentors">
+      <div class="pc-header">
+        <div class="pc-avatar">{{ m.mentorAvatar }}</div>
+        <div class="pc-info">
+          <h4>{{ m.mentorName }}</h4>
+          <span class="pc-role" *ngIf="m.currentRole">{{ m.currentRole }} <span *ngIf="m.currentCompany">@ {{ m.currentCompany }}</span></span>
+        </div>
+        <span class="level-badge" [ngClass]="m.levelClass">{{ m.level }}</span>
+      </div>
+
+      <div class="pc-progress-row">
+        <div class="pc-progress-header">
+          <span>Progress</span>
+          <strong>{{ m.progress }}%</strong>
+        </div>
+        <div class="pc-track">
+          <div class="pc-fill" [style.width.%]="m.progress" [ngClass]="m.levelClass"></div>
+        </div>
+      </div>
+
+      <div class="pc-meta-grid">
+        <div class="pc-meta-item" *ngIf="m.targetMilestone">
+          <span class="meta-emoji">🎯</span>
+          <div class="meta-text">
+            <span class="meta-key">Next Target</span>
+            <strong>{{ m.targetMilestone }}</strong>
+          </div>
+        </div>
+        <div class="pc-meta-item" *ngIf="m.lastMeetingDate">
+          <span class="meta-emoji">📅</span>
+          <div class="meta-text">
+            <span class="meta-key">Last Session</span>
+            <strong>{{ m.lastMeetingDate }}</strong>
+          </div>
+        </div>
+        <div class="pc-meta-item">
+          <span class="meta-emoji">📊</span>
+          <div class="meta-text">
+            <span class="meta-key">Status</span>
+            <strong>{{ m.status }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="pc-action-row">
+        <a [routerLink]="['/mentors', m.mentorId]" class="btn-pc-action">
+          <span>👁️</span> View Mentor Profile
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && mentors.length === 0" class="empty-state">
+    <span class="empty-icon">📈</span>
+    <h3>No Progress Data Yet</h3>
+    <p>Once your mentor assigns milestones and provides feedback, your progress will appear here.</p>
+    <a routerLink="/mentors" class="btn-action primary">
+      <span class="icon">🔍</span> Browse Mentors
+    </a>
+  </div>
+</div>

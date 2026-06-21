@@ -6,537 +6,1346 @@
     <div class="orb orb-3"></div>
   </div>
 
-  <!-- HERO STATS HEADER -->
+  <!-- REALTIME LIVE TRACKER HEADER -->
+  <div class="live-tracker-banner">
+    <div class="live-pulse-container">
+      <span class="live-dot"></span>
+      <span class="live-text">Realtime Crawl Engine</span>
+    </div>
+    <div class="live-ticker-wrap">
+      <div class="live-ticker-content">
+        <i class="bi bi-activity text-accent me-2"></i>
+        <span class="live-log-text">{{ currentLiveLog }}</span>
+      </div>
+    </div>
+    <div class="live-stats-wrapper">
+      <div class="live-stat-item">
+        <span class="live-stat-label">Crawl Nodes:</span>
+        <span class="live-stat-value">{{ totalConfiguredNodes }} Active</span>
+      </div>
+      <div class="live-stat-divider">|</div>
+      <div class="live-stat-item">
+        <span class="live-stat-label">Verified Jobs:</span>
+        <span class="live-stat-value">{{ totalJobs }} Listings</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DYNAMIC MATCH FINDER CONSOLE & SPOTLIGHT SECTION -->
+  <section class="matching-hero-row">
+    <!-- Match Finder Console -->
+    <div class="match-finder-console">
+      <div class="console-header">
+        <div class="console-dot-group">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="console-title">Vidhura Job Matcher</span>
+      </div>
+
+      <div class="console-body" *ngIf="!isMatchingActive">
+        <h3>Smart Job Matcher</h3>
+        <p>Input target location and core skill to find top compatibility ratings.</p>
+        <div class="console-fields-grid">
+          <div class="console-field">
+            <label>Target Location</label>
+            <div class="custom-select-wrapper">
+              <select [(ngModel)]="matchLocation" class="console-select">
+                <option value="">Any Location</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Pune">Pune</option>
+                <option value="Noida">Noida</option>
+                <option value="Remote">Remote</option>
+              </select>
+            </div>
+          </div>
+          <div class="console-field">
+            <label>Key Technology</label>
+            <div class="custom-select-wrapper">
+              <select [(ngModel)]="matchSkill" class="console-select">
+                <option value="">Any Skill</option>
+                <option value="Java">Java</option>
+                <option value="React">React</option>
+                <option value="Angular">Angular</option>
+                <option value="Python">Python</option>
+                <option value="Spring Boot">Spring Boot</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="btn-console-submit" (click)="runMatchFinder()" [disabled]="!matchLocation && !matchSkill">
+          <span>Match Opportunities</span> <i class="bi bi-cpu-fill ms-1"></i>
+        </button>
+      </div>
+
+      <!-- Match Finder Running State -->
+      <div class="console-matching-screen" *ngIf="isMatchingActive">
+        <div class="matching-spinner-wrapper">
+          <div class="console-spinner"></div>
+          <span class="matching-percent">{{ matchingProgress }}%</span>
+        </div>
+        <h4>{{ matchingStatusText }}</h4>
+        <div class="console-progress-track">
+          <div class="console-progress-fill" [style.width.%]="matchingProgress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spotlight Recommendations Card Deck -->
+    <div class="spotlight-section" *ngIf="spotlightJobs && spotlightJobs.length > 0">
+      <div class="spotlight-header">
+        <span class="spotlight-tag">⭐ Spotlight Recommended</span>
+        <h3>Direct Access Opportunities</h3>
+      </div>
+      <div class="spotlight-deck">
+        <div *ngFor="let job of spotlightJobs" class="spotlight-job-card" (click)="openQuickView(job, $event)">
+          <div class="spotlight-card-shine"></div>
+          <div class="spotlight-logo-row">
+            <div class="spotlight-logo">
+              <img [src]="getCompanyLogo(job.companyName)" (error)="onLogoError($event, job.companyName)" alt="logo" />
+            </div>
+            <div class="spotlight-title-info">
+              <h4>{{ job.title }}</h4>
+              <p>{{ job.companyName }}</p>
+            </div>
+          </div>
+          <div class="spotlight-meta-row">
+            <span class="spotlight-badge"><i class="bi bi-geo-alt-fill text-primary"></i> {{ job.location }}</span>
+            <span class="spotlight-match"><i class="bi bi-stars"></i> {{ getMatchScore(job.title) }}% Match</span>
+          </div>
+          <button class="spotlight-cta-btn">Quick Apply</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HERO METRICS DASHBOARD -->
   <section class="premium-hero-stats">
     <div class="stats-grid">
       <div class="stat-card stat-blue">
         <div class="stat-icon-wrap">
-          <i class="bi bi-briefcase"></i>
+          <i class="bi bi-briefcase-fill"></i>
         </div>
         <div class="stat-info">
           <span class="stat-count">{{ totalJobs > 0 ? totalJobs : '120+' }}</span>
           <span class="stat-label">Active Opportunities</span>
         </div>
-        <div class="stat-badge">Live Now</div>
+        <span class="stat-spark"><i class="bi bi-graph-up"></i> +12%</span>
+        <div class="stat-badge">Live Index</div>
       </div>
 
       <div class="stat-card stat-emerald">
         <div class="stat-icon-wrap">
-          <i class="bi bi-laptop"></i>
+          <i class="bi bi-laptop-fill"></i>
         </div>
         <div class="stat-info">
-          <span class="stat-count">85+</span>
-          <span class="stat-label">Remote-friendly Roles</span>
+          <span class="stat-count">340+</span>
+          <span class="stat-label">Remote / Hybrid Roles</span>
         </div>
-        <div class="stat-badge badge-green">Flexible</div>
+        <span class="stat-spark"><i class="bi bi-shield-check"></i> Verified</span>
+        <div class="stat-badge badge-green">India Tech</div>
       </div>
 
       <div class="stat-card stat-amber">
         <div class="stat-icon-wrap">
-          <i class="bi bi-building"></i>
+          <i class="bi bi-building-fill"></i>
         </div>
         <div class="stat-info">
           <span class="stat-count">{{ companies.length > 0 ? companies.length : '40+' }}</span>
-          <span class="stat-label">Top Hiring Brands</span>
+          <span class="stat-label">Hiring Companies</span>
         </div>
-        <div class="stat-badge badge-orange">Verified</div>
+        <span class="stat-spark"><i class="bi bi-star-fill text-amber"></i> Top Tier</span>
+        <div class="stat-badge badge-orange">Brands</div>
       </div>
 
       <div class="stat-card stat-pink">
         <div class="stat-icon-wrap">
-          <i class="bi bi-lightning-charge"></i>
+          <i class="bi bi-lightning-charge-fill"></i>
         </div>
         <div class="stat-info">
-          <span class="stat-count">1.8h</span>
-          <span class="stat-label">Avg. Interview Match</span>
+          <span class="stat-count">1 hr</span>
+          <span class="stat-label">Avg. Response Time</span>
         </div>
-        <div class="stat-badge badge-red">Fast Track</div>
+        <span class="stat-spark"><i class="bi bi-fire text-coral"></i> Hot List</span>
+        <div class="stat-badge badge-red">Fast Match</div>
       </div>
     </div>
   </section>
 
-  <section class="layout">
-    <!-- SIDEBAR FILTERS -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <i class="bi bi-sliders header-icon"></i>
-        <h3>Filter Opportunities</h3>
-      </div>
-
-      <!-- SORT -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showSort')">
-          <span class="header-title">
-            <i class="bi bi-sort-down icon-accent"></i> Sort By
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showSort">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showSort" class="filter-content-wrap">
-          <label class="radio-container">
-            <input
-              type="radio"
-              name="sort"
-              value="latest"
-              [(ngModel)]="filters.sort"
-              (change)="page = 0"
-            />
-            <span class="custom-radio"></span>
-            Latest Listings
-          </label>
-          <label class="radio-container">
-            <input
-              type="radio"
-              name="sort"
-              value="oldest"
-              [(ngModel)]="filters.sort"
-              (change)="page = 0"
-            />
-            <span class="custom-radio"></span>
-            Oldest Listings
-          </label>
-        </div>
-      </div>
-
-      <!-- DATE FILTER -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showDate')">
-          <span class="header-title">
-            <i class="bi bi-calendar-event icon-accent"></i> Date Posted
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showDate">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showDate" class="filter-content-wrap">
-          <label class="radio-container" *ngFor="let d of ['today', 'week', 'month']">
-            <input type="radio" [value]="d" [(ngModel)]="filters.date" (change)="page = 0" />
-            <span class="custom-radio"></span>
-            Posted {{ d === 'today' ? 'Today' : 'this ' + d }}
-          </label>
-        </div>
-      </div>
-
-      <!-- LOCATION -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showLocation')">
-          <span class="header-title">
-            <i class="bi bi-geo-alt icon-accent"></i> Job Location
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showLocation">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showLocation" class="filter-content-wrap">
-          <label class="checkbox-container" *ngFor="let l of locations">
-            <input type="checkbox" [checked]="filters.location.includes(l)" (change)="toggleFilter('location', l)" />
-            <span class="custom-chk"></span>
-            {{ l }}
-          </label>
-        </div>
-      </div>
-
-      <!-- REMOTE -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showRemote')">
-          <span class="header-title">
-            <i class="bi bi-laptop icon-accent"></i> Work Mode
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showRemote">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showRemote" class="filter-content-wrap">
-          <label class="checkbox-container">
-            <input type="checkbox" [(ngModel)]="filters.remote" (change)="page = 0" />
-            <span class="custom-chk"></span>
-            Remote Only
-          </label>
-        </div>
-      </div>
-
-      <!-- COMPANIES -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showCompanyDropdown')">
-          <span class="header-title">
-            <i class="bi bi-building icon-accent"></i> Companies
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showCompanyDropdown">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showCompanyDropdown" class="filter-content-wrap dropdown-wrap">
-          <div class="company-search-box-wrapper">
-            <i class="bi bi-search search-icon-inner"></i>
-            <input
-              type="text"
-              placeholder="Search company..."
-              [(ngModel)]="companySearch"
-              class="search-box-inner"
-            />
-          </div>
-          <div class="company-list-scroll">
-            <label *ngFor="let c of filteredCompanies" class="checkbox-container checkbox-item">
-              <input
-                type="checkbox"
-                [checked]="filters.company.includes(c.name)"
-                (change)="toggleFilter('company', c.name)"
-              />
-              <span class="custom-chk"></span>
-              <span class="company-name-label">{{ c.name }}</span>
-              <span class="company-count-badge">{{ c.count }}</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- EXPERIENCE -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showExperience')">
-          <span class="header-title">
-            <i class="bi bi-briefcase icon-accent"></i> Experience
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showExperience">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showExperience" class="filter-content-wrap">
-          <label class="checkbox-container" *ngFor="let e of ['0', '3', '5', '10']">
-            <input type="checkbox" [checked]="filters.experience.includes(e)" (change)="toggleFilter('experience', e)" />
-            <span class="custom-chk"></span>
-            {{ e === '0' ? 'Entry Level (0+ yrs)' : e + '+ yrs Experience' }}
-          </label>
-        </div>
-      </div>
-
-      <!-- SKILLS -->
-      <div class="filter-block">
-        <div class="filter-header" (click)="toggleSection('showSkills')">
-          <span class="header-title">
-            <i class="bi bi-award icon-accent"></i> Core Skills
-          </span>
-          <span class="arrow-icon" [class.rotated]="!showSkills">
-            <i class="bi bi-chevron-up"></i>
-          </span>
-        </div>
-        <div *ngIf="showSkills" class="filter-content-wrap">
-          <label class="checkbox-container" *ngFor="let s of ['Java', 'React', 'Python', 'Angular']">
-            <input type="checkbox" [checked]="filters.skill.includes(s)" (change)="toggleFilter('skill', s)" />
-            <span class="custom-chk"></span>
-            {{ s }}
-          </label>
-        </div>
-      </div>
-
-      <!-- ACTIONS -->
-      <div class="actions">
-        <button
-          class="apply-btn"
-          (click)="applyAll()"
-          [disabled]="!searchText && selectedFilters.length === 0 && !filters.remote && !filters.date"
-        >
-          <i class="bi bi-check-circle"></i> Apply Filters
-        </button>
-        <button class="clear-btn" (click)="clearFilters()">
-          <i class="bi bi-arrow-clockwise"></i> Reset All
-        </button>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
+  <!-- MAIN JOB PORTAL LAYOUT (FULL SCREEN WIDTH) -->
+  <section class="layout full-width-layout">
     <div class="content">
-      <!-- SEARCH HEADER -->
-      <header class="header">
-        <div class="search-bar-wrapper">
-          <i class="bi bi-search main-search-icon"></i>
-          <input
-            type="search"
-            placeholder="Search matching job roles, keys, or organizations..."
-            [(ngModel)]="searchText"
-            (ngModelChange)="page = 0"
-            (keydown.enter)="applyAll()"
-          />
-          <button class="search-action-btn" (click)="applyAll()">Search</button>
-        </div>
-      </header>
 
-      <!-- TRENDING SEARCHES -->
+      <!-- QUICK SEGMENT NAVIGATION BAR -->
+      <div class="quick-segments-nav">
+        <button class="segment-btn" [class.active]="activeSegment === 'all'" (click)="setQuickSegment('all')">
+          <i class="bi bi-briefcase-fill"></i> All Opportunities
+        </button>
+        <button class="segment-btn segment-fresher" [class.active]="activeSegment === 'fresher'"
+          (click)="setQuickSegment('fresher')">
+          <i class="bi bi-patch-check-fill"></i> Freshers Portal (0-2 Yrs)
+        </button>
+        <button class="segment-btn segment-internship" [class.active]="activeSegment === 'internship'"
+          (click)="setQuickSegment('internship')">
+          <i class="bi bi-mortarboard-fill"></i> Internship Hub
+        </button>
+        <button class="segment-btn segment-walkin" [class.active]="activeSegment === 'walkin'"
+          (click)="setQuickSegment('walkin')">
+          <i class="bi bi-people-fill"></i> Walk-In Drives
+        </button>
+      </div>
+
+      <!-- PROMOTIONAL HERO BANNER (FLASH SALES / DRIVES) -->
+      <div class="promotional-hero-banner">
+        <div class="banner-badge">Placement Alert</div>
+        <div class="banner-content">
+          <h4>Vidhura Direct Job Drives 2026</h4>
+          <p>Get exclusive interview opportunities with top tier Indian tech brands. Apply to verified Fresher &
+            Internship pipelines with direct feedback channels.</p>
+        </div>
+        <div class="banner-action">
+          <button class="btn-banner-cta" (click)="setQuickSegment('fresher')">
+            Browse Placement Drives <i class="bi bi-lightning-charge-fill"></i>
+          </button>
+        </div>
+        <div class="banner-bg-elements">
+          <div class="bubble bubble-1"></div>
+          <div class="bubble bubble-2"></div>
+        </div>
+      </div>
+
+      <!-- INTEGRATED SEARCH & HORIZONTAL FILTER CONSOLE HUB -->
+      <div class="search-filter-hub card-shadow">
+        <!-- Search bar input -->
+        <div class="search-row">
+          <div class="search-input-group">
+            <i class="bi bi-search main-search-icon"></i>
+            <input type="search" placeholder="Search matching job roles, key skills, or hiring organizations..."
+              [(ngModel)]="searchText" (ngModelChange)="page = 0" (keydown.enter)="applyAll()" />
+            <button class="search-action-btn" (click)="applyAll()">
+              <i class="bi bi-search me-1"></i> Find Jobs
+            </button>
+          </div>
+        </div>
+
+        <!-- Horizontal filter selectors -->
+        <div class="filter-row">
+
+          <!-- Locations Dropdown -->
+          <div class="filter-dropdown-container">
+            <button class="filter-tag-btn" [class.active]="filters.location.length > 0"
+              (click)="toggleDropdown('location')">
+              <i class="bi bi-geo-alt-fill me-1"></i> Locations
+              <span class="btn-badge" *ngIf="filters.location.length > 0">{{ filters.location.length }}</span>
+              <i class="bi bi-chevron-down ms-1 caret"></i>
+            </button>
+            <div class="dropdown-pane glass-pane" *ngIf="activeDropdown === 'location'">
+              <div class="pane-header">Select Location</div>
+              <div class="pane-list">
+                <label class="chk-item" *ngFor="let l of locationsWithCount">
+                  <input type="checkbox" [checked]="filters.location.includes(l.name)"
+                    (change)="toggleFilter('location', l.name)" />
+                  <span class="custom-chk"></span>
+                  <span class="chk-label">{{ l.name }} <strong class="badge-count">({{ l.count }})</strong></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills Dropdown -->
+          <div class="filter-dropdown-container">
+            <button class="filter-tag-btn" [class.active]="filters.skill.length > 0" (click)="toggleDropdown('skill')">
+              <i class="bi bi-code-slash me-1"></i> Skills
+              <span class="btn-badge" *ngIf="filters.skill.length > 0">{{ filters.skill.length }}</span>
+              <i class="bi bi-chevron-down ms-1 caret"></i>
+            </button>
+            <div class="dropdown-pane glass-pane" *ngIf="activeDropdown === 'skill'">
+              <div class="pane-header">Select Technology</div>
+              <div class="pane-list">
+                <label class="chk-item" *ngFor="let s of skillsWithCount">
+                  <input type="checkbox" [checked]="filters.skill.includes(s.name)"
+                    (change)="toggleFilter('skill', s.name)" />
+                  <span class="custom-chk"></span>
+                  <span class="chk-label">{{ s.name }} <strong class="badge-count">({{ s.count }})</strong></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Experience Dropdown -->
+          <div class="filter-dropdown-container">
+            <button class="filter-tag-btn" [class.active]="filters.experience.length > 0"
+              (click)="toggleDropdown('experience')">
+              <i class="bi bi-person-workspace me-1"></i> Experience
+              <span class="btn-badge" *ngIf="filters.experience.length > 0">{{ filters.experience.length }}</span>
+              <i class="bi bi-chevron-down ms-1 caret"></i>
+            </button>
+            <div class="dropdown-pane glass-pane" *ngIf="activeDropdown === 'experience'">
+              <div class="pane-header">Tenure Requirement</div>
+              <div class="pane-list">
+                <label class="chk-item" *ngFor="let e of ['0', '3', '5', '10']">
+                  <input type="checkbox" [checked]="filters.experience.includes(e)"
+                    (change)="toggleFilter('experience', e)" />
+                  <span class="custom-chk"></span>
+                  <span class="chk-label">{{ e === '0' ? 'Entry Level (0+ yrs)' : e + '+ yrs Experience' }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Companies Dropdown -->
+          <div class="filter-dropdown-container">
+            <button class="filter-tag-btn" [class.active]="filters.company.length > 0"
+              (click)="toggleDropdown('company')">
+              <i class="bi bi-building me-1"></i> Companies
+              <span class="btn-badge" *ngIf="filters.company.length > 0">{{ filters.company.length }}</span>
+              <i class="bi bi-chevron-down ms-1 caret"></i>
+            </button>
+            <div class="dropdown-pane glass-pane" *ngIf="activeDropdown === 'company'">
+              <div class="pane-header">Hiring Brands</div>
+              <div class="pane-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search company..." [(ngModel)]="companySearch"
+                  (click)="$event.stopPropagation()" />
+              </div>
+              <div class="pane-list">
+                <label class="chk-item" *ngFor="let c of filteredCompanies">
+                  <input type="checkbox" [checked]="filters.company.includes(c.name)"
+                    (change)="toggleFilter('company', c.name)" />
+                  <span class="custom-chk"></span>
+                  <span class="chk-label">{{ c.name }} <strong class="badge-count">({{ c.count }})</strong></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sort Priority Dropdown -->
+          <div class="filter-dropdown-container">
+            <button class="filter-tag-btn" (click)="toggleDropdown('sort')">
+              <i class="bi bi-sort-down me-1"></i> Order: {{ filters.sort === 'latest' ? 'Latest' : 'Oldest' }}
+              <i class="bi bi-chevron-down ms-1 caret"></i>
+            </button>
+            <div class="dropdown-pane glass-pane" *ngIf="activeDropdown === 'sort'">
+              <div class="pane-header">Sort Priority</div>
+              <div class="pane-list">
+                <label class="chk-item radio-item">
+                  <input type="radio" name="sort" value="latest" [(ngModel)]="filters.sort"
+                    (change)="page = 0; applyAll(); activeDropdown = null;" />
+                  <span class="custom-radio"></span>
+                  <span class="chk-label">Latest Listings</span>
+                </label>
+                <label class="chk-item radio-item">
+                  <input type="radio" name="sort" value="oldest" [(ngModel)]="filters.sort"
+                    (change)="page = 0; applyAll(); activeDropdown = null;" />
+                  <span class="custom-radio"></span>
+                  <span class="chk-label">Oldest Listings</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Remote IOS Toggle -->
+          <label class="ios-switch-container">
+            <input type="checkbox" [(ngModel)]="filters.remote" (change)="page = 0; applyAll()" />
+            <span class="ios-switch"></span>
+            <span class="label-text">Remote Only</span>
+          </label>
+
+          <!-- Reset Button -->
+          <button class="btn-reset-filters" (click)="clearFilters(); activeDropdown = null;" title="Reset Filters">
+            <i class="bi bi-arrow-clockwise"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- TRENDING KEYWORDS CLOUD -->
       <div class="trending-searches-wrapper">
-        <span class="trending-label"><i class="bi bi-fire text-coral"></i> Trending:</span>
+        <span class="trending-label"><i class="bi bi-fire text-coral"></i> Hot Topics:</span>
         <div class="trending-pills">
-          <span *ngFor="let term of trendingSearches" (click)="selectTrendingSearch(term)" class="trending-pill">
-            {{ term }}
+          <span (click)="selectTrendingSearch('Java')" class="trending-pill">
+            <i class="bi bi-code-slash text-primary me-1"></i> Java
+          </span>
+          <span (click)="selectTrendingSearch('React')" class="trending-pill">
+            <i class="bi bi-brightness-high text-info me-1"></i> React
+          </span>
+          <span (click)="selectTrendingSearch('Angular')" class="trending-pill">
+            <i class="bi bi-shield-shaded text-danger me-1"></i> Angular
+          </span>
+          <span (click)="selectTrendingSearch('Python')" class="trending-pill">
+            <i class="bi bi-terminal text-warning me-1"></i> Python
+          </span>
+          <span (click)="selectTrendingSearch('Remote')" class="trending-pill">
+            <i class="bi bi-laptop text-success me-1"></i> Remote
+          </span>
+          <span (click)="selectTrendingSearch('Spring Boot')" class="trending-pill">
+            <i class="bi bi-leaf text-success me-1"></i> Spring Boot
+          </span>
+          <span (click)="selectTrendingSearch('Hyderabad')" class="trending-pill">
+            <i class="bi bi-geo-alt text-danger me-1"></i> Hyderabad
+          </span>
+          <span (click)="selectTrendingSearch('Bangalore')" class="trending-pill">
+            <i class="bi bi-geo text-primary me-1"></i> Bangalore
           </span>
         </div>
       </div>
 
-      <!-- ACTIVE FILTERS SUMMARY TAGS -->
+      <!-- ACTIVE FILTERS TAG LIST -->
       <div class="active-tags-row" *ngIf="selectedFilters.length > 0">
-        <span class="active-tag-label">Active Filters:</span>
+        <span class="active-tag-label"><i class="bi bi-tags-fill text-accent"></i> Filtering:</span>
         <div class="active-tags-list">
           <span class="tag-pill" *ngFor="let f of selectedFilters">
-            {{ f }}
+            {{ f }} <i class="bi bi-x-circle-fill close-tag" (click)="removeFilterTag(f)"></i>
           </span>
         </div>
       </div>
 
-      <!-- CONTROLS & LAYOUT TOGGLES -->
-      <div class="results-controls-bar">
-        <div class="results-count">
-          Showing <span class="highlight">{{ getStartIndex() }}</span> - <span class="highlight">{{ getEndIndex() }}</span> of <span class="highlight">{{ totalJobs }}</span> matching opportunities
+      <!-- RESULTS PANEL & LISTINGS -->
+
+      <!-- Left Side: Listings and Pagination -->
+      <div class="listings-container-col">
+
+        <!-- RESULTS PANEL CONTROLS -->
+        <div class="results-controls-bar">
+          <div class="results-count">
+            Showing <span class="highlight">{{ getStartIndex() }}</span> - <span class="highlight">{{ getEndIndex()
+              }}</span> of <span class="highlight">{{ totalJobs }}</span> matching opportunities
+          </div>
+          <div class="layout-toggles">
+            <button class="toggle-layout-btn" [class.active]="viewMode === 'grid'" (click)="changeViewMode('grid')"
+              title="Grid Layout">
+              <i class="bi bi-grid-fill"></i> Grid
+            </button>
+            <button class="toggle-layout-btn" [class.active]="viewMode === 'list'" (click)="changeViewMode('list')"
+              title="List Layout">
+              <i class="bi bi-list-task"></i> List
+            </button>
+          </div>
         </div>
-        <div class="layout-toggles">
-          <button class="toggle-layout-btn" [class.active]="viewMode === 'grid'" (click)="changeViewMode('grid')" title="Grid View">
-            <i class="bi bi-grid-3x3-gap-fill"></i> Grid
-          </button>
-          <button class="toggle-layout-btn" [class.active]="viewMode === 'list'" (click)="changeViewMode('list')" title="List View">
-            <i class="bi bi-list-ul"></i> List
-          </button>
-        </div>
+
+        <!-- JOB GRID AND LIST CONTAINER -->
+        <ng-container *ngIf="jobs$ | async as res">
+          <main class="job-grid" [class.list-layout]="viewMode === 'list'">
+            <!-- SKELETON LOADER STATE -->
+            <ng-container *ngIf="loading">
+              <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4, 5, 6]"
+                [class.skeleton-list-card]="viewMode === 'list'">
+                <div class="skeleton-shimmer"></div>
+                <div class="skeleton-header">
+                  <div class="skeleton-circle"></div>
+                  <div class="skeleton-lines">
+                    <div class="skeleton-line-long"></div>
+                    <div class="skeleton-line-short"></div>
+                  </div>
+                </div>
+                <div class="skeleton-meta"></div>
+                <div class="skeleton-chips">
+                  <div class="skeleton-chip"></div>
+                  <div class="skeleton-chip"></div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- RENDERED JOB DATA -->
+            <ng-container *ngIf="!loading">
+              <!-- EMPTY SEARCH RESULTS STATE -->
+              <div *ngIf="!res?.content || res.content.length === 0" class="empty-state-card">
+                <div class="empty-icon-wrap">
+                  <i class="bi bi-folder-x"></i>
+                </div>
+                <h3>No Opportunities Located</h3>
+                <p>We couldn't locate any matching roles matching these search filter parameters. Try resetting your
+                  active filter values.</p>
+                <button class="clear-filters-link" (click)="clearFilters()">
+                  <i class="bi bi-arrow-counterclockwise"></i> Reset Workspace Filters
+                </button>
+              </div>
+
+              <!-- DYNAMIC PREMIUM JOB CARD -->
+              <article *ngFor="let job of res.content" class="job-card" [class.list-mode-card]="viewMode === 'list'"
+                [class.remote-card]="job.location === 'Remote'"
+                [class.hybrid-card]="job.location && job.location.toLowerCase().includes('hybrid')"
+                [class.onsite-card]="job.location && job.location !== 'Remote' && !job.location.toLowerCase().includes('hybrid')"
+                (click)="openQuickView(job, $event)">
+                <!-- Sparkly shine sweep visual overlay -->
+                <div class="card-shine"></div>
+
+                <div class="card-inner">
+                  <!-- Header row details -->
+                  <div class="card-top-header">
+                    <div class="logo-box">
+                      <img [src]="getCompanyLogo(job.companyName)" (error)="onLogoError($event, job.companyName)"
+                        alt="{{ job.companyName }} Logo" />
+                    </div>
+                    <div class="job-role-info">
+                      <div class="company-badge-row">
+                        <span class="company-name">{{ job.companyName }}</span>
+                        <span class="rating-badge"><i class="bi bi-star-fill text-amber me-1"></i>{{
+                          getCompanyRating(job.companyName) }}</span>
+                        <span class="verified-check" title="Verified Board Scrape"><i
+                            class="bi bi-patch-check-fill text-primary"></i></span>
+                      </div>
+                      <div class="job-highlights-row"
+                        *ngIf="job.jobType === 'Walk-in' || (job.title && (job.title.toLowerCase().includes('walk-in') || job.title.toLowerCase().includes('walkin'))) || job.jobType === 'Internship' || (job.title && job.title.toLowerCase().includes('intern')) || (job.experience && (job.experience.includes('0-1') || job.experience.includes('0-2') || job.experience.startsWith('0')))">
+                        <span class="highlight-badge badge-walkin"
+                          *ngIf="job.jobType === 'Walk-in' || (job.title && (job.title.toLowerCase().includes('walk-in') || job.title.toLowerCase().includes('walkin')))">
+                          <i class="bi bi-lightning-fill"></i> 🚶 Walk-In Drive
+                        </span>
+                        <span class="highlight-badge badge-internship"
+                          *ngIf="job.jobType === 'Internship' || (job.title && job.title.toLowerCase().includes('intern'))">
+                          <i class="bi bi-mortarboard-fill"></i> 🎓 Internship
+                        </span>
+                        <span class="highlight-badge badge-fresher"
+                          *ngIf="job.jobType !== 'Internship' && !(job.title && job.title.toLowerCase().includes('intern')) && job.jobType !== 'Walk-in' && !(job.title && job.title.toLowerCase().includes('walk-in')) && !(job.title && job.title.toLowerCase().includes('walkin')) && (job.experience && (job.experience.includes('0-1') || job.experience.includes('0-2') || job.experience.startsWith('0')))">
+                          <i class="bi bi-patch-check-fill"></i> 🌱 Fresher
+                        </span>
+                      </div>
+                      <h3 class="job-title" (click)="goToDetail(job.id); $event.stopPropagation()">{{ job.title }}</h3>
+                    </div>
+
+                    <div class="match-score-badge" title="Profile Match Estimate">
+                      <span class="match-glow"></span>
+                      <i class="bi bi-stars"></i> {{ getMatchScore(job.title) }}% Match
+                    </div>
+                  </div>
+
+                  <!-- Mid card metadata row -->
+                  <div class="meta">
+                    <span class="meta-item location-tag">
+                      <i class="bi bi-geo-alt-fill"></i> {{ job.location }}
+                    </span>
+                    <span class="meta-item exp-tag">
+                      <i class="bi bi-person-workspace"></i> {{ job.experience ? job.experience + '+ Yrs Experience' :
+                      'Entry Level' }}
+                    </span>
+                    <span class="meta-item type-tag" *ngIf="job.jobType">
+                      <i class="bi bi-clock-history"></i> {{ job.jobType }}
+                    </span>
+                    <span class="meta-item applicant-count-tag">
+                      <i class="bi bi-people-fill text-primary"></i> {{ getApplicantsCount(job.id) }} Applied
+                    </span>
+                    <span class="meta-item source-tag" *ngIf="job.source">
+                      <i class="bi bi-box-arrow-up-right text-info"></i> {{ job.source }}
+                    </span>
+                    <span class="meta-item id-tag">
+                      <i class="bi bi-hash text-warning"></i> ID: #{{ job.id }}
+                    </span>
+                  </div>
+
+                  <!-- Core Technologies chips -->
+                  <div class="skills" *ngIf="job.skills && job.skills.length > 0">
+                    <span *ngFor="let s of job.skills | slice: 0 : 3" class="skill-chip">
+                      {{ s }}
+                    </span>
+                    <span class="skill-chip-more" *ngIf="job.skills.length > 3">
+                      +{{ job.skills.length - 3 }} Skills
+                    </span>
+                  </div>
+
+                  <!-- Card bottom actions -->
+                  <div class="card-footer-row">
+                    <div class="footer-meta-row">
+                      <div class="salary-estimate">
+                        <i class="bi bi-wallet2 text-emerald me-1"></i> {{ getSimulatedSalary(job) }}
+                      </div>
+
+                      <div class="posted-badge">
+                        <i class="bi bi-calendar-check me-1"></i> {{ getPostedAgo(job.postedAt) }}
+                      </div>
+                    </div>
+
+                    <div class="card-actions">
+                      <button class="quick-view-action-btn" (click)="openQuickView(job, $event)">
+                        <i class="bi bi-eye"></i> Quick View
+                      </button>
+                      <button class="view-job-btn" (click)="goToDetail(job.id); $event.stopPropagation()">
+                        Details <i class="bi bi-arrow-right-short"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </ng-container>
+          </main>
+
+          <!-- PAGINATION SLIDING INDICATOR CONSOLE -->
+          <div class="pagination-wrapper" *ngIf="!loading && res?.content && res.content.length > 0">
+            <div class="job-count">
+              Showing <strong class="text-accent">{{ getStartIndex() }}</strong> - <strong class="text-accent">{{
+                getEndIndex() }}</strong> of <strong class="text-accent">{{ totalJobs }}</strong> available openings
+            </div>
+
+            <div class="pagination-console">
+              <!-- Left Navigation -->
+              <div class="pagination-actions">
+                <button class="pag-control-btn" (click)="goToPage(0)" [disabled]="page === 0" title="First Page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+                <button class="pag-control-btn" (click)="prevPage()" [disabled]="page === 0" title="Previous Page">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              </div>
+
+              <!-- Center Progress and Pages -->
+              <div class="pagination-pages-track">
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill"
+                    [style.width.%]="totalPages > 1 ? ((page + 1) / totalPages * 100) : 100"></div>
+                </div>
+                <div class="page-numbers-row">
+                  <button *ngFor="let i of getVisiblePages()" (click)="goToPage(i)" class="page-circle-btn"
+                    [class.active]="i === page">
+                    {{ i + 1 }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right Navigation -->
+              <div class="pagination-actions">
+                <button class="pag-control-btn" (click)="nextPage()" [disabled]="page === totalPages - 1"
+                  title="Next Page">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+                <button class="pag-control-btn" (click)="goToPage(totalPages - 1)" [disabled]="page === totalPages - 1"
+                  title="Last Page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </div>
+
+              <!-- Meta page count label -->
+              <span class="pagination-page-lbl">Page {{ page + 1 }} of {{ totalPages }}</span>
+            </div>
+          </div>
+        </ng-container>
+
       </div>
 
-      <!-- JOB LIST -->
-      <ng-container *ngIf="jobs$ | async as res">
-        <main class="job-grid" [class.list-layout]="viewMode === 'list'">
-          <!-- SKELETON LOADER -->
-          <ng-container *ngIf="loading">
-            <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4, 5, 6]" [class.skeleton-list-card]="viewMode === 'list'">
-              <div class="skeleton-shimmer"></div>
-              <div class="skeleton-header">
-                <div class="skeleton-circle"></div>
-                <div class="skeleton-lines">
-                  <div class="skeleton-line-long"></div>
-                  <div class="skeleton-line-short"></div>
-                </div>
-              </div>
-              <div class="skeleton-meta"></div>
-              <div class="skeleton-chips">
-                <div class="skeleton-chip"></div>
-                <div class="skeleton-chip"></div>
-              </div>
+      <!-- PREMIUM ADDITIONAL SERVICES ROW -->
+      <section class="promotional-horizontal-row">
+        <!-- Card 1: AI Resume Scanner -->
+        <div class="promo-sidebar-card">
+          <div class="promo-header-row">
+            <div class="promo-meta-block">
+              <span class="promo-badge-text">AI Scanner</span>
+              <h4 class="promo-title">Vidhura AI Resume Scan</h4>
             </div>
-          </ng-container>
-
-          <!-- DATA -->
-          <ng-container *ngIf="!loading">
-            <!-- EMPTY STATE -->
-            <div *ngIf="!res?.content || res.content.length === 0" class="empty-state-card">
-              <div class="empty-icon-wrap">
-                <i class="bi bi-slash-circle"></i>
-              </div>
-              <h3>No matching opportunities found</h3>
-              <p>Try refining your search terms or relaxing filter options to view wider opportunities.</p>
-              <button class="clear-filters-link" (click)="clearFilters()">Reset All Filters</button>
+            <div class="promo-icon-wrap">
+              <i class="bi bi-cpu-fill"></i>
             </div>
-
-            <!-- JOB CARDS -->
-            <article
-              *ngFor="let job of res.content"
-              class="job-card"
-              [class.list-mode-card]="viewMode === 'list'"
-              (click)="openQuickView(job, $event)"
-            >
-              <div class="card-inner">
-                <!-- Top Header Row -->
-                <div class="card-top-header">
-                  <div class="logo-box">
-                    <img
-                      [src]="getCompanyLogo(job.companyName)"
-                      (error)="onLogoError($event, job.companyName)"
-                      alt="{{ job.companyName }} logo"
-                    />
-                  </div>
-                  <div class="job-role-info">
-                    <h3 class="job-title" (click)="goToDetail(job.id); $event.stopPropagation()">{{ job.title }}</h3>
-                    <p class="company">{{ job.companyName }}</p>
-                  </div>
-                  <div class="posted-badge">
-                    <i class="bi bi-clock"></i> {{ getPostedAgo(job.postedAt) }}
-                  </div>
-                </div>
-
-                <!-- Meta Row -->
-                <div class="meta">
-                  <span class="meta-item location-tag">
-                    <i class="bi bi-geo-alt"></i> {{ job.location }}
-                  </span>
-                  <span class="meta-item exp-tag">
-                    <i class="bi bi-briefcase"></i> {{ job.experience ? job.experience + '+ yrs exp' : 'Not specified' }}
-                  </span>
-                  <span class="meta-item type-tag" *ngIf="job.jobType">
-                    <i class="bi bi-clock-history"></i> {{ job.jobType }}
-                  </span>
-                </div>
-
-                <!-- Skills Cloud row -->
-                <div class="skills" *ngIf="job.skills && job.skills.length > 0">
-                  <span *ngFor="let s of job.skills | slice: 0 : 3" class="skill-chip">
-                    {{ s }}
-                  </span>
-                  <span class="skill-chip-more" *ngIf="job.skills.length > 3">
-                    +{{ job.skills.length - 3 }}
-                  </span>
-                </div>
-
-                <!-- Footer Action -->
-                <div class="card-footer-row">
-                  <div class="salary-estimate" *ngIf="job.salary">
-                    <i class="bi bi-wallet2"></i> {{ job.salary }}
-                  </div>
-                  <div class="salary-estimate undisclosed" *ngIf="!job.salary">
-                    <i class="bi bi-wallet2"></i> Not Disclosed
-                  </div>
-                  <div class="card-actions">
-                    <button class="quick-view-action-btn" (click)="openQuickView(job, $event)">
-                      Quick View
-                    </button>
-                    <button class="view-job-btn" (click)="goToDetail(job.id); $event.stopPropagation()">
-                      Details <i class="bi bi-arrow-right"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-          </ng-container>
-        </main>
-
-        <!-- PAGINATION CONTROLS -->
-        <div class="pagination-wrapper" *ngIf="!loading && res?.content && res.content.length > 0">
-          <div class="job-count">
-            Showing <strong class="text-accent">{{ getStartIndex() }}</strong> - <strong class="text-accent">{{ getEndIndex() }}</strong> of <strong class="text-accent">{{ totalJobs }}</strong> available opportunities
           </div>
-          <div class="pagination">
-            <button class="pag-nav-btn" (click)="prevPage()" [disabled]="page === 0">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button
-              *ngFor="let i of getVisiblePages()"
-              (click)="goToPage(i)"
-              class="pag-num-btn"
-              [class.active]="i === page"
-            >
-              {{ i + 1 }}
-            </button>
-            <button class="pag-nav-btn" (click)="nextPage()" [disabled]="page === totalPages - 1">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+          <p class="promo-desc">
+            Instantly evaluate your developer profile against target descriptions. Discover missing keywords, optimize
+            formatting, and match top employer indexes.
+          </p>
+          <button class="promo-action-btn" [routerLink]="['/resume-scanner']">
+            Scan Your Resume <i class="bi bi-arrow-right-short"></i>
+          </button>
+        </div>
+
+        <!-- Card 2: 1:1 Live Mock Interviews -->
+        <div class="promo-sidebar-card dark-promo">
+          <div class="promo-header-row">
+            <div class="promo-meta-block">
+              <span class="promo-badge-text">Mentorship</span>
+              <h4 class="promo-title">1:1 Live Mock Prep</h4>
+            </div>
+            <div class="promo-icon-wrap">
+              <i class="bi bi-people-fill"></i>
+            </div>
+          </div>
+          <p class="promo-desc">
+            Book live system design, data structures, or frontend mock rounds with tech mentors from Google, Amazon, and
+            Microsoft. Get direct job referrals.
+          </p>
+          <button class="promo-action-btn" [routerLink]="['/mentors']">
+            Find Tech Mentors <i class="bi bi-arrow-right-short"></i>
+          </button>
+        </div>
+
+        <!-- Card 3: Intensive Coding Bootcamps -->
+        <div class="promo-sidebar-card gradient-promo">
+          <div class="promo-header-row">
+            <div class="promo-meta-block">
+              <span class="promo-badge-text">Tracks</span>
+              <h4 class="promo-title">Placement Coding Tracks</h4>
+            </div>
+            <div class="promo-icon-wrap">
+              <i class="bi bi-code-square"></i>
+            </div>
+          </div>
+          <p class="promo-desc">
+            Acquire job-ready full stack development, cloud, and backend skills. Guarantees daily recruitment drive
+            access and direct company listings.
+          </p>
+          <button class="promo-action-btn" [routerLink]="['/explore-tracks']">
+            Explore Bootcamps <i class="bi bi-arrow-right-short"></i>
+          </button>
+        </div>
+
+        <!-- Card 4: Placement Statistics -->
+        <div class="promo-sidebar-card">
+          <h4 class="promo-title"><i class="bi bi-graph-up-arrow text-primary"></i> Placement Record</h4>
+          <div class="promo-stats-box">
+            <div class="promo-stat-row">
+              <span class="promo-stat-lbl">Average Package:</span>
+              <span class="promo-stat-val">₹8.4 L.P.A</span>
+            </div>
+            <div class="promo-stat-row">
+              <span class="promo-stat-lbl">Highest Package:</span>
+              <span class="promo-stat-val">₹48.0 L.P.A</span>
+            </div>
+            <div class="promo-stat-row">
+              <span class="promo-stat-lbl">Hiring Tech Brands:</span>
+              <span class="promo-stat-val">450+ Companies</span>
+            </div>
+          </div>
+          <div class="promo-partners-row">
+            <div class="promo-partner-avatar" title="Razorpay">
+              <img src="https://www.google.com/s2/favicons?domain=razorpay.com&sz=128" alt="Razorpay" />
+            </div>
+            <div class="promo-partner-avatar" title="Groww">
+              <img src="https://www.google.com/s2/favicons?domain=groww.in&sz=128" alt="Groww" />
+            </div>
+            <div class="promo-partner-avatar" title="PhonePe">
+              <img src="https://www.google.com/s2/favicons?domain=phonepe.com&sz=128" alt="PhonePe" />
+            </div>
+            <div class="promo-partner-avatar" title="Zoho">
+              <img src="https://www.google.com/s2/favicons?domain=zoho.com&sz=128" alt="Zoho" />
+            </div>
+            <div class="promo-partner-avatar" title="+446 more">
+              <span>+446</span>
+            </div>
           </div>
         </div>
-      </ng-container>
+      </section>
     </div>
   </section>
 
-  <!-- QUICK VIEW SIDE DRAWER -->
+  <!-- QUICK VIEW DRAWER AND BACKDROP -->
   <div class="quick-view-backdrop" *ngIf="selectedJob" (click)="closeQuickView()"></div>
   <aside class="quick-view-drawer" [class.drawer-open]="selectedJob">
-    <div class="drawer-header" *ngIf="selectedJob">
-      <div class="drawer-header-left">
-        <span class="drawer-subtitle">Vidhura Job Portal</span>
-        <h3 class="drawer-title">{{ selectedJob.title }}</h3>
-      </div>
-      <button class="close-drawer-btn" (click)="closeQuickView()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    
-    <div class="drawer-body" *ngIf="selectedJob">
-      <!-- Company Card -->
-      <div class="drawer-company-card">
-        <div class="drawer-logo-box">
-          <img [src]="getCompanyLogo(selectedJob.companyName)" (error)="onLogoError($event, selectedJob.companyName)" alt="logo">
-        </div>
-        <div class="drawer-company-details">
-          <h4>{{ selectedJob.companyName }}</h4>
-          <span class="drawer-source-badge">
-            <i class="bi bi-globe"></i> Source: {{ selectedJob.source || 'VidhuraTech API' }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Quick Badges Grid -->
-      <div class="drawer-badges-grid">
-        <div class="drawer-badge-card badge-blue">
-          <i class="bi bi-geo-alt"></i>
-          <div class="badge-content">
-            <span class="badge-label">Location</span>
-            <span class="badge-val">{{ selectedJob.location }}</span>
+    <ng-container *ngIf="selectedJob">
+      <!-- Header panel -->
+      <div class="drawer-header">
+        <div class="drawer-header-left">
+          <span class="drawer-subtitle"><i class="bi bi-shield-check"></i> V-TECH PREMIUM JOB CONNECT</span>
+          <h3 class="drawer-title">{{ selectedJob.title }}</h3>
+          <div class="drawer-highlights-row" style="margin-top: 8px;"
+            *ngIf="selectedJob.jobType === 'Walk-in' || (selectedJob.title && (selectedJob.title.toLowerCase().includes('walk-in') || selectedJob.title.toLowerCase().includes('walkin'))) || selectedJob.jobType === 'Internship' || (selectedJob.title && selectedJob.title.toLowerCase().includes('intern')) || (selectedJob.experience && (selectedJob.experience.includes('0-1') || selectedJob.experience.includes('0-2') || selectedJob.experience.startsWith('0')))">
+            <span class="highlight-badge badge-walkin"
+              *ngIf="selectedJob.jobType === 'Walk-in' || (selectedJob.title && (selectedJob.title.toLowerCase().includes('walk-in') || selectedJob.title.toLowerCase().includes('walkin')))">
+              <i class="bi bi-lightning-fill"></i> 🚶 Walk-In Interview Drive
+            </span>
+            <span class="highlight-badge badge-internship"
+              *ngIf="selectedJob.jobType === 'Internship' || (selectedJob.title && selectedJob.title.toLowerCase().includes('intern'))">
+              <i class="bi bi-mortarboard-fill"></i> 🎓 Internship
+            </span>
+            <span class="highlight-badge badge-fresher"
+              *ngIf="selectedJob.jobType !== 'Internship' && !(selectedJob.title && selectedJob.title.toLowerCase().includes('intern')) && selectedJob.jobType !== 'Walk-in' && !(selectedJob.title && selectedJob.title.toLowerCase().includes('walk-in')) && !(selectedJob.title && selectedJob.title.toLowerCase().includes('walkin')) && (selectedJob.experience && (selectedJob.experience.includes('0-1') || selectedJob.experience.includes('0-2') || selectedJob.experience.startsWith('0')))">
+              <i class="bi bi-patch-check-fill"></i> 🌱 Fresher Role
+            </span>
           </div>
         </div>
-        <div class="drawer-badge-card badge-emerald">
-          <i class="bi bi-wallet2"></i>
-          <div class="badge-content">
-            <span class="badge-label">Compensation</span>
-            <span class="badge-val">{{ selectedJob.salary || 'Competitive' }}</span>
-          </div>
-        </div>
-        <div class="drawer-badge-card badge-orange">
-          <i class="bi bi-briefcase"></i>
-          <div class="badge-content">
-            <span class="badge-label">Experience</span>
-            <span class="badge-val">{{ selectedJob.experience ? selectedJob.experience + '+ Yrs' : 'Entry Level' }}</span>
-          </div>
-        </div>
-        <div class="drawer-badge-card badge-purple">
-          <i class="bi bi-laptop"></i>
-          <div class="badge-content">
-            <span class="badge-label">Mode / Type</span>
-            <span class="badge-val">{{ selectedJob.jobType || (selectedJob.remote ? 'Remote' : 'On-Site') }}</span>
-          </div>
-        </div>
+        <button class="close-drawer-btn" (click)="closeQuickView()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
 
-      <!-- Core Skills -->
-      <div class="drawer-section">
-        <h5 class="section-title"><i class="bi bi-award text-accent"></i> Key Competencies</h5>
-        <div class="drawer-skills-list">
-          <span class="drawer-skill-chip" *ngFor="let s of selectedJob.skills">{{ s }}</span>
-          <span class="no-skills-msg" *ngIf="!selectedJob.skills || selectedJob.skills.length === 0">General Engineering Profile</span>
-        </div>
+      <!-- Navigation Tabs inside Drawer -->
+      <div class="drawer-tab-navigation">
+        <button class="drawer-tab-btn" [class.active]="drawerTab === 'details'" (click)="setDrawerTab('details')">
+          <i class="bi bi-file-text-fill me-1"></i> Job Details
+        </button>
+        <button class="drawer-tab-btn" [class.active]="drawerTab === 'company'" (click)="setDrawerTab('company')">
+          <i class="bi bi-building-fill me-1"></i> Company
+        </button>
+        <button class="drawer-tab-btn" [class.active]="drawerTab === 'benefits'" (click)="setDrawerTab('benefits')">
+          <i class="bi bi-heart-pulse-fill me-1"></i> Benefits
+        </button>
+        <button class="drawer-tab-btn" [class.active]="drawerTab === 'apply'" (click)="setDrawerTab('apply')">
+          <i class="bi bi-send-fill me-1"></i> Quick Apply
+        </button>
       </div>
 
-      <!-- Role Description -->
-      <div class="drawer-section">
-        <h5 class="section-title"><i class="bi bi-file-earmark-text text-accent"></i> Job Summary</h5>
-        <div class="drawer-description-text">
-          <p>{{ selectedJob.description || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features.' }}</p>
-        </div>
-      </div>
+      <!-- Drawer scrollable details -->
+      <div class="drawer-body">
 
-      <!-- Quick Apply simulated form -->
-      <div class="drawer-section quick-apply-section">
-        <h5 class="section-title"><i class="bi bi-send text-accent"></i> Instant Application</h5>
-        
-        <form (submit)="submitQuickApply($event)" *ngIf="!applySuccess" class="quick-apply-form">
-          <div class="form-group">
-            <label for="apply-name">Full Name</label>
-            <input type="text" id="apply-name" name="applicantName" [(ngModel)]="applicantName" placeholder="Naveen Lingala" required class="drawer-form-input">
+        <!-- TAB 1: DETAILS -->
+        <div class="tab-pane-content" *ngIf="drawerTab === 'details'">
+          <!-- Company preview strip -->
+          <div class="drawer-company-card">
+            <div class="drawer-logo-box">
+              <img [src]="getCompanyLogo(selectedJob.companyName)"
+                (error)="onLogoError($event, selectedJob.companyName)" alt="Company Logo" />
+            </div>
+            <div class="drawer-company-details">
+              <h4>{{ selectedJob.companyName }}</h4>
+              <div class="drawer-company-rating-strip">
+                <span class="rating"><i class="bi bi-star-fill text-amber me-1"></i>{{
+                  getCompanyRating(selectedJob.companyName) }} Rating</span>
+                <span class="divider">|</span>
+                <span class="verified"><i class="bi bi-patch-check-fill text-primary me-1"></i>Verified Scrape</span>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="apply-email">Email Address</label>
-            <input type="email" id="apply-email" name="applicantEmail" [(ngModel)]="applicantEmail" placeholder="naveen@example.com" required class="drawer-form-input">
-          </div>
-          
-          <div class="apply-actions">
-            <button type="submit" class="drawer-apply-btn" [disabled]="isApplying || !applicantName || !applicantEmail">
-              <span *ngIf="!isApplying"><i class="bi bi-lightning-charge"></i> Quick Apply Now</span>
-              <span *ngIf="isApplying"><span class="spinner-border spinner-border-sm me-1" role="status"></span> Processing Application...</span>
-            </button>
-            <button type="button" class="drawer-detail-btn" (click)="goToDetail(selectedJob.id)">
-              Read Reviews <i class="bi bi-box-arrow-up-right"></i>
-            </button>
-          </div>
-        </form>
 
-        <!-- Apply Success Message -->
-        <div class="apply-success-card" *ngIf="applySuccess">
-          <div class="success-icon-wrap">
-            <i class="bi bi-check-circle-fill"></i>
+          <!-- Metric badges grid -->
+          <div class="drawer-badges-grid">
+            <div class="drawer-badge-card badge-blue">
+              <i class="bi bi-geo-alt-fill"></i>
+              <div class="badge-content">
+                <span class="badge-label">Job Location</span>
+                <span class="badge-val">{{ selectedJob.location }}</span>
+              </div>
+            </div>
+            <div class="drawer-badge-card badge-emerald">
+              <i class="bi bi-wallet2"></i>
+              <div class="badge-content">
+                <span class="badge-label">Compensation</span>
+                <span class="badge-val">{{ getSimulatedSalary(selectedJob) }}</span>
+              </div>
+            </div>
+            <div class="drawer-badge-card badge-orange">
+              <i class="bi bi-person-workspace"></i>
+              <div class="badge-content">
+                <span class="badge-label">Experience</span>
+                <span class="badge-val">{{ selectedJob.experience ? selectedJob.experience + '+ Yrs Required' : '0+ Yrs
+                  (Freshers)' }}</span>
+              </div>
+            </div>
+            <div class="drawer-badge-card badge-purple">
+              <i class="bi bi-clock-history"></i>
+              <div class="badge-content">
+                <span class="badge-label">Job Source</span>
+                <span class="badge-val">{{ selectedJob.source || 'Greenhouse API' }}</span>
+              </div>
+            </div>
+            <div class="drawer-badge-card badge-blue">
+              <i class="bi bi-hash"></i>
+              <div class="badge-content">
+                <span class="badge-label">Job ID</span>
+                <span class="badge-val">#{{ selectedJob.id }}</span>
+              </div>
+            </div>
+            <div class="drawer-badge-card badge-pink">
+              <i class="bi bi-calendar-check"></i>
+              <div class="badge-content">
+                <span class="badge-label">Posted Date</span>
+                <span class="badge-val">{{ getPostedAgo(selectedJob.postedAt) }}</span>
+              </div>
+            </div>
           </div>
-          <h4>Application Submitted!</h4>
-          <p>Your instant application has been submitted to <strong>{{ selectedJob.companyName }}</strong>. Good luck!</p>
+
+          <!-- Technical Competencies -->
+          <div class="drawer-section">
+            <h5 class="section-title"><i class="bi bi-code-slash text-accent"></i> Core Competencies</h5>
+            <div class="drawer-skills-list">
+              <span class="drawer-skill-chip" *ngFor="let s of selectedJob.skills">{{ s }}</span>
+              <span class="no-skills-msg" *ngIf="!selectedJob.skills || selectedJob.skills.length === 0">General
+                engineering skills required.</span>
+            </div>
+          </div>
+
+          <!-- Full description text -->
+          <div class="drawer-section">
+            <h5 class="section-title"><i class="bi bi-file-earmark-text text-accent"></i> Job Summary & Objectives</h5>
+            <div class="drawer-description-text"
+              [innerHTML]="selectedJob.description || 'Vidhura Tech helps consolidate active verified engineering roles. Join a dynamic product group working on modern cloud architectures.'">
+            </div>
+          </div>
         </div>
+
+        <!-- TAB 2: COMPANY INFO -->
+        <div class="tab-pane-content" *ngIf="drawerTab === 'company'">
+          <div class="drawer-section">
+            <h5 class="section-title"><i class="bi bi-info-circle text-accent"></i> Profile Details</h5>
+            <div class="company-detail-list">
+              <div class="company-detail-row">
+                <span class="label">Legal Name:</span>
+                <span class="value">{{ selectedJob.companyName }}</span>
+              </div>
+              <div class="company-detail-row">
+                <span class="label">Primary Headquarters:</span>
+                <span class="value">{{ selectedJob.location === 'Remote' ? 'Bengaluru, India' : selectedJob.location
+                  }}</span>
+              </div>
+              <div class="company-detail-row">
+                <span class="label">Hiring Status:</span>
+                <span class="value text-emerald">Active Hiring (Verified)</span>
+              </div>
+              <div class="company-detail-row">
+                <span class="label">Company Domain:</span>
+                <span class="value text-primary">{{ selectedJob.companyName.toLowerCase().replace(' ', '') }}.com</span>
+              </div>
+              <div class="company-detail-row">
+                <span class="label">Industry Focus:</span>
+                <span class="value">Software, Cloud Technologies, SaaS</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5 class="section-title"><i class="bi bi-quote text-accent"></i> Company Culture</h5>
+            <p class="drawer-description-text">
+              Our company prides itself on fostering innovation, learning, and collaborative transparency. We offer
+              developers a flexible working style and the autonomy to design resilient features.
+            </p>
+          </div>
+        </div>
+
+        <!-- TAB 3: BENEFITS -->
+        <div class="tab-pane-content" *ngIf="drawerTab === 'benefits'">
+          <div class="drawer-section">
+            <h5 class="section-title"><i class="bi bi-gift text-accent"></i> Typical Incentives</h5>
+            <div class="benefits-grid">
+              <div class="benefit-item-card">
+                <i class="bi bi-shield-plus text-emerald"></i>
+                <div class="benefit-item-info">
+                  <h6>Comprehensive Insurance</h6>
+                  <p>Medical, dental, and health coverage for you and family.</p>
+                </div>
+              </div>
+              <div class="benefit-item-card">
+                <i class="bi bi-house text-primary"></i>
+                <div class="benefit-item-info">
+                  <h6>Flexible Work Policy</h6>
+                  <p>Remote allowances and hybrid schedule configuration.</p>
+                </div>
+              </div>
+              <div class="benefit-item-card">
+                <i class="bi bi-mortarboard text-warning"></i>
+                <div class="benefit-item-info">
+                  <h6>Education Budget</h6>
+                  <p>Annual allocation for certifications, books, and courses.</p>
+                </div>
+              </div>
+              <div class="benefit-item-card">
+                <i class="bi bi-hourglass-split text-danger"></i>
+                <div class="benefit-item-info">
+                  <h6>Unlimited Leave</h6>
+                  <p>Rest and recover with flexible time-off policies.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: QUICK APPLY -->
+        <div class="tab-pane-content" *ngIf="drawerTab === 'apply'">
+          <div class="drawer-section quick-apply-section">
+            <h5 class="section-title"><i class="bi bi-lightning-charge text-accent"></i> Express Apply Form</h5>
+
+            <form (submit)="submitQuickApply($event)" *ngIf="!applySuccess" class="quick-apply-form">
+              <div class="form-group">
+                <label for="apply-name">Your Full Name</label>
+                <input type="text" id="apply-name" name="applicantName" [(ngModel)]="applicantName"
+                  placeholder="Naveen Lingala" required class="drawer-form-input" />
+              </div>
+              <div class="form-group">
+                <label for="apply-email">Your Contact Email</label>
+                <input type="email" id="apply-email" name="applicantEmail" [(ngModel)]="applicantEmail"
+                  placeholder="naveen@example.com" required class="drawer-form-input" />
+              </div>
+              <div class="form-group">
+                <label for="apply-resume">Attach Latest CV (PDF)</label>
+                <div class="simulated-upload-wrapper">
+                  <i class="bi bi-cloud-arrow-up text-accent"></i>
+                  <span>Attach Vidhura Profile Resume</span>
+                </div>
+              </div>
+
+              <div class="apply-actions">
+                <button type="submit" class="drawer-apply-btn"
+                  [disabled]="isApplying || !applicantName || !applicantEmail">
+                  <span *ngIf="!isApplying"><i class="bi bi-rocket-takeoff-fill"></i> Send Application</span>
+                  <span *ngIf="isApplying"><span class="spinner-border spinner-border-sm me-2"></span>
+                    Submitting...</span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Apply success message panel -->
+            <div class="apply-success-card" *ngIf="applySuccess">
+              <div class="success-icon-wrap">
+                <i class="bi bi-check2-circle"></i>
+              </div>
+              <h4>Application Submitted!</h4>
+              <p>Your express developer profile has been shared with <strong>{{ selectedJob.companyName }}</strong>.
+                Good luck!</p>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </ng-container>
   </aside>
+
+  <!-- INTERACTIVE USER MANUAL & QUICK GUIDE -->
+  <section class="portal-user-manual">
+    <div class="manual-inner">
+      <div class="manual-header">
+        <span class="manual-pre"><i class="bi bi-book-half"></i> HELP CENTRE</span>
+        <h3>Interactive User Manual & Platform Guide</h3>
+        <p>Master the Vidhura Tech placement engine with our step-by-step documentation, interactive tools, and
+          placement suggestions.</p>
+      </div>
+
+      <!-- Manual Navigation tabs -->
+      <div class="manual-tabs">
+        <button class="manual-tab-btn" [class.active]="manualTab === 'search'" (click)="setManualTab('search')">
+          <i class="bi bi-search"></i> 1. Search & Filters
+        </button>
+        <button class="manual-tab-btn" [class.active]="manualTab === 'segments'" (click)="setManualTab('segments')">
+          <i class="bi bi-ui-checks-grid"></i> 2. Exclusive Hubs
+        </button>
+        <button class="manual-tab-btn" [class.active]="manualTab === 'apply'" (click)="setManualTab('apply')">
+          <i class="bi bi-send-check"></i> 3. Express Apply
+        </button>
+        <button class="manual-tab-btn" [class.active]="manualTab === 'resume'" (click)="setManualTab('resume')">
+          <i class="bi bi-robot"></i> 4. ATS Scan Simulator
+        </button>
+        <button class="manual-tab-btn" [class.active]="manualTab === 'suggestions'"
+          (click)="setManualTab('suggestions')">
+          <i class="bi bi-lightbulb-fill"></i> 5. Placement Tips
+        </button>
+        <button class="manual-tab-btn" [class.active]="manualTab === 'calculator'" (click)="setManualTab('calculator')">
+          <i class="bi bi-calculator-fill"></i> 6. Readiness Calculator
+        </button>
+        <button class="manual-tab-btn" [class.active]="manualTab === 'crawler'" (click)="setManualTab('crawler')">
+          <i class="bi bi-cpu-fill"></i> 7. Crawl Diagnostics
+        </button>
+      </div>
+
+      <!-- Tab Content Area with nice animations -->
+      <div class="manual-content-card">
+
+        <!-- Tab 1: Search & Filters -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'search'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Real-time Elastic Search & Multi-Filters</h5>
+              <p>Our search bar supports instant queries matching titles, tech stacks, or corporate boards. Combine it
+                with horizontal dropdowns for maximum accuracy:</p>
+              <ul class="manual-list">
+                <li><i class="bi bi-check-circle-fill text-primary"></i> <strong>Locations:</strong> Filter by major
+                  technology hubs (Bengaluru, Hyderabad, Pune, etc.) or check "Remote Only" to work from home.</li>
+                <li><i class="bi bi-check-circle-fill text-primary"></i> <strong>Skills:</strong> Narrow down listings
+                  based on specific framework competencies (React, Spring Boot, Python).</li>
+                <li><i class="bi bi-check-circle-fill text-primary"></i> <strong>Experience:</strong> Filter by entry
+                  level (0 years) up to director tier (10+ years).</li>
+                <li><i class="bi bi-check-circle-fill text-primary"></i> <strong>Hot Topics:</strong> Quick-click
+                  trending pills (Java, React, Remote) to perform instant optimized database queries.</li>
+              </ul>
+            </div>
+            <div class="pane-visual v-search">
+              <div class="visual-header">Console Query Engine</div>
+              <div class="visual-line"><code>QUERY: "Spring Boot" + LOCATION: "Hyderabad"</code></div>
+              <div class="visual-line"><code>STATUS: 200 OK — Found 28 Active Matches</code></div>
+              <div class="visual-line pink-glow"><code>MATCH RATE: 97% Compatibility Index</code></div>
+              <div class="visual-line green-glow"><code>DE-DUPING: Filtered 3 duplicate crawled IDs</code></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Exclusive Hubs -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'segments'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Understanding the Portal Segments</h5>
+              <p>We classify opportunities into four strictly exclusive sections to ensure you don't waste time on
+                irrelevant listings:</p>
+              <div class="table-responsive">
+                <table class="manual-comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Segment</th>
+                      <th>Experience Limit</th>
+                      <th>Job Exclusions</th>
+                      <th>Target Group</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Freshers Portal</strong></td>
+                      <td>0 to 2 Years</td>
+                      <td>Excludes Trainees / Internships</td>
+                      <td>Graduates seeking full-time roles</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Internship Hub</strong></td>
+                      <td>0 to 1 Years</td>
+                      <td>Excludes Direct Full-Time roles</td>
+                      <td>Students & Trainees</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Walk-In Drives</strong></td>
+                      <td>Open Eligibility</td>
+                      <td>Excludes Remote / Virtual Only</td>
+                      <td>Immediate candidates for offlines</td>
+                    </tr>
+                    <tr>
+                      <td><strong>All Opportunities</strong></td>
+                      <td>Any Experience</td>
+                      <td>No restrictions</td>
+                      <td>General Developers</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="pane-visual v-segments">
+              <div class="visual-card">
+                <h6>Scraper Filter Match Rules</h6>
+                <p><code>[Exp &lt;= 2] AND [Title NOT LIKE '%intern%'] AND [Title NOT LIKE '%walk-in%']</code></p>
+                <div class="rule-verdict green">✓ Dedicated Fresher Segmentation Rule Active</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Express Apply -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'apply'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Dynamic Verification & Express Apply</h5>
+              <p>We have two methods of direct applications depending on how the listings are sourced:</p>
+              <ul class="manual-list">
+                <li><i class="bi bi-lightning-charge-fill text-warning"></i> <strong>Express Apply:</strong> Apply
+                  instantly from our side drawer by attaching your registered Vidhura profile resume. Your developer
+                  details are routed directly to hiring coordinators.</li>
+                <li><i class="bi bi-box-arrow-up-right text-primary"></i> <strong>Verified Board Apply:</strong> For
+                  corporate listings (Greenhouse, Lever), we redirect you directly to their authentic corporate careers
+                  homepage, preventing any 404 dead link issues.</li>
+                <li><i class="bi bi-shield-check text-emerald"></i> <strong>Link Verification:</strong> Our background
+                  virtual thread engine checks links every hour to verify their active statuses.</li>
+              </ul>
+            </div>
+            <div class="pane-visual v-apply">
+              <div class="verified-seal">
+                <i class="bi bi-patch-check-fill"></i>
+                <span>100% LINK VERIFIED</span>
+                <small class="text-light opacity-75">Broken Links Filtered Automatically</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: ATS Resume Optimization -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'resume'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Maximize Callbacks with AI Matching</h5>
+              <p>Every listing lists specific skill requirements. Use our built-in AI Scanner simulator to check your
+                alignment:</p>
+              <ul class="manual-list">
+                <li><i class="bi bi-stars"></i> <strong>Keyword Optimization:</strong> Identify key technology tags
+                  highlighted on the job card (e.g. AWS, Redis, TypeScript).</li>
+                <li><i class="bi bi-stars"></i> <strong>Match Score:</strong> Upload your resume to calculate a custom
+                  compatibility rating. Aim for a <strong>85%+ Match Score</strong>.</li>
+                <li><i class="bi bi-stars"></i> <strong>Interactive Simulation:</strong> Click the scanner tool on the
+                  right to scan your profile variables and get immediate diagnostic feedback.</li>
+              </ul>
+            </div>
+            <div class="pane-visual v-resume">
+              <div class="scanner-simulation-box">
+                <div class="scanner-simulation" [class.scanning-active]="isSimulatingScan">
+                  <div class="scan-bar" *ngIf="isSimulatingScan"></div>
+                  <div class="scan-score-display" *ngIf="!isSimulatingScan && scanResultScore > 0">
+                    <span class="scan-score">{{ scanResultScore }}%</span>
+                    <span class="scan-label font-monospace">ATS SCORE</span>
+                  </div>
+                  <div class="scan-score-display" *ngIf="!isSimulatingScan && scanResultScore === 0">
+                    <i class="bi bi-file-earmark-pdf-fill text-info"
+                      style="font-size: 32px; color: var(--brand-cyan) !important;"></i>
+                    <span class="scan-label font-monospace">READY FOR SCAN</span>
+                  </div>
+                  <div class="scan-score-display" *ngIf="isSimulatingScan">
+                    <span class="scan-score">{{ scanPercentage }}%</span>
+                    <span class="scan-label font-monospace">SCANNING DOCS...</span>
+                  </div>
+                </div>
+                <button class="btn-scan-simulate" (click)="triggerScanSimulation()" [disabled]="isSimulatingScan">
+                  <i class="bi bi-play-fill me-1"></i> {{ isSimulatingScan ? 'Analyzing...' : 'Simulate ATS Scan' }}
+                </button>
+
+                <div class="scan-feedback-list" *ngIf="scanFeedback.length > 0">
+                  <div class="feedback-hdr">Scan Diagnostics:</div>
+                  <div class="feedback-item" *ngFor="let item of scanFeedback">
+                    <i class="bi bi-arrow-right-short text-warning"></i> {{ item }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Placement Tips & Suggestions -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'suggestions'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Proven Placement Strategies</h5>
+              <p>Here are direct tips from our placement coordinators to help you secure offers faster:</p>
+              <ul class="manual-list">
+                <li><i class="bi bi-lightbulb-fill text-warning"></i> <strong>Complete Your Profile:</strong> Complete
+                  all coding tracks and projects on the Vidhura dashboard to display a high developer match score.</li>
+                <li><i class="bi bi-lightbulb-fill text-warning"></i> <strong>Practice Mock Interviews:</strong> Book a
+                  mock round with our verified corporate mentors before appearing for live company rounds.</li>
+                <li><i class="bi bi-lightbulb-fill text-warning"></i> <strong>Apply to New Openings Daily:</strong>
+                  Scraping runs run daily at 8:00 AM. Check the portal early to secure early applicant privileges.</li>
+                <li><i class="bi bi-lightbulb-fill text-warning"></i> <strong>Tailor Experience Summaries:</strong>
+                  Adjust your profile description depending on whether you target a startup or an enterprise role.</li>
+              </ul>
+            </div>
+            <div class="pane-visual v-tips">
+              <div class="tips-box">
+                <div class="tip-metric"><span class="num">2.4x</span> Callback Multiplier with Mock Prep</div>
+                <div class="tip-metric"><span class="num">88%</span> Referral Success in Placement Tracks</div>
+                <div class="tip-metric"><span class="num">&lt; 24h</span> Average Response from Partner Brands</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 6: Placement Readiness Calculator -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'calculator'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Interactive Career Readiness Calculator</h5>
+              <p>Adjust the sliders and switches below to estimate your current hiring market readiness and receive
+                suggestions on how to improve your score.</p>
+
+              <!-- Interactive Calculator Form Controls -->
+              <div class="calculator-controls-card">
+                <div class="calc-control-group">
+                  <label class="calc-label">
+                    <span>Years of Tech Experience:</span>
+                    <strong class="calc-val-badge">{{ calculatorExp === 0 ? 'Entry Level (0 Yrs)' : calculatorExp + '
+                      Yrs' }}</strong>
+                  </label>
+                  <input type="range" min="0" max="6" step="1" [(ngModel)]="calculatorExp"
+                    (ngModelChange)="updateCalculatorScore()" class="calc-range-slider" />
+                </div>
+
+                <div class="calc-control-group">
+                  <label class="calc-label">Core Technical Competencies:</label>
+                  <div class="calc-skills-grid">
+                    <button
+                      *ngFor="let skill of ['Java', 'React', 'Angular', 'Python', 'Spring Boot', 'SQL', 'Docker', 'AWS']"
+                      type="button" class="calc-skill-btn" [class.active]="calculatorSkillsSelected[skill]"
+                      (click)="toggleCalculatorSkill(skill)">
+                      {{ skill }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="calc-row-controls">
+                  <div class="calc-control-group flex-1">
+                    <label class="calc-label">Mock Rounds Completed:</label>
+                    <select [(ngModel)]="calculatorMockRounds" (ngModelChange)="updateCalculatorScore()"
+                      class="calc-select">
+                      <option [value]="0">0 Rounds</option>
+                      <option [value]="1">1 Mock Round</option>
+                      <option [value]="2">2 Mock Rounds</option>
+                      <option [value]="3">3+ Mock Rounds</option>
+                    </select>
+                  </div>
+
+                  <div class="calc-control-group flex-1 d-flex align-items-center">
+                    <label class="ios-switch-container mt-4">
+                      <input type="checkbox" [(ngModel)]="calculatorCertifications"
+                        (ngModelChange)="updateCalculatorScore()" />
+                      <span class="ios-switch"></span>
+                      <span class="label-text">Has Cloud/DevOps Certification</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual Score Meter -->
+            <div class="pane-visual v-calculator">
+              <div class="readiness-meter-wrapper">
+                <div class="readiness-score-ring" [class.score-low]="calculatedPlacementScore < 50"
+                  [class.score-mid]="calculatedPlacementScore >= 50 && calculatedPlacementScore < 75"
+                  [class.score-high]="calculatedPlacementScore >= 75">
+                  <span class="score-num">{{ calculatedPlacementScore }}%</span>
+                  <span class="score-title">READINESS</span>
+                </div>
+
+                <div class="readiness-verdict" *ngIf="calculatedPlacementScore < 50">
+                  <span class="verdict-badge verdict-red">Needs Preparation</span>
+                  <p>Strengthen core frameworks, build 2+ multi-tier projects, and complete mock rounds.</p>
+                </div>
+                <div class="readiness-verdict" *ngIf="calculatedPlacementScore >= 50 && calculatedPlacementScore < 75">
+                  <span class="verdict-badge verdict-orange">Moderate Readiness</span>
+                  <p>Good profile. Complete at least one cloud certification and a system design mock round to unlock
+                    tier-1 referrals.</p>
+                </div>
+                <div class="readiness-verdict" *ngIf="calculatedPlacementScore >= 75">
+                  <span class="verdict-badge verdict-green">Elite Developer Tier</span>
+                  <p>Excellent credentials! You match our top active listings. Apply to high-match roles immediately.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 7: Crawl Diagnostics -->
+        <div class="manual-pane animated fadeIn" *ngIf="manualTab === 'crawler'">
+          <div class="pane-grid">
+            <div class="pane-info">
+              <h5>Crawler Architecture & De-duplication Logs</h5>
+              <p>Vidhura Tech runs a distributed scheduler using lightweight virtual threads. Here are the active
+                crawler diagnostics:</p>
+
+              <div class="diagnostics-metrics-grid">
+                <div class="diag-metric-card">
+                  <span class="diag-label">Active Scraping Nodes</span>
+                  <span class="diag-val text-primary">39 Nodes</span>
+                </div>
+                <div class="diag-metric-card">
+                  <span class="diag-label">Duplicate Purging Rate</span>
+                  <span class="diag-val text-emerald">100% De-duped</span>
+                </div>
+                <div class="diag-metric-card">
+                  <span class="diag-label">Link Pruner Cycle</span>
+                  <span class="diag-val text-amber">Every 60 Mins</span>
+                </div>
+                <div class="diag-metric-card">
+                  <span class="diag-label">Database Capacity</span>
+                  <span class="diag-val text-purple">1,000,000 Companies</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pane-visual v-crawler">
+              <div class="crawler-console-header">
+                <span class="pulse-dot-green"></span>
+                <span>LIVE SCRAPER NODE DIAGNOSTICS</span>
+              </div>
+              <div class="crawler-log-panel">
+                <div class="log-line"><code>[08:00:12] [SYSTEM] Initializing daily seeder pruner...</code></div>
+                <div class="log-line text-emerald">
+                  <code>[08:00:15] [CLEANER] Checked 482 external URLs — 0 dead links detected</code>
+                </div>
+                <div class="log-line text-info">
+                  <code>[08:00:22] [CRAWLER] Razorpay Lever board parsed successfully (4 active matches)</code>
+                </div>
+                <div class="log-line text-warning">
+                  <code>[08:00:25] [DEDUPLICATOR] Duplicate skipped: Sr. Executive - Real Estate</code>
+                </div>
+                <div class="log-line text-danger">
+                  <code>[08:00:30] [LOCATION] Skipped non-India coordinate (Basking Ridge, NJ)</code>
+                </div>
+                <div class="log-line text-purple"><code>[08:00:35] [PRUNER] Cleaned expired roles for Zeta</code></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 </div>

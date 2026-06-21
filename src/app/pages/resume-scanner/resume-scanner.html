@@ -1,0 +1,782 @@
+<div class="resume-workspace light-workspace no-sidebar">
+  <!-- Main Workspace Panels Area -->
+  <div class="workspace-main-area">
+    <!-- Header Controls Bar -->
+    <header class="workspace-header light-header">
+      <div class="header-left">
+        <button type="button" class="btn-back-to-editor-premium" (click)="selectTab('editor', 'contact')">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Back to Editor</span>
+        </button>
+        <div class="header-title-row">
+          <div class="title-icon-wrapper bg-emerald-light">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+          </div>
+          <div>
+            <h2>ATS Job Scanner</h2>
+            <p>Scan, match, and optimize your resume compliance with JD requirements</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Download CTA Header Row -->
+      <div class="header-actions">
+        <div class="quick-export-wrap">
+          <button type="button" class="btn-workspace-download-header btn-premium-solid" (click)="service.downloadPDF()">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Export Premium PDF</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace-columns-split">
+      <!-- COLUMN 2: WORKSPACE EDITOR (SCANNER SECTION) -->
+      <main class="workspace-editor custom-scrollbar">
+        <div class="tab-content-wrapper scanner-tab-wrapper">
+          <!-- Scanner Sub-tabs Nav Row -->
+          <div class="scanner-sub-tabs light-tab-row">
+            <button type="button" class="sub-tab-btn" [class.active]="service.scannerSubTab === 'input'"
+              (click)="service.scannerSubTab = 'input'">
+              <i class="fa-solid fa-file-arrow-up"></i>
+              <span>1. Upload & Scan</span>
+            </button>
+            <button type="button" class="sub-tab-btn" [class.active]="service.scannerSubTab === 'keywords'"
+              [disabled]="!service.scanCompleted" (click)="service.scannerSubTab = 'keywords'">
+              <i class="fa-solid fa-magnifying-glass-chart"></i>
+              <span>2. Keyword Analyzer</span>
+              <span class="lock-badge" *ngIf="!service.scanCompleted"><i class="fa-solid fa-lock"></i></span>
+            </button>
+            <button type="button" class="sub-tab-btn" [class.active]="service.scannerSubTab === 'optimizer'"
+              [disabled]="!service.scanCompleted" (click)="service.scannerSubTab = 'optimizer'">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>3. Smart Optimizer</span>
+              <span class="lock-badge" *ngIf="!service.scanCompleted"><i class="fa-solid fa-lock"></i></span>
+            </button>
+            <button type="button" class="sub-tab-btn" [class.active]="service.scannerSubTab === 'audit'"
+              [disabled]="!service.scanCompleted" (click)="service.scannerSubTab = 'audit'">
+              <i class="fa-solid fa-list-check"></i>
+              <span>4. Content Audit</span>
+              <span class="lock-badge" *ngIf="!service.scanCompleted"><i class="fa-solid fa-lock"></i></span>
+            </button>
+          </div>
+
+          <!-- SUB-TAB 1: INPUT AND SCAN -->
+          <div class="light-card scanner-controls-card animate-slide-up" *ngIf="service.scannerSubTab === 'input'">
+            <div class="card-header border-b-light">
+              <div class="header-avatar bg-indigo-light">
+                <i class="fa-solid fa-sliders ai-icon"></i>
+              </div>
+              <div>
+                <h3>Scanner Control Center</h3>
+                <p>Paste target Job Description and upload your resume to calculate the ATS match index.</p>
+              </div>
+            </div>
+
+            <!-- Scanner Settings Box -->
+            <div class="scanner-settings-box light-inner-panel">
+              <div class="settings-inputs-row">
+                <div class="setting-item">
+                  <label><i class="fa-solid fa-filter"></i> Match Sensitivity</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="service.scanSensitivity" (ngModelChange)="service.scanJdAndResume(false)">
+                      <option value="strict">Strict (Exact matching)</option>
+                      <option value="moderate">Moderate (Plurals allowed)</option>
+                      <option value="loose">Loose (Substring matching)</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <label class="slider-label-row">
+                    <span><i class="fa-solid fa-circle-check"></i> Pass Score Threshold</span>
+                    <span class="threshold-value">{{ service.scanScoreThreshold }}%</span>
+                  </label>
+                  <div class="slider-track-wrap">
+                    <input type="range" min="50" max="100" step="5" [(ngModel)]="service.scanScoreThreshold"
+                      class="customizer-slider premium-slider" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Premium ATS Controls (ATS target systems & industries) -->
+              <div class="settings-inputs-row mt-3">
+                <div class="setting-item">
+                  <label><i class="fa-solid fa-layer-group"></i> Target ATS Platform</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="selectedAtsType">
+                      <option value="greenhouse">Greenhouse (Standard parser)</option>
+                      <option value="workday">Workday (Scored index parser)</option>
+                      <option value="taleo">Taleo (Strict semantic match)</option>
+                      <option value="lever">Lever (Broad keyword search)</option>
+                      <option value="icims">iCIMS (Boolean keyword match)</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+                <div class="setting-item">
+                  <label><i class="fa-solid fa-laptop-code"></i> Industry Vertical</label>
+                  <div class="custom-select-wrap">
+                    <select [(ngModel)]="selectedIndustry">
+                      <option value="tech">Software & Tech Development</option>
+                      <option value="finance">Banking & Financial Services</option>
+                      <option value="marketing">Sales, Marketing & Media</option>
+                      <option value="healthcare">Healthcare & Biotech</option>
+                      <option value="executive">Corporate Executive & Management</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-caret"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Info Details Card -->
+            <div class="upload-file-details-card light-inner-panel mt-3 mb-3" *ngIf="service.uploadedFileName">
+              <div class="details-card-header">
+                <i class="fa-solid fa-file-circle-check text-emerald"></i>
+                <div class="details-meta">
+                  <h4>{{ service.uploadedFileName }}</h4>
+                  <span class="file-status-badge">Loaded successfully</span>
+                </div>
+              </div>
+              <div class="file-integrity-grid">
+                <div class="integrity-item">
+                  <span class="integrity-lbl">Format Check:</span>
+                  <span class="integrity-val text-emerald-icon"><i class="fa-solid fa-circle-check"></i> ATS-Compliant
+                    PDF</span>
+                </div>
+                <div class="integrity-item">
+                  <span class="integrity-lbl">Parsing Rating:</span>
+                  <span class="integrity-val text-indigo"><i class="fa-solid fa-gem"></i> High Compatibility</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="scanner-split-fields">
+              <div class="form-group">
+                <label class="input-field-label">
+                  <span>Job Description Text <span class="required">*</span></span>
+                  <span class="char-count" *ngIf="service.jobDescriptionText">{{ service.jobDescriptionText.length }}
+                    chars</span>
+                </label>
+                <div class="scanner-textarea-wrapper" [class.scanning-active]="service.isScanning">
+                  <textarea [(ngModel)]="service.jobDescriptionText"
+                    placeholder="Paste the target job description or core skills listed on the job posting here..."
+                    class="jd-textarea custom-textarea"></textarea>
+                  <div class="laser-scanner-line" *ngIf="service.isScanning"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-field-label">Upload or Paste Resume</label>
+
+                <!-- Drag and drop zone -->
+                <div class="old-resume-uploader-zone" (dragover)="service.onDragOver($event)"
+                  (dragleave)="service.onDragLeave($event)" (drop)="service.onFileDrop($event)"
+                  [class.drag-over]="service.isDragOver">
+                  <input type="file" id="old-resume-file" (change)="service.onOldResumeUpload($event)"
+                    accept=".txt,.json,.pdf,.doc,.docx,.odt,.odf" [disabled]="service.isParsing"
+                    class="uploader-hidden-input" />
+
+                  <!-- Parsing / Loading State -->
+                  <label for="old-resume-file" class="upload-dropzone loading-state" *ngIf="service.isParsing">
+                    <span class="spinner-glow-wrap">
+                      <i class="fa-solid fa-circle-notch fa-spin dropzone-icon text-indigo"></i>
+                    </span>
+                    <strong>Parsing Document...</strong>
+                    <span class="file-types">Extracting metadata from {{ service.uploadedFileName }}</span>
+                  </label>
+
+                  <!-- Success State -->
+                  <label for="old-resume-file" class="upload-dropzone success-state"
+                    *ngIf="!service.isParsing && service.uploadedFileName">
+                    <i class="fa-solid fa-file-circle-check dropzone-icon text-emerald pulse-scale"></i>
+                    <strong class="text-slate-800">{{ service.uploadedFileName }}</strong>
+                    <span class="file-types success-text">File loaded successfully! Click to switch files.</span>
+                  </label>
+
+                  <!-- Default Upload State -->
+                  <label for="old-resume-file" class="upload-dropzone"
+                    *ngIf="!service.isParsing && !service.uploadedFileName">
+                    <div class="uploader-icon-glow">
+                      <i class="fa-solid fa-file-arrow-up dropzone-icon"></i>
+                    </div>
+                    <strong>Upload Current Resume</strong>
+                    <span class="file-types">Supports PDF, DOCX, TXT, JSON (Drag & Drop here)</span>
+                  </label>
+                </div>
+
+                <div class="scanner-textarea-wrapper mt-3" [class.scanning-active]="service.isScanning">
+                  <textarea [(ngModel)]="service.oldResumeText"
+                    (ngModelChange)="service.parseOldResumeText(service.oldResumeText)"
+                    (paste)="service.onOldResumePaste()"
+                    placeholder="Or paste your raw resume text blocks here directly to populate skills..."
+                    class="old-resume-textarea custom-textarea"></textarea>
+                  <div class="laser-scanner-line" *ngIf="service.isScanning"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-trigger-row border-t-light pt-4">
+              <button type="button" class="btn-run-scanner btn-premium-cta" (click)="service.scanJdAndResume(true)"
+                [disabled]="service.isScanning">
+                <i class="fa-solid fa-spinner fa-spin" *ngIf="service.isScanning"></i>
+                <i class="fa-solid fa-wand-magic-sparkles" *ngIf="!service.isScanning"></i>
+                <span>{{ service.isScanning ? 'Analyzing Semantics...' : 'Scan & Compute Score' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 2: KEYWORD ANALYZER -->
+          <div class="light-card scanner-results-card animate-fade-in"
+            *ngIf="service.scannerSubTab === 'keywords' && service.scanCompleted">
+
+            <!-- Multi-Dimensional Compliance Analytics Dashboard -->
+            <div class="premium-analytics-dashboard light-inner-panel">
+              <div class="dashboard-gauge-row">
+                <!-- Radial Score Meter -->
+                <div class="score-meter-wrap">
+                  <svg class="radial-meter-svg" viewBox="0 0 36 36">
+                    <path class="circle-bg"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle-stroke" [style.strokeDasharray]="service.jdMatchScore + ', 100'"
+                      [class.success]="service.jdMatchScore >= service.scanScoreThreshold"
+                      [class.warning]="service.jdMatchScore < service.scanScoreThreshold"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  </svg>
+                  <div class="score-text-inner">
+                    <span class="score-num text-gradient-indigo">{{ service.jdMatchScore }}%</span>
+                    <span class="score-lbl">Match Index</span>
+                  </div>
+                </div>
+
+                <!-- Linear Progress Indicators -->
+                <div class="compliance-progress-indicators">
+                  <div class="progress-indicator-item">
+                    <div class="indicator-header">
+                      <span>Hard Skills Alignment</span>
+                      <strong>{{ getHardSkillsMatch() }}%</strong>
+                    </div>
+                    <div class="progress-track-bar">
+                      <div class="progress-fill-bar bg-indigo-fill" [style.width.%]="getHardSkillsMatch()"></div>
+                    </div>
+                  </div>
+
+                  <div class="progress-indicator-item">
+                    <div class="indicator-header">
+                      <span>Soft Skills Alignment</span>
+                      <strong>{{ getSoftSkillsMatch() }}%</strong>
+                    </div>
+                    <div class="progress-track-bar">
+                      <div class="progress-fill-bar bg-emerald-fill" [style.width.%]="getSoftSkillsMatch()"></div>
+                    </div>
+                  </div>
+
+                  <div class="progress-indicator-item">
+                    <div class="indicator-header">
+                      <span>Readability & Style Index</span>
+                      <strong>{{ getReadabilityScore() }}%</strong>
+                    </div>
+                    <div class="progress-track-bar">
+                      <div class="progress-fill-bar bg-sky-fill" [style.width.%]="getReadabilityScore()"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary Metadata Status -->
+              <div class="status-summary-strip border-t-light pt-3 mt-3">
+                <div class="status-indicator-badge mb-0"
+                  [class.success]="service.jdMatchScore >= service.scanScoreThreshold"
+                  [class.warning]="service.jdMatchScore < service.scanScoreThreshold">
+                  <i class="fa-solid" [class.fa-check-circle]="service.jdMatchScore >= service.scanScoreThreshold"
+                    [class.fa-exclamation-circle]="service.jdMatchScore < service.scanScoreThreshold"></i>
+                  <span>{{ service.jdMatchScore >= service.scanScoreThreshold ? 'ATS COMPLIANT' : 'OPTIMIZATION
+                    RECOMMENDED' }}</span>
+                </div>
+                <p class="summary-para mt-2 mb-0">
+                  Target Platform: <strong>{{ selectedAtsType | uppercase }}</strong> | Vertical: <strong>{{
+                    selectedIndustry | uppercase }}</strong>. We found <strong>{{ service.jdMatchedSkills.length +
+                    service.jdMissingSkills.length }}</strong> target keywords.
+                </p>
+              </div>
+            </div>
+
+            <!-- Keyword Categories Pill Tabs -->
+            <div class="keyword-categories-bar mt-4">
+              <span class="category-title"><i class="fa-solid fa-filter"></i> Category Filter:</span>
+              <div class="category-pills">
+                <button type="button" class="category-pill-btn" [class.active]="selectedKeywordCategory === 'all'"
+                  (click)="selectedKeywordCategory = 'all'">All Keywords ({{ service.jdMatchedSkills.length +
+                  service.jdMissingSkills.length }})</button>
+                <button type="button" class="category-pill-btn" [class.active]="selectedKeywordCategory === 'hard'"
+                  (click)="selectedKeywordCategory = 'hard'">Hard Skills</button>
+                <button type="button" class="category-pill-btn" [class.active]="selectedKeywordCategory === 'soft'"
+                  (click)="selectedKeywordCategory = 'soft'">Soft Skills</button>
+                <button type="button" class="category-pill-btn" [class.active]="selectedKeywordCategory === 'tools'"
+                  (click)="selectedKeywordCategory = 'tools'">Tools / Methods</button>
+              </div>
+            </div>
+
+            <!-- Keyword Clouds Split Grid -->
+            <div class="keywords-clouds-grid mt-3">
+              <!-- Matched Keywords Box -->
+              <div class="cloud-box matched-box light-card-nested">
+                <div class="cloud-header border-b-light">
+                  <h4><i class="fa-solid fa-circle-check text-emerald-icon"></i> Matched Keywords ({{
+                    getFilteredMatchedSkills().length }})</h4>
+                </div>
+                <div class="tags-cloud">
+                  <span *ngFor="let s of getFilteredMatchedSkills()" class="cloud-tag tag-matched">
+                    <span>{{ s }}</span> <i class="fa-solid fa-check"></i>
+                  </span>
+                  <p class="empty-cloud-message" *ngIf="getFilteredMatchedSkills().length === 0">No keywords matched in
+                    this category.</p>
+                </div>
+              </div>
+
+              <!-- Missing Keywords Box -->
+              <div class="cloud-box missing-box light-card-nested">
+                <div class="cloud-header border-b-light">
+                  <h4><i class="fa-solid fa-triangle-exclamation text-amber-icon"></i> Missing Critical Keywords ({{
+                    getFilteredMissingSkills().length }})</h4>
+                </div>
+                <p class="helper-text"><i class="fa-solid fa-circle-info text-sky"></i> Click a missing tag to open the
+                  **AI Suggestion Rewriter** below and generate accomplishment bullet points.</p>
+                <div class="tags-cloud">
+                  <span *ngFor="let s of getFilteredMissingSkills()" class="cloud-tag tag-missing pulse-missing-tag"
+                    [class.active-rewriting]="selectedRewriterKeyword === s" (click)="selectKeywordForRewriter(s)"
+                    title="Click to open AI rewriter for this keyword">
+                    <span>{{ s }}</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  </span>
+                  <p class="empty-cloud-message" *ngIf="getFilteredMissingSkills().length === 0">
+                    <i class="fa-solid fa-face-smile text-emerald"></i> 100% matched! Category is fully optimized.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive AI Suggestion Rewriter Section -->
+            <div class="ai-rewriter-workspace-card light-card-nested mt-4 animate-slide-up"
+              *ngIf="selectedRewriterKeyword">
+              <div class="card-header border-b-light">
+                <div class="header-avatar bg-violet-light">
+                  <i class="fa-solid fa-wand-magic-sparkles ai-icon"></i>
+                </div>
+                <div>
+                  <h3>AI Rewriter Accomplishment Assistant</h3>
+                  <p>Keyword selected: <strong class="text-indigo">"{{ selectedRewriterKeyword }}"</strong>. Select one
+                    of the tailored accomplishment bullet points below, edit if needed, and insert it directly into your
+                    resume.</p>
+                </div>
+              </div>
+
+              <div class="ai-suggestions-list mt-3" *ngIf="!aiRewriteLoading">
+                <div *ngFor="let suggestion of aiRewriteSuggestions" class="ai-suggestion-item-card"
+                  [class.selected]="customRewriteText === suggestion" (click)="selectSuggestion(suggestion)">
+                  <div class="select-check-marker">
+                    <i class="fa-solid fa-circle-check" *ngIf="customRewriteText === suggestion"></i>
+                    <i class="fa-regular fa-circle" *ngIf="customRewriteText !== suggestion"></i>
+                  </div>
+                  <p class="suggestion-txt">{{ suggestion }}</p>
+                </div>
+              </div>
+
+              <div class="ai-loading-spinner-box text-center p-4" *ngIf="aiRewriteLoading">
+                <i class="fa-solid fa-spinner fa-spin fa-2x text-indigo"></i>
+                <p class="mt-2 text-slate-500 font-semibold">Generating bullet point options with AI...</p>
+              </div>
+
+              <!-- Suggestion Editor & Insertion Controls -->
+              <div class="suggestion-editor-controls border-t-light pt-3 mt-3" *ngIf="!aiRewriteLoading">
+                <label class="editor-label">Refine Suggestion Text:</label>
+                <textarea class="custom-textarea rewriter-textarea" [(ngModel)]="customRewriteText"></textarea>
+
+                <div class="insertion-buttons-row mt-3">
+                  <button type="button" class="btn-workspace-download-header btn-premium-solid mr-2"
+                    (click)="insertCustomRewrite('experience')">
+                    <i class="fa-solid fa-briefcase"></i> Insert into Experience
+                  </button>
+                  <button type="button" class="btn-workspace-download-header btn-premium-solid"
+                    (click)="insertCustomRewrite('projects')">
+                    <i class="fa-solid fa-diagram-project"></i> Insert into Projects
+                  </button>
+                  <button type="button" class="btn-cancel-rewrite ml-auto" (click)="selectedRewriterKeyword = ''">
+                    <i class="fa-solid fa-xmark"></i> Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Compliance Checklist Grid -->
+            <div class="detailed-compliance-checklist mt-4">
+              <h4>ATS Structural Integrity Audit</h4>
+              <div class="compliance-audit-grid">
+                <div class="audit-item passed">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <div class="audit-meta">
+                    <strong>Standard Section Titles</strong>
+                    <span>All sections formatted standardly</span>
+                  </div>
+                </div>
+
+                <div class="audit-item passed">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <div class="audit-meta">
+                    <strong>Contact Credentials Presence</strong>
+                    <span>Email & Phone verified in header</span>
+                  </div>
+                </div>
+
+                <div class="audit-item passed">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <div class="audit-meta">
+                    <strong>Layout Parsing Safety</strong>
+                    <span>No complex tables or charts blocking parser</span>
+                  </div>
+                </div>
+
+                <div class="audit-item" [class.passed]="getReadabilityScore() >= 90"
+                  [class.warning]="getReadabilityScore() < 90">
+                  <i class="fa-solid" [class.fa-circle-check]="getReadabilityScore() >= 90"
+                    [class.fa-triangle-exclamation]="getReadabilityScore() < 90"></i>
+                  <div class="audit-meta">
+                    <strong>Font Readability Compliance</strong>
+                    <span>Readability rating: {{ getReadabilityScore() }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SUB-TAB 3: SMART OPTIMIZER -->
+          <div class="light-card scanner-optimizer-card animate-fade-in"
+            *ngIf="service.scannerSubTab === 'optimizer' && service.scanCompleted">
+            <div class="card-header border-b-light">
+              <div class="header-avatar bg-violet-light">
+                <i class="fa-solid fa-wand-magic-sparkles ai-icon"></i>
+              </div>
+              <div>
+                <h3>Smart Optimization Engine</h3>
+                <p>Instantly align your profile with standard recruitment parameters and resolve compliance checklist
+                  errors.</p>
+              </div>
+            </div>
+
+            <div class="optimizer-panel-card light-inner-panel">
+              <div class="optimizer-content">
+                <div class="optimize-icon-glow">
+                  <i class="fa-solid fa-bolt-lightning"></i>
+                </div>
+                <div>
+                  <h4>Automated Keyword Optimization</h4>
+                  <p>Append all missing critical keywords ({{ service.jdMissingSkills.length }} skills) to your
+                    Technical Skills block and recalculate the compliance match score instantly.</p>
+                </div>
+              </div>
+              <button type="button" class="btn-trigger-optimization btn-premium-cta shrink-btn"
+                (click)="service.optimizeResume()" [disabled]="service.jdMissingSkills.length === 0">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>{{ service.jdMissingSkills.length === 0 ? 'Fully Optimized' : 'Run Auto-Optimizer' }}</span>
+              </button>
+            </div>
+
+            <!-- Optimizer Checklist Recommendations -->
+            <div class="optimizer-recommendations mt-4">
+              <h4>System Recommendations Checklist</h4>
+              <div class="recs-list">
+                <div class="rec-item" *ngFor="let rec of service.jdSuggestions"
+                  [class.passed]="rec.includes('passed') || rec.includes('Excellent')"
+                  [class.failed]="!rec.includes('passed') && !rec.includes('Excellent')">
+                  <div class="rec-icon-wrapper">
+                    <i class="fa-solid fa-circle-check rec-check-icon"
+                      *ngIf="rec.includes('passed') || rec.includes('Excellent')"></i>
+                    <i class="fa-solid fa-circle-exclamation rec-check-icon"
+                      *ngIf="!rec.includes('passed') && !rec.includes('Excellent')"></i>
+                  </div>
+                  <span>{{ rec }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 4: CONTENT AUDIT -->
+          <div class="light-card scanner-audit-card animate-slide-up"
+            *ngIf="service.scannerSubTab === 'audit' && service.scanCompleted">
+            <div class="card-header border-b-light">
+              <div class="header-avatar bg-indigo-light">
+                <i class="fa-solid fa-list-check ai-icon"></i>
+              </div>
+              <div>
+                <h3>ATS content & Integrity Audit</h3>
+                <p>Verify compliance of resume content layout against standard human recruiter filters and automated parser heuristics.</p>
+              </div>
+            </div>
+
+            <!-- Section Readiness Grid -->
+            <div class="ats-readiness-grid-section mt-4">
+              <h4 class="section-title-premium-scanner"><i class="fa-solid fa-grid-2"></i> Section-by-Section ATS Readiness</h4>
+              <div class="readiness-grid mt-3">
+                <div class="readiness-card" *ngFor="let item of getReadinessGrid()" [class]="item.audit.status" (click)="selectTab('editor', item.key)">
+                  <div class="card-header-row">
+                    <div class="section-icon-bg">
+                      <i class="fa-solid" [class]="item.icon"></i>
+                    </div>
+                    <strong>{{ item.name }}</strong>
+                  </div>
+                  <div class="status-indicator">
+                    <span class="status-badge" [class]="item.audit.status">{{ item.audit.label }}</span>
+                  </div>
+                  <p class="issue-count-desc" *ngIf="item.audit.issues.length > 0">
+                    {{ item.audit.issues.length }} issue{{ item.audit.issues.length > 1 ? 's' : '' }} detected
+                  </p>
+                  <p class="issue-count-desc success-desc" *ngIf="item.audit.issues.length === 0">
+                    <i class="fa-solid fa-circle-check"></i> Clean & Optimized
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Audit Panels -->
+            <div class="audit-detailed-panels mt-4">
+              <h4 class="section-title-premium-scanner"><i class="fa-solid fa-circle-info"></i> Detailed Audit Checkpoints</h4>
+              
+              <!-- Contact Info -->
+              <div class="audit-panel-card mt-3" [class.panel-passed]="getContactAudit().status === 'good'" [class.panel-warning]="getContactAudit().status === 'warning'" [class.panel-danger]="getContactAudit().status === 'danger'">
+                <div class="panel-header">
+                  <div class="header-left-col">
+                    <div class="panel-icon-glow"><i class="fa-solid fa-address-card"></i></div>
+                    <div>
+                      <h5>Contact Information Audit</h5>
+                      <p>Validates name layout, telephone length, and networking URLs</p>
+                    </div>
+                  </div>
+                  <span class="panel-status-pill" [class]="getContactAudit().status">{{ getContactAudit().label }}</span>
+                </div>
+                <div class="panel-body">
+                  <ul class="issues-list">
+                    <li *ngFor="let issue of getContactAudit().issues">
+                      <i class="fa-solid fa-triangle-exclamation text-amber"></i> {{ issue }}
+                    </li>
+                    <li class="success-li" *ngIf="getContactAudit().issues.length === 0">
+                      <i class="fa-solid fa-circle-check text-emerald"></i> Contact details are complete and fully formatted for parser databases.
+                    </li>
+                  </ul>
+                  <div class="panel-action-row" *ngIf="getContactAudit().issues.length > 0">
+                    <button type="button" class="btn-panel-action" (click)="selectTab('editor', 'contact')">
+                      <i class="fa-solid fa-pen-to-square"></i> Open Contact Editor
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary -->
+              <div class="audit-panel-card mt-3" [class.panel-passed]="getSummaryAudit().status === 'good'" [class.panel-warning]="getSummaryAudit().status === 'warning'" [class.panel-danger]="getSummaryAudit().status === 'danger'">
+                <div class="panel-header">
+                  <div class="header-left-col">
+                    <div class="panel-icon-glow"><i class="fa-solid fa-user-tie"></i></div>
+                    <div>
+                      <h5>Profile Summary Density</h5>
+                      <p>Validates summary word count (Current: <strong>{{ getSummaryAudit().wordCount }} words</strong>) and verb integration</p>
+                    </div>
+                  </div>
+                  <span class="panel-status-pill" [class]="getSummaryAudit().status">{{ getSummaryAudit().label }}</span>
+                </div>
+                <div class="panel-body">
+                  <ul class="issues-list">
+                    <li *ngFor="let issue of getSummaryAudit().issues">
+                      <i class="fa-solid fa-triangle-exclamation text-amber"></i> {{ issue }}
+                    </li>
+                    <li class="success-li" *ngIf="getSummaryAudit().issues.length === 0">
+                      <i class="fa-solid fa-circle-check text-emerald"></i> Professional summary word counts and action verb density are optimized.
+                    </li>
+                  </ul>
+                  <div class="panel-action-row" *ngIf="getSummaryAudit().issues.length > 0">
+                    <button type="button" class="btn-panel-action" (click)="selectTab('editor', 'summary')">
+                      <i class="fa-solid fa-pen-to-square"></i> Rewrite Summary
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Experience Bullet Strength Meter -->
+              <div class="audit-panel-card mt-3" [class.panel-passed]="getExperienceAudit().status === 'good'" [class.panel-warning]="getExperienceAudit().status === 'warning'" [class.panel-danger]="getExperienceAudit().status === 'danger'">
+                <div class="panel-header">
+                  <div class="header-left-col">
+                    <div class="panel-icon-glow"><i class="fa-solid fa-briefcase"></i></div>
+                    <div>
+                      <h5>Experience Accomplishments & Bullets</h5>
+                      <p>Measures quantifying metrics (%, $, count) and start-verb patterns in roles</p>
+                    </div>
+                  </div>
+                  <span class="panel-status-pill" [class]="getExperienceAudit().status">{{ getExperienceAudit().label }}</span>
+                </div>
+                <div class="panel-body">
+                  <!-- Visual Strength Bar -->
+                  <div class="bullet-strength-meter-wrap mb-3" *ngIf="getExperienceAudit().totalBullets > 0">
+                    <div class="meter-labels">
+                      <span>Quantified / Strong Bullets:</span>
+                      <strong>{{ getExperienceAudit().strongCount }} of {{ getExperienceAudit().totalBullets }}</strong>
+                    </div>
+                    <div class="meter-bar-container mt-1">
+                      <div class="meter-bar-fill" [style.width.%]="(getExperienceAudit().strongCount / getExperienceAudit().totalBullets) * 100"></div>
+                    </div>
+                  </div>
+
+                  <ul class="issues-list">
+                    <li *ngFor="let issue of getExperienceAudit().issues">
+                      <i class="fa-solid fa-triangle-exclamation text-amber"></i> {{ issue }}
+                    </li>
+                    <li class="success-li" *ngIf="getExperienceAudit().issues.length === 0">
+                      <i class="fa-solid fa-circle-check text-emerald"></i> All work experience accomplishments use dynamic verbs and measurable metrics.
+                    </li>
+                  </ul>
+                  <div class="panel-action-row" *ngIf="getExperienceAudit().issues.length > 0">
+                    <button type="button" class="btn-panel-action" (click)="selectTab('editor', 'employment')">
+                      <i class="fa-solid fa-pen-to-square"></i> Enhance Accomplishments
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Projects Portfolio -->
+              <div class="audit-panel-card mt-3" [class.panel-passed]="getProjectsAudit().status === 'good'" [class.panel-warning]="getProjectsAudit().status === 'warning'" [class.panel-danger]="getProjectsAudit().status === 'danger'">
+                <div class="panel-header">
+                  <div class="header-left-col">
+                    <div class="panel-icon-glow"><i class="fa-solid fa-folder-open"></i></div>
+                    <div>
+                      <h5>Featured Projects Quality</h5>
+                      <p>Validates tech stack definition details and live repository links</p>
+                    </div>
+                  </div>
+                  <span class="panel-status-pill" [class]="getProjectsAudit().status">{{ getProjectsAudit().label }}</span>
+                </div>
+                <div class="panel-body">
+                  <ul class="issues-list">
+                    <li *ngFor="let issue of getProjectsAudit().issues">
+                      <i class="fa-solid fa-triangle-exclamation text-amber"></i> {{ issue }}
+                    </li>
+                    <li class="success-li" *ngIf="getProjectsAudit().issues.length === 0">
+                      <i class="fa-solid fa-circle-check text-emerald"></i> Featured projects contain structured descriptions and explicit tech lists.
+                    </li>
+                  </ul>
+                  <div class="panel-action-row" *ngIf="getProjectsAudit().issues.length > 0">
+                    <button type="button" class="btn-panel-action" (click)="selectTab('editor', 'projects')">
+                      <i class="fa-solid fa-pen-to-square"></i> Update Project Stack
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+
+
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <!-- COLUMN 3: REAL-TIME PREVIEW PANEL -->
+      <app-resume-preview class="preview-column-wrapper"></app-resume-preview>
+    </div>
+  </div>
+
+  <!-- Keyword Integration Modal -->
+  <div class="keyword-modal-overlay" *ngIf="service.showKeywordModal" (click)="service.showKeywordModal = false">
+    <div class="keyword-modal-card light-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header border-b-light">
+        <div class="modal-title-wrap">
+          <div class="title-avatar bg-amber-light">
+            <i class="fa-solid fa-wand-magic-sparkles modal-sparkle-icon"></i>
+          </div>
+          <div>
+            <h3>Integrate Keyword: <span class="keyword-highlight">"{{ service.activeKeyword }}"</span></h3>
+            <p>Select a format style to weave this qualification into your resume.</p>
+          </div>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="service.showKeywordModal = false">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-formats-grid mt-4">
+        <!-- Format 1: Skill Tag -->
+        <div class="format-card light-card-nested" (click)="service.insertSkillTag()">
+          <div class="format-card-header">
+            <div class="format-icon-bg bg-indigo-light">
+              <i class="fa-solid fa-tag"></i>
+            </div>
+            <div>
+              <h4>Technical Skills Tag</h4>
+              <span>Add to technical qualifications block</span>
+            </div>
+          </div>
+          <div class="format-preview">
+            [Skill Tag] "{{ service.keywordFormats.tag }}"
+          </div>
+          <button type="button" class="btn-insert-format">
+            <i class="fa-solid fa-plus-circle"></i> Insert Tag
+          </button>
+        </div>
+
+        <!-- Format 2: Summary Sentence -->
+        <div class="format-card light-card-nested" (click)="service.insertIntoSummary()">
+          <div class="format-card-header">
+            <div class="format-icon-bg bg-emerald-light">
+              <i class="fa-solid fa-quote-left"></i>
+            </div>
+            <div>
+              <h4>Profile Summary Line</h4>
+              <span>Append sentence to professional summary</span>
+            </div>
+          </div>
+          <div class="format-preview">
+            {{ service.keywordFormats.summary }}
+          </div>
+          <button type="button" class="btn-insert-format">
+            <i class="fa-solid fa-plus-circle"></i> Append to Summary
+          </button>
+        </div>
+
+        <!-- Format 3: Experience Bullet Point -->
+        <div class="format-card light-card-nested" (click)="service.insertIntoExperience()">
+          <div class="format-card-header">
+            <div class="format-icon-bg bg-sky-light">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+              <h4>Work History Bullet Point</h4>
+              <span>Add accomplishment to latest employment</span>
+            </div>
+          </div>
+          <div class="format-preview">
+            • {{ service.keywordFormats.experience }}
+          </div>
+          <button type="button" class="btn-insert-format">
+            <i class="fa-solid fa-plus-circle"></i> Add to Experience
+          </button>
+        </div>
+
+        <!-- Format 4: Project Description -->
+        <div class="format-card light-card-nested" (click)="service.insertIntoProjects()">
+          <div class="format-card-header">
+            <div class="format-icon-bg bg-violet-light">
+              <i class="fa-solid fa-diagram-project"></i>
+            </div>
+            <div>
+              <h4>Featured Project Description</h4>
+              <span>Append integration detail to latest project</span>
+            </div>
+          </div>
+          <div class="format-preview">
+            • {{ service.keywordFormats.project }}
+          </div>
+          <button type="button" class="btn-insert-format">
+            <i class="fa-solid fa-plus-circle"></i> Add to Projects
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

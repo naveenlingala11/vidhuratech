@@ -1,4842 +1,844 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, OnInit, inject, HostListener, ChangeDetectorRef, DoCheck, OnDestroy, Renderer2 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UserPlanBadgeService, UserPlanTier } from '../../services/user-plan-badge.service';
-import { AuthService } from '../../features/auth/services/auth.service';
-
-/* 🔥 MODELS (STRUCTURED DATA) */
-interface Employment {
-  company: string;
-  role: string;
-  location: string;
-  start: string;
-  end: string;
-  current: boolean;
-  responsibilities: string;
-}
-
-interface Project {
-  title: string;
-  tech: string;
-  role: string;
-  link: string;
-  desc: string;
-}
-
-interface Education {
-  degree: string;
-  college: string;
-  year: string;
-}
-
-interface Reference {
-  name: string;
-  relationship: string;
-  company: string;
-  email: string;
-  phone: string;
-}
+import { Router, RouterModule } from '@angular/router';
+import { ResumeService, Employment, Project, Education, Reference } from '../../services/resume.service';
+import { ResumePreview } from '../../components/resume-preview/resume-preview';
 
 @Component({
   selector: 'app-resume',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule, ResumePreview],
   templateUrl: './resume.html',
   styleUrl: './resume.css',
 })
-export class Resume implements OnInit {
-  /* ================= DEPENDENCY INJECTION ================= */
-  private planService = inject(UserPlanBadgeService);
-  private authService = inject(AuthService);
+export class Resume implements OnInit, DoCheck, OnDestroy {
+  public service = inject(ResumeService);
+  private cdr = inject(ChangeDetectorRef);
+  private renderer = inject(Renderer2);
+  private document = inject(DOCUMENT);
+  private router = inject(Router);
 
-  /* ================= CORE STATE ================= */
-  selectedTemplate = 'template1';
-  activeSection = 'summary';
-  dragIndex = -1;
-  profileScore = 0;
-  userPlan: UserPlanTier = 'FREE';
-  activeTemplateGroup = 'ALL'; // 'ALL' | 'FREE' | 'PRO' | 'ELITE'
+  // Getter/Setter Delegations to the Shared Service
+  get activeTab() { return this.service.activeTab; }
+  set activeTab(val) { this.service.activeTab = val; }
 
-  get filteredTemplates() {
-    if (this.activeTemplateGroup === 'ALL') {
-      return this.templates;
+  get activeSection() { return this.service.activeSection; }
+  set activeSection(val) { this.service.activeSection = val; }
+
+  get selectedTemplate() { return this.service.selectedTemplate; }
+  set selectedTemplate(val) { this.service.selectedTemplate = val; }
+
+  get dragIndex() { return this.service.dragIndex; }
+  set dragIndex(val) { this.service.dragIndex = val; }
+
+  get profileScore() { return this.service.profileScore; }
+  set profileScore(val) { this.service.profileScore = val; }
+
+  get userPlan() { return this.service.userPlan; }
+  set userPlan(val) { this.service.userPlan = val; }
+
+  get activeTemplateGroup() { return this.service.activeTemplateGroup; }
+  set activeTemplateGroup(val) { this.service.activeTemplateGroup = val; }
+
+  get showChecklistDrawer() { return this.service.showChecklistDrawer; }
+  set showChecklistDrawer(val) { this.service.showChecklistDrawer = val; }
+
+  get filterHeadshot() { return this.service.filterHeadshot; }
+  set filterHeadshot(val) { this.service.filterHeadshot = val; }
+
+  get filterGraphics() { return this.service.filterGraphics; }
+  set filterGraphics(val) { this.service.filterGraphics = val; }
+
+  get filterColumns() { return this.service.filterColumns; }
+  set filterColumns(val) { this.service.filterColumns = val; }
+
+  get headingStyle() { return this.service.headingStyle; }
+  set headingStyle(val) { this.service.headingStyle = val; }
+
+  get subheadingStyle() { return this.service.subheadingStyle; }
+  set subheadingStyle(val) { this.service.subheadingStyle = val; }
+
+  get highlightStyle() { return this.service.highlightStyle; }
+  set highlightStyle(val) { this.service.highlightStyle = val; }
+
+  get dividerStyle() { return this.service.dividerStyle; }
+  set dividerStyle(val) { this.service.dividerStyle = val; }
+
+  get bulletStyle() { return this.service.bulletStyle; }
+  set bulletStyle(val) { this.service.bulletStyle = val; }
+
+  get dateFormat() { return this.service.dateFormat; }
+  set dateFormat(val) { this.service.dateFormat = val; }
+
+  get skillsStyle() { return this.service.skillsStyle; }
+  set skillsStyle(val) { this.service.skillsStyle = val; }
+
+  get headerLayout() { return this.service.headerLayout; }
+  set headerLayout(val) { this.service.headerLayout = val; }
+
+  get selectedHighlights() { return this.service.selectedHighlights; }
+  set selectedHighlights(val) { this.service.selectedHighlights = val; }
+
+  get showKeywordModal() { return this.service.showKeywordModal; }
+  set showKeywordModal(val) { this.service.showKeywordModal = val; }
+
+  get showTemplateDropdown() { return this.service.showTemplateDropdown; }
+  set showTemplateDropdown(val) { this.service.showTemplateDropdown = val; }
+
+  get previewMode() { return this.service.previewMode; }
+  set previewMode(val) { this.service.previewMode = val; }
+
+  get expandedItems() { return this.service.expandedItems; }
+  set expandedItems(val) { this.service.expandedItems = val; }
+
+  get activeKeyword() { return this.service.activeKeyword; }
+  set activeKeyword(val) { this.service.activeKeyword = val; }
+
+  get keywordFormats() { return this.service.keywordFormats; }
+  set keywordFormats(val) { this.service.keywordFormats = val; }
+
+  get themeColor() { return this.service.themeColor; }
+  set themeColor(val) { this.service.themeColor = val; }
+
+  get headingFont() { return this.service.headingFont; }
+  set headingFont(val) { this.service.headingFont = val; }
+
+  get bodyFont() { return this.service.bodyFont; }
+  set bodyFont(val) { this.service.bodyFont = val; }
+
+  get headingSize() { return this.service.headingSize; }
+  set headingSize(val) { this.service.headingSize = val; }
+
+  get bodySize() { return this.service.bodySize; }
+  set bodySize(val) { this.service.bodySize = val; }
+
+  get lineSpacing() { return this.service.lineSpacing; }
+  set lineSpacing(val) { this.service.lineSpacing = val; }
+
+  get sectionSpacing() { return this.service.sectionSpacing; }
+  set sectionSpacing(val) { this.service.sectionSpacing = val; }
+
+  get pageMargin() { return this.service.pageMargin; }
+  set pageMargin(val) { this.service.pageMargin = val; }
+
+  get customSectionTitles() { return this.service.customSectionTitles; }
+  set customSectionTitles(val) { this.service.customSectionTitles = val; }
+
+  get selectedSkills() { return this.service.selectedSkills; }
+  set selectedSkills(val) { this.service.selectedSkills = val; }
+
+  get selectedLanguages() { return this.service.selectedLanguages; }
+  set selectedLanguages(val) { this.service.selectedLanguages = val; }
+
+  get skillInput() { return this.service.skillInput; }
+  set skillInput(val) { this.service.skillInput = val; }
+
+  get filteredSkills() { return this.service.filteredSkills; }
+  set filteredSkills(val) { this.service.filteredSkills = val; }
+
+  get aiRole() { return this.service.aiRole; }
+  set aiRole(val) { this.service.aiRole = val; }
+
+  get aiExperience() { return this.service.aiExperience; }
+  set aiExperience(val) { this.service.aiExperience = val; }
+
+  get targetRole() { return this.service.targetRole; }
+  set targetRole(val) { this.service.targetRole = val; }
+
+  get scoreChecklist() { return this.service.scoreChecklist; }
+  set scoreChecklist(val) { this.service.scoreChecklist = val; }
+
+  get errors() { return this.service.errors; }
+  set errors(val) { this.service.errors = val; }
+
+  get data() { return this.service.data; }
+  set data(val) { this.service.data = val; }
+
+  get oldResumeText() { return this.service.oldResumeText; }
+  set oldResumeText(val) { this.service.oldResumeText = val; }
+
+  get zoomLevel() { return this.service.zoomLevel; }
+  set zoomLevel(val) { this.service.zoomLevel = val; }
+
+  get templateHeight() { return this.service.templateHeight; }
+  set templateHeight(val) { this.service.templateHeight = val; }
+
+  get showDownloadDropdown() { return this.service.showDownloadDropdown; }
+  set showDownloadDropdown(val) { this.service.showDownloadDropdown = val; }
+
+  get highlights() { return this.service.highlights; }
+  get customCssOverride() { return this.service.customCssOverride; }
+  set customCssOverride(val) { this.service.customCssOverride = val; }
+  get customizerFilteredTemplates() { return this.service.customizerFilteredTemplates; }
+  get allLanguages() { return this.service.allLanguages; }
+
+  // Constant & Data Lists exposed for template accessibility
+  get templates() { return this.service.templates; }
+  get sections() { return this.service.sections; }
+  get availableRoles() { return this.service.availableRoles; }
+  get roleKeywords() { return this.service.roleKeywords; }
+  get filteredTemplates() { return this.service.filteredTemplates; }
+  get colorPresets() { return this.service.colorPresets; }
+  get fontPresets() { return this.service.fontPresets; }
+
+  // Section Guidelines
+  sectionGuidelines: any = {
+    contact: {
+      title: 'Contact Info Tips',
+      tips: [
+        'Use a professional email address containing your name.',
+        'Ensure your phone number is correct and includes country code if applicable.',
+        'Add customized URLs like LinkedIn or GitHub to show active professional presence.'
+      ]
+    },
+    summary: {
+      title: 'Profile Summary Tips',
+      tips: [
+        'Keep it short: 3-5 sentences summarizing key experience and expertise.',
+        'Incorporate high-value keywords related to your target job profile.',
+        'Avoid empty buzzwords. Focus on tangible strengths.'
+      ]
+    },
+    skills: {
+      title: 'Technical Skills Tips',
+      tips: [
+        'List core technologies, libraries, and frameworks you know well.',
+        'Add related domain concepts (e.g. REST APIs, Microservices).',
+        'Limit to 15-20 key qualifications to avoid cluttering the document.'
+      ]
+    },
+    employment: {
+      title: 'Work Experience Tips',
+      tips: [
+        'List experience in reverse chronological order.',
+        'Use bullet points starting with strong action verbs (Developed, Optimized, Led).',
+        'Quantify results wherever possible (e.g. improved speed by 25%).'
+      ]
+    },
+    projects: {
+      title: 'Projects Tips',
+      tips: [
+        'Describe real-world projects showing key capabilities.',
+        'List the specific technologies used for building the project.',
+        'Explain the problem solved, your role, and the final outcome.'
+      ]
+    },
+    education: {
+      title: 'Education Tips',
+      tips: [
+        'Mention your highest degree first.',
+        'State graduation year clearly and provide correct university names.',
+        'Optional: Mention major achievements or GPA if above 3.5.'
+      ]
+    },
+    personal: {
+      title: 'Personal Details Tips',
+      tips: [
+        'Only add address/DOB details if requested by specific region standards.',
+        'Specify languages known to showcase multicultural capabilities.'
+      ]
     }
-    return this.templates.filter(t => t.tier === this.activeTemplateGroup);
-  }
-
-  /* ================= TAB NAVIGATION ================= */
-  activeTab = 'editor'; // 'editor' | 'scanner' | 'preview' | 'customizer'
-
-  /* ================= DESIGN & CUSTOMIZATION STATE ================= */
-  filterHeadshot = 'ALL'; // 'ALL' | 'YES' | 'NO'
-  filterGraphics = 'ALL'; // 'ALL' | 'CLEAN' | 'CREATIVE' | 'MINIMALIST' | 'MODERNIST'
-  filterColumns = 'ALL'; // 'ALL' | '1' | '2'
-
-  themeColor = '#1e293b';
-  headingFont = 'Outfit';
-  bodyFont = 'Outfit';
-  headingSize = 24;
-  bodySize = 14;
-  lineSpacing = 1.5;
-  sectionSpacing = 20;
-  pageMargin = 24;
-
-  customSectionTitles: any = {
-    summary: 'Profile Summary',
-    skills: 'Key Skills',
-    employment: 'Employment History',
-    projects: 'Projects',
-    education: 'Education',
-    personal: 'Personal Details',
-    references: 'Professional References'
   };
 
-  colorPresets = [
-    '#1e293b', '#4f46e5', '#0ea5e9', '#10b981', '#f59e0b',
-    '#dc2626', '#db2777', '#7c3aed', '#0f766e', '#334155'
-  ];
+  // Guide accordion state
+  guideExpandedSection: string = 'contact';
 
-  fontPresets = ['Outfit', 'Inter', 'Roboto', 'Playfair Display', 'Fira Code', 'Georgia'];
-
-  /* ================= TEMPLATE CHOOSE & RENDER HELPERS ================= */
-  selectTemplate(id: string) {
-    this.selectedTemplate = id;
-    const t = this.templates.find(x => x.id === id);
-    if (t) {
-      this.themeColor = t.color;
+  guideSections = [
+    {
+      id: 'contact',
+      icon: 'fa-address-card',
+      title: 'Contact Details Optimization',
+      tips: [
+        'Use a professional email (first.last@domain.com).',
+        'Provide a clean phone number with country code.',
+        'Add updated LinkedIn and GitHub links to demonstrate active portfolio presence.'
+      ],
+      do: 'Do include your city and state (e.g. Bangalore, India). It passes location filters.',
+      dont: 'Do not list full physical street addresses, date of birth, or photo unless required, to avoid bias.',
+      example: 'John Doe\njohn.doe@email.com | +91 9999999999 | Bangalore, KA\nlinkedin.com/in/johndoe | github.com/johndoe'
+    },
+    {
+      id: 'summary',
+      icon: 'fa-user-tie',
+      title: 'Profile Summary Construction',
+      tips: [
+        'Keep it short: 3-5 sentences maximum.',
+        'Include your exact target job title.',
+        'Mention years of experience and top 3 technical expertise areas.'
+      ],
+      do: 'Do start with strong adjectives and include quantitative metrics (e.g. "2+ years experience").',
+      dont: 'Do not use first-person pronouns ("I", "me", "my"). Write in professional third-person passive voice.',
+      example: 'Results-driven Full Stack Developer with 3+ years of experience designing scalable REST APIs and responsive web interfaces. Proven track record of improving application latency by 20% using Angular and Spring Boot.'
+    },
+    {
+      id: 'experience',
+      icon: 'fa-briefcase',
+      title: 'Work History Accomplishments',
+      tips: [
+        'List experience in reverse-chronological order.',
+        'Start every single bullet point with a strong action verb.',
+        'Use the XYZ formula: Accomplished [X], measured by [Y], by doing [Z].'
+      ],
+      do: 'Do quantify results. Use percentages, time savings, or revenue numbers to make bullets stand out.',
+      dont: 'Do not write a list of daily responsibilities. Focus on outcomes and impact, not tasks.',
+      example: '• Spearheaded refactoring of legacy search modules, reducing load latencies by 35% using Redis caching.\n• Led a team of 3 developers to deliver a new client dashboard, onboarding 10K+ users within 2 months.'
+    },
+    {
+      id: 'skills',
+      icon: 'fa-screwdriver-wrench',
+      title: 'Key Skills & Keyword Integration',
+      tips: [
+        'Distribute skills naturally throughout the resume.',
+        'Match exact spelling of technical terms used in the Job Description.',
+        'Group skills logically (Languages, Frameworks, Databases, Tools).'
+      ],
+      do: 'Do categorize your skills into clear sections to help both human recruiters and parsers read them.',
+      dont: 'Do not list technologies you only used once or twice. Keep it relevant to the target role.',
+      example: 'Languages: Java, TypeScript, SQL\nFrameworks: Angular 18, Spring Boot, Node.js\nDatabases: PostgreSQL, MongoDB, Redis\nTools & DevOps: Git, Docker, AWS, Jenkins'
     }
-  }
-
-  getRenderTemplateId(templateId: string): string {
-    const t = this.templates.find(x => x.id === templateId);
-    return t && t.baseLayout ? t.baseLayout : templateId;
-  }
-
-  // Dynamic section labels helper
-  getSectionLabel(id: string, defaultVal: string): string {
-    return (this.customSectionTitles as any)[id] || defaultVal;
-  }
-
-  get customizerFilteredTemplates() {
-    return this.templates.filter(t => {
-      // Filter by Headshot
-      if (this.filterHeadshot !== 'ALL') {
-        const hasPhoto = t.photo;
-        if (this.filterHeadshot === 'YES' && !hasPhoto) return false;
-        if (this.filterHeadshot === 'NO' && hasPhoto) return false;
-      }
-      // Filter by Graphics Style
-      if (this.filterGraphics !== 'ALL' && t.graphics !== this.filterGraphics) {
-        return false;
-      }
-      // Filter by Columns
-      if (this.filterColumns !== 'ALL') {
-        const cols = t.columns || 1;
-        if (this.filterColumns === '1' && cols !== 1) return false;
-        if (this.filterColumns === '2' && cols !== 2) return false;
-      }
-      return true;
-    });
-  }
-
-  ngOnInit() {
-    // Load subscription plan
-    this.planService.load();
-    this.planService.badge$.subscribe(badge => {
-      this.userPlan = badge ? badge.tier : 'FREE';
-    });
-
-    if (typeof window !== 'undefined') {
-      if (window.innerWidth <= 480) {
-        this.zoomLevel = 0.4;
-      } else if (window.innerWidth <= 768) {
-        this.zoomLevel = 0.55;
-      } else if (window.innerWidth <= 1024) {
-        this.zoomLevel = 0.75;
-      }
-    }
-    this.updateScore();
-  }
-
-  /* ================= JD SCANNER STATE ================= */
-  jobDescriptionText = '';
-  oldResumeText = '';
-  jdMatchedSkills: string[] = [];
-  jdMissingSkills: string[] = [];
-  jdSuggestions: string[] = [];
-  jdMatchScore = 0;
-  isScanning = false;
-
-  /* ================= SKILLS SYSTEM ================= */
-  allSkills: string[] = [
-    ".NET Core",
-    "1-on-1 Mentoring",
-    "3D Math & Linear Algebra",
-    "A/B Testing",
-    "A/B Testing design & execution",
-    "ADB command line",
-    "AI Agents",
-    "AI Ethics",
-    "AI Product Management",
-    "AI Research",
-    "AI Roadmapping",
-    "AI Safety",
-    "AJAX",
-    "API Developer Portal",
-    "API Documentation",
-    "API Documentation (OpenAPI/Swagger)",
-    "API Gateway (Kong/Apigee)",
-    "API Gateway design",
-    "API Integration",
-    "API Integration strategy",
-    "API Platform Engineering",
-    "API Routes",
-    "API Testing",
-    "API Testing (Postman/RestAssured)",
-    "ARM Cortex",
-    "ARM Templates",
-    "ASP.NET MVC",
-    "AWS",
-    "AWS DynamoDB",
-    "AWS ECS",
-    "AWS EKS",
-    "AWS IAM",
-    "AWS IAM Roles governance",
-    "AWS Lambda",
-    "AWS Route53",
-    "AWS/Azure Cloud security",
-    "AWS/Azure/GCP",
-    "Academic Writing",
-    "Account Management",
-    "Accounts Payable/Receivable",
-    "Activation Funnel optimization",
-    "Active Directory",
-    "Active Directory Administration",
-    "ActiveRecord",
-    "Actix-web",
-    "Ad Copy creation",
-    "Adaptability",
-    "Adobe Illustrator",
-    "Adobe InDesign",
-    "Adobe Photoshop",
-    "Adobe Photoshop & Illustrator",
-    "Adobe XD",
-    "Agile",
-    "Agile Delivery",
-    "Agile Maturity Assessment",
-    "Agile Methodologies",
-    "Agile Principles",
-    "Agile Testing",
-    "Agile Transformation",
-    "Agile coaching",
-    "Agile metrics tracking",
-    "Agile/Scrum",
-    "Agile/Scrum Management",
-    "Agile/Waterfall",
-    "Airflow",
-    "Algorithms",
-    "Algorithms Design",
-    "Amazon EC2",
-    "Amazon RDS",
-    "Amazon S3",
-    "Amazon VPC",
-    "Analytical Thinking",
-    "Android Deployment",
-    "Android SDK",
-    "Android Studio",
-    "Angular",
-    "Angular/React Core",
-    "Ansible",
-    "Apache",
-    "Apache Airflow scheduling",
-    "Apache JMeter testing scripts",
-    "Apache Spark",
-    "Apex Triggers",
-    "Apigee Policies",
-    "App Store Connect",
-    "Appium",
-    "Appium Mobile Automation",
-    "Applicant Tracking Systems (ATS)",
-    "Application Portfolio Management",
-    "Application Security",
-    "Application Security Audits",
-    "Architectural Styles",
-    "Arduino",
-    "Assembly",
-    "Assembly Language",
-    "Asset Pipeline integration",
-    "Async Rust",
-    "Async/Await",
-    "Asyncio",
-    "Attribution Modeling",
-    "Audit Methodology",
-    "Audit Report Writing",
-    "Aura Components",
-    "Automation",
-    "Automation Test development",
-    "Axios",
-    "Azure",
-    "Azure AD",
-    "Azure Active Directory",
-    "Azure App Services",
-    "Azure Blob Storage",
-    "Azure DevOps",
-    "Azure Functions",
-    "Azure Kubernetes Service",
-    "Azure SQL",
-    "Azure Virtual Machines",
-    "B2B Sales",
-    "BERT",
-    "BGP/OSPF",
-    "BI Development",
-    "BI Tools",
-    "BI reporting integrations",
-    "Babel",
-    "Backend Architecture",
-    "Backup & Recovery",
-    "Backups",
-    "Balance Sheet reconciliation",
-    "Bank Reconciliation",
-    "Bare-Metal Programming",
-    "Bare-metal",
-    "Bare-metal Programming",
-    "Bash Scripting",
-    "Batch Job Scheduling",
-    "BeautifulSoup",
-    "Benefits Administration",
-    "Big Data Architecture",
-    "BigQuery",
-    "Blazor",
-    "Bloc State Management",
-    "Blockchain Protocol Development",
-    "Blockchain Protocols",
-    "Blogging",
-    "Blueprint diagrams",
-    "Blueprints Visual Scripting",
-    "Boost",
-    "Bootloaders",
-    "Brand Assets Creation",
-    "Brand Engagement",
-    "Brand Identity Design",
-    "Brand Storytelling",
-    "Brand Strategy",
-    "Brand Voice alignment",
-    "Branding",
-    "Browser Rendering Path",
-    "Budget Administration",
-    "Budget Allocation",
-    "Budget Allocation & Planning",
-    "Budget Management",
-    "Budget Planning",
-    "Budgeting & Forecasting",
-    "Bug Tracking",
-    "Bug reporting",
-    "Bundler",
-    "Burndown Charts",
-    "Burp Suite",
-    "Business Analytics",
-    "Business Continuity Planning (BCP)",
-    "Business IT Alignment",
-    "Business Intelligence",
-    "Business Process Mapping",
-    "Business Process Modeling (BPMN)",
-    "Business Systems Implementation",
-    "BusinessObjects",
-    "Buyer Personas",
-    "C",
-    "C#",
-    "C# Programming",
-    "C++",
-    "C++ Coding Standards",
-    "C++ Game Programming",
-    "CI/CD",
-    "CI/CD Integration",
-    "CI/CD Pipelines",
-    "CI/CD Security controls",
-    "CI/CD for Frontend",
-    "CI/CD for ML",
-    "CICS Transaction processing",
-    "CMake",
-    "CNNs",
-    "COBIT",
-    "COBOL Programming",
-    "CRM Integration (Salesforce)",
-    "CRM Tools (Salesforce)",
-    "CSS Architectures",
-    "CSS3",
-    "CUDA",
-    "Caching Strategies (Redis)",
-    "Campaign Analytics",
-    "Candidate Sourcing",
-    "Capistrano",
-    "Card Sorting",
-    "Career growth Mentoring",
-    "Cargo",
-    "Cassandra",
-    "Celery",
-    "Chain-of-Thought",
-    "Change Management",
-    "Channels",
-    "Chaos Engineering",
-    "ChromaDB",
-    "Churn reduction",
-    "Circuit Design",
-    "Cisco Routing & Switching",
-    "Clang",
-    "Clean Coding",
-    "Client Acquisition",
-    "Client Onboarding",
-    "Client Relations",
-    "Client Relationships",
-    "Client Retention",
-    "Cloud Compliance auditing",
-    "Cloud Computing",
-    "Cloud Data Lakes",
-    "Cloud Functions",
-    "Cloud Integration",
-    "Cloud Migration",
-    "Cloud Migration Planning",
-    "Cloud SQL",
-    "Cloud Security",
-    "Cloud Security Architecture",
-    "CloudFormation",
-    "CloudTrail auditing",
-    "CloudWatch",
-    "Coaching Leadership",
-    "Coaching Teams",
-    "Cocoa Touch",
-    "CocoaPods",
-    "Cocos2d",
-    "Code Optimization",
-    "Code Reviews",
-    "CodeIgniter",
-    "Cold Outreach",
-    "Collibra",
-    "Color Matching",
-    "Color Theory",
-    "Combine Framework",
-    "Community Management",
-    "Competitive Analysis",
-    "Complex System design",
-    "Compliance (ISO 27001, SOC2)",
-    "Compliance (ISO/SOC2)",
-    "Compliance Monitoring",
-    "Compliance Standards",
-    "Component Design",
-    "Composer",
-    "Composition API",
-    "Computer Vision",
-    "Concurrency",
-    "Conflict Resolution",
-    "Confluence",
-    "Consensus Algorithms",
-    "Container Vulnerability scanning (Trivy)",
-    "Containerization",
-    "Content Audit",
-    "Content Calendar Management",
-    "Content Creation",
-    "Content Distribution",
-    "Content Ideation",
-    "Content Inventory",
-    "Content Marketing",
-    "Content Modeling",
-    "Content Strategy Development",
-    "Control Systems",
-    "Conversion Rate Optimization (CRO)",
-    "Convex Optimization",
-    "Convolutional Neural Networks (CNN)",
-    "Copywriting",
-    "Core Animation",
-    "Core Data",
-    "Core Web Vitals",
-    "Core codebase architecture",
-    "Core codebase ownership",
-    "Coroutines",
-    "Corporate Branding",
-    "Corporate Finance",
-    "Cost Optimization",
-    "CouchDB",
-    "Crash Logs analysis",
-    "Creative Briefs",
-    "Crisis Communication",
-    "Critical Thinking",
-    "Cross-Browser Testing",
-    "Cross-functional Advocacy",
-    "Cross-functional Collaboration",
-    "Cross-functional Leadership",
-    "Cross-functional collaboration",
-    "Cross-functional workshops facilitation",
-    "Cryptography",
-    "Cucumber",
-    "Cupertino Widgets",
-    "Customer Case Studies",
-    "Customer Communication",
-    "Customer Feedback loops",
-    "Customer Interviews",
-    "Customer Journey Mapping",
-    "Customer Retention",
-    "Customer Satisfaction (CSAT)",
-    "Customer Success",
-    "Cybersecurity",
-    "Cybersecurity Basics",
-    "Cypress",
-    "DAO Infrastructure",
-    "DAX",
-    "DB2 Mainframe databases",
-    "DITA/XML",
-    "DNS/DHCP Configuration",
-    "DO-178C/ISO 26262 Compliance",
-    "DOM Manipulation",
-    "DVC",
-    "Dagger Hilt",
-    "Daily Standups",
-    "Dart",
-    "Dashboard Design",
-    "Dashboards",
-    "Data Access governance",
-    "Data Analytics",
-    "Data Architecture",
-    "Data Catalog tools management",
-    "Data Cleaning",
-    "Data Cleaning & validations",
-    "Data Cleansing",
-    "Data Compliance policies (HIPAA/GDPR)",
-    "Data Drift",
-    "Data Governance",
-    "Data Ingestion",
-    "Data Ingestion pipelines",
-    "Data Lakehouse",
-    "Data Lineage",
-    "Data Lineage tracing",
-    "Data Modeling",
-    "Data Privacy Audits",
-    "Data Privacy Compliance",
-    "Data Privacy Impact Assessments (DPIA)",
-    "Data Privacy Policies creation",
-    "Data Privacy compliance",
-    "Data Quality Standards definition",
-    "Data Querying",
-    "Data Structures",
-    "Data Transformations",
-    "Data Visualization",
-    "Data Warehouse",
-    "Data Warehouse Architecture",
-    "Data Warehousing",
-    "Data breach incident management",
-    "Database Administration",
-    "Database Design",
-    "Database Indexes",
-    "Database Mirroring",
-    "Database Partitioning",
-    "Database Replication",
-    "Database Tuning",
-    "Databricks",
-    "Dataset Curation",
-    "DeFi",
-    "DeFi Hack analysis",
-    "DeFi Protocols",
-    "Debugging",
-    "Decentralized Apps (dApps)",
-    "Decorators",
-    "Deep Learning",
-    "Delivery Management",
-    "Dependency Mapping",
-    "Design Patterns",
-    "Design Systems",
-    "Design Thinking",
-    "Design to Development Handoff",
-    "DevSecOps Pipeline implementation",
-    "Developer Guides",
-    "Developer Mentoring",
-    "Device Drivers",
-    "Digital Assets",
-    "Digital Forensics",
-    "Digital Marketing Strategy",
-    "Digital Marketing campaigns",
-    "Dimensional Modeling",
-    "Directory Services",
-    "Disaster Recovery",
-    "Disaster Recovery (DR)",
-    "Disaster Recovery Planning",
-    "Distributed Systems",
-    "Django",
-    "Docker",
-    "Doctrine",
-    "Dynamic Code Analysis (DAST)",
-    "DynamoDB",
-    "E-commerce Store Operations",
-    "ELK Stack",
-    "ERC20 & ERC721 Standards",
-    "ERD",
-    "ERP Systems (SAP/Oracle)",
-    "ES6+",
-    "ESLint",
-    "ESNext",
-    "ETL",
-    "ETL Pipelines",
-    "ETL Process development",
-    "ETL pipeline development",
-    "Echidna fuzzing",
-    "Echo",
-    "Edge Computing",
-    "Editor skills",
-    "Elasticsearch",
-    "Elementor/Gutenberg custom blocks",
-    "Email Campaign Setup",
-    "Email Campaigns",
-    "Email Marketing campaigns",
-    "Embedded C",
-    "Embedded Software",
-    "Embedded Systems",
-    "Employee Engagement",
-    "Employee Relations",
-    "Employee handbook creation",
-    "Employer Branding",
-    "EnCase",
-    "Encryption Key Management (KMS)",
-    "Endpoint Detection & Response (EDR)",
-    "Endpoint Protection",
-    "Engineering Best practices mentoring",
-    "Engineering Team Leadership",
-    "Enterprise Architecture Frameworks (TOGAF)",
-    "Enterprise Architecture Planning",
-    "Enterprise Client Support",
-    "Enterprise Data Model",
-    "Enterprise Design Patterns",
-    "Enterprise Integration",
-    "Enterprise Security",
-    "Enterprise Solutions Architecture",
-    "Entity Framework",
-    "Ethereum",
-    "Ethereum Blockchain",
-    "Ethereum Virtual Machine (EVM)",
-    "Ethers.js",
-    "Ethical Hacking",
-    "Event-Driven Architecture (Kafka)",
-    "Excel",
-    "Excel (VBA)",
-    "Expo",
-    "Express.js",
-    "FMLA compliance",
-    "Facilitating Agile events",
-    "FastAPI",
-    "Fastlane",
-    "Feasibility Study",
-    "Feature Engineering",
-    "Feature Prioritization",
-    "Feature Store",
-    "Few-Shot Learning",
-    "Figma",
-    "Figma design layouts",
-    "Figma wireframes",
-    "Figma wireframes review",
-    "Financial Auditing",
-    "Financial Audits coordination",
-    "Financial Control",
-    "Financial Modeling",
-    "Financial Reporting",
-    "Fine-Tuning Prompts",
-    "Firebase App Distribution setup",
-    "Firebase Integration",
-    "Firewall Auditing",
-    "Firewall Rules management",
-    "Firewalls",
-    "Firmware Debugging",
-    "Firmware Development",
-    "Flask",
-    "Flexbox",
-    "Flume",
-    "Flutter",
-    "Flutter CLI",
-    "Forensic Toolkits (FTK)",
-    "Formal Verification",
-    "Frontend Architecture",
-    "GAAP/IFRS Compliance",
-    "GAAP/IFRS Principles",
-    "GCP",
-    "GCP IAM",
-    "GCP VPC",
-    "GDB",
-    "GDPR/CCPA frameworks implementation",
-    "GPU Computing (CUDA)",
-    "GRC",
-    "Game AI",
-    "Game Physics",
-    "Game Programming",
-    "Gantt Charts",
-    "Gap Analysis",
-    "Gas Optimization",
-    "General Ledger",
-    "General Ledger Accounting",
-    "Generative AI",
-    "Generative Adversarial Networks (GAN)",
-    "Generics",
-    "Gensim",
-    "Gin",
-    "Git",
-    "Git & GitHub",
-    "Git version control",
-    "Git/Perforce",
-    "GitHub Actions",
-    "GitLab CI",
-    "Go",
-    "Go (Golang)",
-    "Go modules",
-    "Go-To-Market (GTM) Strategy",
-    "Google Ads",
-    "Google Analytics",
-    "Google Cloud Run",
-    "Google Cloud Storage",
-    "Google Compute Engine",
-    "Google Kubernetes Engine",
-    "Google Play Console",
-    "Google Search Console",
-    "Goroutines",
-    "Governance Frameworks",
-    "Gradle",
-    "Grafana",
-    "Graph Databases",
-    "GraphQL",
-    "GraphQL Federation",
-    "Graphic Design",
-    "Grid Layout",
-    "Growth Hacking Methodology",
-    "HAL (Hardware Abstraction Layer)",
-    "HBase",
-    "HIPAA Compliance",
-    "HR Generalist",
-    "HR Metrics",
-    "HR Policies",
-    "HRIS (Workday/BambooHR)",
-    "HRIS Software",
-    "HTML5",
-    "HTML5 & CSS3",
-    "HTML5 & CSS3 styling",
-    "HTTP Response codes analysis",
-    "Hadoop",
-    "Hardware Debugging",
-    "Hardware Interfacing",
-    "Hardware repair",
-    "Hardware-Software Integration",
-    "Hashtag Strategy",
-    "Headhunting",
-    "Helm",
-    "Helpdesk Team coordination",
-    "Heroku",
-    "Heuristic Evaluation",
-    "Hibernate",
-    "High Availability",
-    "Hive",
-    "HubSpot / Marketo",
-    "Hugging Face",
-    "Human Resources",
-    "Hyperledger Fabric",
-    "Hyperparameter Tuning",
-    "IAM",
-    "IAM Governance",
-    "IBM z/OS environment",
-    "IDS/IPS",
-    "IDS/IPS Logging",
-    "IIS",
-    "IPFS",
-    "ISO 27001",
-    "IT Asset Tracking Management",
-    "IT Budget Planning & Strategy",
-    "IT Desktop Support",
-    "IT Infrastructure Management",
-    "IT Infrastructure Projects",
-    "IT Operations Governance",
-    "IT PMO",
-    "IT Service Management (ITSM)",
-    "IT Strategy Planning",
-    "ITIL Framework",
-    "Illustration",
-    "Image Processing",
-    "Image Segmentation",
-    "Incident Command",
-    "Incident Escalation",
-    "Incident Management",
-    "Incident Reporting",
-    "Incident Response",
-    "Incident Response management",
-    "Incremental Static Regeneration (ISR)",
-    "Index Optimization",
-    "Influencer Collaboration",
-    "Informatica PowerCenter / Talend",
-    "Information Architecture",
-    "Information Security Strategy",
-    "Information Systems Security",
-    "Infrastructure as Code",
-    "Instructional Design",
-    "Integration Architectures design",
-    "Integration Testing",
-    "Integration testing",
-    "Interaction Design",
-    "Interactive Prototyping",
-    "Interfaces",
-    "Internal Auditing",
-    "Internal Controls",
-    "Interviewing Techniques",
-    "Intrusion Detection",
-    "Intrusion Detection/Prevention (IDS/IPS)",
-    "Inventory Control",
-    "IoT Architecture",
-    "IoT Protocols",
-    "IoT Security",
-    "JAX",
-    "JCL Scripting",
-    "JDBC",
-    "JPA",
-    "JSON",
-    "JSON Document Databases",
-    "JSON Schema verification",
-    "JTAG debugging",
-    "JUnit",
-    "Java",
-    "JavaScript",
-    "JavaScript programming",
-    "Jenkins",
-    "Jest",
-    "Jetpack Compose",
-    "Jira",
-    "Jira Service Desk",
-    "Jira/Confluence",
-    "Jira/Git",
-    "Job Posting",
-    "Jupyter",
-    "Jupyter Notebooks",
-    "KPI Dashboards",
-    "KPI Metrics Reporting",
-    "KPI Tracking",
-    "Kafka",
-    "Kali Linux",
-    "Kanban Board Setup",
-    "Keil MDK",
-    "Keras",
-    "Kerberos",
-    "Keyword Research",
-    "Kinematics",
-    "Knowledge Base articles",
-    "Knowledge Base creation",
-    "Kong Plugins",
-    "Kotlin",
-    "Kubeflow",
-    "Kubernetes",
-    "LINQ",
-    "LLMs",
-    "LaTeX",
-    "Labor Law Compliance",
-    "Labor Laws Compliance",
-    "Landing Page Copy",
-    "LangChain",
-    "Laravel",
-    "Large Language Models (LLMs)",
-    "Launch Management",
-    "Layout Design",
-    "Lead Generation",
-    "Lead Scoring",
-    "Leadership",
-    "LiDAR",
-    "Lightning Web Components (LWC)",
-    "Link Building",
-    "Linting & Testing Standards",
-    "Linux",
-    "Linux (RedHat/Ubuntu)",
-    "Linux Command Line",
-    "LlamaIndex",
-    "Load Balancing",
-    "Load, Stress & Soak testing",
-    "LoadRunner enterprise tools",
-    "Local SEO",
-    "Lodash",
-    "Log Analysis",
-    "Logic Analyzers",
-    "Logic Building",
-    "Logo Design",
-    "MDX",
-    "MLOps",
-    "MLflow",
-    "MQTT/CoAP",
-    "MS Project",
-    "MVC Architecture",
-    "MVC/MVVM",
-    "MVVM Architecture",
-    "Machine Learning",
-    "Machine Learning Lifecycle",
-    "MadCap Flare",
-    "Mainframe Troubleshooting",
-    "Manual QA methodologies",
-    "Manual Testing",
-    "MapReduce",
-    "Markdown",
-    "Market Expansion",
-    "Market Research",
-    "Marketing Automation",
-    "Marketing Funnel",
-    "Marketing Funnel Analysis",
-    "Marketing Graphics",
-    "Marketing Operations",
-    "Material Design",
-    "Mathematical Optimization",
-    "Matplotlib",
-    "Maven",
-    "Memory Management",
-    "Memory Safety",
-    "Message Brokers",
-    "Metadata Management",
-    "Metadata Management setups",
-    "Metamask Integration",
-    "Metasploit",
-    "Metrics dashboard tracking",
-    "Metro Bundler",
-    "Micro-Frontends",
-    "Microcontrollers",
-    "Microcontrollers (STM32)",
-    "Microprocessors",
-    "Microservices",
-    "Microservices Architecture",
-    "Microservices Design",
-    "Milestone tracking",
-    "Miter Att&ck framework",
-    "Mixpanel/Amplitude Analytics",
-    "Mobile App Testing (iOS/Android)",
-    "Mobile Game Optimization",
-    "Mobile testing",
-    "Mocking API dependencies",
-    "Mockito",
-    "Mockups",
-    "Model Deployment",
-    "Model Evaluation",
-    "Model Evaluation Metrics",
-    "Model Monitoring",
-    "Model Optimization",
-    "Model ROI Analysis",
-    "Model Registry",
-    "Model Versioning",
-    "MongoDB",
-    "Mongoose",
-    "Monitoring (Prometheus/Grafana)",
-    "MonoBehaviour",
-    "Monorepos",
-    "Monorepos (Turbo/Lerna)",
-    "Month-End Close",
-    "Multi-Factor Authentication (MFA)",
-    "Multi-Project Coordination",
-    "Multi-cloud Strategy",
-    "Multi-threading",
-    "MySQL",
-    "MySQL database backend",
-    "Mythril",
-    "NIST Framework",
-    "NIST SP 800-61",
-    "NLP Research",
-    "NLTK",
-    "NUnit",
-    "Nagios",
-    "Named Entity Recognition (NER)",
-    "Native Modules",
-    "Navigation Systems",
-    "Negotiating Contracts",
-    "Negotiation",
-    "Neo4j",
-    "NestJS",
-    "Net Promoter Score (NPS)",
-    "Network Access Control (NAC)",
-    "Network Assessment",
-    "Network Security",
-    "Network Security Architecture",
-    "Network Security groups configuration",
-    "Network Services (DNS/DHCP)",
-    "Network Troubleshooting",
-    "Neural Architecture Search",
-    "New Relic",
-    "Newman CLI",
-    "Next.js",
-    "Next.js App Router",
-    "Next.js Middleware",
-    "Nginx",
-    "Niagara VFX Particle systems",
-    "Nmap",
-    "NoSQL",
-    "NoSQL Architecture",
-    "NoSQL Databases",
-    "Node-RED",
-    "Node.js",
-    "NumPy",
-    "Nuxt.js",
-    "OAuth",
-    "OAuth 2.0",
-    "OAuth2/OIDC",
-    "OIDC",
-    "OLAP Cubes",
-    "OOPs",
-    "OWASP Top 10",
-    "OWASP Top 10 mitigation",
-    "Object Detection",
-    "Object Tracking",
-    "Object-Oriented Programming",
-    "Objective-C",
-    "Off-Page SEO",
-    "Okta",
-    "On-Page SEO Optimization",
-    "Onboarding",
-    "Onboarding & Offboarding",
-    "OpenCV",
-    "Operational Efficiency",
-    "Operations Management",
-    "Optimization tools",
-    "Oracle DB",
-    "Organizational Agility",
-    "Oscilloscope Debugging",
-    "Oscilloscopes",
-    "Ownership Model",
-    "PCB Design",
-    "PCI-DSS",
-    "PHP",
-    "PHP programming",
-    "PHPUnit",
-    "PIL",
-    "PKI",
-    "PL/SQL",
-    "PPC Campaigns",
-    "PRD Writing",
-    "Pandas",
-    "Path Planning",
-    "Pattern Matching",
-    "Payment Gateway integration",
-    "Payroll Processing",
-    "Penetration Testing",
-    "Penetration Testing application layer",
-    "Performance Appraisals",
-    "Performance Management",
-    "Performance Profiling",
-    "Performance Profiling Tools",
-    "Performance Reviews",
-    "Performance Testing (JMeter)",
-    "Performance Testing Methodology",
-    "Performance Tuning",
-    "Persona Creation templates",
-    "Persuasive Writing",
-    "Phalcon",
-    "Pinecone",
-    "Ping Identity",
-    "Pipenv",
-    "Pivot Tables",
-    "Playwright",
-    "Policy Drafting",
-    "Policy Implementation",
-    "Post-Mortem Documentation",
-    "PostgreSQL",
-    "Postman",
-    "Postman automation collections",
-    "Power BI",
-    "PowerShell",
-    "Print Media Design",
-    "Print Production",
-    "Printer & Network setup",
-    "Prisma",
-    "Privacy by Design",
-    "Privileged Access Management (PAM)",
-    "Problem Solving",
-    "Process Mapping",
-    "Process Optimization",
-    "Product Adoption coaching",
-    "Product Analytics",
-    "Product Backlog Refinement",
-    "Product Demos",
-    "Product Design Lifecycle",
-    "Product Inventory Management",
-    "Product Lifecycle Management",
-    "Product Marketing",
-    "Product Positioning",
-    "Product Roadmap",
-    "Product Roadmap alignment",
-    "Product Strategy",
-    "Product engineering roadmaps",
-    "Program Charters",
-    "Program Increment (PI) Planning",
-    "Program Management",
-    "Project Delivery",
-    "Project Management",
-    "Project Planning",
-    "Project Planning & Milestones",
-    "Prometheus",
-    "Promises",
-    "Prompt Engineering",
-    "Prompt Injection Mitigation",
-    "Proof of Concept (PoC)",
-    "Protobuf",
-    "Prototyping",
-    "Provider",
-    "Pub.dev",
-    "PyTest",
-    "PyTorch",
-    "Python",
-    "QBR (Quarterly Business Reviews)",
-    "QlikView",
-    "Qt Creator",
-    "Quality Assurance",
-    "Query Execution Plans",
-    "Query Optimization",
-    "QuickBooks",
-    "R",
-    "R&D Innovation initiatives",
-    "R&D innovation",
-    "REST API",
-    "REST APIs",
-    "RESTful API",
-    "RESTful API Design",
-    "RESTful API testing",
-    "RFP Responses",
-    "ROI Analytics",
-    "ROI Tracking",
-    "ROS (Robot Operating System)",
-    "RSpec",
-    "RTOS",
-    "RTOS (FreeRTOS)",
-    "Raspberry Pi",
-    "Rate Limiting & Throttling",
-    "Razor Pages",
-    "React",
-    "React Native",
-    "React Native CLI",
-    "React Navigation",
-    "Real Device Cloud testing (BrowserStack)",
-    "Recruiting Strategy",
-    "Recurrent Neural Networks (RNN)",
-    "Red Teaming",
-    "Redis",
-    "Redshift",
-    "Redux",
-    "Reentrancy Attacks mitigation",
-    "Regex",
-    "Regression Testing",
-    "Reinforcement Learning",
-    "Relationship Building",
-    "Release Governance",
-    "Release Management",
-    "Release Management governance",
-    "Release Notes",
-    "Remote Assistance Tools",
-    "Remote Desktop Tools",
-    "Remote desktop support",
-    "Removing Impediments",
-    "Replication",
-    "Reporting",
-    "Reporting Services",
-    "Requirement Analysis",
-    "Requirements Gathering",
-    "Requirements Management Tools (DOORS)",
-    "Resolving program impediments",
-    "Resource Allocation",
-    "Resource Management",
-    "Resource Planning",
-    "Resource Scheduling & Allocation",
-    "Resource planning & hiring",
-    "Responsive Design",
-    "Responsive Layouts",
-    "Responsive Web Design",
-    "Responsive web pages",
-    "RestAssured java framework",
-    "Retention Metrics Analysis",
-    "Retrofit",
-    "Risk Assessment",
-    "Risk Assessment & Mitigation",
-    "Risk Management",
-    "Risk Management & Planning",
-    "Risk Management Framework (RMF)",
-    "Risk Mitigation",
-    "Roadmap planning",
-    "Robotic Arm Control",
-    "Rocket",
-    "Role-Based Access Control (RBAC)",
-    "Room Database",
-    "Root Cause Analysis",
-    "Root Cause Analysis (RCA)",
-    "Ruby",
-    "Ruby on Rails",
-    "Rust",
-    "RxJS",
-    "RxJava",
-    "SAFe Agile Framework scaling",
-    "SAML",
-    "SAP ABAP Programming",
-    "SAP Configuration",
-    "SAP ERP system modules",
-    "SAP Fiori custom apps",
-    "SAP HANA Implementation",
-    "SAP NetWeaver",
-    "SASS",
-    "SAST/DAST Tooling",
-    "SEMrush/Ahrefs",
-    "SEO Copywriting",
-    "SEO Optimization",
-    "SEO Strategy",
-    "SEO/SEM",
-    "SEO/SEM Strategy",
-    "SIEM",
-    "SIEM (Splunk/QRadar)",
-    "SIEM Tools",
-    "SIEM Triaging",
-    "SLA Compliance",
-    "SLA Management",
-    "SLA Monitoring",
-    "SLAM",
-    "SOAR",
-    "SOAR Platforms",
-    "SOC 2 Type II",
-    "SOC Auditing",
-    "SOC Operations",
-    "SOQL/SOSL",
-    "SOX Compliance",
-    "SPI/I2C/UART/CAN",
-    "SQL",
-    "SQL Queries",
-    "SQL Server",
-    "SQL Server Integration Services (SSIS)",
-    "SQL query optimization",
-    "SQL query running",
-    "SQL verification",
-    "SQLAlchemy",
-    "SSAS",
-    "SSIS",
-    "SSR & SSG",
-    "SSRS",
-    "STL",
-    "SWR / React Query",
-    "SaaS Architecture",
-    "Sagemaker",
-    "SailPoint",
-    "Sales Cycle management",
-    "Sales Enablement",
-    "Sales Pitch presentation",
-    "Salesforce Admin certified",
-    "Salesforce Apex",
-    "Salesforce Configuration",
-    "Salesforce Integrations",
-    "Scala",
-    "Scalability",
-    "Scalability & Performance design",
-    "Scaling Agile (SAFe/LeSS)",
-    "Schema Registry",
-    "Scientific Computing",
-    "Scikit-Learn",
-    "Scikit-image",
-    "Scope Definition",
-    "Scrapy",
-    "Scribble",
-    "Scripting (Bash/PowerShell)",
-    "Scrum",
-    "Scrum & Kanban Coaching",
-    "Scrum Framework",
-    "Seaborn",
-    "Search Schema",
-    "Secure Access Service Edge (SASE)",
-    "Secure Coding Guidelines coaching",
-    "Security Analyst Mentoring",
-    "Security Architecture",
-    "Security Auditing",
-    "Security Audits coordination",
-    "Security Awareness training",
-    "Security Controls",
-    "Security Operations Center (SOC)",
-    "Security Patching",
-    "Security Patterns",
-    "Security Vulnerability Scanning",
-    "Selenium",
-    "Selenium WebDriver/Playwright",
-    "Semantic Search",
-    "Sensor Fusion",
-    "Sensor Integration",
-    "Sentiment Analysis",
-    "Seq2Seq",
-    "Sequelize",
-    "Serde",
-    "Server Performance Metrics analysis",
-    "Server-Side Rendering (SSR)",
-    "Serverless",
-    "Serverless Framework",
-    "Service Blueprint mapping",
-    "Service Level Agreement (SLA) monitoring",
-    "Service Mesh (Istio)",
-    "Service Prototyping tests",
-    "Shader Development",
-    "Sharding",
-    "Shopify API Integration",
-    "Shopify Admin API",
-    "Shopify App Custom development",
-    "Shopify Liquid template engine",
-    "Shopify/WooCommerce Management",
-    "Sidekiq",
-    "SignalR",
-    "Simulation (Gazebo)",
-    "Single File Components (SFC)",
-    "Single Sign-On (SSO)",
-    "Site Mapping",
-    "Sketch",
-    "Smart Contract Auditing",
-    "Smart Contracts",
-    "Smoke Testing",
-    "Snowflake",
-    "Snowflake/Redshift Cloud databases",
-    "Snyk",
-    "SoapUI enterprise setups",
-    "Social Ads Management",
-    "Social Media Analytics",
-    "Social Media Content",
-    "Social Media Marketing",
-    "Social Media Platforms",
-    "Software Architecture Design",
-    "Software Architecture Guidance",
-    "Software Development Life Cycle (SDLC)",
-    "Solidity",
-    "Solution Design",
-    "SonarQube",
-    "SpaCy",
-    "Spark",
-    "Spark Streaming",
-    "Spring Boot",
-    "Spring Cloud",
-    "Sprint Acceptance Criteria",
-    "Sprint Execution",
-    "Sprint Planning",
-    "Sprint Planning & Management",
-    "Sprint Retrospectives",
-    "Sprint Review presentations",
-    "Sqoop",
-    "Stackdriver",
-    "Stakeholder Communication",
-    "Stakeholder Interviews",
-    "Stakeholder Management",
-    "Stakeholder Reporting",
-    "Stakeholder interviews",
-    "Star & Snowflake Schema design",
-    "State Management",
-    "State Management Patterns",
-    "Static Analysis (Slither)",
-    "Static Code Analysis (SAST)",
-    "Static Site Generation (SSG)",
-    "Statistical Analysis",
-    "Statsmodels",
-    "Stored Procedures",
-    "Strategic Partnerships",
-    "Strategic Roadmapping",
-    "Strict Typing",
-    "Subnetting",
-    "Supply Chain Management",
-    "Survey Design & analysis",
-    "Swift",
-    "Swift Package Manager",
-    "SwiftUI",
-    "Symfony",
-    "SysML/UML",
-    "System Architecture",
-    "System Bottlenecks identification",
-    "System Design",
-    "System Design patterns",
-    "System Modeling",
-    "System Monitoring",
-    "System Performance Analysis",
-    "System Prompts",
-    "System Requirements Gathering",
-    "System Scalability",
-    "System Specifications",
-    "System Testing",
-    "Systems Engineering",
-    "Systems Integration",
-    "T-SQL",
-    "TCP/IP Network Protocol",
-    "TFX",
-    "TOGAF",
-    "TSLint",
-    "TSO/ISPF",
-    "Tableau",
-    "Tailwind CSS",
-    "Talent Management",
-    "Talent Pipeline",
-    "Tax Compliance",
-    "Tax Filing",
-    "Taxonomy Design",
-    "Team Building workshops",
-    "Tech Editing",
-    "Tech Stack Selection",
-    "Tech Stack evaluation",
-    "Technical Account Management",
-    "Technical Architecture reviews",
-    "Technical Consultation",
-    "Technical Customer Support",
-    "Technical Debt management",
-    "Technical Documentation",
-    "Technical Escalations",
-    "Technical Leadership",
-    "Technical Leadership & Guidance",
-    "Technical Presentations",
-    "Technical SEO Audit",
-    "Technical Sales support",
-    "Technical Specifications drafting",
-    "Technical Strategy Guidance",
-    "Technical Team Leadership",
-    "Technical Vision",
-    "Technical Writing",
-    "Technology Stack evaluation",
-    "Technology Strategy Planning",
-    "TensorFlow",
-    "TensorRT",
-    "Terraform",
-    "Test Automation Frameworks",
-    "Test Cases",
-    "Test Plans",
-    "TestFlight",
-    "TestNG",
-    "Testing Validation methodologies",
-    "Text Classification",
-    "Theme customization & setups",
-    "Threat Containment",
-    "Threat Hunting",
-    "Threat Intel Integration",
-    "Threat Modeling designs",
-    "Ticketing System (Zendesk/Jira)",
-    "Ticketing System Management",
-    "Time Management",
-    "Tokenization",
-    "Tokenomics",
-    "Tokio",
-    "Touchpoint Analysis reviews",
-    "Transformers",
-    "Treasury Operations",
-    "Triggers",
-    "Troubleshooting",
-    "Truffle/Hardhat",
-    "Ts-node",
-    "TypeORM",
-    "TypeScript",
-    "Typography",
-    "UART/SPI/I2C",
-    "UI Canvas setup",
-    "UI/UX Best practices",
-    "UIKit",
-    "UML Modeling",
-    "UX Design",
-    "UX Guidelines",
-    "UX Insights Reporting",
-    "Unit Testing",
-    "Unit Testing (Hardhat)",
-    "Unit Testing (Mocha/Chai)",
-    "Unity Animation",
-    "Unity Asset Store integration",
-    "Unity Engine",
-    "Unity Prefabs",
-    "Unreal Engine",
-    "Unreal Engine Editor",
-    "Unreal Materials Editor",
-    "Upselling",
-    "Usability Testing",
-    "Usability Testing protocols",
-    "Use Case Documentation",
-    "User Acceptance Testing (UAT)",
-    "User Access administration",
-    "User Acquisition strategies",
-    "User Empathy Mapping",
-    "User Experience Research",
-    "User Flows",
-    "User Guides",
-    "User Interaction Flow",
-    "User Interface Design",
-    "User Interviews conducting",
-    "User Journeys",
-    "User Management",
-    "User Personas",
-    "User Research",
-    "User Research Methods",
-    "User Stories",
-    "User Story Mapping",
-    "User Story writing",
-    "VLAN",
-    "VPN Setup",
-    "VPN setup & tunnels",
-    "VSAM",
-    "Valgrind",
-    "Valuation Techniques",
-    "Value Proposition",
-    "Value Stream Mapping",
-    "Variance Analysis",
-    "Vector Art",
-    "Vector Databases",
-    "Vector Illustration",
-    "Velocity & Throughput metrics",
-    "Velocity Tracking",
-    "Vendor Management",
-    "Vercel",
-    "Verification & Validation",
-    "Views",
-    "Virtualization",
-    "Virtualization (VMware/Hyper-V)",
-    "Visual Design",
-    "Visual Hierarchy",
-    "Visual Layouts",
-    "Visual Mockups",
-    "Visual Storytelling",
-    "Visual Studio",
-    "Visual Style Guides",
-    "Visual Styling",
-    "Visualforce",
-    "Vite",
-    "Vue CLI",
-    "Vue Router",
-    "Vue Test Utils",
-    "Vue.js",
-    "Vuetify / Tailwind CSS",
-    "Vuex / Pinia",
-    "Vulnerability Assessment & scanning",
-    "Vulnerability Management",
-    "Vulnerability Scanning",
-    "Vulnerability management",
-    "WP-CLI",
-    "WPF",
-    "Web API",
-    "Web Application Security",
-    "Web Layout Design",
-    "Web Performance Optimization",
-    "Web Systems Programming",
-    "Web Vitals",
-    "Web3",
-    "Web3 UI frameworks",
-    "Web3.js",
-    "Web3.js/Ether.js",
-    "WebAssembly",
-    "WebSockets",
-    "Webhooks management",
-    "Webpack",
-    "Webpack / Vite",
-    "Webpack Module Federation",
-    "Webpacker",
-    "Website Speed optimization",
-    "Weights & Biases",
-    "Wi-Fi Configuration",
-    "Wi-Fi/Bluetooth LE",
-    "Widget Trees",
-    "Windows Server",
-    "Windows/macOS troubleshooting",
-    "Wireframing",
-    "Wireless Hacking",
-    "Wireshark",
-    "WooCommerce setups",
-    "Word Embeddings",
-    "WordPress",
-    "WordPress Plugin development",
-    "WordPress Theme customization",
-    "WordPress custom styling",
-    "XGBoost",
-    "XML Sitemaps",
-    "XUnit",
-    "Xcode",
-    "Xcode & Android Studio emulators",
-    "Xdebug",
-    "YAML",
-    "YOLO",
-    "Yarn",
-    "Yii",
-    "Zendesk",
-    "Zero-Shot Learning",
-    "Zustand",
-    "dApps",
-    "gRPC",
-    "gRPC / Protobuf",
-    "iOS Deployment",
-    "npm",
-    "tsconfig"
-  ];
-  maxSkills = 25;
-  skillInput = '';
-  filteredSkills: string[] = [];
-  selectedSkills: string[] = [];
-
-  /* ================= LANGUAGES ================= */
-  allLanguages = ['English', 'Telugu', 'Hindi', 'Tamil', 'Kannada', 'Malayalam'];
-  selectedLanguages: string[] = [];
-
-  /* ================= SECTIONS ================= */
-  sections = [
-    { id: 'summary', label: 'Profile Summary' },
-    { id: 'skills', label: 'Key Skills' },
-    { id: 'employment', label: 'Employment History' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'education', label: 'Education' },
-    { id: 'personal', label: 'Personal Details' },
-    { id: 'references', label: 'Professional References' }
   ];
 
-  /* ================= ATS KEYWORDS BY ROLE ================= */
-  targetRole = 'Full Stack Developer';
-  availableRoles = [
-    "AI Product Manager",
-    "AI Research Scientist",
-    "API Platform Engineer",
-    "API Test Engineer",
-    "AWS Engineer",
-    "Accountant",
-    "Agile Coach",
-    "Android Developer",
-    "Application Security Specialist",
-    "Automation Test Engineer",
-    "Azure Engineer",
-    "Backend Architect",
-    "Backend Developer",
-    "Big Data Engineer",
-    "Blockchain Developer",
-    "Brand Designer",
-    "Business Analyst",
-    "Business Development Manager",
-    "Business Intelligence (BI) Analyst",
-    "Business Intelligence Developer",
-    "C# Developer",
-    "C++ Developer",
-    "Chief Information Officer (CIO)",
-    "Chief Technology Officer (CTO)",
-    "Cloud Architect",
-    "Cloud Security Engineer",
-    "Computer Vision Engineer",
-    "Content Strategist",
-    "Copywriter",
-    "Customer Success Manager",
-    "Customer Support Engineer",
-    "Cybersecurity Analyst",
-    "Data Analyst",
-    "Data Architect",
-    "Data Engineer",
-    "Data Governance Analyst",
-    "Data Protection Officer (DPO)",
-    "Data Scientist",
-    "Data Warehouse Developer",
-    "Database Administrator (DBA)",
-    "Deep Learning Engineer",
-    "Delivery Manager",
-    "DevOps Engineer",
-    "DevSecOps Engineer",
-    "Digital Marketing Manager",
-    "E-commerce Manager",
-    "ETL Developer",
-    "Embedded Software Engineer",
-    "Embedded Systems Engineer",
-    "Engineering Manager",
-    "Enterprise Architect",
-    "Financial Analyst",
-    "Financial Controller",
-    "Firmware Engineer",
-    "Flutter Developer",
-    "Frontend Architect",
-    "Frontend Developer",
-    "Full Stack Developer",
-    "Full Stack QA Engineer",
-    "Game Developer",
-    "Go Developer",
-    "Google Cloud Engineer",
-    "Governance, Risk, and Compliance (GRC) Officer",
-    "Graphic Designer",
-    "Growth Product Manager",
-    "HR Generalist",
-    "HR Specialist",
-    "Helpdesk Administrator",
-    "IT Project Manager",
-    "IT Support Technician",
-    "Identity and Access Management (IAM) Specialist",
-    "Incident Response Manager",
-    "Information Architect",
-    "Information Security Manager",
-    "IoT Specialist",
-    "Java Developer",
-    "JavaScript Developer",
-    "MLOps Engineer",
-    "Machine Learning Engineer",
-    "Mainframe Developer",
-    "Marketing Operations Specialist",
-    "Mobile QA Engineer",
-    "NLP Engineer",
-    "Network Engineer",
-    "Network Security Engineer",
-    "Next.js Developer",
-    "NoSQL Specialist",
-    "Operations Manager",
-    "PHP Developer",
-    "Penetration Tester",
-    "Performance Test Engineer",
-    "Principal Engineer",
-    "Product Designer",
-    "Product Manager",
-    "Product Marketing Manager",
-    "Program Manager",
-    "Project Manager",
-    "Prompt Engineer",
-    "Python Developer",
-    "QA Engineer",
-    "React Native Developer",
-    "Release Train Engineer",
-    "Robotics Engineer",
-    "Ruby on Rails Developer",
-    "Rust Developer",
-    "SAP Consultant",
-    "SEO Specialist",
-    "SQL Developer",
-    "Sales Engineer",
-    "Salesforce Developer",
-    "Scrum Master",
-    "Scrum Product Owner",
-    "Security Engineer",
-    "Security Operations Center (SOC) Lead",
-    "Service Designer",
-    "Shopify Developer",
-    "Site Reliability Engineer (SRE)",
-    "Smart Contract Auditor",
-    "Social Media Specialist",
-    "Software Architect",
-    "Solidity Developer",
-    "Solutions Architect",
-    "Systems Administrator",
-    "Systems Analyst",
-    "Systems Engineer",
-    "Talent Acquisition Manager",
-    "Technical Account Manager",
-    "Technical Lead",
-    "Technical Writer",
-    "TypeScript Developer",
-    "UI Designer",
-    "UX Designer",
-    "UX Researcher",
-    "Unity Developer",
-    "Unreal Engine Developer",
-    "Vue.js Developer",
-    "Web Designer",
-    "Web3 Developer",
-    "WordPress Developer",
-    "iOS Developer"
+  // AI Phrase Suggestions per section
+  summaryPhrases: string[] = [
+    'Passionate {role} with {exp} years of hands-on experience in building scalable applications.',
+    'Results-driven engineer specializing in {role} development with proven expertise in agile environments.',
+    'Detail-oriented professional skilled in designing, developing, and deploying production-grade solutions.'
+  ];
+  actionVerbStarters: string[] = [
+    'Developed', 'Architected', 'Optimized', 'Led', 'Implemented', 'Designed', 'Deployed',
+    'Integrated', 'Refactored', 'Automated', 'Streamlined', 'Spearheaded', 'Mentored', 'Delivered'
+  ];
+  projectDescPhrases: string[] = [
+    'Built a full-stack web application using {tech} with RESTful APIs and responsive UI.',
+    'Designed and deployed a microservices architecture handling 10K+ concurrent requests.',
+    'Created an interactive dashboard with real-time data visualization and chart analytics.'
+  ];
+  educationPhrases: string[] = [
+    'Dean\'s List recipient for academic excellence',
+    'Published research paper on {topic}',
+    'Led a team of {n} students in capstone project'
   ];
 
-  roleKeywords: { [key: string]: string[] } = {
-    "Frontend Developer": [
-      "Angular",
-      "React",
-      "Vue.js",
-      "HTML5",
-      "CSS3",
-      "JavaScript",
-      "TypeScript",
-      "Redux",
-      "Webpack",
-      "Tailwind CSS",
-      "SASS",
-      "Responsive Design",
-      "Flexbox",
-      "Grid Layout",
-      "API Integration",
-      "Vite",
-      "Babel",
-      "npm",
-      "Yarn",
-      "ESLint"
-    ],
-    "Backend Developer": [
-      "Node.js",
-      "Express.js",
-      "Python",
-      "Django",
-      "Java",
-      "Spring Boot",
-      "PostgreSQL",
-      "MongoDB",
-      "RESTful API",
-      "GraphQL",
-      "Redis",
-      "Docker",
-      "Microservices",
-      "OAuth",
-      "SQL",
-      "gRPC",
-      "Prisma",
-      "Sequelize",
-      "Mongoose",
-      "Elasticsearch"
-    ],
-    "Full Stack Developer": [
-      "React",
-      "Angular",
-      "Node.js",
-      "Express.js",
-      "Java",
-      "Spring Boot",
-      "PostgreSQL",
-      "MongoDB",
-      "TypeScript",
-      "REST API",
-      "Git",
-      "Docker",
-      "AWS",
-      "CI/CD",
-      "GraphQL",
-      "Redis",
-      "Next.js",
-      "Vue.js",
-      "Tailwind CSS",
-      "System Design"
-    ],
-    "Java Developer": [
-      "Java",
-      "Spring Boot",
-      "Spring Cloud",
-      "Hibernate",
-      "Microservices",
-      "REST API",
-      "SQL",
-      "JUnit",
-      "Maven",
-      "Gradle",
-      "Jenkins",
-      "Git",
-      "Docker",
-      "AWS",
-      "Design Patterns",
-      "JPA",
-      "JDBC",
-      "Kafka",
-      "WebSockets",
-      "Oracle DB"
-    ],
-    "Python Developer": [
-      "Python",
-      "Django",
-      "Flask",
-      "FastAPI",
-      "Pandas",
-      "NumPy",
-      "SQLAlchemy",
-      "PostgreSQL",
-      "REST API",
-      "Docker",
-      "Git",
-      "Celery",
-      "Redis",
-      "PyTest",
-      "Scrapy",
-      "BeautifulSoup",
-      "Asyncio",
-      "Jupyter",
-      "SQL",
-      "Pipenv"
-    ],
-    "JavaScript Developer": [
-      "JavaScript",
-      "ES6+",
-      "Node.js",
-      "React",
-      "Vue.js",
-      "Express.js",
-      "MongoDB",
-      "Async/Await",
-      "Promises",
-      "Webpack",
-      "Babel",
-      "npm",
-      "Jest",
-      "REST API",
-      "WebSockets",
-      "AJAX",
-      "JSON",
-      "DOM Manipulation",
-      "Lodash",
-      "Axios"
-    ],
-    "TypeScript Developer": [
-      "TypeScript",
-      "Angular",
-      "React",
-      "Node.js",
-      "NestJS",
-      "ESNext",
-      "Generics",
-      "Interfaces",
-      "Decorators",
-      "Strict Typing",
-      "TSLint",
-      "Webpack",
-      "Jest",
-      "REST API",
-      "Monorepos",
-      "RxJS",
-      "TypeORM",
-      "Ts-node",
-      "tsconfig"
-    ],
-    "C++ Developer": [
-      "C++",
-      "STL",
-      "Boost",
-      "CMake",
-      "Multi-threading",
-      "Memory Management",
-      "Object-Oriented Programming",
-      "Design Patterns",
-      "Data Structures",
-      "Algorithms",
-      "GDB",
-      "Valgrind",
-      "Git",
-      "Embedded Systems",
-      "Qt Creator",
-      "Concurrency",
-      "Clang",
-      "Visual Studio"
-    ],
-    "C# Developer": [
-      "C#",
-      ".NET Core",
-      "ASP.NET MVC",
-      "Entity Framework",
-      "SQL Server",
-      "Web API",
-      "LINQ",
-      "WPF",
-      "Azure",
-      "Microservices",
-      "Docker",
-      "NUnit",
-      "Git",
-      "Agile",
-      "IIS",
-      "Razor Pages",
-      "SignalR",
-      "Blazor",
-      "XUnit"
-    ],
-    "PHP Developer": [
-      "PHP",
-      "Laravel",
-      "Symfony",
-      "MySQL",
-      "Composer",
-      "PHPUnit",
-      "JavaScript",
-      "HTML5",
-      "CSS3",
-      "REST API",
-      "WordPress",
-      "Docker",
-      "Git",
-      "Apache",
-      "Nginx",
-      "Yii",
-      "CodeIgniter",
-      "Xdebug",
-      "Doctrine",
-      "Phalcon"
-    ],
-    "Ruby on Rails Developer": [
-      "Ruby",
-      "Ruby on Rails",
-      "PostgreSQL",
-      "RSpec",
-      "Sidekiq",
-      "Redis",
-      "Capistrano",
-      "Git",
-      "Docker",
-      "HTML5",
-      "CSS3",
-      "JavaScript",
-      "REST API",
-      "MVC Architecture",
-      "ActiveRecord",
-      "Webpacker",
-      "Bundler",
-      "Heroku"
-    ],
-    "Go Developer": [
-      "Go (Golang)",
-      "Goroutines",
-      "Channels",
-      "Docker",
-      "Kubernetes",
-      "gRPC",
-      "Microservices",
-      "PostgreSQL",
-      "Redis",
-      "Git",
-      "REST API",
-      "CI/CD",
-      "AWS",
-      "Unit Testing",
-      "Go modules",
-      "Echo",
-      "Gin",
-      "Protobuf",
-      "Concurrency"
-    ],
-    "Rust Developer": [
-      "Rust",
-      "Cargo",
-      "Ownership Model",
-      "Async Rust",
-      "WebAssembly",
-      "Tokio",
-      "Concurrency",
-      "Web Systems Programming",
-      "Git",
-      "CI/CD",
-      "Docker",
-      "Memory Safety",
-      "Actix-web",
-      "Rocket",
-      "Serde",
-      "Pattern Matching"
-    ],
-    "iOS Developer": [
-      "Swift",
-      "Objective-C",
-      "Xcode",
-      "UIKit",
-      "SwiftUI",
-      "Core Data",
-      "CocoaPods",
-      "Swift Package Manager",
-      "Git",
-      "App Store Connect",
-      "Combine Framework",
-      "REST API",
-      "MVC/MVVM",
-      "TestFlight",
-      "Cocoa Touch",
-      "Core Animation"
-    ],
-    "Android Developer": [
-      "Kotlin",
-      "Java",
-      "Android Studio",
-      "Jetpack Compose",
-      "Retrofit",
-      "Coroutines",
-      "Room Database",
-      "Dagger Hilt",
-      "Git",
-      "Google Play Console",
-      "REST API",
-      "MVVM Architecture",
-      "Android SDK",
-      "RxJava",
-      "Mockito",
-      "Gradle"
-    ],
-    "React Native Developer": [
-      "React Native",
-      "JavaScript",
-      "TypeScript",
-      "React Navigation",
-      "Redux",
-      "iOS Deployment",
-      "Android Deployment",
-      "Expo",
-      "Native Modules",
-      "Git",
-      "REST API",
-      "npm",
-      "Fastlane",
-      "Metro Bundler",
-      "React Native CLI"
-    ],
-    "Flutter Developer": [
-      "Dart",
-      "Flutter",
-      "Provider",
-      "Bloc State Management",
-      "Widget Trees",
-      "iOS Deployment",
-      "Android Deployment",
-      "Git",
-      "REST API",
-      "Firebase Integration",
-      "Material Design",
-      "Cupertino Widgets",
-      "Flutter CLI",
-      "Pub.dev"
-    ],
-    "DevOps Engineer": [
-      "Git",
-      "Docker",
-      "Kubernetes",
-      "Jenkins",
-      "AWS",
-      "Terraform",
-      "Ansible",
-      "CI/CD Pipelines",
-      "Linux",
-      "Python",
-      "Bash Scripting",
-      "Monitoring (Prometheus/Grafana)",
-      "Azure",
-      "YAML",
-      "GitLab CI",
-      "GitHub Actions",
-      "Helm",
-      "CloudFormation"
-    ],
-    "Site Reliability Engineer (SRE)": [
-      "Kubernetes",
-      "Docker",
-      "AWS",
-      "Linux",
-      "Python",
-      "Go",
-      "Terraform",
-      "CI/CD",
-      "Prometheus",
-      "Grafana",
-      "ELK Stack",
-      "System Architecture",
-      "Incident Management",
-      "Automation",
-      "Nagios",
-      "Chaos Engineering",
-      "New Relic"
-    ],
-    "Cloud Architect": [
-      "Cloud Migration",
-      "Multi-cloud Strategy",
-      "AWS",
-      "Azure",
-      "GCP",
-      "Infrastructure as Code",
-      "Terraform",
-      "Cloud Security",
-      "Enterprise Integration",
-      "Cost Optimization",
-      "Serverless",
-      "SaaS Architecture",
-      "Disaster Recovery Planning"
-    ],
-    "AWS Engineer": [
-      "AWS",
-      "Amazon EC2",
-      "Amazon S3",
-      "AWS Lambda",
-      "Amazon RDS",
-      "AWS IAM",
-      "CloudFormation",
-      "Terraform",
-      "AWS ECS",
-      "Amazon VPC",
-      "CloudWatch",
-      "Serverless Framework",
-      "AWS Route53",
-      "AWS DynamoDB",
-      "AWS EKS"
-    ],
-    "Azure Engineer": [
-      "Azure",
-      "Azure Virtual Machines",
-      "Azure App Services",
-      "Azure SQL",
-      "Azure Active Directory",
-      "ARM Templates",
-      "Terraform",
-      "Azure DevOps",
-      "Azure Kubernetes Service",
-      "PowerShell",
-      "Azure Functions",
-      "Azure Blob Storage"
-    ],
-    "Google Cloud Engineer": [
-      "GCP",
-      "Google Compute Engine",
-      "Google Cloud Storage",
-      "Google Kubernetes Engine",
-      "BigQuery",
-      "Cloud SQL",
-      "GCP IAM",
-      "Terraform",
-      "Stackdriver",
-      "Cloud Functions",
-      "GCP VPC",
-      "Google Cloud Run"
-    ],
-    "Data Scientist": [
-      "Python",
-      "R",
-      "Pandas",
-      "NumPy",
-      "Scikit-Learn",
-      "Matplotlib",
-      "SQL",
-      "Machine Learning",
-      "Statistical Analysis",
-      "Data Visualization",
-      "Jupyter Notebooks",
-      "Feature Engineering",
-      "Data Cleaning",
-      "Seaborn",
-      "Statsmodels",
-      "A/B Testing"
-    ],
-    "Machine Learning Engineer": [
-      "Python",
-      "TensorFlow",
-      "PyTorch",
-      "Scikit-Learn",
-      "Machine Learning",
-      "Deep Learning",
-      "SQL",
-      "Docker",
-      "AWS",
-      "Model Deployment",
-      "MLOps",
-      "Git",
-      "Keras",
-      "Model Evaluation",
-      "Hyperparameter Tuning",
-      "XGBoost"
-    ],
-    "Deep Learning Engineer": [
-      "PyTorch",
-      "TensorFlow",
-      "Keras",
-      "Convolutional Neural Networks (CNN)",
-      "Recurrent Neural Networks (RNN)",
-      "Transformers",
-      "GPU Computing (CUDA)",
-      "Python",
-      "C++",
-      "Model Optimization",
-      "TensorRT",
-      "Generative Adversarial Networks (GAN)"
-    ],
-    "NLP Engineer": [
-      "Python",
-      "NLTK",
-      "SpaCy",
-      "Hugging Face",
-      "Transformers",
-      "BERT",
-      "Word Embeddings",
-      "Text Classification",
-      "Sentiment Analysis",
-      "Named Entity Recognition (NER)",
-      "Regex",
-      "Gensim",
-      "Tokenization",
-      "Seq2Seq"
-    ],
-    "Computer Vision Engineer": [
-      "Python",
-      "C++",
-      "OpenCV",
-      "PyTorch",
-      "TensorFlow",
-      "Image Segmentation",
-      "Object Detection",
-      "YOLO",
-      "CNNs",
-      "Image Processing",
-      "CUDA",
-      "PIL",
-      "Scikit-image",
-      "Object Tracking"
-    ],
-    "Data Engineer": [
-      "Python",
-      "SQL",
-      "Apache Spark",
-      "Hadoop",
-      "ETL Pipelines",
-      "Airflow",
-      "BigQuery",
-      "Snowflake",
-      "Kafka",
-      "Data Warehousing",
-      "NoSQL Databases",
-      "AWS",
-      "Data Modeling",
-      "Databricks",
-      "Redshift",
-      "MapReduce"
-    ],
-    "Data Analyst": [
-      "SQL",
-      "Excel",
-      "Tableau",
-      "Power BI",
-      "Python",
-      "Pandas",
-      "Data Visualization",
-      "Statistical Analysis",
-      "Reporting",
-      "Dashboards",
-      "Google Analytics",
-      "Data Cleaning",
-      "Data Querying",
-      "Pivot Tables"
-    ],
-    "Database Administrator (DBA)": [
-      "Database Administration",
-      "SQL Server",
-      "Oracle DB",
-      "MySQL",
-      "PostgreSQL",
-      "Database Tuning",
-      "Backup & Recovery",
-      "High Availability",
-      "Replication",
-      "Security Patching",
-      "Index Optimization",
-      "Database Mirroring"
-    ],
-    "SQL Developer": [
-      "SQL",
-      "T-SQL",
-      "PL/SQL",
-      "Stored Procedures",
-      "Triggers",
-      "Views",
-      "Database Indexes",
-      "Query Optimization",
-      "Database Design",
-      "ETL",
-      "SSIS",
-      "SSRS",
-      "SQL Queries",
-      "Query Execution Plans"
-    ],
-    "NoSQL Specialist": [
-      "MongoDB",
-      "Cassandra",
-      "Redis",
-      "DynamoDB",
-      "NoSQL Architecture",
-      "Data Modeling",
-      "Scalability",
-      "Sharding",
-      "Replication",
-      "JSON Document Databases",
-      "Graph Databases",
-      "Neo4j",
-      "HBase",
-      "CouchDB"
-    ],
-    "Business Intelligence (BI) Analyst": [
-      "BI Tools",
-      "Power BI",
-      "Tableau",
-      "SSAS",
-      "Data Warehousing",
-      "SQL",
-      "Data Modeling",
-      "ETL",
-      "Reporting Services",
-      "KPI Dashboards",
-      "Data Governance",
-      "Business Analytics",
-      "OLAP Cubes"
-    ],
-    "Big Data Engineer": [
-      "Hadoop",
-      "Spark",
-      "Hive",
-      "Scala",
-      "Java",
-      "Python",
-      "Big Data Architecture",
-      "Kafka",
-      "MapReduce",
-      "NoSQL",
-      "Cloud Data Lakes",
-      "Data Ingestion",
-      "Flume",
-      "Sqoop",
-      "Spark Streaming"
-    ],
-    "QA Engineer": [
-      "Quality Assurance",
-      "Manual Testing",
-      "Regression Testing",
-      "Integration Testing",
-      "System Testing",
-      "Bug Tracking",
-      "Jira",
-      "Test Cases",
-      "Test Plans",
-      "Agile Testing",
-      "Smoke Testing",
-      "User Acceptance Testing (UAT)"
-    ],
-    "Automation Test Engineer": [
-      "Selenium",
-      "Java",
-      "Python",
-      "TestNG",
-      "JUnit",
-      "Cucumber",
-      "API Testing",
-      "Postman",
-      "CI/CD Integration",
-      "Jira",
-      "Git",
-      "Playwright",
-      "Cypress",
-      "Appium",
-      "Test Automation Frameworks"
-    ],
-    "Security Engineer": [
-      "Cybersecurity",
-      "Network Security",
-      "Application Security",
-      "Penetration Testing",
-      "Vulnerability Scanning",
-      "Cryptography",
-      "Firewalls",
-      "SIEM",
-      "Incident Response",
-      "Compliance (ISO/SOC2)",
-      "IDS/IPS",
-      "PKI"
-    ],
-    "Penetration Tester": [
-      "Ethical Hacking",
-      "Penetration Testing",
-      "Metasploit",
-      "Kali Linux",
-      "Burp Suite",
-      "OWASP Top 10",
-      "Network Assessment",
-      "Web Application Security",
-      "Wireless Hacking",
-      "Red Teaming",
-      "Nmap",
-      "Wireshark"
-    ],
-    "Cybersecurity Analyst": [
-      "Security Operations Center (SOC)",
-      "Incident Response",
-      "Threat Hunting",
-      "SIEM Tools",
-      "Wireshark",
-      "Firewalls",
-      "Endpoint Protection",
-      "Vulnerability Management",
-      "Compliance Standards",
-      "IDS/IPS Logging",
-      "Log Analysis"
-    ],
-    "Embedded Systems Engineer": [
-      "Embedded C",
-      "C++",
-      "Microcontrollers",
-      "RTOS",
-      "UART/SPI/I2C",
-      "Hardware Debugging",
-      "Oscilloscopes",
-      "Firmware Development",
-      "Bare-metal Programming",
-      "Circuit Design",
-      "ARM Cortex",
-      "PCB Design"
-    ],
-    "Firmware Engineer": [
-      "C",
-      "C++",
-      "Assembly Language",
-      "Device Drivers",
-      "Bootloaders",
-      "Microprocessors",
-      "RTOS",
-      "Firmware Debugging",
-      "Hardware Interfacing",
-      "Git",
-      "Bare-metal",
-      "Keil MDK"
-    ],
-    "IoT Specialist": [
-      "IoT Architecture",
-      "MQTT/CoAP",
-      "Raspberry Pi",
-      "Arduino",
-      "Node-RED",
-      "Cloud Integration",
-      "IoT Security",
-      "Sensor Integration",
-      "Embedded Systems",
-      "Wi-Fi/Bluetooth LE",
-      "Edge Computing",
-      "IoT Protocols"
-    ],
-    "Robotics Engineer": [
-      "ROS (Robot Operating System)",
-      "Python",
-      "C++",
-      "Kinematics",
-      "Computer Vision",
-      "Control Systems",
-      "Sensor Fusion",
-      "Simulation (Gazebo)",
-      "Robotic Arm Control",
-      "LiDAR",
-      "Path Planning",
-      "SLAM"
-    ],
-    "Systems Administrator": [
-      "Linux (RedHat/Ubuntu)",
-      "Windows Server",
-      "Active Directory",
-      "Scripting (Bash/PowerShell)",
-      "System Monitoring",
-      "Virtualization (VMware/Hyper-V)",
-      "Network Services (DNS/DHCP)",
-      "Backups",
-      "User Management"
-    ],
-    "Network Engineer": [
-      "Cisco Routing & Switching",
-      "TCP/IP Network Protocol",
-      "Firewalls",
-      "VPN Setup",
-      "Network Security",
-      "DNS/DHCP Configuration",
-      "Subnetting",
-      "Wi-Fi Configuration",
-      "Network Troubleshooting",
-      "VLAN",
-      "BGP/OSPF"
-    ],
-    "UI Designer": [
-      "User Interface Design",
-      "Figma",
-      "Sketch",
-      "Adobe XD",
-      "Typography",
-      "Color Theory",
-      "Wireframing",
-      "Prototyping",
-      "Design Systems",
-      "Visual Hierarchy",
-      "Vector Illustration",
-      "Mockups",
-      "Visual Layouts"
-    ],
-    "UX Designer": [
-      "User Experience Research",
-      "User Personas",
-      "Information Architecture",
-      "User Journeys",
-      "Figma",
-      "Wireframing",
-      "Prototyping",
-      "Usability Testing",
-      "Interaction Design",
-      "UX Guidelines",
-      "User Empathy Mapping",
-      "Card Sorting"
-    ],
-    "Product Designer": [
-      "Product Design Lifecycle",
-      "Figma",
-      "Sketch",
-      "User Research",
-      "Wireframing",
-      "Interactive Prototyping",
-      "Design Systems",
-      "Product Strategy",
-      "Design to Development Handoff",
-      "Visual Design",
-      "Design Thinking"
-    ],
-    "Graphic Designer": [
-      "Graphic Design",
-      "Adobe Photoshop",
-      "Adobe Illustrator",
-      "Adobe InDesign",
-      "Vector Art",
-      "Typography",
-      "Branding",
-      "Layout Design",
-      "Color Matching",
-      "Print Production",
-      "Digital Assets",
-      "Illustration"
-    ],
-    "Product Manager": [
-      "Product Roadmap",
-      "Product Lifecycle Management",
-      "Agile/Scrum",
-      "User Story Mapping",
-      "Jira",
-      "Market Research",
-      "Feature Prioritization",
-      "Stakeholder Communication",
-      "Product Analytics",
-      "A/B Testing",
-      "PRD Writing",
-      "Customer Interviews"
-    ],
-    "Project Manager": [
-      "Project Planning",
-      "Budget Management",
-      "Risk Assessment",
-      "Resource Allocation",
-      "MS Project",
-      "Stakeholder Communication",
-      "Agile/Waterfall",
-      "Scope Definition",
-      "Project Delivery",
-      "Gantt Charts",
-      "SLA Monitoring"
-    ],
-    "Scrum Master": [
-      "Scrum Framework",
-      "Agile Principles",
-      "Sprint Planning",
-      "Daily Standups",
-      "Sprint Retrospectives",
-      "Jira",
-      "Removing Impediments",
-      "Coaching Teams",
-      "Velocity Tracking",
-      "Burndown Charts",
-      "Kanban Board Setup"
-    ],
-    "Agile Coach": [
-      "Agile Transformation",
-      "Scaling Agile (SAFe/LeSS)",
-      "Coaching Leadership",
-      "Agile Maturity Assessment",
-      "Scrum & Kanban Coaching",
-      "Team Building workshops",
-      "Change Management",
-      "Organizational Agility"
-    ],
-    "Business Analyst": [
-      "Requirements Gathering",
-      "Process Mapping",
-      "Business Process Modeling (BPMN)",
-      "SQL",
-      "Excel",
-      "Use Case Documentation",
-      "Stakeholder Interviews",
-      "Gap Analysis",
-      "System Specifications",
-      "User Stories"
-    ],
-    "HR Specialist": [
-      "Human Resources",
-      "Employee Relations",
-      "Onboarding",
-      "HR Policies",
-      "HRIS Software",
-      "Performance Reviews",
-      "Labor Laws Compliance",
-      "Conflict Resolution",
-      "Employee Engagement",
-      "Talent Management"
-    ],
-    "Talent Acquisition Manager": [
-      "Recruiting Strategy",
-      "Applicant Tracking Systems (ATS)",
-      "Candidate Sourcing",
-      "Interviewing Techniques",
-      "Employer Branding",
-      "Negotiation",
-      "Headhunting",
-      "HR Metrics",
-      "Job Posting",
-      "Talent Pipeline"
-    ],
-    "Operations Manager": [
-      "Operations Management",
-      "Process Optimization",
-      "Budget Planning",
-      "Vendor Management",
-      "KPI Tracking",
-      "Inventory Control",
-      "Supply Chain Management",
-      "Resource Allocation",
-      "Operational Efficiency"
-    ],
-    "Financial Analyst": [
-      "Financial Modeling",
-      "Corporate Finance",
-      "Budgeting & Forecasting",
-      "SQL",
-      "Excel (VBA)",
-      "Financial Reporting",
-      "Variance Analysis",
-      "Data Analytics",
-      "Valuation Techniques",
-      "Market Research"
-    ],
-    "Accountant": [
-      "General Ledger Accounting",
-      "Tax Compliance",
-      "Financial Auditing",
-      "QuickBooks",
-      "Accounts Payable/Receivable",
-      "Bank Reconciliation",
-      "GAAP/IFRS Principles",
-      "Payroll Processing",
-      "Tax Filing"
-    ],
-    "SEO Specialist": [
-      "SEO Strategy",
-      "Google Analytics",
-      "Google Search Console",
-      "Keyword Research",
-      "On-Page SEO Optimization",
-      "Off-Page SEO",
-      "Link Building",
-      "Technical SEO Audit",
-      "SEMrush/Ahrefs",
-      "XML Sitemaps",
-      "Local SEO"
-    ],
-    "Digital Marketing Manager": [
-      "Digital Marketing Strategy",
-      "Google Ads",
-      "Social Media Marketing",
-      "Email Marketing campaigns",
-      "SEO/SEM",
-      "Content Marketing",
-      "Budget Allocation",
-      "ROI Analytics",
-      "PPC Campaigns",
-      "Marketing Funnel"
-    ],
-    "Content Strategist": [
-      "Content Strategy Development",
-      "Content Calendar Management",
-      "Copywriting",
-      "SEO Copywriting",
-      "Content Audit",
-      "Brand Voice alignment",
-      "Social Media Content",
-      "Blogging",
-      "Content Distribution"
-    ],
-    "Social Media Specialist": [
-      "Social Media Platforms",
-      "Content Creation",
-      "Community Management",
-      "Social Media Analytics",
-      "Influencer Collaboration",
-      "Social Ads Management",
-      "Hashtag Strategy",
-      "Visual Storytelling",
-      "Brand Engagement"
-    ],
-    "Copywriter": [
-      "Copywriting",
-      "Persuasive Writing",
-      "Brand Storytelling",
-      "Ad Copy creation",
-      "SEO Copywriting",
-      "Landing Page Copy",
-      "Email Campaigns",
-      "Content Ideation",
-      "Editor skills",
-      "Creative Briefs"
-    ],
-    "Technical Writer": [
-      "Technical Documentation",
-      "API Documentation",
-      "User Guides",
-      "Release Notes",
-      "Markdown",
-      "Confluence",
-      "DITA/XML",
-      "Tech Editing",
-      "Developer Guides",
-      "Instructional Design",
-      "MadCap Flare"
-    ],
-    "Sales Engineer": [
-      "Technical Sales support",
-      "Product Demos",
-      "RFP Responses",
-      "Solution Design",
-      "Technical Consultation",
-      "Client Relations",
-      "Proof of Concept (PoC)",
-      "Sales Cycle management",
-      "Technical Presentations"
-    ],
-    "Customer Success Manager": [
-      "Customer Retention",
-      "Client Onboarding",
-      "Account Management",
-      "Customer Satisfaction (CSAT)",
-      "Upselling",
-      "Product Adoption coaching",
-      "Churn reduction",
-      "Net Promoter Score (NPS)",
-      "Client Relationships"
-    ],
-    "Business Development Manager": [
-      "Lead Generation",
-      "Sales Pitch presentation",
-      "B2B Sales",
-      "Client Acquisition",
-      "Cold Outreach",
-      "CRM Tools (Salesforce)",
-      "Strategic Partnerships",
-      "Negotiating Contracts",
-      "Market Expansion"
-    ],
-    "Blockchain Developer": [
-      "Blockchain Protocol Development",
-      "Smart Contracts",
-      "Cryptography",
-      "Solidity",
-      "Ethereum Virtual Machine (EVM)",
-      "Web3.js/Ether.js",
-      "Hyperledger Fabric",
-      "Consensus Algorithms",
-      "IPFS",
-      "dApps"
-    ],
-    "Solidity Developer": [
-      "Solidity",
-      "Smart Contracts",
-      "Truffle/Hardhat",
-      "ERC20 & ERC721 Standards",
-      "DeFi Protocols",
-      "Unit Testing (Mocha/Chai)",
-      "Ethereum Blockchain",
-      "Gas Optimization",
-      "Security Auditing",
-      "Web3.js"
-    ],
-    "Solutions Architect": [
-      "Enterprise Solutions Architecture",
-      "Cloud Migration Planning",
-      "System Design patterns",
-      "Microservices Design",
-      "AWS/Azure/GCP",
-      "Security Architecture",
-      "API Integration strategy",
-      "Scalability",
-      "High Availability"
-    ],
-    "Enterprise Architect": [
-      "IT Strategy Planning",
-      "Enterprise Architecture Frameworks (TOGAF)",
-      "Business IT Alignment",
-      "Application Portfolio Management",
-      "Governance Frameworks",
-      "Roadmap planning",
-      "Enterprise Security"
-    ],
-    "Game Developer": [
-      "Game Programming",
-      "C++",
-      "C#",
-      "Unity Engine",
-      "Unreal Engine",
-      "Game Physics",
-      "3D Math & Linear Algebra",
-      "Shader Development",
-      "Asset Pipeline integration",
-      "Performance Profiling",
-      "Cocos2d",
-      "Game AI"
-    ],
-    "Unity Developer": [
-      "Unity Engine",
-      "C# Programming",
-      "Game Physics",
-      "UI Canvas setup",
-      "Unity Animation",
-      "Mobile Game Optimization",
-      "Unity Asset Store integration",
-      "Git version control",
-      "MonoBehaviour",
-      "Unity Prefabs"
-    ],
-    "Unreal Engine Developer": [
-      "Unreal Engine",
-      "C++ Game Programming",
-      "Blueprints Visual Scripting",
-      "Unreal Materials Editor",
-      "Niagara VFX Particle systems",
-      "Optimization tools",
-      "Git/Perforce",
-      "Unreal Engine Editor",
-      "C++ Coding Standards"
-    ],
-    "Salesforce Developer": [
-      "Salesforce Apex",
-      "Lightning Web Components (LWC)",
-      "SOQL/SOSL",
-      "Salesforce Configuration",
-      "Visualforce",
-      "Apex Triggers",
-      "Salesforce Integrations",
-      "Salesforce Admin certified",
-      "Aura Components"
-    ],
-    "SAP Consultant": [
-      "SAP ERP system modules",
-      "SAP ABAP Programming",
-      "SAP HANA Implementation",
-      "Business Process Mapping",
-      "SAP Configuration",
-      "SAP Fiori custom apps",
-      "Integration testing",
-      "SAP NetWeaver"
-    ],
-    "Network Security Engineer": [
-      "Network Security Architecture",
-      "Firewall Rules management",
-      "Intrusion Detection/Prevention (IDS/IPS)",
-      "VPN setup & tunnels",
-      "Secure Access Service Edge (SASE)",
-      "Network Access Control (NAC)",
-      "Firewall Auditing"
-    ],
-    "Information Security Manager": [
-      "Information Security Strategy",
-      "Risk Assessment & Mitigation",
-      "Security Audits coordination",
-      "Compliance (ISO 27001, SOC2)",
-      "Incident Response management",
-      "Security Awareness training",
-      "Risk Management Framework (RMF)"
-    ],
-    "IT Support Technician": [
-      "IT Desktop Support",
-      "Windows/macOS troubleshooting",
-      "Active Directory Administration",
-      "Hardware repair",
-      "Printer & Network setup",
-      "Ticketing System (Zendesk/Jira)",
-      "Remote Desktop Tools"
-    ],
-    "Helpdesk Administrator": [
-      "Helpdesk Team coordination",
-      "Service Level Agreement (SLA) monitoring",
-      "IT Asset Tracking Management",
-      "User Access administration",
-      "Knowledge Base creation",
-      "Ticketing System Management"
-    ],
-    "Web Designer": [
-      "Web Layout Design",
-      "HTML5",
-      "CSS3",
-      "Responsive web pages",
-      "Figma design layouts",
-      "WordPress custom styling",
-      "UI/UX Best practices",
-      "Adobe Photoshop & Illustrator",
-      "Visual Styling"
-    ],
-    "WordPress Developer": [
-      "WordPress Theme customization",
-      "WordPress Plugin development",
-      "PHP programming",
-      "MySQL database backend",
-      "WooCommerce setups",
-      "Elementor/Gutenberg custom blocks",
-      "Website Speed optimization",
-      "WP-CLI"
-    ],
-    "Shopify Developer": [
-      "Shopify Liquid template engine",
-      "Shopify App Custom development",
-      "JavaScript programming",
-      "HTML5 & CSS3 styling",
-      "Shopify API Integration",
-      "Theme customization & setups",
-      "Shopify Admin API"
-    ],
-    "E-commerce Manager": [
-      "E-commerce Store Operations",
-      "Conversion Rate Optimization (CRO)",
-      "Product Inventory Management",
-      "Digital Marketing campaigns",
-      "SEO/SEM Strategy",
-      "Shopify/WooCommerce Management",
-      "Payment Gateway integration"
-    ],
-    "Data Protection Officer (DPO)": [
-      "Data Privacy Compliance",
-      "GDPR/CCPA frameworks implementation",
-      "Data Privacy Audits",
-      "Data Privacy Impact Assessments (DPIA)",
-      "Data Privacy Policies creation",
-      "Data breach incident management",
-      "Privacy by Design"
-    ],
-    "Chief Technology Officer (CTO)": [
-      "Technology Strategy Planning",
-      "Technical Team Leadership",
-      "Software Architecture Guidance",
-      "IT Infrastructure Management",
-      "Budget Allocation & Planning",
-      "R&D Innovation initiatives",
-      "Tech Stack Selection"
-    ],
-    "Chief Information Officer (CIO)": [
-      "IT Operations Governance",
-      "Enterprise Architecture Planning",
-      "Information Systems Security",
-      "IT Budget Planning & Strategy",
-      "Business Systems Implementation",
-      "ITIL Framework"
-    ],
-    "IT Project Manager": [
-      "IT Infrastructure Projects",
-      "Project Planning & Milestones",
-      "Resource Scheduling & Allocation",
-      "Stakeholder Reporting",
-      "Agile/Scrum Management",
-      "Risk Management & Planning",
-      "IT PMO"
-    ],
-    "Software Architect": [
-      "Software Architecture Design",
-      "System Design patterns",
-      "Microservices Architecture",
-      "Scalability & Performance design",
-      "Technology Stack evaluation",
-      "Technical Leadership & Guidance",
-      "Architectural Styles",
-      "Enterprise Design Patterns"
-    ],
-    "Principal Engineer": [
-      "Technical Strategy Guidance",
-      "Complex System design",
-      "Core codebase architecture",
-      "Engineering Best practices mentoring",
-      "Product engineering roadmaps",
-      "R&D innovation",
-      "Technical Vision",
-      "System Scalability"
-    ],
-    "Engineering Manager": [
-      "Engineering Team Leadership",
-      "Career growth Mentoring",
-      "Sprint Planning & Management",
-      "Technical Architecture reviews",
-      "Resource planning & hiring",
-      "Agile coaching",
-      "1-on-1 Mentoring",
-      "Performance Appraisals"
-    ],
-    "Scrum Product Owner": [
-      "Product Backlog Refinement",
-      "User Story writing",
-      "Feature Prioritization",
-      "Sprint Acceptance Criteria",
-      "Customer Feedback loops",
-      "Product Roadmap alignment",
-      "Sprint Review presentations"
-    ],
-    "Data Warehouse Developer": [
-      "Data Warehouse Architecture",
-      "Star & Snowflake Schema design",
-      "ETL Process development",
-      "SQL Server Integration Services (SSIS)",
-      "Snowflake/Redshift Cloud databases",
-      "BI reporting integrations",
-      "Dimensional Modeling"
-    ],
-    "ETL Developer": [
-      "ETL pipeline development",
-      "SQL query optimization",
-      "Informatica PowerCenter / Talend",
-      "Data Ingestion pipelines",
-      "Data Cleaning & validations",
-      "Apache Airflow scheduling",
-      "Data Transformations"
-    ],
-    "Systems Analyst": [
-      "System Requirements Gathering",
-      "Technical Specifications drafting",
-      "Business Process Mapping",
-      "UML Modeling",
-      "Integration Architectures design",
-      "Testing Validation methodologies",
-      "Systems Integration"
-    ],
-    "Mainframe Developer": [
-      "COBOL Programming",
-      "JCL Scripting",
-      "DB2 Mainframe databases",
-      "CICS Transaction processing",
-      "Mainframe Troubleshooting",
-      "IBM z/OS environment",
-      "Batch Job Scheduling",
-      "VSAM",
-      "TSO/ISPF"
-    ],
-    "Full Stack QA Engineer": [
-      "Manual QA methodologies",
-      "Automation Test development",
-      "Selenium WebDriver/Playwright",
-      "API Testing (Postman/RestAssured)",
-      "Performance Testing (JMeter)",
-      "Mobile testing",
-      "Jira/Git",
-      "Cross-Browser Testing",
-      "SQL verification"
-    ],
-    "Performance Test Engineer": [
-      "Performance Testing Methodology",
-      "Apache JMeter testing scripts",
-      "LoadRunner enterprise tools",
-      "Load, Stress & Soak testing",
-      "System Bottlenecks identification",
-      "Server Performance Metrics analysis",
-      "Performance Profiling Tools"
-    ],
-    "API Test Engineer": [
-      "RESTful API testing",
-      "Postman automation collections",
-      "SoapUI enterprise setups",
-      "JSON Schema verification",
-      "RestAssured java framework",
-      "HTTP Response codes analysis",
-      "Mocking API dependencies",
-      "Newman CLI"
-    ],
-    "Mobile QA Engineer": [
-      "Mobile App Testing (iOS/Android)",
-      "Appium Mobile Automation",
-      "Xcode & Android Studio emulators",
-      "Crash Logs analysis",
-      "Real Device Cloud testing (BrowserStack)",
-      "Firebase App Distribution setup",
-      "ADB command line"
-    ],
-    "DevSecOps Engineer": [
-      "DevSecOps Pipeline implementation",
-      "Static Code Analysis (SAST)",
-      "Dynamic Code Analysis (DAST)",
-      "Container Vulnerability scanning (Trivy)",
-      "CI/CD Security controls",
-      "AWS/Azure Cloud security",
-      "Snyk",
-      "SonarQube"
-    ],
-    "Cloud Security Engineer": [
-      "Cloud Security Architecture",
-      "AWS IAM Roles governance",
-      "Cloud Compliance auditing",
-      "Vulnerability Assessment & scanning",
-      "Encryption Key Management (KMS)",
-      "Network Security groups configuration",
-      "CloudTrail auditing"
-    ],
-    "Data Governance Analyst": [
-      "Data Quality Standards definition",
-      "Metadata Management setups",
-      "Data Lineage tracing",
-      "Data Catalog tools management",
-      "Data Compliance policies (HIPAA/GDPR)",
-      "Data Access governance",
-      "Collibra"
-    ],
-    "UX Researcher": [
-      "User Research Methods",
-      "Usability Testing protocols",
-      "User Interviews conducting",
-      "Survey Design & analysis",
-      "Persona Creation templates",
-      "UX Insights Reporting",
-      "Figma wireframes review",
-      "Heuristic Evaluation"
-    ],
-    "Service Designer": [
-      "Service Blueprint mapping",
-      "Customer Journey Mapping",
-      "Touchpoint Analysis reviews",
-      "Cross-functional workshops facilitation",
-      "Service Prototyping tests",
-      "Stakeholder interviews",
-      "Blueprint diagrams"
-    ],
-    "Growth Product Manager": [
-      "Growth Hacking Methodology",
-      "A/B Testing design & execution",
-      "User Acquisition strategies",
-      "Activation Funnel optimization",
-      "Mixpanel/Amplitude Analytics",
-      "Conversion Rate Optimization (CRO)",
-      "Retention Metrics Analysis"
-    ],
-    "Release Train Engineer": [
-      "Program Increment (PI) Planning",
-      "SAFe Agile Framework scaling",
-      "Release Management governance",
-      "Facilitating Agile events",
-      "Resolving program impediments",
-      "Metrics dashboard tracking",
-      "Value Stream Mapping"
-    ],
-    "Application Security Specialist": [
-      "Application Security Audits",
-      "Secure Coding Guidelines coaching",
-      "OWASP Top 10 mitigation",
-      "Penetration Testing application layer",
-      "Threat Modeling designs",
-      "Vulnerability management",
-      "SAST/DAST Tooling"
-    ],
-    "MLOps Engineer": [
-      "MLOps",
-      "MLflow",
-      "Kubeflow",
-      "DVC",
-      "Feature Store",
-      "Model Registry",
-      "Sagemaker",
-      "TFX",
-      "Docker",
-      "Kubernetes",
-      "CI/CD for ML",
-      "Model Monitoring",
-      "Data Drift",
-      "Prometheus",
-      "Grafana",
-      "Model Versioning",
-      "Weights & Biases"
-    ],
-    "Data Architect": [
-      "Data Architecture",
-      "Enterprise Data Model",
-      "Data Modeling",
-      "ERD",
-      "Data Warehouse",
-      "Data Lakehouse",
-      "Snowflake",
-      "Databricks",
-      "Redshift",
-      "Data Governance",
-      "Metadata Management",
-      "TOGAF",
-      "Dimensional Modeling",
-      "Data Lineage",
-      "Schema Registry"
-    ],
-    "Prompt Engineer": [
-      "Prompt Engineering",
-      "Large Language Models (LLMs)",
-      "Generative AI",
-      "Few-Shot Learning",
-      "Zero-Shot Learning",
-      "Chain-of-Thought",
-      "LangChain",
-      "LlamaIndex",
-      "Semantic Search",
-      "Prompt Injection Mitigation",
-      "System Prompts",
-      "AI Agents",
-      "Vector Databases",
-      "ChromaDB",
-      "Pinecone",
-      "Fine-Tuning Prompts"
-    ],
-    "AI Product Manager": [
-      "AI Product Management",
-      "Generative AI",
-      "LLMs",
-      "Machine Learning Lifecycle",
-      "AI Ethics",
-      "AI Roadmapping",
-      "User Story Mapping",
-      "Product Analytics",
-      "Model Evaluation Metrics",
-      "Dataset Curation",
-      "AI Safety",
-      "A/B Testing",
-      "Feasibility Study",
-      "Model ROI Analysis"
-    ],
-    "AI Research Scientist": [
-      "AI Research",
-      "Deep Learning",
-      "Reinforcement Learning",
-      "Transformers",
-      "Neural Architecture Search",
-      "Mathematical Optimization",
-      "PyTorch",
-      "TensorFlow",
-      "Academic Writing",
-      "JAX",
-      "LaTeX",
-      "Scientific Computing",
-      "Algorithms Design",
-      "NLP Research",
-      "Convex Optimization"
-    ],
-    "Business Intelligence Developer": [
-      "BI Development",
-      "SSAS",
-      "SSIS",
-      "SSRS",
-      "Power BI",
-      "Tableau",
-      "DAX",
-      "MDX",
-      "Data Modeling",
-      "ETL Pipelines",
-      "Data Warehousing",
-      "SQL",
-      "SQL Server",
-      "Dashboard Design",
-      "KPI Tracking",
-      "QlikView",
-      "BusinessObjects"
-    ],
-    "Identity and Access Management (IAM) Specialist": [
-      "IAM",
-      "Active Directory",
-      "Azure AD",
-      "Okta",
-      "OAuth 2.0",
-      "OIDC",
-      "SAML",
-      "Single Sign-On (SSO)",
-      "Multi-Factor Authentication (MFA)",
-      "Role-Based Access Control (RBAC)",
-      "Privileged Access Management (PAM)",
-      "SailPoint",
-      "Ping Identity",
-      "Directory Services",
-      "Kerberos",
-      "IAM Governance"
-    ],
-    "Governance, Risk, and Compliance (GRC) Officer": [
-      "GRC",
-      "ISO 27001",
-      "SOC 2 Type II",
-      "NIST Framework",
-      "HIPAA Compliance",
-      "PCI-DSS",
-      "Risk Assessment",
-      "Internal Auditing",
-      "Policy Drafting",
-      "Compliance Monitoring",
-      "Security Controls",
-      "Business Continuity Planning (BCP)",
-      "Disaster Recovery (DR)",
-      "SOX Compliance",
-      "COBIT"
-    ],
-    "Incident Response Manager": [
-      "Incident Response",
-      "Incident Command",
-      "Root Cause Analysis (RCA)",
-      "Post-Mortem Documentation",
-      "Threat Containment",
-      "Digital Forensics",
-      "SIEM Triaging",
-      "Crisis Communication",
-      "Disaster Recovery",
-      "NIST SP 800-61",
-      "SOAR Platforms",
-      "Threat Intel Integration",
-      "Forensic Toolkits (FTK)",
-      "EnCase"
-    ],
-    "Security Operations Center (SOC) Lead": [
-      "SOC Operations",
-      "SIEM (Splunk/QRadar)",
-      "SOAR",
-      "Intrusion Detection",
-      "Log Analysis",
-      "Endpoint Detection & Response (EDR)",
-      "Wireshark",
-      "Threat Hunting",
-      "Incident Escalation",
-      "Security Analyst Mentoring",
-      "KPI Metrics Reporting",
-      "Vulnerability Management",
-      "Miter Att&ck framework",
-      "SOC Auditing"
-    ],
-    "Product Marketing Manager": [
-      "Product Marketing",
-      "Go-To-Market (GTM) Strategy",
-      "Competitive Analysis",
-      "Buyer Personas",
-      "Product Positioning",
-      "Value Proposition",
-      "Content Marketing",
-      "Sales Enablement",
-      "Market Research",
-      "Launch Management",
-      "Customer Case Studies",
-      "Campaign Analytics",
-      "Lead Generation",
-      "Product Demos"
-    ],
-    "Brand Designer": [
-      "Brand Identity Design",
-      "Logo Design",
-      "Visual Style Guides",
-      "Typography",
-      "Color Theory",
-      "Adobe Illustrator",
-      "Adobe Photoshop",
-      "Adobe InDesign",
-      "Brand Assets Creation",
-      "Vector Art",
-      "Design Systems",
-      "Corporate Branding",
-      "Print Media Design",
-      "Marketing Graphics",
-      "Visual Mockups",
-      "Brand Strategy"
-    ],
-    "Information Architect": [
-      "Information Architecture",
-      "Content Inventory",
-      "Site Mapping",
-      "Card Sorting",
-      "User Flows",
-      "Figma wireframes",
-      "Taxonomy Design",
-      "Navigation Systems",
-      "UX Design",
-      "Wireframing",
-      "Search Schema",
-      "Usability Testing",
-      "Content Modeling",
-      "User Interaction Flow"
-    ],
-    "Frontend Architect": [
-      "Frontend Architecture",
-      "Micro-Frontends",
-      "Webpack Module Federation",
-      "State Management Patterns",
-      "Web Performance Optimization",
-      "Design Systems",
-      "TypeScript",
-      "Monorepos (Turbo/Lerna)",
-      "CI/CD for Frontend",
-      "SSR & SSG",
-      "Core Web Vitals",
-      "Angular/React Core",
-      "Linting & Testing Standards",
-      "Browser Rendering Path",
-      "CSS Architectures"
-    ],
-    "Backend Architect": [
-      "Backend Architecture",
-      "Microservices Design",
-      "System Scalability",
-      "Database Partitioning",
-      "Caching Strategies (Redis)",
-      "Event-Driven Architecture (Kafka)",
-      "API Gateway design",
-      "Distributed Systems",
-      "Load Balancing",
-      "High Availability",
-      "Design Patterns",
-      "gRPC / Protobuf",
-      "Security Patterns",
-      "Database Replication",
-      "Message Brokers"
-    ],
-    "Web3 Developer": [
-      "Web3",
-      "Blockchain Protocols",
-      "Smart Contracts",
-      "Solidity",
-      "Ethers.js",
-      "Web3.js",
-      "IPFS",
-      "Decentralized Apps (dApps)",
-      "Truffle/Hardhat",
-      "Ethereum",
-      "Cryptography",
-      "DeFi",
-      "Tokenomics",
-      "Metamask Integration",
-      "Web3 UI frameworks",
-      "DAO Infrastructure"
-    ],
-    "Smart Contract Auditor": [
-      "Smart Contract Auditing",
-      "Solidity",
-      "Security Vulnerability Scanning",
-      "Static Analysis (Slither)",
-      "Mythril",
-      "Reentrancy Attacks mitigation",
-      "Gas Optimization",
-      "Formal Verification",
-      "DeFi Hack analysis",
-      "Audit Report Writing",
-      "Unit Testing (Hardhat)",
-      "Scribble",
-      "Echidna fuzzing",
-      "Audit Methodology"
-    ],
-    "Embedded Software Engineer": [
-      "Embedded Software",
-      "Embedded C",
-      "C++",
-      "RTOS (FreeRTOS)",
-      "Bare-Metal Programming",
-      "Device Drivers",
-      "HAL (Hardware Abstraction Layer)",
-      "SPI/I2C/UART/CAN",
-      "Microcontrollers (STM32)",
-      "Oscilloscope Debugging",
-      "Assembly",
-      "Git",
-      "Hardware Interfacing",
-      "JTAG debugging",
-      "Logic Analyzers"
-    ],
-    "Systems Engineer": [
-      "Systems Engineering",
-      "System Architecture",
-      "Requirement Analysis",
-      "Hardware-Software Integration",
-      "Verification & Validation",
-      "DO-178C/ISO 26262 Compliance",
-      "SysML/UML",
-      "Risk Management",
-      "System Modeling",
-      "Technical Leadership",
-      "System Performance Analysis",
-      "Requirements Management Tools (DOORS)"
-    ],
-    "API Platform Engineer": [
-      "API Platform Engineering",
-      "API Gateway (Kong/Apigee)",
-      "RESTful API Design",
-      "GraphQL Federation",
-      "gRPC",
-      "OAuth2/OIDC",
-      "Rate Limiting & Throttling",
-      "API Documentation (OpenAPI/Swagger)",
-      "API Developer Portal",
-      "Microservices",
-      "Service Mesh (Istio)",
-      "Kong Plugins",
-      "Apigee Policies",
-      "Webhooks management"
-    ],
-    "Next.js Developer": [
-      "Next.js",
-      "React",
-      "Server-Side Rendering (SSR)",
-      "Static Site Generation (SSG)",
-      "Incremental Static Regeneration (ISR)",
-      "Vercel",
-      "Tailwind CSS",
-      "TypeScript",
-      "Next.js App Router",
-      "API Routes",
-      "SEO Optimization",
-      "Web Vitals",
-      "State Management",
-      "Next.js Middleware",
-      "Zustand",
-      "SWR / React Query"
-    ],
-    "Vue.js Developer": [
-      "Vue.js",
-      "Vuex / Pinia",
-      "Vue Router",
-      "Composition API",
-      "Nuxt.js",
-      "JavaScript",
-      "TypeScript",
-      "HTML5 & CSS3",
-      "Vuetify / Tailwind CSS",
-      "Webpack / Vite",
-      "Component Design",
-      "Responsive Layouts",
-      "Vue CLI",
-      "Vue Test Utils",
-      "Single File Components (SFC)"
-    ],
-    "Technical Account Manager": [
-      "Technical Account Management",
-      "Enterprise Client Support",
-      "SLA Management",
-      "Technical Escalations",
-      "Product Roadmap alignment",
-      "Customer Success",
-      "QBR (Quarterly Business Reviews)",
-      "Root Cause Analysis",
-      "Relationship Building",
-      "Cross-functional Advocacy",
-      "Client Retention",
-      "Incident Reporting"
-    ],
-    "Delivery Manager": [
-      "Delivery Management",
-      "Agile Delivery",
-      "Sprint Execution",
-      "Project Planning",
-      "Velocity & Throughput metrics",
-      "Jira/Confluence",
-      "Stakeholder Communication",
-      "Resource Management",
-      "Risk Mitigation",
-      "Dependency Mapping",
-      "Cross-functional Collaboration",
-      "Release Governance",
-      "Agile metrics tracking"
-    ],
-    "Program Manager": [
-      "Program Management",
-      "Multi-Project Coordination",
-      "Strategic Roadmapping",
-      "Stakeholder Management",
-      "Budget Administration",
-      "Risk Management",
-      "Resource Planning",
-      "KPI Dashboards",
-      "Cross-functional Leadership",
-      "Change Management",
-      "Governance Frameworks",
-      "Program Charters",
-      "Milestone tracking"
-    ],
-    "Marketing Operations Specialist": [
-      "Marketing Operations",
-      "HubSpot / Marketo",
-      "Marketing Automation",
-      "Lead Scoring",
-      "CRM Integration (Salesforce)",
-      "Email Campaign Setup",
-      "Campaign Analytics",
-      "A/B Testing",
-      "Data Cleansing",
-      "ROI Tracking",
-      "Marketing Funnel Analysis",
-      "Attribution Modeling",
-      "Data Privacy compliance"
-    ],
-    "HR Generalist": [
-      "HR Generalist",
-      "Employee Relations",
-      "Policy Implementation",
-      "Onboarding & Offboarding",
-      "HRIS (Workday/BambooHR)",
-      "Labor Law Compliance",
-      "Performance Management",
-      "Benefits Administration",
-      "Conflict Resolution",
-      "Employee Engagement",
-      "HR Metrics",
-      "FMLA compliance",
-      "Employee handbook creation"
-    ],
-    "Financial Controller": [
-      "Financial Control",
-      "General Ledger",
-      "Internal Controls",
-      "Financial Auditing",
-      "GAAP/IFRS Compliance",
-      "Financial Reporting",
-      "Budget Management",
-      "Treasury Operations",
-      "ERP Systems (SAP/Oracle)",
-      "Tax Compliance",
-      "Month-End Close",
-      "Financial Audits coordination",
-      "Balance Sheet reconciliation"
-    ],
-    "Customer Support Engineer": [
-      "Technical Customer Support",
-      "Troubleshooting",
-      "Zendesk",
-      "Jira Service Desk",
-      "SLA Compliance",
-      "SQL query running",
-      "Log Analysis",
-      "Bug reporting",
-      "Customer Communication",
-      "Knowledge Base articles",
-      "Remote Assistance Tools",
-      "Remote desktop support",
-      "IT Service Management (ITSM)"
-    ],
-    "Technical Lead": [
-      "Technical Leadership",
-      "System Architecture",
-      "Code Reviews",
-      "Developer Mentoring",
-      "Agile Methodologies",
-      "Design Patterns",
-      "Technical Debt management",
-      "Tech Stack evaluation",
-      "Sprint Planning",
-      "Cross-functional collaboration",
-      "Core codebase ownership",
-      "Sprint Retrospectives",
-      "Release Management"
+  selectedSuggestRole: string = 'software-engineer';
+
+  suggestedHeadlines: { [key: string]: string[] } = {
+    'software-engineer': [
+      'Senior Software Engineer | Full Stack Specialist',
+      'Software Development Engineer (SDE-II) | Java & Angular',
+      'Full Stack Developer | Spring Boot, Angular, PostgreSQL'
+    ],
+    'data-analyst': [
+      'Data Analyst | SQL, Python & Tableau specialist',
+      'Business Intelligence Analyst | Data Visualization Developer',
+      'Data Scientist & Analytics Specialist | Machine Learning, Pandas'
+    ],
+    'product-manager': [
+      'Agile Product Manager | Product Growth Leader',
+      'Technical Product Manager | SaaS & Cloud specialist',
+      'Product Owner | User Experience & Roadmap Strategy'
+    ],
+    'qa-engineer': [
+      'Software Development Engineer in Test (SDET)',
+      'Lead QA Automation Engineer | Cypress, Selenium, Java',
+      'Quality Assurance Engineer | API & Integration Testing'
     ]
   };
 
-  /* ================= SECTION HELP TIPS ================= */
-  sectionGuidelines: { [key: string]: { title: string; tips: string[] } } = {
-    'summary': {
-      title: 'Profile Summary Guidelines',
-      tips: [
-        'Keep it concise: 2 to 4 sentences highlighting your core competencies and years of learning.',
-        'Use strong action verbs and mention your software architecture or frontend proficiency.',
-        'Avoid generic descriptors; focus on specific technologies and project achievements.'
-      ]
-    },
-    'skills': {
-      title: 'Skills & Keywords Tips',
-      tips: [
-        'List 6 to 15 key technical competencies matching your target career tracks.',
-        'Click industry keywords below to automatically parse and append tags to your profile.',
-        'Balance languages, databases, cloud, and tools (e.g. Java, PostgreSQL, AWS, Git).'
-      ]
-    },
-    'employment': {
-      title: 'Work History Tips',
-      tips: [
-        'Detail your duties using bulleted lists starting with active terms ("Built", "Managed", "Implemented").',
-        'Add quantitative figures if possible (e.g., "reduced latency by 25%", "improved code coverage by 15%").',
-        'Reference specific technologies employed in each position description.'
-      ]
-    },
-    'projects': {
-      title: 'Project Portfolio Tips',
-      tips: [
-        'Highlight 1 to 3 projects showcasing practical coding and system architectures.',
-        'Follow the STAR format: specify Situation, Task, Action taken, and Results achieved.',
-        'Include repository links (GitHub) or sandbox references to demonstrate active code.'
-      ]
-    },
-    'education': {
-      title: 'Education Tips',
-      tips: [
-        'List degrees in reverse chronological order with college/university details.',
-        'Add GPA or percentage details if you are a fresher or entry-level candidate.',
-        'Optionally include key specializations or thesis focus.'
-      ]
-    },
-    'personal': {
-      title: 'Personal Details Tips',
-      tips: [
-        'Ensure professional links (LinkedIn & GitHub) are accurate and fully qualified.',
-        'Select all languages in which you possess professional working proficiency.',
-        'Keep date of birth and location specifications minimal.'
-      ]
-    },
-    'references': {
-      title: 'Reference Guidelines',
-      tips: [
-        'Provide 1 or 2 professional references (such as mentors, trainers, or project leads).',
-        'Ensure you have obtained authorization from reference candidates prior to publication.',
-        'Check that email addresses and phone numbers are correctly structured.'
-      ]
+  suggestedSkills: { [key: string]: string[] } = {
+    'software-engineer': ['Java', 'Spring Boot', 'Angular', 'TypeScript', 'JavaScript', 'SQL', 'PostgreSQL', 'Docker', 'REST APIs', 'Git', 'HTML5 & CSS3', 'Node.js'],
+    'data-analyst': ['Python', 'SQL', 'Tableau', 'Power BI', 'Excel VBA', 'Pandas & NumPy', 'Data Warehousing', 'ETL Pipelines', 'Statistics', 'R Programming', 'Data Visualization'],
+    'product-manager': ['Product Roadmap', 'Agile / Scrum', 'JIRA', 'Product Strategy', 'User Research', 'A/B Testing', 'Customer Discovery', 'Market Analysis', 'SQL', 'Figma'],
+    'qa-engineer': ['Cypress', 'Selenium', 'Java', 'TypeScript', 'API Testing', 'Postman', 'QA Manual', 'CI/CD Pipelines', 'Integration Testing', 'JIRA', 'Regression Testing']
+  };
+
+  suggestedRoleBullets: { [key: string]: string[] } = {
+    'software-engineer': [
+      'Spearheaded development of a real-time analytics engine using Angular and Node.js, reducing query response times by 40%.',
+      'Designed and implemented secure RESTful microservices in Spring Boot, raising API uptime reliability to 99.9%.',
+      'Optimized database index query architectures in PostgreSQL, achieving a 30% speedup in core page rendering speeds.',
+      'Led the migration of legacy service architectures to Docker containers, streamlining delivery pipeline runtimes by 25%.'
+    ],
+    'data-analyst': [
+      'Built dynamic Power BI dashboards that automated weekly executive reporting, saving 12 hours of manual analysis per week.',
+      'Analyzed large customer datasets using SQL and Python to isolate churn patterns, helping increase quarterly retention by 15%.',
+      'Designed a standard ETL database pipeline that consolidated data from 4 marketing channels, reducing report drift to zero.',
+      'Identified sales bottleneck patterns using regression analysis models, uncovering $45K in previously lost pipeline opportunities.'
+    ],
+    'product-manager': [
+      'Led cross-functional teams of 12 engineers and designers to launch a mobile app version, acquiring 50K users in 6 months.',
+      'Defined product roadmap and key requirements based on 30+ customer interviews, boosting CSAT scores by 18%.',
+      'Collaborated on release strategies that cut product time-to-market by 3 weeks, yielding a 14% revenue surge.',
+      'Spearheaded transition to Agile Scrum methodologies, increasing team feature delivery output velocity by 22%.'
+    ],
+    'qa-engineer': [
+      'Created and executed automated test suites using Cypress and Selenium, expanding coverage bounds from 40% to 85%.',
+      'Collaborated with development leads in CI/CD pipeline integration, cutting release deployment cycle times by 25%.',
+      'Orchestrated API contract security tests in Postman, preventing 3 major production data vulnerability leaks.',
+      'Designed rigorous edge-case manual verification procedures, dropping post-release bug rates by 60%.'
+    ]
+  };
+
+  // ============= ATS QUALITY CHECK METHODS =============
+  getEmailQuality(): { status: string; label: string } {
+    const email = this.data?.email || '';
+    if (!email) return { status: 'empty', label: 'Missing' };
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(email)) return { status: 'warning', label: 'Invalid format' };
+    if (email.includes('gmail') || email.includes('outlook') || email.includes('yahoo'))
+      return { status: 'good', label: 'Professional ✓' };
+    return { status: 'good', label: 'Valid ✓' };
+  }
+
+  getPhoneQuality(): { status: string; label: string } {
+    const phone = this.data?.phone || '';
+    if (!phone) return { status: 'empty', label: 'Missing' };
+    if (phone.length < 10) return { status: 'warning', label: 'Too short' };
+    return { status: 'good', label: 'Valid ✓' };
+  }
+
+  getNameQuality(): { status: string; label: string } {
+    const name = this.data?.name || '';
+    if (!name) return { status: 'empty', label: 'Missing' };
+    if (name.trim().split(/\s+/).length < 2) return { status: 'warning', label: 'Add full name' };
+    return { status: 'good', label: 'ATS Ready ✓' };
+  }
+
+  getSummaryQuality(): { status: string; label: string; wordCount: number } {
+    const summary = this.data?.summary || '';
+    const wordCount = summary.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+    if (wordCount === 0) return { status: 'empty', label: 'Not written', wordCount: 0 };
+    if (wordCount < 20) return { status: 'warning', label: 'Too brief — add detail', wordCount };
+    if (wordCount > 80) return { status: 'warning', label: 'Too long — trim it', wordCount };
+    return { status: 'good', label: 'Optimal length ✓', wordCount };
+  }
+
+  getBulletStrength(text: string): { status: string; label: string } {
+    if (!text || text.trim().length === 0) return { status: 'empty', label: 'Empty' };
+    const strongVerbs = ['developed', 'architected', 'optimized', 'led', 'implemented', 'designed', 'deployed', 'integrated', 'refactored', 'automated', 'streamlined', 'spearheaded', 'mentored', 'delivered', 'built', 'created', 'managed', 'improved', 'reduced', 'increased'];
+    const firstWord = text.trim().split(/\s+/)[0]?.toLowerCase() || '';
+    const hasVerb = strongVerbs.some(v => firstWord.startsWith(v));
+    const hasQuantity = /\d+%|\d+x|\d+\+|\$\d+|reduced|increased|improved/.test(text);
+    if (hasVerb && hasQuantity) return { status: 'good', label: 'Strong ✓' };
+    if (hasVerb) return { status: 'ok', label: 'Good — add metrics' };
+    return { status: 'warning', label: 'Start with action verb' };
+  }
+
+  // ============= SECTION COMPLETENESS CALCULATORS =============
+  getContactCompleteness(): { filled: number; total: number; percent: number } {
+    let filled = 0;
+    const total = 6;
+    if (this.data?.name) filled++;
+    if (this.data?.headline) filled++;
+    if (this.data?.email) filled++;
+    if (this.data?.phone) filled++;
+    if (this.data?.personal?.linkedin) filled++;
+    if (this.data?.personal?.github) filled++;
+    return { filled, total, percent: Math.round((filled / total) * 100) };
+  }
+
+  getSummaryCompleteness(): { filled: number; total: number; percent: number } {
+    const wordCount = (this.data?.summary || '').trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+    const percent = Math.min(100, Math.round((wordCount / 40) * 100));
+    return { filled: wordCount, total: 40, percent };
+  }
+
+  getSkillsCompleteness(): { filled: number; total: number; percent: number } {
+    const count = (this.selectedSkills || []).length;
+    const ideal = 8;
+    return { filled: count, total: ideal, percent: Math.min(100, Math.round((count / ideal) * 100)) };
+  }
+
+  getEmploymentCompleteness(): { filled: number; total: number; percent: number } {
+    const items = this.data?.employment || [];
+    if (items.length === 0) return { filled: 0, total: 1, percent: 0 };
+    let filled = 0;
+    let total = 0;
+    items.forEach((e: any) => {
+      total += 4;
+      if (e.company) filled++;
+      if (e.role) filled++;
+      if (e.start) filled++;
+      if (e.responsibilities) filled++;
+    });
+    return { filled, total, percent: total > 0 ? Math.round((filled / total) * 100) : 0 };
+  }
+
+  getProjectsCompleteness(): { filled: number; total: number; percent: number } {
+    const items = this.data?.projects || [];
+    if (items.length === 0) return { filled: 0, total: 1, percent: 0 };
+    let filled = 0;
+    let total = 0;
+    items.forEach((p: any) => {
+      total += 4;
+      if (p.title) filled++;
+      if (p.tech) filled++;
+      if (p.role) filled++;
+      if (p.desc) filled++;
+    });
+    return { filled, total, percent: total > 0 ? Math.round((filled / total) * 100) : 0 };
+  }
+
+  getEducationCompleteness(): { filled: number; total: number; percent: number } {
+    const items = this.data?.education || [];
+    if (items.length === 0) return { filled: 0, total: 1, percent: 0 };
+    let filled = 0;
+    let total = 0;
+    items.forEach((ed: any) => {
+      total += 3;
+      if (ed.degree) filled++;
+      if (ed.college) filled++;
+      if (ed.year) filled++;
+    });
+    return { filled, total, percent: total > 0 ? Math.round((filled / total) * 100) : 0 };
+  }
+
+
+  // Insert AI phrase into summary
+  insertSummaryPhrase(phrase: string) {
+    const role = this.aiRole || 'Software Developer';
+    const exp = this.aiExperience || '2';
+    const formatted = phrase.replace('{role}', role).replace('{exp}', exp);
+    this.data.summary = (this.data.summary || '') + (this.data.summary ? ' ' : '') + formatted;
+    this.updateScore();
+  }
+
+  // Insert action verb at cursor
+  insertActionVerb(verb: string) {
+    if (this.data.employment && this.data.employment.length > 0) {
+      const idx = this.expandedItems['employment'];
+      if (idx >= 0 && idx < this.data.employment.length) {
+        const current = this.data.employment[idx].responsibilities || '';
+        this.data.employment[idx].responsibilities = current + (current ? '\n' : '') + verb + ' ';
+      }
     }
-  };
-
-  /* ================= MAIN DATA MODEL ================= */
-  data = {
-    name: '',
-    email: '',
-    phone: '',
-    photo: '',
-    headline: '',
-    summary: '',
-    employment: <Employment[]>[],
-    projects: <Project[]>[],
-    education: <Education[]>[],
-    personal: {
-      dob: '',
-      gender: '',
-      address: '',
-      nationality: '',
-      linkedin: '',
-      github: '',
-    },
-    references: <Reference[]>[]
-  };
-
-  /* ================= SCORECARD CHECKLIST ================= */
-  scoreChecklist = {
-    hasName: false,
-    hasContact: false,
-    hasSummary: false,
-    hasSkills: false,
-    hasEmployment: false,
-    hasProjects: false,
-    hasEducation: false,
-    hasSocials: false,
-    hasReferences: false
-  };
-
-  /* ================= SECTION NAVIGATION ================= */
-  setSection(id: string) {
-    this.activeSection = id;
   }
 
-  /* ================= DRAGGABLE SECTIONS ================= */
-  onDragStart(i: number) {
-    this.dragIndex = i;
-  }
-
-  onDrop(i: number) {
-    const moved = this.sections.splice(this.dragIndex, 1)[0];
-    this.sections.splice(i, 0, moved);
-  }
-
-  /* ================= SKILL TAGS MANAGEMENT ================= */
-  onSkillInput() {
-    this.filteredSkills = this.allSkills.filter(
-      (s) =>
-        s.toLowerCase().includes(this.skillInput.toLowerCase()) && !this.selectedSkills.includes(s),
-    );
-  }
-
-  addSkill(skill: string) {
-    if (this.selectedSkills.length >= this.maxSkills) {
-      alert('Maximum of 25 skills allowed.');
-      return;
-    }
-    const trimmed = skill.trim();
-    if (trimmed && !this.selectedSkills.includes(trimmed)) {
-      this.selectedSkills.push(trimmed);
-      this.skillInput = '';
-      this.filteredSkills = [];
+  insertProjectPhrase(phrase: string, idx: number) {
+    if (this.data.projects && this.data.projects[idx]) {
+      const tech = this.data.projects[idx].tech || 'modern technologies';
+      const formatted = phrase.replace('{tech}', tech);
+      const current = this.data.projects[idx].desc || '';
+      this.data.projects[idx].desc = current + (current ? '\n' : '') + formatted;
       this.updateScore();
     }
   }
 
-  removeSkill(i: number) {
-    this.selectedSkills.splice(i, 1);
+  insertRecommendedSkill(skill: string) {
+    if (!this.selectedSkills.includes(skill)) {
+      this.selectedSkills.push(skill);
+      this.updateScore();
+    }
+  }
+
+  insertHeadlineSuggestion(headline: string) {
+    this.data.headline = headline;
     this.updateScore();
   }
 
-  /* ================= KEYWORD COMPLIANCE ================= */
-  addKeyword(keyword: string) {
-    this.addSkill(keyword);
-  }
-
-  /* ================= LANGUAGES SELECTOR ================= */
-  toggleLanguage(lang: string) {
-    if (this.selectedLanguages.includes(lang)) {
-      this.selectedLanguages = this.selectedLanguages.filter((l) => l !== lang);
-    } else {
-      this.selectedLanguages.push(lang);
+  insertRoleBulletSuggestion(bullet: string, idx: number) {
+    if (this.data.employment && this.data.employment[idx]) {
+      const current = this.data.employment[idx].responsibilities || '';
+      this.data.employment[idx].responsibilities = current + (current ? '\n' : '') + '• ' + bullet;
+      this.updateScore();
     }
   }
 
-  /* ================= ARRAY LIST OPERATIONS ================= */
-  addItem(type: 'employment' | 'projects' | 'education' | 'references') {
-    if (type === 'employment') {
-      this.data.employment.push({
-        company: '', role: '', location: '', start: '', end: '', current: false, responsibilities: ''
-      });
-    } else if (type === 'projects') {
-      this.data.projects.push({
-        title: '', tech: '', role: '', link: '', desc: ''
-      });
-    } else if (type === 'education') {
-      this.data.education.push({
-        degree: '', college: '', year: ''
-      });
-    } else if (type === 'references') {
-      this.data.references.push({
-        name: '', relationship: '', company: '', email: '', phone: ''
-      });
-    }
-    this.updateScore();
+  // Toggle guide section
+  toggleGuideSection(section: string) {
+    this.guideExpandedSection = this.guideExpandedSection === section ? '' : section;
   }
 
-  removeItem(type: 'employment' | 'projects' | 'education' | 'references', i: number) {
-    this.data[type].splice(i, 1);
-    this.updateScore();
-  }
+  constructor() { }
 
-  /* ================= PICTURE UPLOADER ================= */
-  onFileChange(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        this.data.photo = reader.result;
-      }
-    };
-    reader.readAsDataURL(file);
-  }
+  ngOnInit() {
+    this.renderer.addClass(this.document.body, 'resume-page-active');
 
-  /* ================= PROFILE STRENGTH ALGORITHM ================= */
-  updateScore() {
-    this.scoreChecklist.hasName = !!(this.data.name && this.data.name.length >= 3);
-    this.scoreChecklist.hasContact = !!(this.data.email && /^\S+@\S+\.\S+$/.test(this.data.email) && this.data.phone && /^\d{10}$/.test(this.data.phone));
-    this.scoreChecklist.hasSummary = !!(this.data.summary && this.data.summary.length >= 20);
-    this.scoreChecklist.hasSkills = this.selectedSkills.length >= 4;
-    this.scoreChecklist.hasEmployment = this.data.employment.length > 0 && !!this.data.employment[0].company;
-    this.scoreChecklist.hasProjects = this.data.projects.length > 0 && !!this.data.projects[0].title;
-    this.scoreChecklist.hasEducation = this.data.education.length > 0 && !!this.data.education[0].degree;
-    this.scoreChecklist.hasSocials = !!(this.data.personal.linkedin || this.data.personal.github);
-    this.scoreChecklist.hasReferences = this.data.references.length > 0 && !!this.data.references[0].name;
+    // Sync tab from current route path
+    this.syncTabFromRoute();
 
-    let score = 0;
-    if (this.scoreChecklist.hasName) score += 10;
-    if (this.scoreChecklist.hasContact) score += 15;
-    if (this.scoreChecklist.hasSummary) score += 10;
-    if (this.scoreChecklist.hasSkills) score += 15;
-    if (this.scoreChecklist.hasEmployment) score += 20;
-    if (this.scoreChecklist.hasProjects) score += 15;
-    if (this.scoreChecklist.hasEducation) score += 10;
-    if (this.scoreChecklist.hasSocials) score += 5;
+    this.router.events.subscribe(() => {
+      this.syncTabFromRoute();
+    });
 
-    this.profileScore = score;
-  }
-
-  /* ================= PREVIEW SCALE CONTROLS ================= */
-  zoomLevel = 1.0;
-  zoomIn() {
-    if (this.zoomLevel < 1.5) this.zoomLevel += 0.05;
-  }
-  zoomOut() {
-    if (this.zoomLevel > 0.2) this.zoomLevel -= 0.05;
-  }
-
-  /* ================= PREVIEW TEMPLATES LIST (10+ TEMPLATES) ================= */
-  templates = [
-    { id: 'template1', name: 'Standard Classic', color: '#1e293b', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 1 },
-    { id: 'template2', name: 'Corporate Modern', color: '#4f46e5', tier: 'FREE', photo: false, graphics: 'MODERNIST', columns: 1 },
-    { id: 'template3', name: 'Dual Column', color: '#0ea5e9', tier: 'FREE', photo: true, graphics: 'CLEAN', columns: 2 },
-    { id: 'template4', name: 'Tech Developer', color: '#10b981', tier: 'FREE', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template5', name: 'Executive Serif', color: '#9d174d', tier: 'FREE', photo: false, graphics: 'MODERNIST', columns: 1 },
-    { id: 'template6', name: 'Minimalist Clean', color: '#64748b', tier: 'FREE', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template7', name: 'Bold Left Border', color: '#dc2626', tier: 'FREE', photo: false, graphics: 'CREATIVE', columns: 1 },
-    { id: 'template8', name: 'Accent Top Header', color: '#7c3aed', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 1 },
-    { id: 'template9', name: 'Academic CV', color: '#0369a1', tier: 'FREE', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template10', name: 'Startup Creative', color: '#db2777', tier: 'FREE', photo: false, graphics: 'CREATIVE', columns: 2 },
-    { id: 'template11', name: 'Elegant Royal', color: '#d97706', tier: 'FREE', photo: false, graphics: 'MODERNIST', columns: 2 },
-    { id: 'template12', name: 'Navy Compact', color: '#1e3a8a', tier: 'FREE', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template13', name: 'Teal Modern', color: '#0f766e', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 1 },
-    { id: 'template14', name: 'Charcoal Corp', color: '#334155', tier: 'FREE', photo: false, graphics: 'MODERNIST', columns: 1 },
-    { id: 'template15', name: 'Left Bar Minimal', color: '#475569', tier: 'FREE', photo: false, graphics: 'MINIMALIST', columns: 2 },
-    { id: 'template16', name: 'Slate Standard', color: '#0284c7', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 1 },
-    { id: 'template17', name: 'Orange Bold', color: '#ea580c', tier: 'FREE', photo: false, graphics: 'CREATIVE', columns: 1 },
-    { id: 'template18', name: 'Clean Split', color: '#0369a1', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 2 },
-    { id: 'template19', name: 'Retro Terminal', color: '#16a34a', tier: 'FREE', photo: false, graphics: 'CREATIVE', columns: 1 },
-    { id: 'template20', name: 'Creative Portfolio', color: '#be185d', tier: 'FREE', photo: false, graphics: 'CREATIVE', columns: 2 },
-    { id: 'template21', name: 'Luxury Gold', color: '#b59410', tier: 'PRO', photo: false, graphics: 'MODERNIST', columns: 2 },
-    { id: 'template22', name: 'Executive Crimson', color: '#880808', tier: 'PRO', photo: false, graphics: 'MODERNIST', columns: 1 },
-    { id: 'template23', name: 'Tech Lead Minimal', color: '#0f172a', tier: 'PRO', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template24', name: 'Startup Creative Premium', color: '#ec4899', tier: 'PRO', photo: false, graphics: 'CREATIVE', columns: 2 },
-    { id: 'template25', name: 'Academic Premium', color: '#111827', tier: 'PRO', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template26', name: 'Pro Modernist', color: '#06b6d4', tier: 'PRO', photo: false, graphics: 'MODERNIST', columns: 1 },
-    { id: 'template27', name: 'Pro Minimal Dark', color: '#0f172a', tier: 'PRO', photo: false, graphics: 'MINIMALIST', columns: 1 },
-    { id: 'template28', name: 'Pro Executive Navy', color: '#1e3a8a', tier: 'PRO', photo: false, graphics: 'MODERNIST', columns: 1 },
-    { id: 'template29', name: 'Pro Tech Showcase', color: '#10b981', tier: 'PRO', photo: false, graphics: 'CREATIVE', columns: 1 },
-    { id: 'template30', name: 'Pro Creative Indigo', color: '#6366f1', tier: 'PRO', photo: false, graphics: 'CREATIVE', columns: 2 },
-    { id: 'template31', name: 'Pro Split Slate', color: '#475569', tier: 'PRO', photo: false, graphics: 'CLEAN', columns: 2 },
-    { id: 'template32', name: 'Pro Accent Emerald', color: '#059669', tier: 'PRO', photo: false, graphics: 'CLEAN', columns: 1 },
-    { id: 'template33', name: 'Pro Bold Crimson', color: '#b91c1c', tier: 'PRO', photo: false, graphics: 'CREATIVE', columns: 1 },
-    { id: 'template34', name: 'Pro Elegant Teal', color: '#0d9488', tier: 'PRO', photo: false, graphics: 'CLEAN', columns: 2 },
-    { id: 'template35', name: 'Pro Classic Border', color: '#4f46e5', tier: 'PRO', photo: false, graphics: 'CLEAN', columns: 1 },
-    { id: 'template36', name: 'Elite Plus Gold Premium', color: '#d97706', tier: 'ELITE', photo: false, graphics: 'CREATIVE', columns: 2 },
-    
-    // Dynamic Customizer Templates 37-50
-    { id: 'template37', name: 'Elite Creative Designer', color: '#be185d', tier: 'ELITE', photo: true, graphics: 'CREATIVE', columns: 2, baseLayout: 'template36' },
-    { id: 'template38', name: 'Elite Executive Corporate', color: '#1e293b', tier: 'ELITE', photo: false, graphics: 'MODERNIST', columns: 1, baseLayout: 'template22' },
-    { id: 'template39', name: 'Elite Modern Minimalist', color: '#334155', tier: 'ELITE', photo: false, graphics: 'MINIMALIST', columns: 1, baseLayout: 'template27' },
-    { id: 'template40', name: 'Elite Tech Startup', color: '#10b981', tier: 'ELITE', photo: true, graphics: 'CREATIVE', columns: 1, baseLayout: 'template4' },
-    { id: 'template41', name: 'Pro Elegant Royal', color: '#d97706', tier: 'PRO', photo: false, graphics: 'MODERNIST', columns: 2, baseLayout: 'template34' },
-    { id: 'template42', name: 'Pro Slate Split', color: '#475569', tier: 'PRO', photo: true, graphics: 'CLEAN', columns: 2, baseLayout: 'template31' },
-    { id: 'template43', name: 'Pro Clean Border', color: '#7c3aed', tier: 'PRO', photo: false, graphics: 'CLEAN', columns: 1, baseLayout: 'template35' },
-    { id: 'template44', name: 'Pro Creative Column', color: '#db2777', tier: 'PRO', photo: true, graphics: 'CREATIVE', columns: 2, baseLayout: 'template20' },
-    { id: 'template45', name: 'Pro Tech Lead Dark', color: '#0f172a', tier: 'PRO', photo: false, graphics: 'MODERNIST', columns: 1, baseLayout: 'template23' },
-    { id: 'template46', name: 'Pro Accent Top Bold', color: '#dc2626', tier: 'PRO', photo: false, graphics: 'CLEAN', columns: 1, baseLayout: 'template33' },
-    { id: 'template47', name: 'Pro Startup Compact', color: '#1e3a8a', tier: 'PRO', photo: false, graphics: 'MINIMALIST', columns: 2, baseLayout: 'template15' },
-    { id: 'template48', name: 'Free Classic Simple', color: '#1e293b', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 1, baseLayout: 'template1' },
-    { id: 'template49', name: 'Free Corporate Basic', color: '#4f46e5', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 1, baseLayout: 'template2' },
-    { id: 'template50', name: 'Free Two-Column Basic', color: '#0ea5e9', tier: 'FREE', photo: false, graphics: 'CLEAN', columns: 2, baseLayout: 'template3' }
-  ];
-
-  isTemplateLocked(templateId: string): boolean {
-    const template = this.templates.find(t => t.id === templateId);
-    if (!template) return false;
-
-    // Check user role first - Admins/Trainers have full access
-    const user = this.authService.getUser();
-    const role = String(user?.role || '').trim().toUpperCase();
-    if (['ADMIN', 'SUPER_ADMIN', 'HR', 'MANAGER', 'TRAINER', 'MENTOR'].includes(role)) {
-      return false;
-    }
-
-    const requiredTier = template.tier || 'FREE';
-    if (requiredTier === 'FREE' || requiredTier === 'BASIC') {
-      return false;
-    }
-
-    // Check user plan tier
-    if (requiredTier === 'PRO') {
-      return this.userPlan !== 'PRO' && this.userPlan !== 'ELITE';
-    }
-
-    if (requiredTier === 'ELITE') {
-      return this.userPlan !== 'ELITE';
-    }
-
-    return false;
-  }
-
-  getTemplateTier(templateId: string): string {
-    const template = this.templates.find(t => t.id === templateId);
-    return template ? (template.tier || 'FREE') : 'FREE';
-  }
-
-  openUpgradeLink() {
+    // Restore unsaved progress and auto-download if returning from login/register
     if (typeof window !== 'undefined') {
-      const template = this.templates.find(t => t.id === this.selectedTemplate);
-      const tier = template ? (template.tier || 'PRO') : 'PRO';
-      window.open(`/pricing-plans?unlock=${tier}&redirect=/resume`, '_blank');
+      const unsaved = localStorage.getItem('unsaved_resume_data');
+      if (unsaved) {
+        try {
+          const parsed = JSON.parse(unsaved);
+          if (parsed.data) this.service.data = parsed.data;
+          if (parsed.selectedSkills) this.service.selectedSkills = parsed.selectedSkills;
+          if (parsed.selectedLanguages) this.service.selectedLanguages = parsed.selectedLanguages;
+          if (parsed.themeColor) this.service.themeColor = parsed.themeColor;
+          if (parsed.selectedTemplate) this.service.selectedTemplate = parsed.selectedTemplate;
+          if (parsed.headingFont) this.service.headingFont = parsed.headingFont;
+          if (parsed.bodyFont) this.service.bodyFont = parsed.bodyFont;
+          if (parsed.headingSize) this.service.headingSize = parsed.headingSize;
+          if (parsed.bodySize) this.service.bodySize = parsed.bodySize;
+          if (parsed.lineSpacing) this.service.lineSpacing = parsed.lineSpacing;
+          if (parsed.sectionSpacing) this.service.sectionSpacing = parsed.sectionSpacing;
+          if (parsed.pageMargin) this.service.pageMargin = parsed.pageMargin;
+          if (parsed.headingStyle) this.service.headingStyle = parsed.headingStyle;
+          if (parsed.subheadingStyle) this.service.subheadingStyle = parsed.subheadingStyle;
+          if (parsed.dividerStyle) this.service.dividerStyle = parsed.dividerStyle;
+          if (parsed.bulletStyle) this.service.bulletStyle = parsed.bulletStyle;
+          if (parsed.dateFormat) this.service.dateFormat = parsed.dateFormat;
+          if (parsed.skillsStyle) this.service.skillsStyle = parsed.skillsStyle;
+          if (parsed.headerLayout) this.service.headerLayout = parsed.headerLayout;
+          if (parsed.selectedHighlights) this.service.selectedHighlights = parsed.selectedHighlights;
+
+          localStorage.removeItem('unsaved_resume_data');
+
+          // Check if we just completed registration/login
+          const user = (this.service as any).authService.getUser();
+          if (user || this.service['authService'].isLoggedIn()) {
+            this.service.saveResume();
+            setTimeout(() => {
+              this.service.downloadPDF();
+            }, 600);
+          }
+        } catch (e) {
+          console.error('Failed to restore unsaved state', e);
+        }
+      }
     }
   }
 
-
-  /* ================= RESET & SEEDING ================= */
-  clearForm() {
-    this.data = {
-      name: '',
-      email: '',
-      phone: '',
-      photo: '',
-      headline: '',
-      summary: '',
-      employment: [],
-      projects: [],
-      education: [],
-      personal: {
-        dob: '',
-        gender: '',
-        address: '',
-        nationality: '',
-        linkedin: '',
-        github: '',
-      },
-      references: []
-    };
-    this.selectedSkills = [];
-    this.selectedLanguages = [];
-    this.jdSuggestions = [];
-    this.jdMatchScore = 0;
-    this.jdMatchedSkills = [];
-    this.jdMissingSkills = [];
-    this.updateScore();
+  syncTabFromRoute() {
+    if (typeof window === 'undefined') return;
+    const path = window.location.pathname;
+    if (path.includes('/resume-workspace')) {
+      if (this.activeTab !== 'editor' && this.activeTab !== 'templates') {
+        this.activeTab = 'templates';
+      }
+      this.autoFitZoom();
+    } else if (path.includes('/resume-scanner')) {
+      this.activeTab = 'scanner';
+      this.autoFitZoom();
+    } else if (path.includes('/resume-customizer')) {
+      this.activeTab = 'customizer';
+      this.autoFitZoom();
+    } else if (path.includes('/resume-guide')) {
+      this.activeTab = 'guide';
+      this.autoFitZoom();
+    }
   }
 
-  loadSampleData() {
-    this.data = {
-      name: 'User',
-      email: 'user@domain.com',
-      phone: '+91 9876543210',
-      photo: '',
-      headline: 'Full Stack Java Developer',
-      summary: 'Passionate Full Stack Java Developer with 2+ years of educational and practical experience specializing in Angular, Spring Boot microservices, and Postgres database systems. Proven capabilities in building interactive responsive sandbox interfaces, optimizing latency, and deploying secure APIs with comprehensive unit testing frameworks.',
-      employment: [
-        {
-          company: 'Vidhura Tech Labs',
-          role: 'Junior Full Stack Developer',
-          location: 'Bangalore, India',
-          start: '2024-06-01',
-          end: '',
-          current: true,
-          responsibilities: 'Developed responsive, glassmorphic UI components in Angular 18 with smooth keyframe layouts.\nDesigned and deployed Java Spring Boot REST APIs utilizing JWT authentication controls and Postgres backends.\nOptimized practice playground sandbox instances, improving container hot-reload latency by 28%.'
-        }
-      ],
-      projects: [
-        {
-          title: 'Interactive Code Playground',
-          tech: 'Angular, Node.js, Docker, WebSockets',
-          role: 'Lead Project Developer',
-          link: 'https://github.com/user_name/interactive-sandbox',
-          desc: 'Developed an isolated virtual code execution interface provisioning backend database sandboxes directly inside the browser, allowing students to test API calls in real time.'
-        }
-      ],
-      education: [
-        {
-          degree: 'Bachelor of Technology in Computer Science',
-          college: 'JNTU University',
-          year: '2024'
-        }
-      ],
-      personal: {
-        dob: '2002-05-15',
-        gender: 'Male',
-        address: 'HSR Layout Sector 2, Bangalore, KA, 560102',
-        nationality: 'Indian',
-        linkedin: 'https://linkedin.com/in/user_name',
-        github: 'https://github.com/user_name'
-      },
-      references: [
-        {
-          name: 'Dr. Ramesh Kumar',
-          relationship: 'Senior Mentor & Placement Head',
-          company: 'JNTU CSE Department',
-          email: 'ramesh@jntu.edu.in',
-          phone: '9848022338'
-        }
-      ]
-    };
-    this.selectedSkills = ['Java', 'Spring Boot', 'Angular', 'TypeScript', 'SQL', 'REST API', 'Docker', 'Git'];
-    this.selectedLanguages = ['English', 'Telugu', 'Hindi'];
-    this.updateScore();
+  ngDoCheck() {
+    // Zoom auto-fit logic and checklist updates
+    this.service.updateScore();
   }
 
-  /* ================= FORMAT DURATION HELPER ================= */
-  getDuration(start: string, end: string) {
-    if (!start) return '';
-    const s = new Date(start);
-    const e = end ? new Date(end) : new Date();
-    let years = e.getFullYear() - s.getFullYear();
-    let months = e.getMonth() - s.getMonth();
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-    return `${years > 0 ? years + ' yr ' : ''}${months > 0 ? months + ' mos' : ''}`;
+  ngOnDestroy() {
+    this.renderer.removeClass(this.document.body, 'resume-page-active');
   }
 
-  formatDate(dateStr: string): string {
-    if (!dateStr) return '';
-    const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (dateMatch) {
-      const year = dateMatch[1];
-      const monthIndex = parseInt(dateMatch[2], 10) - 1;
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${months[monthIndex]} ${year}`;
-    }
-    return dateStr;
+  // Event Delegates (to match existing method signatures in html)
+  selectWorkspaceTab(tab: string, section?: string) {
+    this.service.selectWorkspaceTab(tab, section);
   }
 
-  /* ================= AUTO AI GENERATION ================= */
-  aiRole = '';
-  aiExperience = 'Fresher';
-  generateAIResume() {
-    if (!this.aiRole) {
-      alert('Please enter a role before generating.');
-      return;
-    }
-    this.data.summary = `Results-driven ${this.aiRole} with a strong foundation in modern architectures, code optimizations, and software engineering principles. Proficient in designing scalable applications, writing clean logic, and collaborating across development teams to achieve milestones.`;
-    this.data.headline = `Associate ${this.aiRole}`;
-
-    // Auto populate matching skills
-    const match = this.roleKeywords[this.aiRole] || this.roleKeywords['Full Stack Developer'];
-    this.selectedSkills = match.slice(0, 7);
-
-    // Auto populate sample details matching the role
-    this.data.projects = [
-      {
-        title: `Enterprise ${this.aiRole} System`,
-        tech: this.selectedSkills.join(', '),
-        role: 'Developer',
-        link: 'https://github.com/example/enterprise-system',
-        desc: `Architected and developed a core module for an enterprise-level platform utilizing ${this.selectedSkills.slice(0, 3).join(' and ')}, enhancing transaction speed by 18%.`
-      }
-    ];
-
-    this.data.employment = [
-      {
-        company: 'Systems Solutions Inc',
-        role: `Junior ${this.aiRole}`,
-        location: 'Bangalore, India',
-        start: '2025-01-01',
-        end: '',
-        current: true,
-        responsibilities: `Developed robust functional modules and resolved platform tickets.\nCollaborated on database schema design and writing clean API documentation.`
-      }
-    ];
-
-    this.updateScore();
+  selectTemplate(id: string) {
+    this.service.selectTemplate(id);
   }
 
-  /* ================= OLD RESUME TEXT PARSING ================= */
-  /* ================= OLD RESUME TEXT PARSING ================= */
-  parseOldResumeText(text: string) {
-    if (!text || text.trim().length === 0) return;
-
-    // Split text into lines
-    const lines = text.split('\n').map(l => l.trim());
-
-    let currentSection = 'contact';
-    const sectionTexts: { [key: string]: string[] } = {
-      contact: [],
-      summary: [],
-      skills: [],
-      experience: [],
-      projects: [],
-      education: [],
-      references: []
-    };
-
-    // Words/patterns that identify a section header
-    const summaryHeaderRegex = /^(?:(?:professional\s+)?summary|profile|about\s+me|executive\s+summary)$/i;
-    const skillsHeaderRegex = /^(?:(?:key\s+)?skills|technical\s+skills|expertise|competencies|technologies|stack)$/i;
-    const experienceHeaderRegex = /^(?:(?:work\s+)?experience|employment(?:\s+history)?|professional\s+experience|work\s+history|career\s+history)$/i;
-    const projectsHeaderRegex = /^(?:projects|featured\s+projects|personal\s+projects|academic\s+projects|creations)$/i;
-    const educationHeaderRegex = /^(?:education|academic\s+(?:profile|background|history)|qualifications)$/i;
-    const referencesHeaderRegex = /^(?:references|professional\s+references)$/i;
-
-    const cleanHeaderLine = (line: string): string => {
-      return line.trim()
-        .replace(/^[\s#*_\-\d\.\:]+/, '') // remove markdown header symbols, lists, spaces
-        .replace(/[\s*_\-:]+$/, '')      // remove trailing punctuation, spaces, asterisks
-        .trim();
-    };
-
-    for (let line of lines) {
-      if (!line) continue;
-      const cleaned = cleanHeaderLine(line);
-
-      if (summaryHeaderRegex.test(cleaned)) {
-        currentSection = 'summary';
-      } else if (skillsHeaderRegex.test(cleaned)) {
-        currentSection = 'skills';
-      } else if (experienceHeaderRegex.test(cleaned)) {
-        currentSection = 'experience';
-      } else if (projectsHeaderRegex.test(cleaned)) {
-        currentSection = 'projects';
-      } else if (educationHeaderRegex.test(cleaned)) {
-        currentSection = 'education';
-      } else if (referencesHeaderRegex.test(cleaned)) {
-        currentSection = 'references';
-      } else {
-        sectionTexts[currentSection].push(line);
-      }
-    }
-
-    // --- 1. NAME & INFO (CONTACT) ---
-    const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/);
-    if (emailMatch) this.data.email = emailMatch[0];
-
-    const phoneMatch = text.match(/\b\d{10}\b/);
-    if (phoneMatch) this.data.phone = phoneMatch[0];
-
-    // Find a name candidate from the contact lines
-    const contactLines = sectionTexts['contact'];
-    const nameCandidate = contactLines.find(l =>
-      !l.includes('@') &&
-      !l.includes('http') &&
-      !l.includes(':') &&
-      l.length > 2 &&
-      l.length < 35 &&
-      /^[a-zA-Z\s]+$/.test(l)
-    );
-    if (nameCandidate) {
-      this.data.name = nameCandidate;
-      // Extract headline if possible (first short line after name candidate in contact)
-      const nameIndex = contactLines.indexOf(nameCandidate);
-      if (nameIndex !== -1 && contactLines.length > nameIndex + 1) {
-        const headlineCandidate = contactLines[nameIndex + 1];
-        if (headlineCandidate && headlineCandidate.length < 50 && !headlineCandidate.includes('@') && !headlineCandidate.includes('http')) {
-          this.data.headline = headlineCandidate;
-        }
-      }
-    }
-
-    // --- 2. LINKEDIN / GITHUB ---
-    const linkedinMatch = text.match(/https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
-    if (linkedinMatch) this.data.personal.linkedin = linkedinMatch[0];
-
-    const githubMatch = text.match(/https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+/i);
-    if (githubMatch) this.data.personal.github = githubMatch[0];
-
-    // --- 3. PROFILE SUMMARY ---
-    const isLikelySummaryProse = (line: string): boolean => {
-      const trimmed = line.trim();
-      if (trimmed.length < 50) return false;
-
-      // Ignore if it contains pipe symbol (very common in metadata rows, never in summary prose paragraphs)
-      if (trimmed.includes('|')) return false;
-
-      // Ignore if it contains an email address
-      if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/.test(trimmed)) return false;
-
-      // Ignore if it contains a phone number pattern (broad matching)
-      if (/\+?\d{1,4}[-.\s]?\d{3,4}[-.\s]?\d{3,4}/.test(trimmed) || /\b\d{10}\b/.test(trimmed)) return false;
-
-      // Ignore if it contains common URL/link keywords or patterns
-      if (/\b(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9.-]+\.(?:com|org|net|online|dev|co|in|info)\b/i.test(trimmed)) return false;
-
-      // Ignore if it looks like key-value pairs (e.g. Experience: 5 years, Location: Bangalore)
-      if (/(?:experience|exp|phone|mobile|email|location|address|linkedin|github|website|portfolio|skills)\s*[:\-]/i.test(trimmed)) return false;
-
-      // Ignore if it contains experience details in a metadata format
-      if (/\bexperience\s*:\s*\d+\s*(?:years?|yrs?|months?|mos?)/i.test(trimmed)) return false;
-
-      return true;
-    };
-
-    const validSummaryLines = sectionTexts['summary'].filter(l => isLikelySummaryProse(l));
-    let summaryText = validSummaryLines.join('\n').trim();
-
-    if (!summaryText) {
-      // Fallback: look for a paragraph of length 70 to 400 inside contact section or general lines
-      const summaryCandidate = lines.find(l => isLikelySummaryProse(l) && l.length > 70 && l.length < 400 &&
-        (l.toLowerCase().includes('experience') || l.toLowerCase().includes('developer') || l.toLowerCase().includes('motivated') || l.toLowerCase().includes('engineer'))
-      );
-      if (summaryCandidate) summaryText = summaryCandidate;
-    }
-    if (summaryText) {
-      this.data.summary = summaryText;
-    }
-
-    // --- 4. KEY SKILLS ---
-    const foundSkills: string[] = [];
-    const skillsToSearch = sectionTexts['skills'].length > 0 ? sectionTexts['skills'].join(' ') : text;
-    this.allSkills.forEach(s => {
-      const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp('\\b' + escaped + '\\b', 'i');
-      if (regex.test(skillsToSearch)) {
-        foundSkills.push(s);
-      }
-    });
-
-    foundSkills.forEach(s => {
-      if (!this.selectedSkills.includes(s) && this.selectedSkills.length < this.maxSkills) {
-        this.selectedSkills.push(s);
-      }
-    });
-
-    // --- 5. WORK EXPERIENCE ---
-    if (sectionTexts['experience'].length > 0) {
-      const empEntries: Employment[] = [];
-
-      const roleRegex = /(developer|engineer|analyst|manager|lead|intern|associate|consultant|specialist|officer|administrator|designer|architect|programmer|tester|specialist)/i;
-      const dateYearRegex = /\b((?:19|20)\d{2})\b/;
-      const monthRegexStr = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|\\d{1,2})';
-
-      const rangePresentRegex = new RegExp(
-        `\\b(?:(${monthRegexStr})\\s+)?((?:19|20)\\d{2})\\s*(?:-|–|—|to)\\s*(present|current|now)\\b`,
-        'i'
-      );
-      const rangeDoubleRegex = new RegExp(
-        `\\b(?:(${monthRegexStr})\\s+)?((?:19|20)\\d{2})\\s*(?:-|–|—|to)\\s*(?:(${monthRegexStr})\\s+)?((?:19|20)\\d{2})\\b`,
-        'i'
-      );
-      const singleDateRegex = new RegExp(
-        `\\b(?:(${monthRegexStr})\\s+)?((?:19|20)\\d{2})\\b`,
-        'i'
-      );
-
-      const parseSingleDate = (monthStr: string | undefined, yearStr: string): string => {
-        const year = yearStr;
-        let month = '01';
-        if (monthStr) {
-          const m = monthStr.trim().toLowerCase();
-          if (m.startsWith('jan')) month = '01';
-          else if (m.startsWith('feb')) month = '02';
-          else if (m.startsWith('mar')) month = '03';
-          else if (m.startsWith('apr')) month = '04';
-          else if (m.startsWith('may')) month = '05';
-          else if (m.startsWith('jun')) month = '06';
-          else if (m.startsWith('jul')) month = '07';
-          else if (m.startsWith('aug')) month = '08';
-          else if (m.startsWith('sep')) month = '09';
-          else if (m.startsWith('oct')) month = '10';
-          else if (m.startsWith('nov')) month = '11';
-          else if (m.startsWith('dec')) month = '12';
-          else {
-            const num = parseInt(m, 10);
-            if (num >= 1 && num <= 12) {
-              month = num.toString().padStart(2, '0');
-            }
-          }
-        }
-        return `${year}-${month}-01`;
-      };
-
-      const isBulletOrResponsibility = (line: string): boolean => {
-        const trimmed = line.trim();
-        if (/^[•\-\*\+\>\s]/.test(trimmed)) return true;
-        if (/^[a-z]/.test(trimmed)) return true;
-        if (trimmed.length > 80) return true;
-        return false;
-      };
-
-      // Segment into blocks
-      const blocks: { headers: string[], bullets: string[] }[] = [];
-      let currentBlock: { headers: string[], bullets: string[] } | null = null;
-
-      for (let line of sectionTexts['experience']) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        const isBullet = isBulletOrResponsibility(trimmed);
-
-        let startsNewBlock = false;
-        if (!isBullet) {
-          if (!currentBlock) {
-            startsNewBlock = true;
-          } else {
-            if (currentBlock.bullets.length > 0) {
-              startsNewBlock = true;
-            } else {
-              const hasRole = roleRegex.test(trimmed);
-              const hasDate = dateYearRegex.test(trimmed) || /present|current/i.test(trimmed);
-              const currentHasRole = currentBlock.headers.some(h => roleRegex.test(h));
-              const currentHasDate = currentBlock.headers.some(h => dateYearRegex.test(h) || /present|current/i.test(h));
-
-              if ((hasRole && currentHasRole) || (hasDate && currentHasDate)) {
-                startsNewBlock = true;
-              }
-            }
-          }
-        }
-
-        if (startsNewBlock) {
-          currentBlock = { headers: [trimmed], bullets: [] };
-          blocks.push(currentBlock);
-        } else {
-          if (currentBlock) {
-            if (isBullet) {
-              currentBlock.bullets.push(trimmed);
-            } else {
-              currentBlock.headers.push(trimmed);
-            }
-          } else {
-            currentBlock = { headers: [], bullets: [trimmed] };
-            blocks.push(currentBlock);
-          }
-        }
-      }
-
-      // Parse each block into an Employment entry
-      for (let block of blocks) {
-        let headers = [...block.headers];
-
-        let start = '';
-        let end = '';
-        let current = false;
-        let location = '';
-
-        // A. Extract dates from headers
-        for (let j = 0; j < headers.length; j++) {
-          const h = headers[j];
-          const matchPresent = h.match(rangePresentRegex);
-          if (matchPresent) {
-            start = parseSingleDate(matchPresent[1], matchPresent[2]);
-            current = true;
-            headers[j] = h.replace(matchPresent[0], '').trim();
-            continue;
-          }
-          const matchDouble = h.match(rangeDoubleRegex);
-          if (matchDouble) {
-            start = parseSingleDate(matchDouble[1], matchDouble[2]);
-            end = parseSingleDate(matchDouble[3], matchDouble[4]);
-            headers[j] = h.replace(matchDouble[0], '').trim();
-            continue;
-          }
-          const matchSingle = h.match(singleDateRegex);
-          if (matchSingle) {
-            start = parseSingleDate(matchSingle[1], matchSingle[2]);
-            headers[j] = h.replace(matchSingle[0], '').trim();
-            continue;
-          }
-        }
-
-        // Clean up empty parentheses that might be left over from dates e.g. "()"
-        headers = headers.map(h => h.replace(/\s*\(\s*\)/g, '').trim()).filter(h => h.length > 0);
-
-        // B. Extract location
-        for (let j = 0; j < headers.length; j++) {
-          const h = headers[j];
-          const parenMatch = h.match(/\(([^)]+)\)/);
-          if (parenMatch) {
-            location = parenMatch[1].trim();
-            headers[j] = h.replace(parenMatch[0], '').trim();
-            break;
-          }
-        }
-
-        if (!location) {
-          for (let j = 0; j < headers.length; j++) {
-            const h = headers[j];
-            const locPrefixMatch = h.match(/location\s*:\s*([^,]+(?:,\s*[^,]+)?)/i);
-            if (locPrefixMatch) {
-              location = locPrefixMatch[1].trim();
-              headers[j] = h.replace(locPrefixMatch[0], '').trim();
-              break;
-            }
-          }
-        }
-
-        headers = headers.map(h => h.trim()).filter(h => h.length > 0);
-
-        // C. Extract role & company
-        let role = '';
-        let company = '';
-
-        let roleLineIndex = -1;
-        for (let j = 0; j < headers.length; j++) {
-          if (roleRegex.test(headers[j])) {
-            roleLineIndex = j;
-            break;
-          }
-        }
-
-        if (roleLineIndex !== -1) {
-          const line = headers[roleLineIndex];
-          const parts = line.split(/\s*(?:\||@| at | - )\s*/i).map(p => p.trim()).filter(p => p.length > 0);
-
-          if (parts.length >= 2) {
-            const rIdx = parts.findIndex(p => roleRegex.test(p));
-            if (rIdx !== -1) {
-              role = parts[rIdx];
-              company = parts.filter((_, idx) => idx !== rIdx).join(', ');
-            } else {
-              role = parts[0];
-              company = parts.slice(1).join(', ');
-            }
-          } else {
-            role = line;
-            const otherLines = headers.filter((_, idx) => idx !== roleLineIndex);
-            if (otherLines.length > 0) {
-              const companyLine = otherLines[0];
-              const commaParts = companyLine.split(',').map(p => p.trim()).filter(p => p.length > 0);
-              if (commaParts.length >= 2) {
-                company = commaParts[0];
-                if (!location) location = commaParts.slice(1).join(', ');
-              } else {
-                company = companyLine;
-              }
-              if (otherLines.length >= 2 && !location) {
-                location = otherLines[1];
-              }
-            }
-          }
-        } else {
-          // Fallback if no line matched roleRegex
-          if (headers.length >= 1) {
-            role = headers[0];
-          }
-          if (headers.length >= 2) {
-            const companyLine = headers[1];
-            const commaParts = companyLine.split(',').map(p => p.trim()).filter(p => p.length > 0);
-            if (commaParts.length >= 2) {
-              company = commaParts[0];
-              if (!location) location = commaParts.slice(1).join(', ');
-            } else {
-              company = companyLine;
-            }
-          }
-          if (headers.length >= 3 && !location) {
-            location = headers[2];
-          }
-        }
-
-        // Clean up leading/trailing symbols from role and company
-        role = role.replace(/^[\s,\-|()]+|[\s,\-|()]+$/g, '').trim();
-        company = company.replace(/^[\s,\-|()]+|[\s,\-|()]+$/g, '').trim();
-
-        // D. Clean responsibilities
-        const bulletLines = block.bullets.map(b => b.replace(/^[•\-\*\+\>\s\d\.\)]+/g, '').trim()).filter(b => b.length > 0);
-        const responsibilities = bulletLines.join('\n');
-
-        if (role || company || responsibilities) {
-          empEntries.push({
-            company: company || 'Company Name',
-            role: role || 'Designated Role',
-            location: location || 'Location',
-            start: start || '',
-            end: end || '',
-            current: current,
-            responsibilities: responsibilities || ''
-          });
-        }
-      }
-
-      if (empEntries.length > 0) {
-        this.data.employment = empEntries;
-      }
-    }
-
-    // --- 6. PROJECT PORTFOLIO ---
-    if (sectionTexts['projects'].length > 0) {
-      const projEntries: Project[] = [];
-      let currentProj: Project | null = null;
-
-      for (let line of sectionTexts['projects']) {
-        const isNewProject = line.length < 50 && (line.includes('|') || line.includes(':') || line.includes('http') || /^[A-Z][A-Za-z0-9\s]{3,25}$/.test(line));
-
-        if (isNewProject && currentProj && currentProj.title) {
-          projEntries.push(currentProj);
-          currentProj = null;
-        }
-
-        if (!currentProj) {
-          currentProj = {
-            title: line.split(/[:|]/)[0].trim(),
-            tech: '',
-            role: 'Developer',
-            link: '',
-            desc: ''
-          };
-
-          const urlMatch = line.match(/https?:\/\/[^\s]+/);
-          if (urlMatch) currentProj.link = urlMatch[0];
-
-          if (line.includes(':')) {
-            currentProj.tech = line.split(':')[1].replace(currentProj.link, '').trim();
-          } else if (line.includes('|')) {
-            currentProj.tech = line.split('|')[1].replace(currentProj.link, '').trim();
-          }
-        } else {
-          currentProj.desc += (currentProj.desc ? ' ' : '') + line;
-        }
-      }
-      if (currentProj && currentProj.title) {
-        projEntries.push(currentProj);
-      }
-      if (projEntries.length > 0) {
-        this.data.projects = projEntries;
-      }
-    }
-
-    // --- 7. EDUCATION INFO ---
-    if (sectionTexts['education'].length > 0) {
-      const eduEntries: Education[] = [];
-      const degreeRegex = /(B\.Tech|B\.E\.|B\.Sc|B\.S\.|B\.A\.|M\.Tech|M\.Sc|M\.S\.|MBA|MCA|BCA|Bachelor|Master|Ph\.D|Diploma|High\s+School|Intermediate|SSC)/i;
-      const yearRegex = /\b(19|20)\d{2}\b/;
-
-      for (let line of sectionTexts['education']) {
-        const degreeMatch = line.match(degreeRegex);
-        if (degreeMatch) {
-          const degree = degreeMatch[0];
-          const yearMatch = line.match(yearRegex);
-          const year = yearMatch ? yearMatch[0] : '';
-
-          let college = line.replace(degree, '').replace(year, '').replace(/[\s,\-|()]+/g, ' ').trim();
-          if (!college || college.length < 5) {
-            college = 'University / School';
-          }
-          eduEntries.push({ degree, college, year });
-        }
-      }
-      if (eduEntries.length > 0) {
-        this.data.education = eduEntries;
-      }
-    }
-
-    // --- 8. REFERENCES ---
-    if (sectionTexts['references'].length > 0) {
-      const refEntries: Reference[] = [];
-      let currentRef: Reference | null = null;
-
-      for (let line of sectionTexts['references']) {
-        const emailMatch = line.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/);
-        const phoneMatch = line.match(/\b\d{10}\b/);
-
-        const isNewRef = line.length < 40 && !emailMatch && !phoneMatch && /^[A-Z][a-zA-Z\s]+$/.test(line);
-
-        if (isNewRef && currentRef && currentRef.name) {
-          refEntries.push(currentRef);
-          currentRef = null;
-        }
-
-        if (!currentRef) {
-          currentRef = {
-            name: line,
-            relationship: 'Professional Contact',
-            company: 'Institution',
-            email: '',
-            phone: ''
-          };
-        } else {
-          if (emailMatch) currentRef.email = emailMatch[0];
-          if (phoneMatch) currentRef.phone = phoneMatch[0];
-          if (!emailMatch && !phoneMatch) {
-            if (line.includes(' at ') || line.includes('@')) {
-              currentRef.company = line.split(/at|@/)[1].trim();
-            } else {
-              currentRef.relationship = line;
-            }
-          }
-        }
-      }
-      if (currentRef && currentRef.name) {
-        refEntries.push(currentRef);
-      }
-      if (refEntries.length > 0) {
-        this.data.references = refEntries;
-      }
-    }
-
-    this.updateScore();
+  cancelUpgrade() {
+    this.service.cancelUpgrade();
   }
 
-  onOldResumePaste() {
-    this.clearForm();
+  isTemplateLocked(id: string) {
+    return this.service.isTemplateLocked(id);
+  }
+
+  getTemplateName(id: string) {
+    return this.service.getTemplateName(id);
+  }
+
+  getRenderTemplateId(id: string) {
+    const t = this.templates.find(x => x.id === id);
+    return t && t.baseLayout ? t.baseLayout : id;
+  }
+
+  getSectionLabel(id: string, defaultVal: string) {
+    return (this.customSectionTitles as any)[id] || defaultVal;
+  }
+
+  triggerEditorFileUpload() {
+    if (typeof document !== 'undefined') {
+      const fileInput = document.getElementById('editor-resume-file');
+      if (fileInput) fileInput.click();
+    }
   }
 
   onOldResumeUpload(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        this.clearForm();
-        this.oldResumeText = reader.result;
-        this.parseOldResumeText(this.oldResumeText);
-      }
-    };
-    reader.readAsText(file);
+    this.service.onOldResumeUpload(event);
   }
 
-  /* ================= JD KEYWORDS MATCHER SCANNER ================= */
-  scanJdAndResume() {
-    if (!this.jobDescriptionText || this.jobDescriptionText.trim().length === 0) {
-      alert('Please paste a Job Description first.');
-      return;
-    }
-
-    // Run parser to ensure any last-minute text pastes/changes are fully parsed & matched
-    if (this.oldResumeText && this.oldResumeText.trim().length > 0) {
-      this.parseOldResumeText(this.oldResumeText);
-    }
-
-    this.isScanning = true;
-
-    setTimeout(() => {
-      // Find keywords matching allSkills in the Job Description
-      const foundJdKeywords: string[] = [];
-      this.allSkills.forEach(s => {
-        const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp('\\b' + escaped + '\\b', 'i');
-        if (regex.test(this.jobDescriptionText)) {
-          foundJdKeywords.push(s);
-        }
-      });
-
-      // Filter matched & missing keyword tags
-      this.jdMatchedSkills = foundJdKeywords.filter(s => this.selectedSkills.includes(s));
-      this.jdMissingSkills = foundJdKeywords.filter(s => !this.selectedSkills.includes(s));
-
-      // Calculate JD Match Score
-      if (foundJdKeywords.length > 0) {
-        this.jdMatchScore = Math.round((this.jdMatchedSkills.length / foundJdKeywords.length) * 100);
-      } else {
-        this.jdMatchScore = 50; // default baseline if no direct skills matches are found
-      }
-
-      this.generateJdSuggestions();
-      this.isScanning = false;
-    }, 1000); // 1s simulation timer for modern loading aesthetics
+  onFileChange(event: any) {
+    this.service.onFileChange(event);
   }
 
-  optimizeResume() {
-    if (this.jdMissingSkills.length === 0) return;
-
-    this.jdMissingSkills.forEach(s => {
-      if (this.selectedSkills.length < this.maxSkills && !this.selectedSkills.includes(s)) {
-        this.selectedSkills.push(s);
-        this.jdMatchedSkills.push(s);
-      }
-    });
-
-    this.jdMissingSkills = [];
-    this.jdMatchScore = 100;
-    this.jdSuggestions = this.jdSuggestions.filter(s => !s.includes('missing critical keywords'));
-    this.updateScore();
+  addItem(type: 'employment' | 'projects' | 'education' | 'certifications' | 'achievements' | 'publications' | 'customSections') {
+    this.service.addItem(type);
   }
 
-  /* ================= SUGGEST CHANGES RECOMMENDER ================= */
-  generateJdSuggestions() {
-    this.jdSuggestions = [];
-
-    // Summary checks
-    if (!this.data.summary || this.data.summary.trim().length < 30) {
-      this.jdSuggestions.push('Your Profile Summary is missing or too brief. Write a 3-sentence summary highlighting your core skills.');
-    } else if (this.data.summary && this.targetRole && !this.data.summary.toLowerCase().includes(this.targetRole.toLowerCase())) {
-      this.jdSuggestions.push(`Mention your target job title "${this.targetRole}" in your Profile Summary to increase relevance.`);
-    }
-
-    // Skills checklist
-    if (this.selectedSkills.length < 5) {
-      this.jdSuggestions.push('Your key skills section lists fewer than 5 items. Include more technical skills to demonstrate capability.');
-    }
-    if (this.jdMissingSkills.length > 0) {
-      const top3 = this.jdMissingSkills.slice(0, 3).join(', ');
-      this.jdSuggestions.push(`Insert missing critical keywords found in the Job Description: "${top3}".`);
-    }
-
-    // Social profiles
-    if (!this.data.personal.linkedin) {
-      this.jdSuggestions.push('Include a LinkedIn profile link. Recruiters look for professional social evidence.');
-    }
-    if (!this.data.personal.github && (this.targetRole.includes('Developer') || this.targetRole.includes('Engineer'))) {
-      this.jdSuggestions.push('For engineering roles, linking a GitHub profile is highly recommended to display your code repositories.');
-    }
-
-    // Work experience checks
-    if (this.data.employment.length === 0) {
-      this.jdSuggestions.push('Your work experience is empty. Add previous jobs, training records, or internships.');
-    } else {
-      const emptyDesc = this.data.employment.some(e => !e.responsibilities || e.responsibilities.trim().length < 15);
-      if (emptyDesc) {
-        this.jdSuggestions.push('Provide bulleted details of your responsibilities and achievements in your experience block.');
-      }
-    }
-
-    // Projects checks
-    if (this.data.projects.length === 0) {
-      this.jdSuggestions.push('Add a coding project. Showing off actual codebase projects increases developer matching rates.');
-    }
-
-    // References checks
-    if (this.data.references.length === 0) {
-      this.jdSuggestions.push('Add a professional reference (e.g. trainers or mentors) to validate your technical capability.');
-    }
+  removeItem(type: 'employment' | 'projects' | 'education' | 'certifications' | 'achievements' | 'publications' | 'customSections', index: number) {
+    this.service.removeItem(type, index);
   }
 
-  /* ================= PDF EXPORTER ================= */
-  errors: any = {};
-  validate() {
-    this.errors = {};
-    if (!this.data.name || this.data.name.trim().length < 3) {
-      this.errors.name = 'Name must be at least 3 characters.';
-    }
-    if (!this.data.email || !/^\S+@\S+\.\S+$/.test(this.data.email)) {
-      this.errors.email = 'Invalid email address format.';
-    }
-    if (!this.data.phone || !/^\d{10}$/.test(this.data.phone)) {
-      this.errors.phone = 'Phone must be a valid 10-digit number.';
-    }
-    if (this.data.summary.length > 500) {
-      this.errors.summary = 'Summary must not exceed 500 characters.';
-    }
-    return Object.keys(this.errors).length === 0;
+  addCustomSectionItem(secIndex: number) {
+    this.service.addCustomSectionItem(secIndex);
   }
 
-  async downloadPDF() {
-    if (this.isTemplateLocked(this.selectedTemplate)) {
-      alert(`The "${this.templates.find(t => t.id === this.selectedTemplate)?.name}" template is locked for your current subscription. Redirecting to upgrade page!`);
-      this.openUpgradeLink();
-      return;
-    }
-    if (!this.validate()) {
-      alert('Please resolve validation issues highlighted in red before downloading.');
-      return;
-    }
+  removeCustomSectionItem(secIndex: number, itemIndex: number) {
+    this.service.removeCustomSectionItem(secIndex, itemIndex);
+  }
+
+  saveAndDownload() {
+    this.service.saveAndDownload();
+  }
+
+  toggleLanguage(lang: string) {
+    this.service.toggleLanguage(lang);
+  }
+
+  openUpgradeLink() {
+    this.service.openUpgradeLink();
+  }
+
+  addSkill(skill: string) {
+    this.service.addSkill(skill);
+  }
+
+  removeSkill(i: number) {
+    this.service.removeSkill(i);
+  }
+
+  onSkillInput() {
+    this.service.onSkillInput();
+  }
+
+  loadSampleData() {
+    this.service.loadSampleData();
+  }
+
+  clearForm() {
+    this.service.clearForm();
+  }
+
+  generateAIResume() {
+    this.service.generateAIResume();
+  }
+
+  updateScore() {
+    this.service.updateScore();
+  }
+
+  openKeywordIntegration(keyword: string) {
+    this.service.openKeywordIntegration(keyword);
+  }
+
+  insertSkillTag() {
+    this.service.insertSkillTag();
+  }
+
+  insertIntoSummary() {
+    this.service.insertIntoSummary();
+  }
+
+  insertIntoExperience() {
+    this.service.insertIntoExperience();
+  }
+
+  insertIntoProjects() {
+    this.service.insertIntoProjects();
+  }
+
+  // Spacing & zoom helpers
+  zoomIn() {
+    const nextZoom = Math.min(1.5, this.service.zoomLevel + 0.1);
+    this.service.zoomLevel = nextZoom;
+  }
+
+  zoomOut() {
+    const nextZoom = Math.max(0.2, this.service.zoomLevel - 0.1);
+    this.service.zoomLevel = nextZoom;
+  }
+
+  autoFitZoom() {
     if (typeof window === 'undefined') return;
-    const element = document.getElementById('preview-content');
-    if (!element) return;
-    const html2pdf = (await import('html2pdf.js')).default;
+    setTimeout(() => {
+      const container = document.querySelector('.canvas-scroll-container');
+      if (container) {
+        const width = container.clientWidth;
+        if (width > 0) {
+          let calculatedZoom = (width - 32) / 816;
+          const newZoom = Math.max(0.3, Math.min(1.2, calculatedZoom));
+          if (Math.abs(this.service.zoomLevel - newZoom) > 0.01) {
+            this.service.zoomLevel = newZoom;
+          }
+        }
+      }
+    }, 150);
+  }
 
-    const opt = {
-      margin: 0,
-      filename: `${this.data.name.replace(/\s+/g, '_')}_Resume.pdf`,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    } as const;
+  toggleDownloadDropdown(event: Event) {
+    event.stopPropagation();
+    this.service.showDownloadDropdown = !this.service.showDownloadDropdown;
+  }
 
-    html2pdf().set(opt).from(element).save();
+  downloadPDF() {
+    this.service.downloadPDF();
+  }
+
+  downloadDOC() {
+    this.service.downloadDOC();
+  }
+
+  downloadTXT() {
+    this.service.downloadTXT();
+  }
+
+  downloadJSON() {
+    this.service.downloadJSON();
+  }
+
+  // Section reordering drag & drop helpers
+  onDragStart(index: number) {
+    this.service.dragIndex = index;
+  }
+
+  onDrop(index: number) {
+    const dragIndex = this.service.dragIndex;
+    if (dragIndex > -1 && dragIndex !== index) {
+      const movedItem = this.sections[dragIndex];
+      this.service.sections.splice(dragIndex, 1);
+      this.service.sections.splice(index, 0, movedItem);
+    }
+    this.service.dragIndex = -1;
+  }
+
+  setSection(id: string) {
+    this.activeSection = id;
+  }
+
+  getBulletPoints(text: string): string[] {
+    return this.service.getBulletPoints(text);
+  }
+
+  formatDate(dateStr: string): string {
+    return this.service.formatDate(dateStr);
+  }
+
+  togglePdfMenu(event: Event) {
+    event.stopPropagation();
+    this.service.showPdfMenu = !this.service.showPdfMenu;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    this.service.showPdfMenu = false;
+    this.service.showTemplateDropdown = false;
   }
 }

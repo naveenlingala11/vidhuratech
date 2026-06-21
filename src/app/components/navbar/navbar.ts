@@ -62,6 +62,7 @@ export class Navbar implements OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.navbar')) {
       this.showCodingMenu = false;
+      this.showMentorsMenu = false;
       this.showDropdown = false;
       this.closeMenu();
     }
@@ -123,6 +124,7 @@ export class Navbar implements OnDestroy {
     this.profileImageFailed = true;
   }
   showCodingMenu = false;
+  showMentorsMenu = false;
   currentPlan = 'FREE';
   toggleCodingMenu(event: Event) {
     event.preventDefault();
@@ -139,8 +141,24 @@ export class Navbar implements OnDestroy {
       this.showCodingMenu = false;
     }
   }
+  toggleMentorsMenu(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.showMentorsMenu = !this.showMentorsMenu;
+  }
+  openMentorsMenu() {
+    if (window.innerWidth > 991) {
+      this.showMentorsMenu = true;
+    }
+  }
+  closeMentorsMenu() {
+    if (window.innerWidth > 991) {
+      this.showMentorsMenu = false;
+    }
+  }
   closeAllMenus() {
     this.showCodingMenu = false;
+    this.showMentorsMenu = false;
     this.showDropdown = false;
     this.closeMenu();
   }
