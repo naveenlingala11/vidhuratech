@@ -1,0 +1,157 @@
+<div class="edit-profile-container">
+  <!-- Top Navigation -->
+  <div class="nav-row">
+    <a routerLink="/dashboard/mentor" class="back-link">← Back to Dashboard</a>
+  </div>
+
+  <!-- Main Form Card -->
+  <div class="form-card">
+    <div class="card-header-bar">
+      <h2>Manage Mentor Profile</h2>
+      <p>Configure details shown publicly to students on the Vidhura Tech mentor portal.</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="form-loading">
+      <div class="spinner"></div>
+      <p>Loading profile details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage" class="form-error">
+      <p>{{errorMessage}}</p>
+      <button class="btn-retry" (click)="loadProfile()">Retry</button>
+    </div>
+
+    <!-- Form Body -->
+    <form *ngIf="!loading && !errorMessage" (ngSubmit)="saveProfile()" class="profile-form">
+      
+      <!-- Primary Bio Fields -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Current Professional Role *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="profile.currentRole" 
+            name="currentRole" 
+            placeholder="e.g. Senior Software Engineer / SDE-2" 
+            required
+            class="input-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Current Company *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="profile.currentCompany" 
+            name="currentCompany" 
+            placeholder="e.g. Google / Microsoft / Amazon" 
+            required
+            class="input-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Years of Experience *</label>
+          <input 
+            type="number" 
+            step="0.5" 
+            [(ngModel)]="profile.yearsOfExperience" 
+            name="yearsOfExperience" 
+            required
+            class="input-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Monthly Rate (₹) *</label>
+          <input 
+            type="number" 
+            [(ngModel)]="profile.pricePerMonth" 
+            name="pricePerMonth" 
+            required
+            class="input-control"
+          />
+          <small class="help-text">Your monthly package price for retainer mentorship cohorts.</small>
+        </div>
+      </div>
+
+      <!-- Text Bio -->
+      <div class="form-group">
+        <label>Biography & Mentorship Approach</label>
+        <textarea 
+          [(ngModel)]="profile.biography" 
+          name="biography" 
+          rows="6" 
+          placeholder="Tell students about your tech stack, career journey, how you can guide them, and what areas you cover (e.g. resume reviews, mock interviews, system design)..."
+          class="textarea-control"
+        ></textarea>
+      </div>
+
+      <!-- Skills and Languages -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Skills / Focus Expertise</label>
+          <input 
+            type="text" 
+            [(ngModel)]="profile.skills" 
+            name="skills" 
+            placeholder="e.g. Java, Spring Boot, System Design, React" 
+            class="input-control"
+          />
+          <small class="help-text">Add skills separated by commas.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Spoken Languages</label>
+          <input 
+            type="text" 
+            [(ngModel)]="profile.languages" 
+            name="languages" 
+            placeholder="e.g. English, Telugu, Hindi" 
+            class="input-control"
+          />
+          <small class="help-text">Add languages separated by commas.</small>
+        </div>
+      </div>
+
+      <!-- Social Urls -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>LinkedIn URL</label>
+          <input 
+            type="url" 
+            [(ngModel)]="profile.linkedinUrl" 
+            name="linkedinUrl" 
+            placeholder="https://linkedin.com/in/username" 
+            class="input-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>GitHub URL</label>
+          <input 
+            type="url" 
+            [(ngModel)]="profile.githubUrl" 
+            name="githubUrl" 
+            placeholder="https://github.com/username" 
+            class="input-control"
+          />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a routerLink="/dashboard/mentor" class="btn-cancel">Cancel</a>
+        <button type="submit" [disabled]="saving" class="btn-save">
+          <span *ngIf="saving" class="btn-spinner"></span>
+          {{ saving ? 'Saving Changes...' : 'Save Profile Details' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

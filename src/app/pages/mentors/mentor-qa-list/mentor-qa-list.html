@@ -1,0 +1,1050 @@
+<div class="qa-feed-container">
+
+  <!-- Left Column: Topic Navigator & Filters -->
+  <div class="feed-col left-col">
+    <!-- Filter Panel -->
+    <div class="forum-nav-card">
+      <h4 class="nav-section-title">Navigation</h4>
+      <div class="nav-filters-list">
+        <button class="nav-filter-btn" [class.active]="activeFilter === 'all'" (click)="selectFilter('all')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </span>
+          <span class="nav-text">All Discussions</span>
+          <span class="nav-badge">{{ stats.totalDiscussions }}</span>
+        </button>
+
+        <button class="nav-filter-btn" [class.active]="activeFilter === 'unanswered'" (click)="selectFilter('unanswered')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </span>
+          <span class="nav-text">Unanswered</span>
+          <span class="nav-badge alert-badge">{{ stats.unanswered }}</span>
+        </button>
+
+        <button class="nav-filter-btn" [class.active]="activeFilter === 'mentor-answered'" (click)="selectFilter('mentor-answered')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </span>
+          <span class="nav-text">Solved Topics</span>
+          <span class="nav-badge success-badge">{{ stats.verifiedAnswers }}</span>
+        </button>
+
+        <button class="nav-filter-btn" *ngIf="isLoggedIn" [class.active]="activeFilter === 'saved'" (click)="selectFilter('saved')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          </span>
+          <span class="nav-text">Saved Bookmarks</span>
+          <span class="nav-badge bookmarks-badge">{{ savedPostIds.length }}</span>
+        </button>
+
+        <button class="nav-filter-btn" *ngIf="isLoggedIn" [class.active]="activeFilter === 'liked'" (click)="selectFilter('liked')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </span>
+          <span class="nav-text">Liked Posts</span>
+        </button>
+
+        <button class="nav-filter-btn" *ngIf="isLoggedIn" [class.active]="activeFilter === 'following'" (click)="selectFilter('following')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </span>
+          <span class="nav-text">Followed Threads</span>
+        </button>
+
+        <button class="nav-filter-btn" [class.active]="activeFilter === 'leaderboard'" (click)="selectFilter('leaderboard')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path><path d="M12 2a7.7 7.7 0 0 1 7.54 8H4.46A7.7 7.7 0 0 1 12 2z"></path></svg>
+          </span>
+          <span class="nav-text">Leaderboard</span>
+        </button>
+
+        <button class="nav-filter-btn" *ngIf="isLoggedIn" [class.active]="activeFilter === 'profile'" (click)="selectFilter('profile')">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </span>
+          <span class="nav-text">My Profile</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Popular Tags Widget -->
+    <div class="tags-nav-card">
+      <h4 class="nav-section-title">Filter by Tags</h4>
+      <div class="tags-cloud">
+        <button class="tag-nav-chip" [class.active]="activeTag === null" (click)="selectTag(null)">
+          All Tags
+        </button>
+        <div class="tag-nav-chip-wrapper" *ngFor="let tag of popularTags" [class.active]="activeTag === tag">
+          <button class="tag-nav-chip" [class.active]="activeTag === tag" (click)="selectTag(tag)">
+            #{{ tag }}
+          </button>
+          <button class="tag-follow-icon-btn" *ngIf="isLoggedIn" (click)="toggleFollowTag(tag, $event)" [title]="isTagFollowed(tag) ? 'Unfollow tag' : 'Follow tag'">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="isTagFollowed(tag)"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="!isTagFollowed(tag)"><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path><path d="M18 8a6 6 0 0 0-9.33-5"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Filter Status (Reset helper) -->
+    <div class="filter-reset-box" *ngIf="activeFilter !== 'all' || activeTag !== null">
+      <p class="reset-desc">Active Search Filters</p>
+      <button class="btn-reset-filters" (click)="selectFilter('all'); selectTag(null)">
+        Reset Feed Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Center Column: Discussion Feed -->
+  <div class="feed-col center-col" *ngIf="activeFilter !== 'leaderboard' && activeFilter !== 'profile'">
+    <!-- Header Search Bar -->
+    <div class="search-hero-card">
+      <h2 class="search-title">Community Discussions</h2>
+      <p class="search-subtitle">Search technical queries, learn architectural patterns, and get feedback from verified industry mentors.</p>
+
+      <div class="hero-search-wrapper">
+        <span class="hero-search-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </span>
+        <input type="text" [(ngModel)]="searchText" (input)="onSearch()" placeholder="Type keywords, tags, or topics..." class="hero-search-input" />
+        <span class="clear-search-btn" *ngIf="searchText" (click)="searchText = ''; onSearch()">×</span>
+      </div>
+    </div>
+
+    <!-- Start a Discussion Trigger -->
+    <div class="create-discussion-card">
+      <div class="create-left">
+        <div class="sparkle-avatar">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        </div>
+        <div class="create-meta">
+          <h4>Have a technical query or project update?</h4>
+          <p>Share code blocks, attach media, and ask verified mentors.</p>
+        </div>
+      </div>
+      <button class="btn-create-post-trigger" (click)="openAskModal('NONE')">
+        Start Discussion
+      </button>
+    </div>
+
+    <!-- Feed Options Toolbar (Sort & Grid/List View Toggles) -->
+    <div class="feed-options-toolbar">
+      <div class="sort-options">
+        <span class="toolbar-label">Sort by:</span>
+        <button class="btn-sort-opt" [class.active]="sortBy === 'newest'" (click)="setSort('newest')">Newest</button>
+        <button class="btn-sort-opt" [class.active]="sortBy === 'popular'" (click)="setSort('popular')">Popular</button>
+        <button class="btn-sort-opt" [class.active]="sortBy === 'replies'" (click)="setSort('replies')">Unresolved</button>
+      </div>
+
+      <div class="layout-options">
+        <button class="btn-layout-toggle" [class.active]="feedLayout === 'list'" (click)="setLayout('list')" title="List View">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        </button>
+        <button class="btn-layout-toggle" [class.active]="feedLayout === 'grid'" (click)="setLayout('grid')" title="Grid View">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state-wrapper" *ngIf="loading">
+      <div class="premium-spinner"></div>
+      <p>Curating your discussion feed...</p>
+    </div>
+
+    <!-- Empty Feed State -->
+    <div class="empty-feed-card animate-scaleUp" *ngIf="!loading && filteredQuestions.length === 0">
+      <!-- 1. Liked Posts Empty State -->
+      <div *ngIf="activeFilter === 'liked'" class="empty-state-content">
+        <div class="empty-feed-icon liked-empty-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </div>
+        <h3>Show Your Appreciation</h3>
+        <p>It looks like you haven't liked any discussions yet. When you find a helpful answer or an interesting topic, hit the heart icon to save it here.</p>
+        <button class="btn-premium-primary" (click)="selectFilter('all')">
+          Explore Community Feed
+        </button>
+      </div>
+
+      <!-- 2. Followed Threads Empty State -->
+      <div *ngIf="activeFilter === 'following'" class="empty-state-content">
+        <div class="empty-feed-icon following-empty-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+        <h3>Stay in the Loop</h3>
+        <p>You aren't following any active threads yet. Follow topics that match your tech stack to get real-time updates when mentors post replies.</p>
+        <button class="btn-premium-primary" (click)="selectFilter('all')">
+          Browse Active Threads
+        </button>
+      </div>
+
+      <!-- 3. Saved Bookmarks Empty State -->
+      <div *ngIf="activeFilter === 'saved'" class="empty-state-content">
+        <div class="empty-feed-icon saved-empty-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <h3>Your Personal Library</h3>
+        <p>Bookmark discussions, guides, or code snippets that you want to reference later. They'll be organized neatly right here.</p>
+        <button class="btn-premium-primary" (click)="selectFilter('all')">
+          Browse Discussions
+        </button>
+      </div>
+
+      <!-- 4. Unanswered Empty State -->
+      <div *ngIf="activeFilter === 'unanswered'" class="empty-state-content">
+        <div class="empty-feed-icon unanswered-empty-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <h3>Zero Open Queries!</h3>
+        <p>Awesome! Every technical discussion has been answered or resolved. Help keep the momentum by starting a new topic or sharing your knowledge.</p>
+        <button class="btn-premium-primary" (click)="openAskModal('NONE')">
+          Start a Discussion
+        </button>
+      </div>
+
+      <!-- 5. Default Filter Empty State (Search / Tags) -->
+      <div *ngIf="activeFilter !== 'liked' && activeFilter !== 'following' && activeFilter !== 'saved' && activeFilter !== 'unanswered'" class="empty-state-content">
+        <div class="empty-feed-icon filter-empty-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <h3>No matching discussions</h3>
+        <p>We couldn't find any discussions matching your current search queries or tag filters. Try resetting the filters or look for other keywords.</p>
+        <button class="btn-premium-primary" (click)="selectFilter('all'); selectTag(null); searchText = ''">
+          Reset Feed Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Posts Feed list -->
+    <div class="feed-posts-list" [class.grid-layout-active]="feedLayout === 'grid'" *ngIf="!loading && filteredQuestions.length > 0">
+      <div class="feed-post-card" *ngFor="let q of filteredQuestions" [class.grid-card-style]="feedLayout === 'grid'" [class.pinned-card]="q.isPinned">
+
+        <!-- Post Main Content Block -->
+        <div class="post-card-body">
+          <!-- Normal View -->
+          <div *ngIf="editingQuestionId !== q.id">
+            <div class="post-title-wrapper">
+              <span class="pinned-ribbon" *ngIf="q.isPinned" title="Pinned Discussion">
+                <svg class="svg-icon pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="8" x2="22" y2="12"></line><line x1="12" y1="2" x2="16" y2="6"></line><path d="M12 2l-3.5 3.5L13 10l-6 6H3v2h2v-4l6-6L5 2.5 8.5 2z"></path></svg>
+              </span>
+              <h3 class="post-title-heading">
+                <a [routerLink]="['/ping-room', q.id]">{{ q.title }}</a>
+              </h3>
+              <span class="solved-indicator" *ngIf="q.isSolved" title="Solved / Answered">✓ Solved</span>
+              <span class="edited-badge" *ngIf="q.isEdited" title="This post has been edited">(edited)</span>
+            </div>
+
+            <p class="post-main-content">{{ getNonCodeContent(q.content) }}</p>
+
+            <!-- Code Block Snippet -->
+            <div class="post-code-block" *ngIf="hasCodeSnippet(q.content)">
+              <div class="code-header">
+                <span class="code-lang-label">{{ getCodeSnippet(q.content).lang | uppercase }}</span>
+                <button class="btn-copy-code" (click)="copyCode(getCodeSnippet(q.content).code, $event)">
+                  Copy Code
+                </button>
+              </div>
+              <pre class="code-pre"><code>{{ getCodeSnippet(q.content).code }}</code></pre>
+            </div>
+
+            <!-- Post Media Attachment -->
+            <div class="post-media-container" *ngIf="q.mediaUrl">
+              <img *ngIf="q.mediaType === 'IMAGE' || q.mediaType === 'GIF'" [src]="q.mediaUrl" alt="Discussion attachment" class="feed-media-img" />
+
+              <div *ngIf="q.mediaType === 'VIDEO'" class="feed-media-video-wrapper">
+                <video controls [src]="q.mediaUrl" class="feed-media-video">
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+
+            <!-- Tags Chips -->
+            <div class="post-tags-container" *ngIf="q.tags">
+              <span class="post-tag-chip" *ngFor="let tag of getTagsArray(q.tags)" (click)="selectTag(tag); $event.stopPropagation()">
+                #{{ tag }}
+              </span>
+            </div>
+
+            <!-- Poll Card Display -->
+            <div class="card-poll-display" *ngIf="q.poll" (click)="$event.stopPropagation()">
+              <div class="card-poll-header">
+                <span class="card-poll-tag">📊 Poll</span>
+                <span class="card-poll-votes">{{ q.poll.totalVotes }} {{ q.poll.totalVotes === 1 ? 'vote' : 'votes' }}</span>
+              </div>
+              <div class="card-poll-body">
+                <!-- If voted, show bars -->
+                <div *ngIf="q.poll.hasVoted" class="card-poll-results">
+                  <div class="card-poll-bar-row" *ngFor="let opt of q.poll.options">
+                    <div class="card-poll-label-row">
+                      <span class="card-opt-text">{{ opt.optionText }}</span>
+                      <span class="card-opt-pct">{{ getPercentage(opt.votesCount, q.poll.totalVotes) }}%</span>
+                    </div>
+                    <div class="card-poll-bar-track">
+                      <div class="card-poll-bar-fill" [style.width.%]="getPercentage(opt.votesCount, q.poll.totalVotes)"></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- If not voted, show buttons -->
+                <div *ngIf="!q.poll.hasVoted" class="card-poll-voting">
+                  <button type="button" class="btn-card-poll-vote" *ngFor="let opt of q.poll.options" (click)="votePoll(q, opt.id)">
+                    {{ opt.optionText }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Mode -->
+          <div class="post-edit-form" *ngIf="editingQuestionId === q.id">
+            <div class="edit-toolbar">
+              <span class="edit-toolbar-label">✏️ Editing Post</span>
+              <div class="edit-toolbar-actions">
+                <button class="btn-undo" (click)="undoEdit()" [disabled]="!canUndo()" title="Undo">
+                  ↶ Undo
+                </button>
+                <button class="btn-redo" (click)="redoEdit()" [disabled]="!canRedo()" title="Redo">
+                  ↷ Redo
+                </button>
+                <span class="edit-history-counter" *ngIf="editHistory.length > 1">
+                  {{ editHistoryIndex + 1 }} / {{ editHistory.length }}
+                </span>
+              </div>
+            </div>
+            <input type="text" class="edit-title-input" [(ngModel)]="editForm.title" (input)="pushEditHistory()" placeholder="Post title..." />
+            <textarea class="edit-content-textarea" [(ngModel)]="editForm.content" (input)="pushEditHistory()" rows="4" placeholder="Post content..."></textarea>
+            <input type="text" class="edit-tags-input" [(ngModel)]="editForm.tags" (input)="pushEditHistory()" placeholder="Tags (comma separated)" />
+            <div class="edit-form-actions">
+              <button class="btn-edit-cancel" (click)="cancelEditPost()">Cancel</button>
+              <button class="btn-edit-save" (click)="saveEditPost()" [disabled]="savingEdit">
+                {{ savingEdit ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Post Author and Social Footer -->
+        <div class="post-card-footer">
+          <!-- Author Block -->
+          <div class="post-author-block">
+            <!-- Clickable avatar popover only for verified mentors -->
+            <div class="avatar-circle post-avatar" [class.clickable]="isMentorUser(q.authorId, q.tags)" (click)="isMentorUser(q.authorId, q.tags) && toggleAvatarPopover(q.id, $event)" [title]="isMentorUser(q.authorId, q.tags) ? 'Click to view details' : ''">
+              <img *ngIf="q.authorProfileImageUrl" [src]="q.authorProfileImageUrl" alt="Avatar" class="avatar-img" />
+              <span *ngIf="!q.authorProfileImageUrl">{{ q.authorAvatar }}</span>
+            </div>
+
+            <!-- Avatar Click Popover Card (Mentors Only) -->
+            <div class="avatar-popover-card animate-scaleUp" *ngIf="isMentorUser(q.authorId, q.tags) && activeAvatarPopoverQuestionId === q.id" (click)="$event.stopPropagation()">
+              <div class="popover-user-info">
+                <div class="popover-avatar-wrapper">
+                  <div class="avatar-circle large">
+                    <img *ngIf="q.authorProfileImageUrl" [src]="q.authorProfileImageUrl" alt="Avatar" class="avatar-img" />
+                    <span *ngIf="!q.authorProfileImageUrl" class="fallback-letter">{{ q.authorAvatar }}</span>
+                  </div>
+                </div>
+                <div class="popover-user-meta">
+                  <h5 class="popover-name">{{ q.authorName }}</h5>
+                  <div class="popover-badges">
+                    <span class="reputation-badge" [class]="'level-' + (q.authorLevel?.toLowerCase() || 'beginner')" [title]="(q.authorLevel || 'BEGINNER') + ' (' + (q.authorReputation || 0) + ' reputation)'" (click)="openReputationModal(q.authorId, $event)">
+                      <span class="badge-emoji">{{ getReputationEmoji(q.authorLevel) }}</span>
+                      <span class="badge-points">{{ q.authorReputation || 0 }} pts</span>
+                    </span>
+                    <span class="popover-role-badge">
+                      Verified Mentor
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="popover-divider"></div>
+              
+              <div class="popover-actions">
+                <a [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: q.authorId}" class="popover-action-btn" (click)="activeAvatarPopoverQuestionId = null">
+                  <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  View Profile
+                </a>
+
+                <a [routerLink]="['/mentors', q.authorId]" class="popover-action-btn primary" (click)="activeAvatarPopoverQuestionId = null">
+                  <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  Book Session
+                </a>
+
+                <a *ngIf="isLoggedIn && currentUser?.role === 'STUDENT'" routerLink="/dashboard/student/my-mentors" class="popover-action-btn secondary" (click)="activeAvatarPopoverQuestionId = null">
+                  <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  Chat with Mentor
+                </a>
+              </div>
+            </div>
+
+            <div class="post-author-meta">
+              <div class="author-name-row">
+                <span class="author-display-name">
+                  <!-- Name links to profile only if linkable (self or mentor) -->
+                  <a *ngIf="isProfileLinkable(q.authorId, q.tags)" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: q.authorId}" class="author-profile-link">{{ q.authorName }}</a>
+                  <span *ngIf="!isProfileLinkable(q.authorId, q.tags)" class="author-name-text">{{ q.authorName }}</span>
+                </span>
+                <span class="reputation-badge" [class]="'level-' + (q.authorLevel?.toLowerCase() || 'beginner')" [title]="(q.authorLevel || 'BEGINNER') + ' (' + (q.authorReputation || 0) + ' reputation)'" (click)="openReputationModal(q.authorId, $event)">
+                  <span class="badge-emoji">{{ getReputationEmoji(q.authorLevel) }}</span>
+                  <span class="badge-points">{{ q.authorReputation || 0 }}</span>
+                </span>
+                <span class="author-role-badge" *ngIf="q.authorId === 2 || (q.tags && q.tags.toLowerCase().includes('mentor'))">
+                  Verified Mentor
+                </span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 1px;">
+                <span class="post-relative-time">Shared on {{ q.createdAt | date:'mediumDate' }}</span>
+                <span class="post-last-activity" *ngIf="q.lastActivity">
+                  · Last active {{ timeAgo(q.lastActivity) }}
+                </span>
+                <span class="post-views-count" *ngIf="q.viewsCount">
+                  · 👁 {{ q.viewsCount }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions and counts -->
+          <div class="post-footer-actions">
+            <!-- Edit Post Button (Owner Only) -->
+            <button class="footer-action-btn edit-btn" *ngIf="canEditPost(q) && editingQuestionId !== q.id" (click)="startEditPost(q, $event)" title="Edit this post">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </span>
+              <span class="act-text">Edit</span>
+            </button>
+
+            <!-- Toggle Solved (Manual) -->
+            <button class="footer-action-btn solved-toggle" *ngIf="canToggleSolved(q)" [class.active]="q.isSolved" (click)="toggleSolved(q, $event)" title="Toggle Solved Status">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="q.isSolved"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" *ngIf="!q.isSolved"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </span>
+              <span class="act-text">{{ q.isSolved ? 'Reopen' : 'Solve' }}</span>
+            </button>
+
+            <!-- Follow Button -->
+            <button class="footer-action-btn follow-toggle-btn" *ngIf="isLoggedIn" [class.active]="q.isFollowing" (click)="toggleFollowQuestion(q, $event)" [title]="q.isFollowing ? 'Unfollow discussion' : 'Follow discussion'">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              </span>
+              <span class="act-text">{{ q.isFollowing ? 'Following' : 'Follow' }}</span>
+            </button>
+
+            <!-- Bookmark Button -->
+            <button class="footer-action-btn" [class.active]="isPostSaved(q.id)" (click)="toggleSavePost(q, $event)" title="Save post to bookmarks">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              </span>
+              <span class="act-text">{{ isPostSaved(q.id) ? 'Saved' : 'Save' }}</span>
+            </button>
+
+            <!-- Like Button -->
+            <button class="footer-action-btn" [class.active]="q.isLikedByMe" (click)="toggleLike(q)">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </span>
+              <span class="act-count">{{ q.likesCount || 0 }}</span>
+            </button>
+
+            <!-- Comment Button -->
+            <button class="footer-action-btn" [class.active]="activeCommentsQuestionId === q.id" (click)="toggleComments(q.id)">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </span>
+              <span class="act-count">{{ q.answersCount || 0 }}</span>
+            </button>
+
+            <!-- Share Link Button -->
+            <button class="footer-action-btn share" (click)="sharePost(q)" title="Copy thread link">
+              <span class="act-icon">
+                <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="8.59" y1="10.49" x2="15.42" y2="6.51"></line></svg>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Comments Section (Conditional) -->
+        <div class="inline-comments-panel" *ngIf="activeCommentsQuestionId === q.id">
+          <!-- Add Comment Input Box -->
+          <div class="comment-input-row" *ngIf="isLoggedIn">
+            <div class="avatar-circle mini">
+              <img *ngIf="currentUser?.profileImageUrl" [src]="currentUser.profileImageUrl" alt="Avatar" class="avatar-img" />
+              <span *ngIf="!currentUser?.profileImageUrl">{{ currentUser?.name ? currentUser.name.substring(0, 1).toUpperCase() : 'U' }}</span>
+            </div>
+            <div class="comment-input-field-wrapper">
+              <input type="text" [(ngModel)]="newCommentTextMap[q.id]" placeholder="Type your response here..." class="inline-comment-input" (keyup.enter)="submitComment(q.id)" />
+              <button class="btn-send-comment" (click)="submitComment(q.id)" [disabled]="submittingCommentMap[q.id] || !newCommentTextMap[q.id]?.trim()">
+                Reply
+              </button>
+            </div>
+          </div>
+
+          <!-- Login message for comments -->
+          <div class="comment-login-banner" *ngIf="!isLoggedIn">
+            <p>Please <a routerLink="/login">log in</a> to participate in the discussion.</p>
+          </div>
+
+          <!-- Comments List Loading -->
+          <div class="comments-loading" *ngIf="commentsLoadingMap[q.id]">
+            <div class="micro-spinner"></div>
+            <span>Loading discussion thread...</span>
+          </div>
+
+          <!-- Comments List Empty -->
+          <div class="comments-empty" *ngIf="!commentsLoadingMap[q.id] && (!commentsMap[q.id] || commentsMap[q.id].length === 0)">
+            <p>No replies yet. Be the first to answer!</p>
+          </div>
+
+          <!-- Comments List Feed -->
+          <div class="comments-list-feed" *ngIf="!commentsLoadingMap[q.id] && commentsMap[q.id] && commentsMap[q.id].length > 0">
+            <div class="comment-item-card" *ngFor="let comment of (commentsMap[q.id] || [])" [class.mentor-verified-comment]="comment.isMentor">
+              <div class="comment-item-header">
+                <div class="comment-author-info">
+                  <div class="avatar-circle mini comment-avatar">
+                    <img *ngIf="comment.authorProfileImageUrl" [src]="comment.authorProfileImageUrl" alt="Avatar" class="avatar-img" />
+                    <span *ngIf="!comment.authorProfileImageUrl">{{ comment.authorAvatar }}</span>
+                  </div>
+                  <div class="comment-meta-block">
+                    <div class="comment-author-name-row">
+                      <span class="comment-author-name">{{ comment.authorName }}</span>
+                      <span class="reputation-badge" [class]="'level-' + (comment.authorLevel?.toLowerCase() || 'beginner')" [title]="(comment.authorLevel || 'BEGINNER') + ' (' + (comment.authorReputation || 0) + ' reputation)'" (click)="openReputationModal(comment.authorId, $event)">
+                        <span class="badge-emoji">{{ getReputationEmoji(comment.authorLevel) }}</span>
+                        <span class="badge-points">{{ comment.authorReputation || 0 }}</span>
+                      </span>
+                      <span class="comment-verified-tag" *ngIf="comment.isMentor">
+                        Verified Mentor Answer
+                      </span>
+                      <span class="edited-badge comment-edited" *ngIf="comment.isEdited">(edited)</span>
+                    </div>
+                    <span class="comment-time">{{ comment.createdAt | date:'shortTime' }} • {{ comment.createdAt | date:'mediumDate' }}</span>
+                  </div>
+                </div>
+                <!-- Edit Comment Button (Author Only) -->
+                <button class="btn-edit-comment" *ngIf="canEditComment(comment) && editingCommentId !== comment.id" (click)="startEditComment(comment, $event)" title="Edit comment">
+                  <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </button>
+              </div>
+              <!-- Comment Body: Normal View -->
+              <div class="comment-item-body" *ngIf="editingCommentId !== comment.id">
+                <p>{{ comment.content }}</p>
+              </div>
+              <!-- Comment Body: Edit Mode -->
+              <div class="comment-edit-form" *ngIf="editingCommentId === comment.id">
+                <textarea class="edit-comment-textarea" [(ngModel)]="editCommentText" rows="3" placeholder="Edit your comment..."></textarea>
+                <div class="comment-edit-actions">
+                  <button class="btn-edit-cancel" (click)="cancelEditComment()">Cancel</button>
+                  <button class="btn-edit-save" (click)="saveEditComment(q.id)" [disabled]="savingCommentEdit">
+                    {{ savingCommentEdit ? 'Saving...' : 'Save' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard View -->
+  <div class="qa-leaderboard-container animate-fade" *ngIf="activeFilter === 'leaderboard'">
+    <div class="leaderboard-header">
+      <div class="leaderboard-title-row">
+        <span class="lb-icon">🏆</span>
+        <div>
+          <h3>Reputation Leaderboard</h3>
+          <p>Top contributors ranked by reputation points earned through discussions, helpful answers, and community upvotes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-state-wrapper" *ngIf="loadingLeaderboard">
+      <div class="premium-spinner"></div>
+      <p>Fetching top contributors...</p>
+    </div>
+
+    <div *ngIf="!loadingLeaderboard">
+      <!-- Top 3 Podium Cards -->
+      <div class="podium-section" *ngIf="leaderboardUsers.length > 0">
+        <!-- Second Place -->
+        <div class="podium-card silver" *ngIf="leaderboardUsers[1]">
+          <div class="podium-avatar-wrapper">
+            <img *ngIf="leaderboardUsers[1].profileImageUrl" [src]="leaderboardUsers[1].profileImageUrl" class="podium-avatar" />
+            <span *ngIf="!leaderboardUsers[1].profileImageUrl" class="podium-avatar-fallback">{{ leaderboardUsers[1].name.charAt(0) }}</span>
+            <div class="podium-rank-badge">2</div>
+          </div>
+          <h4 class="podium-name">
+            <a *ngIf="isProfileLinkable(leaderboardUsers[1].id)" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: leaderboardUsers[1].id}">{{ leaderboardUsers[1].name }}</a>
+            <span *ngIf="!isProfileLinkable(leaderboardUsers[1].id)">{{ leaderboardUsers[1].name }}</span>
+          </h4>
+          <span class="podium-level-badge level-expert">🥈 {{ leaderboardUsers[1].reputationLevel }}</span>
+          <div class="podium-points">{{ leaderboardUsers[1].reputationPoints }} pts</div>
+        </div>
+
+        <!-- First Place -->
+        <div class="podium-card gold" *ngIf="leaderboardUsers[0]">
+          <div class="podium-crown">👑</div>
+          <div class="podium-avatar-wrapper">
+            <img *ngIf="leaderboardUsers[0].profileImageUrl" [src]="leaderboardUsers[0].profileImageUrl" class="podium-avatar" />
+            <span *ngIf="!leaderboardUsers[0].profileImageUrl" class="podium-avatar-fallback">{{ leaderboardUsers[0].name.charAt(0) }}</span>
+            <div class="podium-rank-badge">1</div>
+          </div>
+          <h4 class="podium-name">
+            <a *ngIf="isProfileLinkable(leaderboardUsers[0].id)" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: leaderboardUsers[0].id}">{{ leaderboardUsers[0].name }}</a>
+            <span *ngIf="!isProfileLinkable(leaderboardUsers[0].id)">{{ leaderboardUsers[0].name }}</span>
+          </h4>
+          <span class="podium-level-badge level-legend">🥇 {{ leaderboardUsers[0].reputationLevel }}</span>
+          <div class="podium-points">{{ leaderboardUsers[0].reputationPoints }} pts</div>
+        </div>
+
+        <!-- Third Place -->
+        <div class="podium-card bronze" *ngIf="leaderboardUsers[2]">
+          <div class="podium-avatar-wrapper">
+            <img *ngIf="leaderboardUsers[2].profileImageUrl" [src]="leaderboardUsers[2].profileImageUrl" class="podium-avatar" />
+            <span *ngIf="!leaderboardUsers[2].profileImageUrl" class="podium-avatar-fallback">{{ leaderboardUsers[2].name.charAt(0) }}</span>
+            <div class="podium-rank-badge">3</div>
+          </div>
+          <h4 class="podium-name">
+            <a *ngIf="isProfileLinkable(leaderboardUsers[2].id)" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: leaderboardUsers[2].id}">{{ leaderboardUsers[2].name }}</a>
+            <span *ngIf="!isProfileLinkable(leaderboardUsers[2].id)">{{ leaderboardUsers[2].name }}</span>
+          </h4>
+          <span class="podium-level-badge level-active">🥉 {{ leaderboardUsers[2].reputationLevel }}</span>
+          <div class="podium-points">{{ leaderboardUsers[2].reputationPoints }} pts</div>
+        </div>
+      </div>
+
+      <!-- Leaderboard Table List (Rank 4+) -->
+      <div class="leaderboard-list-wrapper">
+        <div class="leaderboard-list-item animate-fade" *ngFor="let user of leaderboardUsers | slice:3; let idx = index">
+          <div class="item-left">
+            <span class="item-rank">#{{ idx + 4 }}</span>
+            <img *ngIf="user.profileImageUrl" [src]="user.profileImageUrl" class="item-avatar" />
+            <span *ngIf="!user.profileImageUrl" class="item-avatar-fallback">{{ user.name.charAt(0) }}</span>
+            <span class="item-name">
+              <a *ngIf="isProfileLinkable(user.id)" [routerLink]="['/ping-room']" [queryParams]="{tab: 'profile', userId: user.id}">{{ user.name }}</a>
+              <span *ngIf="!isProfileLinkable(user.id)">{{ user.name }}</span>
+            </span>
+            <span class="level-badge" [class]="'level-' + user.reputationLevel.toLowerCase()">
+              {{ getReputationEmoji(user.reputationLevel) }} {{ user.reputationLevel }}
+            </span>
+          </div>
+          <div class="item-points">{{ user.reputationPoints }} pts</div>
+        </div>
+
+        <div class="empty-leaderboard" *ngIf="leaderboardUsers.length === 0">
+          No active leaderboard records found.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Profile View -->
+  <div class="qa-profile-container animate-fade" *ngIf="activeFilter === 'profile'">
+    <div class="loading-state-wrapper" *ngIf="loadingProfile">
+      <div class="premium-spinner"></div>
+      <p>Curating profile details...</p>
+    </div>
+
+    <div class="profile-layout-wrapper" *ngIf="!loadingProfile && userProfile">
+      <!-- Profile Intro Card -->
+      <div class="profile-header-card">
+        <div class="ph-left">
+          <div class="ph-avatar-circle">
+            <img *ngIf="userProfile.profileImageUrl" [src]="userProfile.profileImageUrl" alt="Avatar" />
+            <span *ngIf="!userProfile.profileImageUrl">{{ userProfile.name.charAt(0) }}</span>
+          </div>
+          <div class="ph-user-info">
+            <div class="ph-name-row">
+              <h3>{{ userProfile.name }}</h3>
+              <span class="level-badge-large" [class]="'level-' + userProfile.reputationLevel.toLowerCase()">
+                {{ getReputationEmoji(userProfile.reputationLevel) }} {{ userProfile.reputationLevel }}
+              </span>
+            </div>
+            <p class="ph-meta">Member since {{ userProfile.memberSince | date:'longDate' }}</p>
+            <p class="ph-bio" *ngIf="userProfile.bio">{{ userProfile.bio }}</p>
+            <p class="ph-bio-placeholder" *ngIf="!userProfile.bio">No bio available yet.</p>
+
+            <div class="ph-skills" *ngIf="userProfile.skills">
+              <span class="skill-tag" *ngFor="let skill of getTagsArray(userProfile.skills)">{{ skill }}</span>
+            </div>
+
+            <!-- Social Links -->
+            <div class="ph-socials" *ngIf="userProfile.socialLinks">
+              <span class="social-link-label">🔗 Links:</span>
+              <span class="social-link-text">{{ userProfile.socialLinks }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ph-right" style="display: flex; flex-direction: column; align-items: flex-end; gap: 1rem;">
+          <div class="points-pill-large">
+            <span class="num">{{ userProfile.reputationPoints }}</span>
+            <span class="lbl">Reputation Points</span>
+          </div>
+          <button type="button" class="btn-edit-profile-trigger" *ngIf="currentUser && currentUser.id === userProfile.id" (click)="openEditProfile()">
+            ✏️ Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Activity Heatmap Section -->
+      <div class="heatmap-section-card">
+        <h4>Contribution Heatmap</h4>
+        <p class="heatmap-desc">Daily reputation logging over the last year. Keep contributing to stay green!</p>
+
+        <div class="heatmap-wrapper">
+          <div class="heatmap-grid">
+            <div class="heatmap-cell" *ngFor="let day of heatmapDays" [class]="'level-' + day.level" [title]="day.label"></div>
+          </div>
+          <div class="heatmap-legend">
+            <span>Less</span>
+            <div class="heatmap-legend-cell level-0"></div>
+            <div class="heatmap-legend-cell level-1"></div>
+            <div class="heatmap-legend-cell level-2"></div>
+            <div class="heatmap-legend-cell level-3"></div>
+            <div class="heatmap-legend-cell level-4"></div>
+            <span>More</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tabs Area -->
+      <div class="profile-tabs-section">
+        <div class="tabs-grid">
+          <!-- Left Side: Recent Questions -->
+          <div class="profile-sub-tab">
+            <h4>Recent Questions</h4>
+            <div class="sub-tab-list">
+              <div class="sub-tab-item" *ngFor="let q of userProfile.recentQuestions">
+                <div class="st-info">
+                  <a [routerLink]="['/ping-room', q.id]" class="st-title">{{ q.title }}</a>
+                  <span class="st-date">asked {{ timeAgo(q.createdAt) }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="solved-indicator" *ngIf="q.isSolved">Solved</span>
+                  <span class="st-count">{{ q.answersCount }} comments</span>
+                </div>
+              </div>
+              <div class="empty-sub-tab" *ngIf="userProfile.recentQuestions?.length === 0">
+                No questions asked yet.
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side: Recent Answers -->
+          <div class="profile-sub-tab">
+            <h4>Recent Answers</h4>
+            <div class="sub-tab-list">
+              <div class="sub-tab-item" *ngFor="let ans of userProfile.recentAnswers">
+                <div class="st-info">
+                  <a [routerLink]="['/ping-room', ans.questionId]" class="st-title-answer">
+                    RE: "{{ ans.questionTitle }}"
+                  </a>
+                  <p class="st-snippet">{{ ans.content | slice:0:100 }}...</p>
+                  <span class="st-date">replied {{ timeAgo(ans.createdAt) }}</span>
+                </div>
+                <span class="accepted-tag" *ngIf="ans.isAccepted">✓ Accepted</span>
+              </div>
+              <div class="empty-sub-tab" *ngIf="userProfile.recentAnswers?.length === 0">
+                No answers submitted yet.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Mentorship Sidebar -->
+  <div class="feed-col right-col">
+    <!-- Active Mentors Widget -->
+    <div class="mentors-widget-card">
+      <div class="widget-header">
+        <h4>Featured Mentors</h4>
+        <span class="status-dot-pulse"></span>
+      </div>
+      <p class="widget-subtitle">Schedule 1-on-1 calls with industry leaders.</p>
+
+      <div class="widget-mentor-list">
+        <div class="widget-mentor-row" *ngFor="let m of mentors">
+          <div class="mentor-row-left">
+            <div class="mentor-widget-avatar">
+              <img *ngIf="m.profileImageUrl" [src]="m.profileImageUrl" alt="Mentor Image" class="widget-avatar-img" />
+              <span *ngIf="!m.profileImageUrl" class="widget-avatar-fallback">{{ m.name.substring(0, 1).toUpperCase() }}</span>
+            </div>
+            <div class="mentor-row-details">
+              <span class="mentor-widget-name">{{ m.name }}</span>
+              <span class="mentor-widget-company">{{ m.currentRole }} at {{ m.currentCompany }}</span>
+              <span class="mentor-widget-exp">★ {{ m.rating || 5.0 }} ({{ m.reviewsCount || 0 }} reviews)</span>
+            </div>
+          </div>
+          <a [routerLink]="['/mentors']" class="btn-widget-connect">Book</a>
+        </div>
+      </div>
+
+      <a routerLink="/mentors" class="btn-widget-view-all">
+        Browse Mentors Directory →
+      </a>
+    </div>
+
+    <!-- Forum Activity Widget -->
+    <div class="forum-stats-widget">
+      <h4>Community Activity</h4>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="num">{{ stats.totalDiscussions }}</span>
+          <span class="lbl">Threads</span>
+        </div>
+        <div class="stat-box">
+          <span class="num">{{ stats.unanswered }}</span>
+          <span class="lbl">Open</span>
+        </div>
+        <div class="stat-box">
+          <span class="num">{{ stats.verifiedAnswers }}</span>
+          <span class="lbl">Solved</span>
+        </div>
+      </div>
+      <div class="stats-graph-mock">
+        <div class="graph-bar-solved" [style.width.%]="stats.totalDiscussions > 0 ? (stats.verifiedAnswers / stats.totalDiscussions * 100) : 0"></div>
+        <div class="graph-bar-open" [style.width.%]="stats.totalDiscussions > 0 ? (stats.unanswered / stats.totalDiscussions * 100) : 0"></div>
+      </div>
+      <div class="graph-labels">
+        <span class="g-lbl solved">● Resolved</span>
+        <span class="g-lbl open">● Open</span>
+      </div>
+    </div>
+
+    <!-- Footer Summary -->
+    <div class="platform-mini-footer">
+      <p>© 2026 Vidhura Tech. All rights reserved.</p>
+      <p>Premium Tech Mentorship Platform</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ask Question Modal -->
+<div class="modal-overlay animate-fade" *ngIf="showAskModal">
+  <div class="modal-card animate-scaleUp">
+    <div class="modal-header">
+      <h3>Create a Discussion Topic</h3>
+      <button class="btn-modal-close" (click)="closeAskModal()">×</button>
+    </div>
+
+    <form (ngSubmit)="submitQuestion()" #askFormRef="ngForm" class="modal-form">
+      <div class="form-group">
+        <label for="post-title">Discussion Title *</label>
+        <input type="text" id="post-title" name="post-title" [(ngModel)]="askForm.title" placeholder="e.g., How to handle custom response formats in Spring Boot?" class="form-control" required autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="post-content">Description / Query *</label>
+        <textarea id="post-content" name="post-content" rows="4" [(ngModel)]="askForm.content" placeholder="Explain your technical query, share logs, or ideas..." class="form-control textarea" required></textarea>
+      </div>
+
+      <!-- Add Code Snippet Toggle -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="showCodeInput" name="showCodeInput" />
+          Attach Code Snippet
+        </label>
+      </div>
+
+      <!-- Code Snippet Input Blocks -->
+      <div class="code-snippet-input-group animate-fade" *ngIf="showCodeInput">
+        <div class="form-group">
+          <label for="code-lang">Programming Language</label>
+          <select id="code-lang" name="code-lang" [(ngModel)]="askForm.codeLanguage" class="form-control">
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="java">Java</option>
+            <option value="python">Python</option>
+            <option value="html">HTML/CSS</option>
+            <option value="sql">SQL</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="code-area">Source Code Snippet</label>
+          <textarea id="code-area" name="code-area" rows="6" [(ngModel)]="askForm.codeSnippet" placeholder="// Paste your code snippet here..." class="form-control code-textarea"></textarea>
+        </div>
+      </div>
+
+      <!-- Create Poll Toggle -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="showPollInput" name="showPollInput" />
+          Create a Community Poll
+        </label>
+      </div>
+
+      <!-- Poll Options Inputs -->
+      <div class="poll-options-input-group animate-fade" *ngIf="showPollInput">
+        <label class="poll-options-label">Poll Options</label>
+
+        <div class="poll-option-input-row" *ngFor="let option of askForm.pollOptions; let i = index; trackBy: trackByIndex">
+          <span class="poll-option-number">#{{ i + 1 }}</span>
+          <input type="text" [(ngModel)]="askForm.pollOptions[i]" [name]="'poll-option-' + i" placeholder="Option text..." class="form-control option-text-field" required autocomplete="off" />
+          <button type="button" class="btn-remove-poll-option" (click)="removePollOption(i)" *ngIf="askForm.pollOptions.length > 2">
+            ×
+          </button>
+        </div>
+
+        <button type="button" class="btn-add-poll-option" (click)="addPollOption()" *ngIf="askForm.pollOptions.length < 6">
+          + Add Poll Option
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="post-tags">Tags (comma separated)</label>
+        <input type="text" id="post-tags" name="post-tags" [(ngModel)]="askForm.tags" placeholder="e.g. angular, springboot, architecture" class="form-control" autocomplete="off" />
+      </div>
+
+      <!-- Attachment Type Selector -->
+      <div class="form-group">
+        <label>Attach Media (Image / Video)</label>
+
+        <!-- Premium Drag and Drop Zone -->
+        <div class="drag-drop-zone" (dragover)="onDragOver($event)" (drop)="onFileDropped($event)" (click)="fileInput.click()" [class.uploading]="uploadingMedia" [class.has-file]="askForm.mediaUrl">
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*,video/*" style="display: none;" />
+
+          <div class="dropzone-content" *ngIf="!uploadingMedia && !askForm.mediaUrl">
+            <span class="dropzone-icon">📤</span>
+            <span class="dropzone-title">Upload Image or Video</span>
+            <span class="dropzone-desc">Drag & drop your file here, or click to browse</span>
+            <span class="dropzone-limits">Images up to 5MB, Videos up to 10MB</span>
+          </div>
+
+          <div class="dropzone-content" *ngIf="uploadingMedia">
+            <div class="micro-spinner"></div>
+            <span class="dropzone-title">Uploading to Storage...</span>
+            <span class="dropzone-desc">Please wait while your media is being uploaded.</span>
+          </div>
+
+          <div class="dropzone-content" *ngIf="!uploadingMedia && askForm.mediaUrl">
+            <span class="dropzone-icon">✅</span>
+            <span class="dropzone-title">Uploaded Successfully!</span>
+            <span class="dropzone-desc">{{ askForm.mediaType }} linked to post</span>
+            <button type="button" class="btn-clear-media" (click)="clearUploadedFile($event)">Remove File</button>
+          </div>
+        </div>
+
+        <div class="media-or-divider">
+          <span>OR paste a direct media URL</span>
+        </div>
+
+        <div class="media-type-selector">
+          <button type="button" class="media-sel-btn" [class.active]="askForm.mediaType === 'NONE'" (click)="selectMediaType('NONE')">
+            None
+          </button>
+          <button type="button" class="media-sel-btn" [class.active]="askForm.mediaType === 'IMAGE'" (click)="selectMediaType('IMAGE')">
+            Photo URL
+          </button>
+          <button type="button" class="media-sel-btn" [class.active]="askForm.mediaType === 'VIDEO'" (click)="selectMediaType('VIDEO')">
+            Video URL
+          </button>
+          <button type="button" class="media-sel-btn" [class.active]="askForm.mediaType === 'GIF'" (click)="selectMediaType('GIF')">
+            GIF URL
+          </button>
+        </div>
+      </div>
+
+      <!-- Attachment URL Input -->
+      <div class="form-group animate-fade" *ngIf="askForm.mediaType !== 'NONE' && !uploadingMedia">
+        <label for="post-media-url">{{ askForm.mediaType }} Link URL *</label>
+        <input type="url" id="post-media-url" name="post-media-url" [(ngModel)]="askForm.mediaUrl" (ngModelChange)="onMediaUrlChange($event)" placeholder="https://example.com/file.jpg or mp4" class="form-control" required autocomplete="off" />
+      </div>
+
+      <!-- Live Preview Frame -->
+      <div class="media-preview-box animate-fade" *ngIf="askForm.mediaUrl && !uploadingMedia">
+        <span class="preview-title">Live Attachment Preview:</span>
+        <img *ngIf="askForm.mediaType === 'IMAGE' || askForm.mediaType === 'GIF'" [src]="askForm.mediaUrl" alt="Preview" class="preview-img" />
+        <video *ngIf="askForm.mediaType === 'VIDEO'" [src]="askForm.mediaUrl" class="preview-video" controls></video>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-secondary" (click)="closeAskModal()">Cancel</button>
+        <button type="submit" class="btn-modal-primary" [disabled]="submitting">
+          {{ submitting ? 'Sharing...' : 'Share Post' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Reputation Details Modal -->
+<div class="premium-modal-overlay" *ngIf="showReputationModal" (click)="closeReputationModal()">
+  <div class="premium-modal reputation-details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <span class="header-icon">🏆</span>
+        {{ selectedUserReputation?.userName }}'s Achievements
+      </h3>
+      <button class="btn-close-modal" (click)="closeReputationModal()">×</button>
+    </div>
+
+    <div class="modal-body reputation-modal-body" *ngIf="selectedUserReputation">
+      <div class="rep-summary-card">
+        <div class="rep-score-block">
+          <span class="rep-label">Reputation Points</span>
+          <span class="rep-value">{{ selectedUserReputation.points }}</span>
+        </div>
+        <div class="rep-level-block">
+          <span class="rep-label">Current Status</span>
+          <span class="level-badge-large" [class]="'level-' + selectedUserReputation.level.toLowerCase()">
+            {{ getReputationEmoji(selectedUserReputation.level) }} {{ selectedUserReputation.level }}
+          </span>
+        </div>
+      </div>
+
+      <h4 class="history-title">Points History</h4>
+      <div class="rep-logs-list">
+        <div class="rep-log-item" *ngFor="let log of selectedUserReputation.logs">
+          <div class="log-left">
+            <span class="log-points" [class.points-positive]="log.points > 0" [class.points-negative]="log.points < 0">
+              {{ log.points > 0 ? '+' : '' }}{{ log.points }}
+            </span>
+            <span class="log-reason">{{ log.reason }}</span>
+          </div>
+          <span class="log-date">{{ log.createdAt | date:'short' }}</span>
+        </div>
+        <div class="empty-logs" *ngIf="selectedUserReputation.logs?.length === 0">
+          No reputation events logged yet.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay animate-fade" *ngIf="showEditProfileModal" (click)="closeEditProfile()">
+  <div class="modal-card animate-scaleUp" style="max-width: 500px;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Ping Room Profile</h3>
+      <button class="btn-modal-close" (click)="closeEditProfile()">×</button>
+    </div>
+
+    <form (ngSubmit)="saveProfile()" #editProfileFormRef="ngForm" class="modal-form">
+      <div class="form-group">
+        <label for="profile-bio">Short Bio</label>
+        <textarea id="profile-bio" name="profile-bio" rows="3" [(ngModel)]="editProfileForm.bio" placeholder="Tell the community about yourself, your background, or interest..." class="form-control textarea"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="profile-skills">Skills / Technologies (comma separated)</label>
+        <input type="text" id="profile-skills" name="profile-skills" [(ngModel)]="editProfileForm.skills" placeholder="e.g. Angular, Java, AWS, System Design" class="form-control" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="profile-links">Social / Website Links</label>
+        <input type="text" id="profile-links" name="profile-links" [(ngModel)]="editProfileForm.socialLinks" placeholder="e.g. LinkedIn, GitHub, or personal blog" class="form-control" autocomplete="off" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-secondary" (click)="closeEditProfile()">Cancel</button>
+        <button type="submit" class="btn-modal-primary" [disabled]="savingProfile">
+          {{ savingProfile ? 'Saving...' : 'Save Profile' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

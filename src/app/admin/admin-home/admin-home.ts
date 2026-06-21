@@ -55,13 +55,14 @@ export class AdminHomeComponent implements OnInit, OnDestroy {
     { title: 'Analytics', icon: '📊', route: '/dashboard/admin/invoice-analytics' },
     { title: 'Public Practice', icon: 'PP', route: '/dashboard/admin/public-practice' },
     { title: 'Manage Trainers', icon: 'MT', route: '/dashboard/admin/manage-trainers' },
+    { title: 'Manage Mentors', icon: '🤝', route: '/dashboard/admin/manage-mentors' },
   ];
   refreshInterval: any;
   constructor(
     private router: Router,
     private http: HttpClient,
     private dashboardService: AdminDashboardService,
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.loadDashboardData();
     this.refreshInterval = setInterval(() => {

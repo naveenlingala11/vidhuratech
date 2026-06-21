@@ -1,70 +1,540 @@
-<section class="role-dashboard">
-  <header class="role-hero">
-    <div>
-      <span class="eyebrow">Mentor Workspace</span>
-      <h1>Guide mentees and track growth effectively</h1>
-      <p>See mentee progress, upcoming meetings, feedback work, and goals with a calm dashboard built for follow-through.</p>
+<div class="mentor-dashboard-wrapper" *ngIf="!loading; else loadingState">
+  <!-- Top Workspace Header -->
+  <header class="workspace-header">
+    <div class="header-main-info">
+      <span class="workspace-lbl">Mentor Dashboard Workspace</span>
+      <h1>Welcome back, {{ profile?.name || 'Mentor' }}!</h1>
+      <p class="role-desc">Manage your student roster, adjust your availability slots, set hourly rates, and connect with developers.</p>
+      
+      <div class="quick-nav-actions">
+        <a routerLink="edit-profile" class="btn-workspace-action">
+          <span class="icon">🌐</span> Edit Detailed Profile
+        </a>
+        <a routerLink="/mentors" class="btn-workspace-action secondary">
+          <span class="icon">👁️</span> Public Directory
+        </a>
+      </div>
     </div>
-    <div class="hero-summary">
-      <span>Average Progress</span>
-      <strong>{{ stats.avgProgress }}%</strong>
-      <span>{{ stats.pendingFeedback }} feedback items pending</span>
+
+    <!-- Administrative Verification Status Card -->
+    <div class="verification-tracker-card" [class.unverified]="!profile?.active">
+      <div class="status-header">
+        <span class="status-dot-pulse" [class.active]="profile?.active"></span>
+        <h4>Public Status: {{ profile?.active ? 'Verified Active' : 'Pending Review' }}</h4>
+      </div>
+      
+      <div class="checklist-progress">
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="getVerificationChecklistScore()"></div>
+        </div>
+        <span class="progress-score-lbl">Checklist Score: {{ getVerificationChecklistScore() }}%</span>
+      </div>
+
+      <!-- Checklist Mini Stepper -->
+      <ul class="mini-stepper">
+        <li [class.checked]="profile?.identityVerified">
+          <span class="icon">{{ profile?.identityVerified ? '✓' : '✗' }}</span>
+          <span class="label">Identity</span>
+        </li>
+        <li [class.checked]="profile?.companyVerified">
+          <span class="icon">{{ profile?.companyVerified ? '✓' : '✗' }}</span>
+          <span class="label">Company</span>
+        </li>
+        <li [class.checked]="profile?.linkedinVerified">
+          <span class="icon">{{ profile?.linkedinVerified ? '✓' : '✗' }}</span>
+          <span class="label">LinkedIn</span>
+        </li>
+        <li [class.checked]="profile?.certVerified">
+          <span class="icon">{{ profile?.certVerified ? '✓' : '✗' }}</span>
+          <span class="label">Credentials</span>
+        </li>
+        <li [class.checked]="profile?.termsVerified">
+          <span class="icon">{{ profile?.termsVerified ? '✓' : '✗' }}</span>
+          <span class="label">Mediation Code</span>
+        </li>
+      </ul>
+      
+      <p class="checklist-alert" *ngIf="!profile?.active">
+        ⚠️ <em>Requires at least 60% checklist score (3/5 items verified) to publish your profile.</em>
+      </p>
+      <p class="checklist-alert success" *ngIf="profile?.active">
+        🎉 <em>Your profile is fully published and visible in the search directory.</em>
+      </p>
     </div>
   </header>
-  <div class="stats-grid">
-    <article class="stat-card" *ngFor="let card of statCards; trackBy: trackByTitle" [class]="card.tone">
-      <h3>{{ card.value }}</h3>
-      <p>{{ card.label }}</p>
-      <small>{{ card.helper }}</small>
-    </article>
-  </div>
-  <div class="dashboard-grid">
-    <article class="panel" *ngFor="let panel of panels.slice(0, 2); trackBy: trackByTitle">
-      <div class="panel-head">
-        <span class="panel-eyebrow">{{ panel.eyebrow }}</span>
-        <h2>{{ panel.title }}</h2>
+
+  <!-- Interactive Controls Section (Availability & Pricing) -->
+  <section class="controls-grid">
+    <!-- Multi-Tier Pricing Controller -->
+    <div class="control-card pricing-card">
+      <div class="card-title-row">
+        <h3>Multi-Tier Pricing Plans</h3>
       </div>
-      <div class="item-list" *ngIf="panel.items.length; else emptyPanel">
-        <div class="dashboard-item" *ngFor="let item of panel.items; trackBy: trackByTitle">
-          <div class="item-row">
-            <strong>{{ item.title }}</strong>
-            <span class="item-value" *ngIf="item.value">{{ item.value }}</span>
-          </div>
-          <small *ngIf="item.meta">{{ item.meta }}</small>
-          <div class="progress-track" *ngIf="item.progress !== undefined">
-            <span [style.width.%]="item.progress"></span>
-          </div>
+      <p class="ctrl-desc">Set your fees for hourly sessions, weekly study plans, or monthly cohorts.</p>
+      
+      <!-- Hourly Slider -->
+      <div class="pricing-tier-row">
+        <div class="tier-lbl-row">
+          <span class="tier-lbl">Hourly Rate</span>
+          <span class="price-bubble">₹{{ tempPricing }}/hr</span>
+        </div>
+        <div class="pricing-slider-container">
+          <input type="range" min="0" max="5000" step="100" [(ngModel)]="tempPricing" class="pricing-slider" />
         </div>
       </div>
-    </article>
-  </div>
-  <div class="dashboard-grid secondary">
-    <article class="panel">
-      <div class="panel-head">
-        <span class="panel-eyebrow">{{ panels[2]?.eyebrow }}</span>
-        <h2>{{ panels[2]?.title }}</h2>
-      </div>
-      <div class="item-list" *ngIf="panels[2]?.items?.length; else emptyPanel">
-        <div class="dashboard-item" *ngFor="let item of panels[2].items; trackBy: trackByTitle">
-          <strong>{{ item.title }}</strong>
-          <p>{{ item.description }}</p>
+
+      <!-- Weekly Slider -->
+      <div class="pricing-tier-row">
+        <div class="tier-lbl-row">
+          <span class="tier-lbl">Weekly Plan</span>
+          <span class="price-bubble">₹{{ tempPricingWeek }}/wk</span>
+        </div>
+        <div class="pricing-slider-container">
+          <input type="range" min="0" max="20000" step="250" [(ngModel)]="tempPricingWeek" class="pricing-slider" />
         </div>
       </div>
-    </article>
-    <article class="panel">
-      <div class="panel-head">
-        <span class="panel-eyebrow">Tools</span>
-        <h2>Quick Actions</h2>
+
+      <!-- Monthly Slider -->
+      <div class="pricing-tier-row">
+        <div class="tier-lbl-row">
+          <span class="tier-lbl">Monthly Cohort</span>
+          <span class="price-bubble">₹{{ tempPricingMonth }}/mo</span>
+        </div>
+        <div class="pricing-slider-container">
+          <input type="range" min="0" max="60000" step="500" [(ngModel)]="tempPricingMonth" class="pricing-slider" />
+        </div>
       </div>
-      <div class="action-grid">
-        <button class="action-card" *ngFor="let action of actions; trackBy: trackByTitle" [class]="action.tone">
-          <strong>{{ action.label }}</strong>
-          <small>{{ action.helper }}</small>
+
+      <!-- Allow Daily Sessions Checkbox -->
+      <div class="daily-session-toggle-row">
+        <label class="slot-checkbox-label">
+          <input type="checkbox" [(ngModel)]="allowDailySessions" />
+          <span class="custom-checkbox"></span>
+          <div class="chk-desc-wrap">
+            <strong>Allow Daily 1-Hour Sessions</strong>
+            <span class="chk-sub">Intensive weekly/monthly plan students can request daily calls.</span>
+          </div>
+        </label>
+      </div>
+
+      <button type="button" class="btn-control-save" (click)="updatePricing()" [disabled]="saving">
+        {{ saving ? 'Updating Plans...' : 'Update Pricing Rates & Tiers' }}
+      </button>
+    </div>
+
+    <!-- Availability Manager -->
+    <div class="control-card availability-card">
+      <h3>Weekly Availability Manager</h3>
+      <p class="ctrl-desc">Toggle the days and daily time ranges you are open to take session requests.</p>
+      
+      <!-- Day Buttons -->
+      <div class="days-toggle-flex">
+        <button type="button" *ngFor="let d of availabilityDays" 
+                class="day-btn" [class.active]="d.active" (click)="toggleDay(d)">
+          {{ d.label }}
         </button>
       </div>
-    </article>
+
+      <!-- Time Slot Checkboxes -->
+      <div class="slots-vertical-list">
+        <label *ngFor="let s of availabilitySlots" class="slot-checkbox-label">
+          <input type="checkbox" [checked]="s.active" (change)="toggleSlot(s)" />
+          <span class="custom-checkbox"></span>
+          {{ s.label }}
+        </label>
+      </div>
+
+      <button type="button" class="btn-control-save" (click)="saveAvailability()">
+        Save Availability Slots
+      </button>
+    </div>
+  </section>
+
+  <!-- Metric Statistics Grid -->
+  <section class="metrics-grid">
+    <div class="metric-card cyan-glow">
+      <div class="icon-wrap">👥</div>
+      <div class="metric-info">
+        <h3>{{ stats.menteesCount }}</h3>
+        <span>Assigned Mentees</span>
+      </div>
+    </div>
+    
+    <div class="metric-card green-glow">
+      <div class="icon-wrap">📅</div>
+      <div class="metric-info">
+        <h3>{{ stats.upcomingSessionsCount }}</h3>
+        <span>Upcoming Sessions</span>
+      </div>
+    </div>
+
+    <div class="metric-card orange-glow">
+      <div class="icon-wrap">✅</div>
+      <div class="metric-info">
+        <h3>{{ stats.completedSessionsCount }}</h3>
+        <span>Completed Sessions</span>
+      </div>
+    </div>
+
+    <div class="metric-card purple-glow">
+      <div class="icon-wrap">⚡</div>
+      <div class="metric-info">
+        <h3>{{ stats.avgProgress }}%</h3>
+        <span>Mentees Average Growth</span>
+      </div>
+    </div>
+
+    <div class="metric-card gold-glow">
+      <div class="icon-wrap">💰</div>
+      <div class="metric-info">
+        <h3>₹{{ stats.totalEarnings | number }}</h3>
+        <span>Estimated Earnings</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Incoming Booking Requests Panel -->
+  <section class="booking-requests-section animate-fadeIn" *ngIf="bookingRequests.length > 0">
+    <div class="workspace-panel booking-requests-panel">
+      <div class="panel-header-row">
+        <div>
+          <h2>Mentorship Booking Requests</h2>
+          <p class="panel-subtitle">Review student mentorship request proposals. Accepting adds them to your active roster.</p>
+        </div>
+      </div>
+
+      <!-- Tabs for requests -->
+      <div class="requests-tabs-row" style="display: flex; gap: 10px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; padding-bottom: 2px;">
+        <button 
+          type="button" 
+          class="requests-tab-btn" 
+          [style.border-bottom]="requestsTab === 'pending' ? '2px solid #4f46e5' : '2px solid transparent'"
+          [style.color]="requestsTab === 'pending' ? '#4f46e5' : '#64748b'"
+          style="padding: 8px 16px; font-weight: 750; background: transparent; border: none; cursor: pointer; font-size: 13px; font-family: inherit;"
+          (click)="requestsTab = 'pending'"
+        >
+          ⏰ Pending ({{ pendingRequests.length }})
+        </button>
+        <button 
+          type="button" 
+          class="requests-tab-btn" 
+          [style.border-bottom]="requestsTab === 'history' ? '2px solid #4f46e5' : '2px solid transparent'"
+          [style.color]="requestsTab === 'history' ? '#4f46e5' : '#64748b'"
+          style="padding: 8px 16px; font-weight: 750; background: transparent; border: none; cursor: pointer; font-size: 13px; font-family: inherit;"
+          (click)="requestsTab = 'history'"
+        >
+          📜 Responded History ({{ historyRequests.length }})
+        </button>
+      </div>
+
+      <!-- Pending Tab Content -->
+      <div *ngIf="requestsTab === 'pending'">
+        <div class="booking-requests-list-grid" *ngIf="pendingRequests.length > 0; else noPendingRequests">
+          <div class="booking-request-card animate-fadeIn" *ngFor="let req of pendingRequests">
+            <div class="booking-request-item-content">
+              <div class="req-header">
+                <div class="req-avatar">{{ req.studentAvatar }}</div>
+                <div class="req-student-details">
+                  <h4>{{ req.studentName }}</h4>
+                  <span class="req-email">{{ req.studentEmail }}</span>
+                </div>
+                <div class="req-plan-badge" [ngClass]="req.preferredPlan.toLowerCase()">
+                  {{ req.preferredPlan }} Plan
+                </div>
+              </div>
+
+              <div class="req-body">
+                <p class="req-topic">🎯 Focus: <strong>{{ req.topic }}</strong></p>
+                <p class="req-message" *ngIf="req.message">💬 <em>"{{ req.message }}"</em></p>
+              </div>
+
+              <div class="req-actions">
+                <button type="button" class="btn-req-accept" (click)="openBookingActionModal(req, 'accept')">
+                  ✓ Accept
+                </button>
+                <button type="button" class="btn-req-decline" (click)="openBookingActionModal(req, 'reject')">
+                  ✗ Decline
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ng-template #noPendingRequests>
+          <div style="text-align: center; padding: 30px 20px; color: #64748b; font-size: 13.5px;">
+            🎉 No pending mentorship booking requests at the moment.
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- History Tab Content -->
+      <div *ngIf="requestsTab === 'history'">
+        <div class="booking-requests-list-grid" *ngIf="historyRequests.length > 0; else noHistoryRequests">
+          <div class="booking-request-card animate-fadeIn" *ngFor="let req of historyRequests">
+            <div class="booking-request-item-content">
+              <div class="req-header">
+                <div class="req-avatar">{{ req.studentAvatar }}</div>
+                <div class="req-student-details">
+                  <h4>{{ req.studentName }}</h4>
+                  <span class="req-email">{{ req.studentEmail }}</span>
+                </div>
+                <span class="req-plan-badge" [ngClass]="req.preferredPlan.toLowerCase()" style="margin-right: 8px;">
+                  {{ req.preferredPlan }} Plan
+                </span>
+                <span class="status-badge" [ngClass]="req.status.toLowerCase()" style="font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 20px; text-transform: uppercase; border: 1px solid; display: inline-block;">
+                  {{ req.status }}
+                </span>
+              </div>
+
+              <div class="req-body">
+                <p class="req-topic" style="margin: 0;">🎯 Focus: <strong>{{ req.topic }}</strong></p>
+                <p class="req-message" *ngIf="req.message" style="margin: 0; background: #ffffff; padding: 8px 12px; border-radius: 8px; border-left: 3px solid #cbd5e1; font-size: 12px; color: #475569;">
+                  💬 Student: <em>"{{ req.message }}"</em>
+                </p>
+                <p class="req-response-note" *ngIf="req.mentorNote" style="margin: 0; background: #f0fdf4; padding: 8px 12px; border-radius: 8px; border-left: 3px solid #10b981; font-size: 12px; color: #047857; border-color: #10b981;">
+                  ✍️ Your Response Note: <em>"{{ req.mentorNote }}"</em>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ng-template #noHistoryRequests>
+          <div style="text-align: center; padding: 30px 20px; color: #64748b; font-size: 13.5px;">
+            📜 No responded history records available.
+          </div>
+        </ng-template>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Main Workspace Panels -->
+  <section class="workspace-grid">
+    <!-- Left Panel: Mentee Progress Tracker -->
+    <div class="workspace-panel mentee-panel">
+      <div class="panel-header-row">
+        <div>
+          <h2>Mentee Rosters & Milestones</h2>
+          <p class="panel-subtitle">Monitor developer progress and update milestone targets.</p>
+        </div>
+        <button type="button" class="btn-panel-action" (click)="openFeedbackModal()">
+          + Add Review Note
+        </button>
+      </div>
+
+      <div class="mentee-roster-list" *ngIf="mentees.length; else emptyState">
+        <div class="mentee-roster-item" *ngFor="let m of mentees">
+          <div class="item-head">
+            <div class="mentee-avatar">{{ m.avatar }}</div>
+            <div class="mentee-meta">
+              <h4>{{ m.name }}</h4>
+              <span>Last active: <strong>{{ m.lastMeetingDate }}</strong></span>
+            </div>
+            <a [routerLink]="['/dashboard/mentor/chat', m.relationId]" class="btn-item-note" style="margin-right: 6px; text-decoration: none;">
+              💬 Chat
+            </a>
+            <button type="button" class="btn-item-note" (click)="openFeedbackModal(m.name)">
+              📝 Review
+            </button>
+          </div>
+
+          <div class="progress-milestone-box">
+            <div class="progress-details">
+              <span>Overall Progress</span>
+              <strong>{{ m.progress }}%</strong>
+            </div>
+            <div class="visual-progress-track">
+              <span class="visual-progress-fill" [style.width.%]="m.progress"></span>
+            </div>
+            <div class="milestone-lbl">
+              🎯 Next Target: <strong>{{ m.targetMilestone }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Calendar Schedule & Quick Actions -->
+    <div class="workspace-panel calendar-panel">
+      <div class="panel-header-row">
+        <div>
+          <h2>Upcoming Touchpoints</h2>
+          <p class="panel-subtitle">Plan and join video sessions with mentees.</p>
+        </div>
+        <button type="button" class="btn-panel-action secondary" (click)="openScheduleModal()">
+          📅 Schedule Session
+        </button>
+      </div>
+
+      <div class="upcoming-meetings-list" *ngIf="meetings.length; else emptyState">
+        <div class="meeting-list-item" *ngFor="let mt of meetings">
+          <div class="meeting-details">
+            <div class="meeting-time-box">
+              <span class="day">{{ mt.date }}</span>
+              <span class="time">{{ mt.time }}</span>
+            </div>
+            <div class="meeting-topic">
+              <h4>{{ mt.mentee }}</h4>
+              <span>Type: <strong>{{ mt.type }}</strong></span>
+            </div>
+          </div>
+          <a [href]="mt.meetingLink" target="_blank" class="btn-join-session">
+            📹 Join Session
+          </a>
+        </div>
+      </div>
+
+      <!-- Goals and Action checklist -->
+      <div class="goals-section">
+        <h3>Action Items / Checklist</h3>
+        <div class="goals-list" *ngIf="goals.length; else emptyState">
+          <div class="goal-item-row" *ngFor="let g of goals" [class.completed]="g.completed">
+            <div class="goal-check-wrap">
+              <span class="goal-icon">{{ g.completed ? '✓' : '⏰' }}</span>
+            </div>
+            <div class="goal-desc">
+              <h4>{{ g.title }}</h4>
+              <p>{{ g.description }}</p>
+              <span class="due-lbl">Due: {{ g.dueDate }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modals Section -->
+  
+  <!-- 1. Schedule Session Modal -->
+  <div class="modal-overlay animate-fade" *ngIf="showScheduleModal">
+    <div class="modal-card animate-scaleUp">
+      <div class="modal-header">
+        <h3>Schedule Mentorship Session</h3>
+        <button type="button" class="btn-modal-close" (click)="closeScheduleModal()">×</button>
+      </div>
+      <form (ngSubmit)="submitSchedule()" class="modal-form">
+        <div class="form-group">
+          <label for="sched-mentee">Select Mentee</label>
+          <select id="sched-mentee" name="sched-mentee" [(ngModel)]="scheduleForm.mentee" class="form-control" required>
+            <option *ngFor="let m of mentees" [value]="m.name">{{ m.name }}</option>
+          </select>
+        </div>
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="sched-date">Session Date</label>
+            <input type="text" id="sched-date" name="sched-date" [(ngModel)]="scheduleForm.date" placeholder="e.g. Today, Tomorrow, Jun 20" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="sched-time">Session Time</label>
+            <input type="text" id="sched-time" name="sched-time" [(ngModel)]="scheduleForm.time" placeholder="e.g. 5:00 PM, 11:30 AM" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="sched-type">Session Focus</label>
+          <input type="text" id="sched-type" name="sched-type" [(ngModel)]="scheduleForm.type" placeholder="e.g. Mock Interview, Resume Review, Project Architecture" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label for="sched-link">Session Video Link</label>
+          <input type="url" id="sched-link" name="sched-link" [(ngModel)]="scheduleForm.link" class="form-control" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-secondary" (click)="closeScheduleModal()">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Confirm & Schedule</button>
+        </div>
+      </form>
+    </div>
   </div>
-  <ng-template #emptyPanel>
-    <div class="empty">No data available.</div>
-  </ng-template>
-</section>
+
+  <!-- 2. Add Feedback Note Modal -->
+  <div class="modal-overlay animate-fade" *ngIf="showFeedbackModal">
+    <div class="modal-card animate-scaleUp">
+      <div class="modal-header">
+        <h3>Log Student Progress & Feedback</h3>
+        <button type="button" class="btn-modal-close" (click)="closeFeedbackModal()">×</button>
+      </div>
+      <form (ngSubmit)="submitFeedback()" class="modal-form">
+        <div class="form-group">
+          <label for="fb-mentee">Select Student</label>
+          <select id="fb-mentee" name="fb-mentee" [(ngModel)]="feedbackForm.mentee" class="form-control" required>
+            <option *ngFor="let m of mentees" [value]="m.name">{{ m.name }}</option>
+          </select>
+        </div>
+        
+        <div class="form-group-row">
+          <div class="form-group">
+            <label for="fb-progress">Current Progress Value ({{ feedbackForm.progressValue }}%)</label>
+            <input type="range" id="fb-progress" name="fb-progress" min="0" max="100" step="5" [(ngModel)]="feedbackForm.progressValue" class="slider-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fb-milestone">Set Next Target Milestone</label>
+          <input type="text" id="fb-milestone" name="fb-milestone" [(ngModel)]="feedbackForm.milestone" placeholder="e.g. Redux integration, REST API build" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="fb-note">Feedback Review Notes</label>
+          <textarea id="fb-note" name="fb-note" rows="4" [(ngModel)]="feedbackForm.note" placeholder="Write feedback notes, study material links, and topics for the student..." class="form-control textarea" required></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-secondary" (click)="closeFeedbackModal()">Cancel</button>
+          <button type="submit" class="btn-modal-primary">Save Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Booking Request Action Modal -->
+  <div class="modal-overlay animate-fade" *ngIf="showBookingActionModal">
+    <div class="modal-card animate-scaleUp">
+      <div class="modal-header">
+        <h3>{{ bookingActionType === 'accept' ? 'Accept Mentorship Request' : 'Decline Mentorship Request' }}</h3>
+        <button type="button" class="btn-modal-close" (click)="closeBookingActionModal()">×</button>
+      </div>
+      <form (ngSubmit)="submitBookingAction()" class="modal-form">
+        <div class="booking-summary-banner" style="background: #f8fafc; padding: 12px 16px; border-radius: 12px; margin-bottom: 18px; border: 1px solid #e2e8f0; font-size: 13.5px;">
+          <p style="margin: 0 0 6px 0;">Student: <strong>{{ selectedBookingRequest?.studentName }}</strong></p>
+          <p style="margin: 0;">Requested Focus: <strong>{{ selectedBookingRequest?.topic }}</strong> ({{ selectedBookingRequest?.preferredPlan }} Plan)</p>
+        </div>
+
+        <div class="form-group">
+          <label for="booking-note">Review Notes / Response Message *</label>
+          <textarea 
+            id="booking-note" 
+            name="booking-note" 
+            rows="4" 
+            [(ngModel)]="bookingActionNote" 
+            placeholder="Write a message to the student (e.g. session details, schedules, or reason for decline)..." 
+            class="form-control textarea" 
+            required
+          ></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-secondary" (click)="closeBookingActionModal()">Cancel</button>
+          <button type="submit" class="btn-modal-primary" [style.background]="bookingActionType === 'reject' ? '#ef4444' : ''" [disabled]="submittingBookingAction">
+            {{ submittingBookingAction ? 'Processing...' : (bookingActionType === 'accept' ? '✓ Accept & Roster' : '✗ Decline Request') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- Loading Template -->
+<ng-template #loadingState>
+  <div class="dashboard-loading-box">
+    <div class="spinner-loader"></div>
+    <p>Loading your premium workspace metrics...</p>
+  </div>
+</ng-template>
+
+<!-- Empty State Template -->
+<ng-template #emptyState>
+  <div class="empty-panel-box">
+    <span class="empty-icon">📂</span>
+    <p>No listings or entries found in this category.</p>
+  </div>
+</ng-template>

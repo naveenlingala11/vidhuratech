@@ -24,6 +24,23 @@
           <a routerLink="/placements" class="nav-link-anchor" routerLinkActive="active"><i
               class="fa-solid fa-user-graduate nav-icon"></i> Placements</a>
         </li>
+        <!-- Mentors Dropdown -->
+        <li class="nav-item-link dropdown-simple" (mouseenter)="openMentorsMenu()" (mouseleave)="closeMentorsMenu()">
+          <button type="button" class="nav-link-anchor dropdown-trigger" (click)="toggleMentorsMenu($event)"
+            [class.menu-active]="showMentorsMenu">
+            <i class="fa-solid fa-users-gear nav-icon"></i> <span>Mentors</span>
+            <i class="fa-solid fa-chevron-down dropdown-caret" [class.rotated]="showMentorsMenu"></i>
+          </button>
+          <!-- Simple Dropdown Menu -->
+          <div class="simple-dropdown-menu" [class.show]="showMentorsMenu" (click)="$event.stopPropagation()">
+            <a routerLink="/mentors" class="dropdown-item" (click)="closeAllMenus()">
+              <i class="fa-solid fa-magnifying-glass"></i> Mentors Directory
+            </a>
+            <a routerLink="/ping-room" class="dropdown-item" (click)="closeAllMenus()">
+              <i class="fa-solid fa-comments"></i> Ping Room
+            </a>
+          </div>
+        </li>
 
         <!-- Megamenu Dropdown Trigger -->
         <li class="nav-item-link dropdown-megamenu" (mouseenter)="openCodingMenu()" (mouseleave)="closeCodingMenu()">
@@ -238,6 +255,16 @@
       <a routerLink="/placements" class="mobile-grid-item" (click)="closeMenu()">
         <div class="grid-icon-circle bg-purple"><i class="fa-solid fa-user-graduate"></i></div>
         <span class="grid-label">Placements</span>
+      </a>
+
+      <a routerLink="/mentors" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-teal"><i class="fa-solid fa-users-gear"></i></div>
+        <span class="grid-label">Mentors</span>
+      </a>
+
+      <a routerLink="/ping-room" class="mobile-grid-item" (click)="closeMenu()">
+        <div class="grid-icon-circle bg-purple"><i class="fa-solid fa-comments"></i></div>
+        <span class="grid-label">Ping Room</span>
       </a>
 
       <a routerLink="/about" class="mobile-grid-item" (click)="closeMenu()">

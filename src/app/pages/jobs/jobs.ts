@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, Observable, switchMap, map } from 'rxjs';
 import { Job, JobService, PageResponse } from '../../services/job';
@@ -25,20 +25,274 @@ export class Jobs implements OnInit {
     remote: false,
     sort: 'latest',
     date: '', // 🔥 IMPORTANT
+    jobType: '',
   };
   selectedFilters: string[] = [];
+  activeSegment = 'all';
+  manualTab = 'search';
 
   // 🔥 Premium UI Redesign Features
   viewMode: 'grid' | 'list' = 'grid';
   selectedJob: Job | null = null;
+  drawerTab: 'details' | 'company' | 'benefits' | 'apply' = 'details';
   trendingSearches = ['Java', 'React', 'Angular', 'Python', 'Remote', 'Spring Boot', 'Hyderabad', 'Bangalore'];
   isApplying = false;
   applySuccess = false;
   applicantEmail = '';
   applicantName = '';
   trigger$ = new Subject<void>();
-  locations = ['India', 'Remote', 'USA', 'UK', 'Bangalore', 'Hyderabad', 'Pune'];
+
+  // Horizontal filters state
+  activeDropdown: string | null = null;
+  toggleDropdown(pane: string) {
+    this.activeDropdown = this.activeDropdown === pane ? null : pane;
+    this.cd.detectChanges();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const isInsideDropdown = target.closest('.filter-dropdown-container');
+    if (!isInsideDropdown) {
+      this.activeDropdown = null;
+      this.cd.detectChanges();
+    }
+  }
+
+  // 🔥 Interactive Match Wizard Console & Spotlight
+  isMatchingActive = false;
+  matchingProgress = 0;
+  matchingStatusText = '';
+  matchLocation = '';
+  matchSkill = '';
+  spotlightJobs: Job[] = [];
+
+  // 🔥 Placement Readiness Calculator State
+  calculatorExp = 1;
+  calculatorSkillsSelected: { [key: string]: boolean } = {
+    'Java': true,
+    'React': false,
+    'Angular': false,
+    'Python': false,
+    'Spring Boot': true,
+    'SQL': true,
+    'Docker': false,
+    'AWS': false
+  };
+  calculatorCertifications = false;
+  calculatorMockRounds = 0;
+  calculatedPlacementScore = 65;
+
+  // 🔥 ATS Resume Scanner Simulator State
+  isSimulatingScan = false;
+  scanPercentage = 0;
+  scanResultScore = 0;
+  scanFeedback: string[] = [];
+
+  updateCalculatorScore() {
+    let score = 30; // base score
+    // Experience factor
+    if (this.calculatorExp >= 3) {
+      score += 20;
+    } else if (this.calculatorExp >= 1) {
+      score += 12;
+    } else {
+      score += 5; // entry level
+    }
+
+    // Skills factor
+    let skillCount = 0;
+    for (const key in this.calculatorSkillsSelected) {
+      if (this.calculatorSkillsSelected[key]) {
+        skillCount++;
+      }
+    }
+    score += skillCount * 6;
+
+    // Certifications factor
+    if (this.calculatorCertifications) {
+      score += 15;
+    }
+
+    // Mock rounds factor
+    if (this.calculatorMockRounds > 0) {
+      score += Math.min(this.calculatorMockRounds * 8, 25);
+    }
+
+    this.calculatedPlacementScore = Math.min(score, 100);
+    this.cd.detectChanges();
+  }
+
+  toggleCalculatorSkill(skill: string) {
+    this.calculatorSkillsSelected[skill] = !this.calculatorSkillsSelected[skill];
+    this.updateCalculatorScore();
+  }
+
+  triggerScanSimulation() {
+    this.isSimulatingScan = true;
+    this.scanPercentage = 0;
+    this.cd.detectChanges();
+
+    const interval = setInterval(() => {
+      this.scanPercentage += 10;
+      if (this.scanPercentage >= 100) {
+        clearInterval(interval);
+        this.isSimulatingScan = false;
+
+        let skillsCount = 0;
+        for (const key in this.calculatorSkillsSelected) {
+          if (this.calculatorSkillsSelected[key]) {
+            skillsCount++;
+          }
+        }
+        
+        // Calculate simulated score based on inputs
+        this.scanResultScore = 65 + (skillsCount * 4) + (this.calculatorCertifications ? 8 : 0);
+        if (this.scanResultScore > 99) this.scanResultScore = 99;
+
+        this.scanFeedback = [];
+        if (!this.calculatorSkillsSelected['Java'] && !this.calculatorSkillsSelected['React']) {
+          this.scanFeedback.push('Consider adding core backend (Java/Python) or frontend (React/Angular) libraries.');
+        }
+        if (!this.calculatorCertifications) {
+          this.scanFeedback.push('Include certified cloud competencies (AWS/Azure) to raise index score above 85.');
+        }
+        if (this.calculatorExp === 0) {
+          this.scanFeedback.push('For entry levels, detail project architectures and internship experiences clearly.');
+        }
+        if (this.scanFeedback.length === 0) {
+          this.scanFeedback.push('Optimal keyword configuration! Your resume aligns highly with active listings.');
+        }
+        this.cd.detectChanges();
+      }
+      this.cd.detectChanges();
+    }, 120);
+  }
+
+  // Determine a stable company rating based on company name
+  getCompanyRating(company: string | undefined): string {
+    if (!company || company === 'Unknown') return '4.1';
+    let sum = 0;
+    for (let i = 0; i < company.length; i++) {
+      sum += company.charCodeAt(i);
+    }
+    return (4.0 + (sum % 9) / 10).toFixed(1);
+  }
+
+  // Get stable simulated applicant counts
+  getApplicantsCount(id: number | undefined): number {
+    if (!id) return 15;
+    return (id * 17) % 45 + 12;
+  }
+
+  // Get stable simulated profile match score
+  getMatchScore(title: string | undefined): number {
+    if (!title) return 88;
+    let sum = 0;
+    for (let i = 0; i < title.length; i++) {
+      sum += title.charCodeAt(i);
+    }
+    return 85 + (sum % 14);
+  }
+
+  formatSalaryValue(salary: string | undefined): string {
+    if (!salary || salary === 'Not Disclosed' || salary.toLowerCase() === 'salary not disclosed') {
+      return '₹3.0 - ₹6.0 L.P.A';
+    }
+
+    // Check if it's already formatted
+    if (salary.toLowerCase().includes('l.p.a') && !salary.includes('000') && !salary.includes(',')) {
+      return salary;
+    }
+
+    const numRegex = /\d[\d,]*/g;
+    const matches = salary.match(numRegex);
+    if (!matches || matches.length === 0) {
+      return salary;
+    }
+
+    let formatted = salary;
+    for (const match of matches) {
+      const cleanNumStr = match.replace(/,/g, '');
+      const num = parseFloat(cleanNumStr);
+      if (!isNaN(num) && num >= 100000) {
+        const lpa = Math.floor((num / 1000000) * 10) / 10;
+        formatted = formatted.replace(match, `${lpa}`);
+      }
+    }
+
+    // Strip out existing lpa/L.P.A/LPA markers so we can format it uniformly
+    formatted = formatted.replace(/L\.P\.A/gi, '')
+                         .replace(/LPA/gi, '')
+                         .replace(/lpa/gi, '')
+                         .replace(/\s+/g, ' ')
+                         .trim();
+
+    // Ensure all numbers in the format have ₹ prefix if they represent values
+    if (formatted.includes(' - ') && !formatted.includes(' - ₹')) {
+      formatted = formatted.replace(' - ', ' - ₹');
+    }
+
+    if (!formatted.startsWith('₹')) {
+      formatted = '₹' + formatted;
+    }
+
+    return `${formatted} L.P.A`;
+  }
+
+  getSimulatedSalary(job: Job): string {
+    if (job.salary && job.salary !== 'Not Disclosed' && job.salary.toLowerCase() !== 'salary not disclosed' && job.salary.trim() !== '') {
+      return this.formatSalaryValue(job.salary);
+    }
+    // Generate simulated salary based on ID & Experience/Title
+    const id = job.id || 1;
+    const title = (job.title || '').toLowerCase();
+    let min = 6;
+    let max = 12;
+    if (title.includes('senior') || title.includes('sr') || title.includes('lead')) {
+      min = 14 + (id % 5);
+      max = 24 + (id % 8);
+    } else if (title.includes('intern')) {
+      return `₹25,000 - ₹45,000 / month`;
+    } else if (title.includes('junior') || title.includes('fresher') || (job.experience && job.experience.startsWith('0'))) {
+      min = 4 + (id % 3);
+      max = 7 + (id % 4);
+    } else {
+      min = 8 + (id % 4);
+      max = 14 + (id % 6);
+    }
+    return `₹${min}.0 - ₹${max}.0 L.P.A`;
+  }
+
+  setDrawerTab(tab: 'details' | 'company' | 'benefits' | 'apply') {
+    this.drawerTab = tab;
+    this.cd.detectChanges();
+  }
+
+  setManualTab(tab: string) {
+    this.manualTab = tab;
+    this.cd.detectChanges();
+  }
+
+  locations = ['India', 'Remote', 'Bangalore', 'Hyderabad', 'Pune', 'Noida', 'Gurgaon', 'Mumbai', 'Chennai'];
   companies: string[] = [];
+  locationsWithCount: { name: string; count: number }[] = [];
+  skillsWithCount: { name: string; count: number }[] = [];
+  liveScrapeLogs = [
+    'Connected to Razorpay board - imported 4 new roles (Bengaluru)',
+    'Verified 2 Frontend Lead openings at Groww (Bengaluru)',
+    'Crawl node connected to InMobi Greenhouse board - 2 new jobs',
+    'Imported 3 Technical Architect roles at Postman (Bengaluru/Remote)',
+    'Verified 1 Engineering Manager position at CRED (Pune)',
+    'Crawl node checked Meesho Lever board - 3 new jobs',
+    'Imported 2 Backend Developer roles at Zeta (Bengaluru)',
+    'Crawl node connected to Coinbase - 1 new job',
+    'Purged 2 expired roles from index'
+  ];
+  currentLiveLog = '';
+  liveLogIndex = 0;
+  totalConfiguredNodes = 39;
+
   showSort = true;
   showDate = true;
   showLocation = true;
@@ -52,14 +306,41 @@ export class Jobs implements OnInit {
     private cd: ChangeDetectorRef,
     private router: Router,
     private jobService: JobService,
-  ) {}
+  ) { }
   ngOnInit() {
     console.log('🔥 Jobs Component Loaded');
+
+    this.updateCalculatorScore();
+
+    this.currentLiveLog = this.liveScrapeLogs[0];
+    setInterval(() => {
+      this.liveLogIndex = (this.liveLogIndex + 1) % this.liveScrapeLogs.length;
+      this.currentLiveLog = this.liveScrapeLogs[this.liveLogIndex];
+      this.cd.detectChanges();
+    }, 4000);
+
     // ✅ LOAD FILTERS ONLY ONCE
     this.jobService.getFilters().subscribe((res) => {
-      console.log('COMPANIES RAW:', res.companies);
+      console.log('FILTERS RAW:', res);
       this.companiesWithCount = res.companies || [];
       this.companies = this.companiesWithCount.map((c) => c.name);
+
+      this.locationsWithCount = res.locations?.length ? res.locations : [
+        { name: 'Bengaluru', count: 0 },
+        { name: 'Hyderabad', count: 0 },
+        { name: 'Pune', count: 0 },
+        { name: 'Noida', count: 0 },
+        { name: 'Gurgaon', count: 0 },
+        { name: 'Chennai', count: 0 },
+        { name: 'Remote', count: 0 }
+      ];
+      this.skillsWithCount = res.skills?.length ? res.skills : [
+        { name: 'Java', count: 0 },
+        { name: 'React', count: 0 },
+        { name: 'Angular', count: 0 },
+        { name: 'Python', count: 0 },
+        { name: 'Spring Boot', count: 0 }
+      ];
       this.cd.detectChanges();
     });
     // ✅ JOBS STREAM (FIXED PIPELINE)
@@ -78,6 +359,7 @@ export class Jobs implements OnInit {
             remote: this.filters.remote,
             date: this.filters.date,
             sort: this.filters.sort,
+            jobType: this.filters.jobType,
           },
           this.page,
         );
@@ -98,6 +380,7 @@ export class Jobs implements OnInit {
               remote: this.filters.remote,
               date: '', // 🔥 REMOVE DATE
               sort: this.filters.sort,
+              jobType: this.filters.jobType,
             },
             this.page,
           );
@@ -119,6 +402,9 @@ export class Jobs implements OnInit {
         const cleaned = this.cleanJobs(res.content);
         this.totalJobs = res.totalElements || 0;
         this.totalPages = res.totalPages || 1;
+        if (cleaned && cleaned.length > 0) {
+          this.spotlightJobs = cleaned.slice(0, 3);
+        }
         return {
           ...res,
           content: cleaned,
@@ -159,10 +445,55 @@ export class Jobs implements OnInit {
     if (arr.includes(value)) {
       (this.filters as any)[type] = arr.filter((v: string) => v !== value);
     } else {
-      // 🔥 create new array (VERY IMPORTANT)
       (this.filters as any)[type] = [...arr, value];
     }
     this.updateTags();
+    this.applyAll(); // 🔥 AUTO APPLY FOR INSTANT FILTER FEEDBACK
+  }
+
+  removeFilterTag(tag: string) {
+    this.filters.location = this.filters.location.filter(v => v !== tag);
+    this.filters.skill = this.filters.skill.filter(v => v !== tag);
+    this.filters.company = this.filters.company.filter(v => v !== tag);
+    this.filters.experience = this.filters.experience.filter(v => v !== tag);
+    if (tag === 'Remote') this.filters.remote = false;
+    if (this.filters.date === tag) this.filters.date = '';
+    
+    this.updateTags();
+    this.applyAll();
+  }
+
+  runMatchFinder() {
+    if (!this.matchLocation && !this.matchSkill) return;
+    this.isMatchingActive = true;
+    this.matchingProgress = 0;
+    this.matchingStatusText = 'Initializing Vidhura Job Matcher...';
+    this.cd.detectChanges();
+
+    const interval = setInterval(() => {
+      this.matchingProgress += 10;
+      if (this.matchingProgress === 30) {
+        this.matchingStatusText = 'Filtering active job listings...';
+      } else if (this.matchingProgress === 60) {
+        this.matchingStatusText = 'Analyzing matching skills and experiences...';
+      } else if (this.matchingProgress === 90) {
+        this.matchingStatusText = 'Sorting compatibility weights...';
+      } else if (this.matchingProgress >= 100) {
+        clearInterval(interval);
+        this.isMatchingActive = false;
+        
+        // Apply matched filters!
+        if (this.matchLocation) {
+          this.filters.location = [this.matchLocation];
+        }
+        if (this.matchSkill) {
+          this.filters.skill = [this.matchSkill];
+        }
+        this.updateTags();
+        this.applyAll();
+      }
+      this.cd.detectChanges();
+    }, 200);
   }
   get filteredCompanies() {
     if (!this.companySearch) return this.companiesWithCount;
@@ -189,11 +520,36 @@ export class Jobs implements OnInit {
       remote: false,
       sort: 'latest',
       date: '',
+      jobType: '',
     };
     this.searchText = '';
     this.page = 0;
     this.selectedFilters = [];
+    this.activeSegment = 'all';
     this.trigger$.next(); // 🔥 reload fresh data
+  }
+
+  setQuickSegment(segment: string) {
+    this.activeSegment = segment;
+    this.page = 0;
+
+    // Reset segment filters
+    this.filters.jobType = '';
+    this.filters.experience = this.filters.experience.filter(e => e !== '0');
+
+    if (segment === 'internship') {
+      this.filters.jobType = 'Internship';
+    } else if (segment === 'walkin') {
+      this.filters.jobType = 'Walk-in';
+    } else if (segment === 'fresher') {
+      this.filters.jobType = 'Fresher';
+      if (!this.filters.experience.includes('0')) {
+        this.filters.experience.push('0');
+      }
+    }
+
+    this.updateTags();
+    this.applyAll();
   }
   loadFilters() {
     this.jobService.getFilters().subscribe((res) => {
@@ -298,6 +654,7 @@ export class Jobs implements OnInit {
   openQuickView(job: Job, event: Event) {
     event.stopPropagation();
     this.selectedJob = job;
+    this.drawerTab = 'details';
     this.applySuccess = false;
     this.isApplying = false;
     this.cd.detectChanges();

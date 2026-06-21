@@ -1,0 +1,91 @@
+<div class="mentor-page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>Availability</strong></span>
+      <h1>Availability Manager</h1>
+      <p class="header-desc">Configure the days and time slots when you are available for mentoring sessions.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-box">
+    <div class="spinner"></div>
+    <p>Loading availability settings...</p>
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Quick Stats -->
+    <div class="stats-row">
+      <div class="stat-chip">
+        <span class="stat-value">{{ getActiveDaysCount() }}/7</span>
+        <span class="stat-label">Active Days</span>
+      </div>
+      <div class="stat-chip active">
+        <span class="stat-value">{{ getActiveSlotsCount() }}/3</span>
+        <span class="stat-label">Time Slots</span>
+      </div>
+      <div class="stat-chip daily">
+        <span class="stat-value">{{ allowDailySessions ? 'Yes' : 'No' }}</span>
+        <span class="stat-label">Daily Sessions</span>
+      </div>
+    </div>
+
+    <!-- Days Selection -->
+    <div class="config-section">
+      <div class="section-title-row">
+        <div>
+          <h3>Available Days</h3>
+          <p class="section-desc">Toggle the days you are open to accept session requests.</p>
+        </div>
+      </div>
+
+      <div class="days-grid">
+        <button type="button" *ngFor="let d of availabilityDays"
+                class="day-tile" [class.active]="d.active" (click)="toggleDay(d)">
+          <span class="day-short">{{ d.short }}</span>
+          <span class="day-full">{{ d.label }}</span>
+          <span class="day-status">{{ d.active ? '✓ Active' : 'Off' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Time Slots Selection -->
+    <div class="config-section">
+      <div class="section-title-row">
+        <div>
+          <h3>Time Slots</h3>
+          <p class="section-desc">Select the time periods during the day when you can hold sessions.</p>
+        </div>
+      </div>
+
+      <div class="slots-grid">
+        <div *ngFor="let s of availabilitySlots" class="slot-tile" [class.active]="s.active" (click)="toggleSlot(s)">
+          <span class="slot-icon">{{ s.icon }}</span>
+          <span class="slot-label">{{ s.label }}</span>
+          <span class="slot-check">{{ s.active ? '✓' : '' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Sessions Toggle -->
+    <div class="config-section">
+      <div class="daily-toggle-card">
+        <div class="toggle-info">
+          <h3>Allow Daily 1-Hour Sessions</h3>
+          <p class="section-desc">Enable intensive plans where students on weekly/monthly plans can request daily 1-hour calls.</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" [(ngModel)]="allowDailySessions" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="save-section">
+      <button type="button" class="btn-save" (click)="saveAvailability()" [disabled]="saving">
+        {{ saving ? 'Saving...' : '💾 Save Availability Settings' }}
+      </button>
+    </div>
+  </div>
+</div>

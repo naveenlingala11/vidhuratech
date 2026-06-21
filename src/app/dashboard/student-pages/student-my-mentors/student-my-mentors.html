@@ -1,0 +1,224 @@
+<div class="student-mentors-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <span class="breadcrumb-trail">Dashboard / <strong>My Mentors</strong></span>
+      <h1>My Mentors</h1>
+      <p class="header-desc">Your assigned mentors, session schedules, and mentorship progress.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/mentors" class="btn-action secondary">
+        <span class="icon">🔍</span> Explore All Mentors
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-chip mentors-stat">
+      <span class="stat-icon">👨‍🏫</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.totalMentors }}</span>
+        <span class="stat-label">Assigned Mentors</span>
+      </div>
+    </div>
+    <div class="stat-chip active-stat">
+      <span class="stat-icon">✅</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.activeMentors }}</span>
+        <span class="stat-label">Active Mentors</span>
+      </div>
+    </div>
+    <div class="stat-chip sessions-stat">
+      <span class="stat-icon">📅</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.upcomingSessions }}</span>
+        <span class="stat-label">Upcoming Sessions</span>
+      </div>
+    </div>
+    <div class="stat-chip progress-stat">
+      <span class="stat-icon">📈</span>
+      <div class="stat-data">
+        <span class="stat-value">{{ stats.avgProgress }}%</span>
+        <span class="stat-label">Avg Progress</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs-navigation">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'mentors'" 
+      (click)="activeTab = 'mentors'"
+    >
+      👨‍🏫 Assigned Mentors
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'requests'" 
+      (click)="activeTab = 'requests'"
+    >
+      💼 Mentorship Requests ({{ bookingRequests.length }})
+    </button>
+  </div>
+
+  <!-- Assigned Mentors Tab -->
+  <div *ngIf="activeTab === 'mentors'">
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-box">
+      <div class="spinner"></div>
+      <p>Loading your mentors...</p>
+    </div>
+
+  <!-- Mentors Grid -->
+  <div *ngIf="!loading && mentors.length > 0" class="mentors-grid">
+    <div class="mentor-card" *ngFor="let m of mentors">
+      <!-- Card Header -->
+      <div class="card-header-section">
+        <div class="mentor-avatar-wrap">
+          <img *ngIf="m.profileImageUrl" [src]="m.profileImageUrl" [alt]="m.mentorName" class="mentor-img" />
+          <div *ngIf="!m.profileImageUrl" class="mentor-avatar-circle">{{ m.mentorAvatar }}</div>
+        </div>
+        <div class="mentor-identity">
+          <h3>{{ m.mentorName }}</h3>
+          <span class="mentor-role" *ngIf="m.currentRole">{{ m.currentRole }}</span>
+          <span class="mentor-company" *ngIf="m.currentCompany">@ {{ m.currentCompany }}</span>
+        </div>
+        <span class="status-pill" [ngClass]="m.status === 'ACTIVE' ? 'active' : 'inactive'">
+          {{ m.status }}
+        </span>
+      </div>
+
+      <!-- Experience & Rating Row -->
+      <div class="info-chips-row">
+        <span class="info-chip" *ngIf="m.yearsOfExperience">
+          <span class="chip-icon">🏢</span> {{ m.yearsOfExperience }} yrs exp
+        </span>
+        <span class="info-chip" *ngIf="m.rating">
+          <span class="chip-icon">⭐</span> {{ m.rating }}/5
+        </span>
+        <span class="info-chip" *ngIf="m.pricePerMonth || m.pricePerHour">
+          <span class="chip-icon">💰</span> {{ m.pricePerMonth ? '₹' + m.pricePerMonth + '/mo' : '₹' + (m.pricePerHour * 4) + '/mo' }}
+        </span>
+      </div>
+
+      <!-- Skills -->
+      <div class="skills-row" *ngIf="m.skills">
+        <span class="skill-tag" *ngFor="let s of getSkillsList(m.skills)">{{ s }}</span>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <span>Your Progress</span>
+          <strong>{{ m.progress }}%</strong>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="m.progress"
+               [ngClass]="m.progress >= 80 ? 'high' : m.progress >= 40 ? 'mid' : 'low'"></div>
+        </div>
+      </div>
+
+      <!-- Target & Last Meeting -->
+      <div class="meta-info-row">
+        <div class="meta-item" *ngIf="m.targetMilestone">
+          <span class="meta-icon">🎯</span>
+          <span>Target: <strong>{{ m.targetMilestone }}</strong></span>
+        </div>
+        <div class="meta-item" *ngIf="m.lastMeetingDate">
+          <span class="meta-icon">📅</span>
+          <span>Last Session: <strong>{{ m.lastMeetingDate }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions-row">
+        <a [routerLink]="['/dashboard/student/chat', m.relationId]" class="btn-card-action primary">
+          <span>💬</span> Chat
+        </a>
+        <a [routerLink]="['/mentors', m.mentorId]" class="btn-card-action secondary">
+          <span>👁️</span> Profile
+        </a>
+        <a routerLink="/dashboard/student/mentor-sessions" class="btn-card-action secondary">
+          <span>📅</span> Sessions
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && mentors.length === 0" class="empty-state">
+    <div class="empty-visual">
+      <span class="empty-icon">👨‍🏫</span>
+    </div>
+    <h3>No Mentors Assigned Yet</h3>
+    <p>You haven't been assigned to any mentor yet. Explore our mentors directory to find the right mentor for you!</p>
+    <a routerLink="/mentors" class="btn-action primary">
+      <span class="icon">🔍</span> Browse Mentors
+    </a>
+  </div>
+  </div>
+
+  <!-- Requests Tab Content -->
+  <div *ngIf="activeTab === 'requests'" class="requests-tab-content">
+    <div *ngIf="loadingRequests" class="loading-box">
+      <div class="spinner"></div>
+      <p>Loading your requests...</p>
+    </div>
+
+    <!-- Requests Grid -->
+    <div *ngIf="!loadingRequests && bookingRequests.length > 0" class="requests-list">
+      <div class="request-history-card" *ngFor="let req of bookingRequests">
+        <div class="req-card-header">
+          <div class="req-mentor-info">
+            <div class="mentor-avatar-circle mini">{{ req.mentorAvatar }}</div>
+            <div class="mentor-meta-details">
+              <h3>{{ req.mentorName }}</h3>
+              <span class="req-date">Requested on {{ req.createdAt | date:'mediumDate' }}</span>
+            </div>
+          </div>
+          <span class="status-badge" [ngClass]="req.status.toLowerCase()">
+            {{ req.status }}
+          </span>
+        </div>
+
+        <div class="req-card-body">
+          <div class="req-details-grid">
+            <div class="detail-item">
+              <span class="label">Focus Topic:</span>
+              <span class="value">{{ req.topic }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Preferred Plan:</span>
+              <span class="value plan-val" [ngClass]="req.preferredPlan.toLowerCase()">{{ req.preferredPlan === 'HOURLY' ? 'TRIAL' : req.preferredPlan }} Plan</span>
+            </div>
+          </div>
+          
+          <div class="req-message-block" *ngIf="req.message">
+            <span class="block-label">Your message:</span>
+            <p class="msg-text">"{{ req.message }}"</p>
+          </div>
+
+          <!-- Mentor Note Response -->
+          <div class="mentor-response-block" *ngIf="req.mentorNote">
+            <span class="block-label">Mentor Response Note:</span>
+            <p class="mentor-note-text">💬 "{{ req.mentorNote }}"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Requests -->
+    <div *ngIf="!loadingRequests && bookingRequests.length === 0" class="empty-state">
+      <div class="empty-visual">
+        <span class="empty-icon">💼</span>
+      </div>
+      <h3>No Mentorship Requests Sent</h3>
+      <p>You haven't submitted any in-app booking requests yet. Browse the mentors directory to get started!</p>
+      <a routerLink="/mentors" class="btn-action primary">
+        <span class="icon">🔍</span> Browse Mentors
+      </a>
+    </div>
+  </div>
+</div>

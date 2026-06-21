@@ -42,6 +42,9 @@ export class JobService {
       .set('page', page)
       .set('size', 15)
       .set('sort', filters.sort || 'latest');
+    if (filters.search) {
+      params = params.set('keyword', filters.search);
+    }
     if (filters.location?.length) {
       filters.location.forEach((l: string) => {
         params = params.append('locations', l);
@@ -66,7 +69,9 @@ export class JobService {
     if (filters.date) {
       params = params.set('dateFilter', filters.date);
     }
-    // 🔥 ADD THIS
+    if (filters.jobType) {
+      params = params.set('jobType', filters.jobType);
+    }
     console.log('🔥 FINAL PARAMS:', params.toString());
     return this.http.get<PageResponse>(`${this.API}/advanced`, { params });
   }

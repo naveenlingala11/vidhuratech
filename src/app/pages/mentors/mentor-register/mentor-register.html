@@ -1,0 +1,488 @@
+<div class="mentor-register-container">
+
+  <!-- Gate 1: Already a Mentor (logged in as MENTOR) -->
+  <div *ngIf="isAlreadyMentor" class="gate-screen card-shadow animate-fade">
+    <div class="gate-icon-wrapper">
+      <span class="gate-emoji">🛡️</span>
+    </div>
+    <h2>You're Already a Mentor!</h2>
+    <p class="gate-description">
+      You are currently logged in as <strong>{{loggedInUser?.name}}</strong> with the <strong>Mentor</strong> role.
+      You cannot create a second mentor account.
+    </p>
+    <div class="gate-info-card">
+      <span class="gate-info-icon">💡</span>
+      <p>To update your profile, pricing, availability, or bio, please visit your <strong>Mentor Dashboard</strong>.</p>
+    </div>
+    <div class="gate-actions">
+      <button class="btn-gate-primary" (click)="goToDashboard()">Go to Mentor Dashboard</button>
+      <button class="btn-gate-secondary" (click)="goToMentors()">Browse Mentors Directory</button>
+    </div>
+  </div>
+
+  <!-- Gate 2: Logged in as non-Mentor (STUDENT/TRAINER/ADMIN etc.) -->
+  <div *ngIf="showRoleChangePopup" class="gate-screen card-shadow animate-fade">
+    <div class="gate-icon-wrapper">
+      <span class="gate-emoji">🤔</span>
+    </div>
+    <h2>Want to Become a Mentor?</h2>
+    <p class="gate-description">
+      You are currently logged in as <strong>{{loggedInUser?.name}}</strong> with the
+      <strong>{{loggedInUser?.role}}</strong> role.
+      Mentor registration creates a <strong>new account</strong> with a separate email. If you'd like to upgrade your
+      existing account to a Mentor role instead, please contact our admin team.
+    </p>
+    <div class="gate-info-card">
+      <span class="gate-info-icon">📞</span>
+      <div>
+        <p><strong>Option 1:</strong> Contact our admin team to raise a role-change request for your existing account.
+        </p>
+        <p><strong>Option 2:</strong> Log out first, then register as a new mentor with a different email address.</p>
+      </div>
+    </div>
+    <div class="gate-actions">
+      <button class="btn-gate-whatsapp" (click)="openWhatsAppContact()">
+        💬 Contact Admin on WhatsApp
+      </button>
+      <button class="btn-gate-secondary" (click)="goToDashboard()">Go to My Dashboard</button>
+      <button class="btn-gate-outline" (click)="goToMentors()">← Back to Mentors</button>
+    </div>
+  </div>
+
+  <!-- Gate 3: Not logged in → Show the actual registration form -->
+  <ng-container *ngIf="!isLoggedIn">
+
+    <!-- Success Page -->
+    <div *ngIf="success" class="success-screen card-shadow">
+      <div class="success-icon-badge">
+        <span class="confetti-emoji">🎉</span>
+        <div class="success-badge-ring"></div>
+      </div>
+      <h2>Application Submitted Successfully!</h2>
+      <p class="congrats-text">Thank you, <strong>{{name}}</strong>! Your profile application is now in our verification
+        queue.</p>
+
+      <div class="info-box-premium">
+        <div class="info-box-header">
+          <span class="shield-icon">🛡️</span>
+          <h4>Mediation & Fraud Prevention Policy</h4>
+        </div>
+        <p>The Vidhura Tech quality assurance team manually reviews every applicant's credentials. We verify LinkedIn
+          history, current employment, and experience documents to keep the platform safe and high-quality for all
+          candidates.</p>
+        <p class="highlight-note">💡 Profiles with a complete bio, valid LinkedIn profile, and verification link are
+          typically approved within 24-48 hours.</p>
+      </div>
+
+      <div class="redirect-counter">
+        <div class="loading-ring">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <p>Redirecting you to the Login page to access your temporary dashboard...</p>
+        <a routerLink="/login" class="btn-primary-glow">Go to Login Now</a>
+      </div>
+    </div>
+
+    <!-- Main Register Portal -->
+    <div *ngIf="!success" class="portal-grid animate-fade">
+      <!-- Left Column: Registration Wizard Form -->
+      <div class="wizard-col card-shadow">
+
+        <!-- Steps Indicator -->
+        <div class="steps-progress-bar">
+          <div class="step-indicator" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+            <span class="step-num">
+              <span *ngIf="currentStep <= 1">1</span>
+              <span *ngIf="currentStep > 1">✓</span>
+            </span>
+            <span class="step-lbl">Account</span>
+          </div>
+          <div class="step-line" [class.completed]="currentStep > 1"></div>
+
+          <div class="step-indicator" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+            <span class="step-num">
+              <span *ngIf="currentStep <= 2">2</span>
+              <span *ngIf="currentStep > 2">✓</span>
+            </span>
+            <span class="step-lbl">Details</span>
+          </div>
+          <div class="step-line" [class.completed]="currentStep > 2"></div>
+
+          <div class="step-indicator" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+            <span class="step-num">
+              <span *ngIf="currentStep <= 3">3</span>
+              <span *ngIf="currentStep > 3">✓</span>
+            </span>
+            <span class="step-lbl">Bio & Skills</span>
+          </div>
+          <div class="step-line" [class.completed]="currentStep > 3"></div>
+
+          <div class="step-indicator" [class.active]="currentStep >= 4" [class.completed]="currentStep > 4">
+            <span class="step-num">4</span>
+            <span class="step-lbl">Verify</span>
+          </div>
+        </div>
+
+        <div class="wizard-header">
+          <h1>Become a Mentor</h1>
+          <p>Share your real-world expertise, build your brand, and earn by guiding the next generation of tech talent.
+          </p>
+        </div>
+
+        <!-- Error Message Banner -->
+        <div *ngIf="errorMessage" class="error-banner animate-fade">
+          <span class="err-icon">⚠️</span>
+          <span class="err-text">{{errorMessage}}</span>
+        </div>
+
+        <!-- Step Form Fields -->
+        <form (ngSubmit)="onSubmit()" class="wizard-form">
+
+          <!-- STEP 1: Account Setup -->
+          <div *ngIf="currentStep === 1" class="step-content animate-fade">
+            <div class="section-title">
+              <h3>Step 1: Account Credentials</h3>
+              <p>Enter your basic account details and upload a profile picture.</p>
+            </div>
+
+            <!-- Profile Photo Upload Zone -->
+            <div class="profile-upload-section">
+              <label class="input-label">Profile Photo <span class="opt">(Recommended)</span></label>
+              <div class="upload-flex-container">
+                <div class="avatar-upload-wrapper" (click)="triggerFileInput(fileInput)">
+                  <div class="avatar-preview-box" [class.has-image]="profileImageUrl">
+                    <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Avatar Preview"
+                      class="upload-preview-img" />
+                    <div *ngIf="!profileImageUrl" class="upload-placeholder-content">
+                      <span class="upload-icon-large">👤</span>
+                      <span class="upload-placeholder-text">Upload Image</span>
+                    </div>
+                    <div class="avatar-edit-badge">
+                      <span class="badge-icon">📷</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="upload-controls-info">
+                  <div class="upload-btn-group">
+                    <button type="button" class="btn-upload-action" (click)="triggerFileInput(fileInput)">
+                      {{ profileImageUrl ? 'Change Photo' : 'Upload Image' }}
+                    </button>
+                    <button type="button" class="btn-remove-photo" *ngIf="profileImageUrl"
+                      (click)="removeProfileImage()">
+                      Remove
+                    </button>
+                  </div>
+                  <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*"
+                    style="display: none" />
+                  <p class="upload-requirements-text">
+                    Supports JPG, PNG or WEBP. Max size 2MB. For best results, use a high-resolution square photo.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="name">Full Name <span class="req">*</span></label>
+              <div class="input-with-icon">
+                <span class="field-icon">👤</span>
+                <input type="text" id="name" name="name" [(ngModel)]="name" placeholder="e.g. Lingala Naveen Kumar"
+                  class="form-control" required />
+              </div>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="email">Email Address <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">✉️</span>
+                  <input type="email" id="email" name="email" [(ngModel)]="email"
+                    placeholder="e.g. naveen@vidhuratech.in" class="form-control" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone Number <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">📞</span>
+                  <input type="tel" id="phone" name="phone" [(ngModel)]="phone" placeholder="e.g. 9876543210"
+                    class="form-control" required />
+                </div>
+                <small class="form-text-muted">Will be used for session reminders and WhatsApp updates.</small>
+              </div>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="password">Password <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">🔒</span>
+                  <input type="password" id="password" name="password" [(ngModel)]="password"
+                    placeholder="Min 6 characters" class="form-control" required />
+                </div>
+                <!-- Password Strength indicator -->
+                <div class="password-strength-bar-container" *ngIf="password">
+                  <div class="password-strength-bar" [style.width.%]="getPasswordStrength().score"
+                    [style.background-color]="getPasswordStrength().color"></div>
+                  <span class="strength-label" [style.color]="getPasswordStrength().color">Strength:
+                    {{getPasswordStrength().label}}</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Confirm Password <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">🛡️</span>
+                  <input type="password" id="confirmPassword" name="confirmPassword" [(ngModel)]="confirmPassword"
+                    placeholder="Re-enter password" class="form-control" required />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Professional Details -->
+          <div *ngIf="currentStep === 2" class="step-content animate-fade">
+            <div class="section-title">
+              <h3>Step 2: Professional Information</h3>
+              <p>Tell us about your current status and experience in the industry.</p>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="company">Current Company <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">🏢</span>
+                  <input type="text" id="company" name="company" [(ngModel)]="currentCompany"
+                    placeholder="e.g. Google, Microsoft, TCS" class="form-control" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="role">Job Title / Role <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">💼</span>
+                  <input type="text" id="role" name="role" [(ngModel)]="currentRole"
+                    placeholder="e.g. Senior Software Engineer" class="form-control" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="experience">Years of Experience <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">⏳</span>
+                  <input type="number" step="0.5" id="experience" name="experience" [(ngModel)]="yearsOfExperience"
+                    placeholder="e.g. 5" class="form-control" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="price">Monthly Rate (₹) <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">💰</span>
+                  <input type="number" step="500" id="price" name="price" [(ngModel)]="pricePerMonth"
+                    placeholder="e.g. 5000" class="form-control" required />
+                </div>
+                <small class="form-text-muted">Your monthly mentorship rate. Set to 0 to offer sessions for free.</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="languages">Languages Spoken <span class="req">*</span></label>
+              <div class="input-with-icon">
+                <span class="field-icon">🗣️</span>
+                <input type="text" id="languages" name="languages" [(ngModel)]="languages"
+                  placeholder="e.g. English, Telugu, Hindi" class="form-control" required />
+              </div>
+              <small class="form-text-muted">Separate multiple languages with commas.</small>
+            </div>
+          </div>
+
+          <!-- STEP 3: Bio & Skills -->
+          <div *ngIf="currentStep === 3" class="step-content animate-fade">
+            <div class="section-title">
+              <h3>Step 3: Biography & Core Skills</h3>
+              <p>Introduce yourself to the candidates and specify your tech stack.</p>
+            </div>
+
+            <div class="form-group">
+              <label for="biography">Biography <span class="req">*</span></label>
+              <div class="textarea-container">
+                <textarea id="biography" name="biography" [(ngModel)]="biography" rows="5"
+                  placeholder="Describe your career milestones, how you help candidates prepare, your training style, etc. (min 30 characters)..."
+                  class="form-control textarea" required></textarea>
+                <div class="char-count" [class.warning]="biography.length < 30">
+                  <span>{{ biography ? biography.length : 0 }} / 30 min characters</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="skills">Skills & Technologies <span class="req">*</span></label>
+              <div class="input-with-icon">
+                <span class="field-icon">🛠️</span>
+                <input type="text" id="skills" name="skills" [(ngModel)]="skills"
+                  placeholder="e.g. Java, Angular, Spring Boot, AWS, Docker" class="form-control" required />
+              </div>
+              <small class="form-text-muted">Separate your core skills with commas (e.g. Angular, Node.js, SQL).</small>
+            </div>
+          </div>
+
+          <!-- STEP 4: Verification Links -->
+          <div *ngIf="currentStep === 4" class="step-content animate-fade">
+            <div class="section-title">
+              <h3>Step 4: Links & Verification</h3>
+              <p>Provide evidence links to help our administration team verify your profile faster.</p>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label for="linkedin">LinkedIn Profile URL <span class="req">*</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">🔗</span>
+                  <input type="url" id="linkedin" name="linkedin" [(ngModel)]="linkedinUrl"
+                    placeholder="https://linkedin.com/in/username" class="form-control" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="github">GitHub Profile URL <span class="opt">(Optional)</span></label>
+                <div class="input-with-icon">
+                  <span class="field-icon">💻</span>
+                  <input type="url" id="github" name="github" [(ngModel)]="githubUrl"
+                    placeholder="https://github.com/username" class="form-control" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="verificationDocument">Verification Link (Resume / Portfolio / ID) <span
+                  class="req">*</span></label>
+              <div class="input-with-icon">
+                <span class="field-icon">📄</span>
+                <input type="url" id="verificationDocument" name="verificationDocument"
+                  [(ngModel)]="verificationDocumentUrl" placeholder="Paste Google Drive/Dropbox/Resume link"
+                  class="form-control" required />
+              </div>
+              <small class="form-text-muted">Please share a view-enabled folder, resume link, or identity badge. This
+                remains strictly visible to internal review teams only.</small>
+            </div>
+
+            <div class="mediation-terms-agreement">
+              <div class="checkbox-wrapper">
+                <input type="checkbox" id="agreeTerms" name="agreeTerms" required />
+              </div>
+              <label for="agreeTerms">
+                I agree to the Vidhura Tech Mentor Mediation & Code of Conduct policy. I certify that all information
+                provided is accurate, and acknowledge that any fake documents or impersonation will lead to permanent
+                account suspension.
+              </label>
+            </div>
+          </div>
+
+          <!-- Wizard Navigation Actions -->
+          <div class="wizard-actions">
+            <button type="button" class="btn-wizard-sec" (click)="prevStep()" *ngIf="currentStep > 1">
+              ← Back
+            </button>
+
+            <button type="button" class="btn-wizard-prim" (click)="nextStep()" *ngIf="currentStep < 4">
+              Continue →
+            </button>
+
+            <button type="submit" class="btn-wizard-submit" [disabled]="submitting" *ngIf="currentStep === 4">
+              <span *ngIf="!submitting">Submit Application 🚀</span>
+              <span *ngIf="submitting" class="spinner-loader-inline"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Live Directory Card Preview -->
+      <div class="preview-col">
+        <div class="preview-card-wrapper">
+          <span class="preview-header-lbl">
+            <span class="glow-dot"></span> Dynamic Profile Card Preview
+          </span>
+
+          <div class="mentor-card-premium card-shadow glassmorphic-preview">
+            <!-- Featured Tag (Previewing top match) -->
+            <div class="card-featured-tag">
+              <span class="star-icon">★</span> Verified Mentor
+            </div>
+
+            <div class="card-body-wrapper">
+              <!-- Avatar Column -->
+              <div class="mentor-avatar-column">
+                <div class="avatar-glow-container">
+                  <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Avatar" class="avatar-img-premium" />
+                  <div *ngIf="!profileImageUrl" class="avatar-fallback-premium">
+                    {{ name ? name.charAt(0).toUpperCase() : 'M' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Profile Info Column -->
+              <div class="mentor-info-column">
+                <div class="mentor-name-title">
+                  <h3>{{ name || 'Your Full Name' }}</h3>
+                  <span class="rating-pill">⭐ 5.0 (New)</span>
+                </div>
+
+                <div class="mentor-job-details">
+                  <span class="job-role">{{ currentRole || 'Software Architect' }}</span>
+                  <span class="job-company">
+                    at <strong class="company-name">{{ currentCompany || 'Tech Company' }}</strong>
+                  </span>
+                </div>
+
+                <div class="experience-pill">
+                  💼 <span><strong>{{ yearsOfExperience || '0' }}</strong> Years Experience</span>
+                </div>
+
+                <!-- Skills Badges -->
+                <div class="skills-flex">
+                  <span *ngFor="let skill of getSkillsList(skills) | slice:0:3" class="skill-pill">
+                    {{skill}}
+                  </span>
+                  <span *ngIf="!skills" class="skill-pill">Skill 1</span>
+                  <span *ngIf="!skills" class="skill-pill">Skill 2</span>
+                  <span *ngIf="!skills" class="skill-pill">Skill 3</span>
+                  <span *ngIf="getSkillsList(skills).length > 3" class="skills-more-pill">
+                    +{{getSkillsList(skills).length - 3}} More
+                  </span>
+                </div>
+
+                <div class="languages-line">
+                  🗣️ Speaks: <strong class="lang-list">{{ languages || 'English, Telugu' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="card-footer-premium">
+              <div class="pricing-info">
+                <span class="label">Monthly rate</span>
+                <span class="value">{{ pricePerMonth && pricePerMonth > 0 ? '₹' + pricePerMonth + '/mo' : 'Free Session'
+                  }}</span>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="btn-card-secondary" disabled>View Details</button>
+                <button type="button" class="btn-card-primary" disabled>Book Session</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Tip Box -->
+          <div class="tip-box animate-fade">
+            <h4>💡 Optimization Tips for High Bookings</h4>
+            <ul>
+              <li>Use a clear, close-up profile photo to increase connection rates.</li>
+              <li>List specific technologies in **Skills** (e.g. React, Spring Boot) to matches search criteria.</li>
+              <li>Highlight specific domains you can help with, like Placement Assistance or Interview Grooming.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

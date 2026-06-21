@@ -628,6 +628,111 @@
     </div>
   </section>
 
+  <!-- MEET OUR EXPERT MENTORS SHOWCASE SECTION -->
+  <section class="home-mentors-section">
+    <div class="mentors-radial-glow primary"></div>
+    <div class="mentors-radial-glow secondary"></div>
+
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-kicker">
+          <i class="fa-solid fa-users-gear"></i> 1:1 Live Mentorship
+        </span>
+        <h2>Learn from Industry Experts. <br />
+          <span class="gradient-text">Accelerate Your Coding Career.</span>
+        </h2>
+        <p>
+          Connect 1:1 with verified software engineers, systems architects, and technology leads. Get direct advice, project reviews, portfolio audits, and mock interview practice.
+        </p>
+      </div>
+
+      <!-- Mentors Grid -->
+      <div class="mentors-showcase-grid" *ngIf="featuredMentors.length">
+        <article class="home-mentor-card" *ngFor="let mentor of featuredMentors">
+          <div class="card-glow-element"></div>
+          
+          <!-- Popular / Featured Badging -->
+          <div class="mentor-badge-strip">
+            <span class="popular-tag" *ngIf="mentor.rating >= 4.9"><i class="fa-solid fa-fire"></i> Popular</span>
+            <span class="super-tag" *ngIf="mentor.yearsOfExperience >= 8"><i class="fa-solid fa-award"></i> Super Mentor</span>
+          </div>
+
+          <!-- Profile / Avatar Section -->
+          <div class="mentor-avatar-container">
+            <div class="avatar-glow-ring"></div>
+            <div class="avatar-inner-frame">
+              <img *ngIf="mentor.profileImageUrl; else initialsFallback" [src]="mentor.profileImageUrl" [alt]="mentor.name" class="mentor-avatar-img" />
+              <ng-template #initialsFallback>
+                <div class="mentor-avatar-initials">
+                  {{ getMentorInitial(mentor.name) }}
+                </div>
+              </ng-template>
+            </div>
+            <!-- Verification check badge -->
+            <span class="verified-badge-check" title="Verified Industry Professional">
+              <i class="fa-solid fa-certificate"></i>
+            </span>
+          </div>
+
+          <!-- Mentor Details -->
+          <div class="mentor-card-body">
+            <div class="rating-row">
+              <span class="rating-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </span>
+              <strong class="rating-score">{{ mentor.rating | number:'1.1-1' }}</strong>
+              <span class="reviews-count">({{ mentor.reviewsCount }} reviews)</span>
+            </div>
+
+            <h3 class="mentor-name">{{ mentor.name }}</h3>
+            
+            <div class="role-company-info">
+              <span>{{ mentor.currentRole }}</span>
+              <strong>at {{ mentor.currentCompany }}</strong>
+            </div>
+
+            <span class="experience-pill-tag">
+              <i class="fa-solid fa-briefcase"></i> {{ mentor.yearsOfExperience }}+ Years Experience
+            </span>
+
+            <p class="mentor-short-bio">{{ mentor.biography }}</p>
+
+            <!-- Skills Pills Row -->
+            <div class="mentor-skills-stack">
+              <span class="skill-pill" *ngFor="let skill of getSkillsList(mentor.skills) | slice:0:4">
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Pricing & Booking CTA Footer -->
+          <div class="mentor-card-footer">
+            <div class="price-info">
+              <span class="price-label">Monthly Retainer</span>
+              <strong class="price-value">₹{{ formatPrice(mentor.pricePerMonth || (mentor.pricePerHour ? mentor.pricePerHour * 4 : 3999)) }}<small>/mo</small></strong>
+            </div>
+            <a [routerLink]="['/mentors', mentor.userId]" class="btn btn-primary btn-book-mentor">
+              <span>Book 1:1</span>
+              <i class="fa-solid fa-circle-chevron-right"></i>
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <!-- Section CTA -->
+      <div class="section-footer-cta">
+        <a routerLink="/mentors" class="btn btn-secondary explore-all-mentors-btn">
+          <i class="fa-solid fa-users"></i> Explore All Mentors
+          <i class="fa-solid fa-arrow-right-long"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- MOCK INTERVIEW INTEREST MODAL OVERLAY -->
   <div class="mock-interest-overlay" *ngIf="showMockInterviewLeadForm" (click)="closeMockInterviewLeadForm()">
     <form class="mock-interest-modal" (click)="$event.stopPropagation()" (ngSubmit)="submitMockInterviewLead()">

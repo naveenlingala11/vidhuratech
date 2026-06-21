@@ -1,0 +1,371 @@
+<section class="manage-mentors">
+  <!-- Toast Notification -->
+  <div class="toast" *ngIf="toast" [ngClass]="toastType">
+    <span class="toast-message">{{ toast }}</span>
+  </div>
+
+  <!-- Hero Header -->
+  <header class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Admin Workspace</span>
+      <h1>Manage Mentors</h1>
+      <p>Verify profiles, toggle featured statuses, demote or promote new users to the mentorship program to maintain high-quality 1:1 mediation.</p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="ghost" (click)="loadAllMentors()" [disabled]="loading">
+        Refresh List
+      </button>
+
+      <button type="button" class="btn-promote-trigger" (click)="openPromotionModal()">
+        ➕ Add New Mentor
+      </button>
+    </div>
+  </header>
+
+  <!-- Guidelines Banner -->
+  <div class="admin-guidelines-banner">
+    <div class="banner-icon">🛡️</div>
+    <div class="banner-text">
+      <h3>Admin Verification & Mediation Guidelines</h3>
+      <p>As an administrator, you hold full responsibility for onboarding mentors. Ensure you have verified their professional LinkedIn profile, identity, and credentials before switching them to <strong>Verified Active</strong>. If any misuse, fraud, or spam is reported, immediately toggle off active status to hide them from the public directory.</p>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <section class="stats-grid">
+    <article class="stat-card">
+      <span>Total Registered Mentors</span>
+      <strong>{{ stats.total }}</strong>
+    </article>
+
+    <article class="stat-card active-mentors">
+      <span>Verified Active Mentors</span>
+      <strong>{{ stats.active }}</strong>
+    </article>
+
+    <article class="stat-card featured-mentors">
+      <span>Featured Top Matches</span>
+      <strong>{{ stats.featured }}</strong>
+    </article>
+  </section>
+
+  <!-- Mentors Directory Table -->
+  <section class="table-panel">
+    <div class="panel-head">
+      <div>
+        <span>System Directory</span>
+        <h2>All Registered Mentors</h2>
+      </div>
+      <span class="badge-count">{{ filteredMentors.length }} Listed</span>
+    </div>
+
+    <!-- Search/Filter -->
+    <div class="filters">
+      <label class="search">
+        <input
+          type="text"
+          [(ngModel)]="searchText"
+          placeholder="Search mentor by name, company, role, skills..."
+          class="search-input-field"
+        />
+      </label>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div class="skeleton-list" *ngIf="loading">
+      <div class="skeleton-row" *ngFor="let item of [1, 2, 3, 4]"></div>
+    </div>
+
+    <!-- Mentors Table -->
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Name & Email</th>
+            <th>Role & Company</th>
+            <th>Experience</th>
+            <th>Monthly Price</th>
+            <th>Verification Checklist</th>
+            <th>Featured</th>
+            <th>Verified Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of filteredMentors">
+            <!-- Name & Email -->
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar" *ngIf="item.profileImageUrl">
+                  <img [src]="item.profileImageUrl" [alt]="item.name" />
+                </div>
+                <div class="user-avatar-fallback" *ngIf="!item.profileImageUrl">
+                  {{ item.name ? item.name.charAt(0).toUpperCase() : 'M' }}
+                </div>
+                <div class="user-meta">
+                  <strong>{{ item.name }}</strong>
+                  <small>{{ item.email }}</small>
+                </div>
+              </div>
+            </td>
+
+            <!-- Role & Company -->
+            <td>
+              <div class="role-cell" *ngIf="item.currentRole || item.currentCompany">
+                <span class="role-text">{{ item.currentRole || '-' }}</span>
+                <small class="company-text" *ngIf="item.currentCompany">at {{ item.currentCompany }}</small>
+              </div>
+              <span class="empty-val" *ngIf="!item.currentRole && !item.currentCompany">Not Specified</span>
+            </td>
+
+            <!-- Experience -->
+            <td>
+              <span class="exp-badge" *ngIf="item.yearsOfExperience">
+                💼 {{ item.yearsOfExperience }} Yrs
+              </span>
+              <span class="empty-val" *ngIf="!item.yearsOfExperience">0 Yrs</span>
+            </td>
+
+            <!-- Monthly Price -->
+            <td>
+              <strong class="price-text">{{ item.pricePerMonth && item.pricePerMonth > 0 ? '₹' + item.pricePerMonth + '/mo' : (item.pricePerHour ? '₹' + (item.pricePerHour * 4) + '/mo' : 'Free Session') }}</strong>
+            </td>
+
+            <!-- Verification Checklist -->
+            <td>
+              <div class="checklist-cell">
+                <span class="checklist-badge" [ngClass]="{'pass': getMentorChecklistScore(item) >= 60, 'fail': getMentorChecklistScore(item) < 60}">
+                  {{ getMentorChecklistScore(item) }}% ({{ getMentorChecklistPassedCount(item) }}/5)
+                </span>
+                <button type="button" class="btn-verify-action" (click)="openVerificationModal(item)">
+                  Verify 🛡️
+                </button>
+              </div>
+            </td>
+
+            <!-- Featured Toggle -->
+            <td>
+              <div class="toggle-cell">
+                <label class="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    [checked]="item.featured" 
+                    (change)="toggleFeatured(item)"
+                    [disabled]="togglingId === item.userId"
+                  />
+                  <span class="slider round"></span>
+                </label>
+                <span class="status-label" [ngClass]="{'featured-active': item.featured}">
+                  {{ item.featured ? '★ Featured' : 'Standard' }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Verified Active Toggle -->
+            <td>
+              <div class="toggle-cell">
+                <label class="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    [checked]="item.active" 
+                    (change)="toggleActive(item)"
+                    [disabled]="togglingId === item.userId"
+                  />
+                  <span class="slider round"></span>
+                </label>
+                <span class="status-label" [ngClass]="{'verified-active': item.active}">
+                  {{ item.active ? '🟢 Verified & Public' : '🔴 Hidden / Pending' }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Demote Actions -->
+            <td>
+              <button
+                type="button"
+                class="btn-danger"
+                [disabled]="demotingId === item.userId"
+                (click)="demoteMentor(item)"
+              >
+                {{ demotingId === item.userId ? 'Removing...' : 'Remove Mentor' }}
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty Row -->
+          <tr *ngIf="!filteredMentors.length">
+            <td colspan="7">
+              <div class="empty-state">
+                <span class="icon">🔍</span>
+                <strong>No Mentors Found</strong>
+                <p>Try searching for a different term or add a new mentor to the directory.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Promotion Search Modal -->
+  <div class="modal-backdrop" *ngIf="showPromotionModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Promote User to Mentor</h2>
+        <button type="button" class="btn-close" (click)="closePromotionModal()">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-instruction">Search for a student or trainer in the database by name or email to promote them to MENTOR status.</p>
+        
+        <div class="modal-search-box">
+          <input
+            type="text"
+            [(ngModel)]="userSearchText"
+            (input)="searchUsersToPromote()"
+            placeholder="Type user name or email..."
+            class="modal-search-input"
+          />
+        </div>
+
+        <!-- Searching Indicator -->
+        <div class="modal-loader" *ngIf="searchingUsers">
+          <div class="spinner"></div>
+          <span>Searching user accounts...</span>
+        </div>
+
+        <!-- Search Results List -->
+        <div class="user-results-list" *ngIf="!searchingUsers && searchedUsers.length > 0">
+          <div class="user-result-row" *ngFor="let user of searchedUsers">
+            <div class="user-info">
+              <strong>{{ user.name }}</strong>
+              <small>{{ user.email }} (Role: {{ user.role }})</small>
+            </div>
+            <button 
+              type="button" 
+              class="btn-promote-user"
+              [disabled]="saving"
+              (click)="promoteUser(user)"
+            >
+              Promote to Mentor
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty Results -->
+        <div class="modal-empty-results" *ngIf="!searchingUsers && userSearchText && searchedUsers.length === 0">
+          No matching active users found who aren't already mentors.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Checklist Modal -->
+  <div class="modal-backdrop" *ngIf="showVerificationModal">
+    <div class="modal-card verification-modal">
+      <div class="modal-header">
+        <div>
+          <h2>Verification Checklist</h2>
+          <small class="mentor-subtitle" *ngIf="selectedMentorForVerification">
+            For: <strong>{{ selectedMentorForVerification.name }}</strong> ({{ selectedMentorForVerification.email }})
+          </small>
+        </div>
+        <button type="button" class="btn-close" (click)="closeVerificationModal()">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-instruction">
+          Admin must review and confirm at least <strong>60% (3 out of 5 steps)</strong> of the checklist items to enable public publishing for this mentor.
+        </p>
+
+        <!-- Progress Indicator -->
+        <div class="progress-container">
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar-fill" [style.width.%]="verificationScore" [ngClass]="{'pass-bar': verificationScore >= 60}"></div>
+          </div>
+          <div class="progress-labels">
+            <span>Eligibility Score: <strong>{{ verificationScore }}%</strong></span>
+            <span class="score-badge" [ngClass]="{'pass-badge': verificationScore >= 60, 'fail-badge': verificationScore < 60}">
+              {{ verificationScore >= 60 ? '🟢 ELIGIBLE TO PUBLISH' : '🔴 INELIGIBLE (MIN 60% REQUIRED)' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="checklist-items-list">
+          <!-- Item 1: Identity Verified -->
+          <label class="checklist-item-row">
+            <input type="checkbox" [(ngModel)]="verifyIdentity" class="checklist-checkbox" />
+            <div class="checklist-text">
+              <strong>1. Government ID & Identity Proof Verified (20%)</strong>
+              <p>Verify that the mentor's identity matches their government issued PAN, Aadhaar, Passport, or DL.</p>
+            </div>
+          </label>
+
+          <!-- Item 2: Company ID Verified -->
+          <label class="checklist-item-row">
+            <input type="checkbox" [(ngModel)]="verifyCompany" class="checklist-checkbox" />
+            <div class="checklist-text">
+              <strong>2. Current Company & Employee ID Verification (20%)</strong>
+              <p>Check their corporate email ID, work badge, offer letter, or payslips matching their current company.</p>
+            </div>
+          </label>
+
+          <!-- Item 3: LinkedIn Profile Matches -->
+          <label class="checklist-item-row">
+            <input type="checkbox" [(ngModel)]="verifyLinkedin" class="checklist-checkbox" />
+            <div class="checklist-text">
+              <strong>3. Professional LinkedIn Audit (20%)</strong>
+              <p>Verify that their public LinkedIn profile matches the company, role, and years of experience.</p>
+            </div>
+          </label>
+
+          <!-- Item 4: Certifications & Degrees -->
+          <label class="checklist-item-row">
+            <input type="checkbox" [(ngModel)]="verifyCert" class="checklist-checkbox" />
+            <div class="checklist-text">
+              <strong>4. Certifications & Degree Verification (20%)</strong>
+              <p>Review engineering degrees, tech certificates, and validation codes to ensure academic legitimacy.</p>
+            </div>
+          </label>
+
+          <!-- Item 5: Interview & Agreement Signed -->
+          <label class="checklist-item-row">
+            <input type="checkbox" [(ngModel)]="verifyTerms" class="checklist-checkbox" />
+            <div class="checklist-text">
+              <strong>5. Screen Session & Mediation Terms Signed (20%)</strong>
+              <p>Onboard mentor through a brief screening call and confirm they agreed to mediation and anti-fraud terms.</p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Document URL -->
+        <div class="document-section">
+          <label class="doc-label">Verification Document Reference Link</label>
+          <input
+            type="text"
+            [(ngModel)]="verifyDocumentUrl"
+            placeholder="Paste Google Drive/S3 link to PDF/Image of verification docs..."
+            class="modal-search-input"
+          />
+          <small class="doc-help" *ngIf="verifyDocumentUrl">
+            <a [href]="verifyDocumentUrl" target="_blank" class="doc-preview-link">🔗 View Document Reference</a>
+          </small>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="ghost" (click)="closeVerificationModal()">Cancel</button>
+          <button
+            type="button"
+            class="btn-save-verification"
+            [disabled]="saving"
+            (click)="saveVerification()"
+          >
+            {{ saving ? 'Saving Checkpoints...' : 'Save Checklist 🛡️' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

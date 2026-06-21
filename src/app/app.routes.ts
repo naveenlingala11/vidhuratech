@@ -9,6 +9,9 @@ import { Contact } from './pages/contact/contact';
 import { Curriculum } from './pages/curriculum/curriculum';
 import { Placements } from './pages/placements/placements';
 import { Resume } from './pages/resume/resume';
+import { ResumeLanding } from './pages/resume-landing/resume-landing';
+import { ResumeScanner } from './pages/resume-scanner/resume-scanner';
+import { ResumeCustomizer } from './pages/resume-customizer/resume-customizer';
 import { Jobs } from './pages/jobs/jobs';
 import { JobDetail } from './pages/job-detail/job-detail';
 import { JobsHome } from './pages/jobs-home/jobs-home';
@@ -52,6 +55,7 @@ import { CertificateComponent } from './admin/certificate/certificate';
 import { InvoiceComponent } from './admin/invoice/invoice';
 import { InvoiceAnalytics } from './admin/invoice-analytics/invoice-analytics';
 import { ManageTrainersComponent } from './admin/manage-trainers/manage-trainers';
+import { ManageMentorsComponent } from './admin/manage-mentors/manage-mentors';
 
 /* =========================
    DASHBOARD
@@ -137,6 +141,20 @@ import { CodingContestsComponent } from './features/public/coding-contests/codin
 import { PricingPlansComponent } from './pages/pricing-plans/pricing-plans';
 import { AdminPlanAccessComponent } from './admin/plan-access/plan-access/plan-access';
 import { PremiumLeaderboardComponent } from './shared/components/premium-leaderboard/premium-leaderboard/premium-leaderboard';
+import { Mentors } from './pages/mentors/mentors';
+import { MentorDetail } from './pages/mentors/mentor-detail/mentor-detail';
+import { MentorProfileEdit } from './dashboard/mentor-dashboard/mentor-profile-edit/mentor-profile-edit';
+import { MentorRegisterComponent } from './pages/mentors/mentor-register/mentor-register';
+import { MentorMenteesComponent } from './dashboard/mentor-dashboard/mentor-mentees/mentor-mentees';
+import { MentorSessionsComponent } from './dashboard/mentor-dashboard/mentor-sessions/mentor-sessions';
+import { MentorEarningsComponent } from './dashboard/mentor-dashboard/mentor-earnings/mentor-earnings';
+import { MentorAvailabilityComponent } from './dashboard/mentor-dashboard/mentor-availability/mentor-availability';
+import { StudentMyMentorsComponent } from './dashboard/student-pages/student-my-mentors/student-my-mentors';
+import { StudentMentorSessionsComponent } from './dashboard/student-pages/student-mentor-sessions/student-mentor-sessions';
+import { StudentMentorProgressComponent } from './dashboard/student-pages/student-mentor-progress/student-mentor-progress';
+import { MentorChatComponent } from './dashboard/shared/mentor-chat/mentor-chat';
+import { MentorQaListComponent } from './pages/mentors/mentor-qa-list/mentor-qa-list';
+import { MentorQaDetailComponent } from './pages/mentors/mentor-qa-detail/mentor-qa-detail';
 
 export const routes: Routes = [
   /* =========================
@@ -150,7 +168,11 @@ export const routes: Routes = [
   { path: 'contact', component: Contact },
   { path: 'curriculum', component: Curriculum },
   { path: 'placements', component: Placements },
-  { path: 'resume', component: Resume },
+  { path: 'resume', component: ResumeLanding },
+  { path: 'resume-workspace', component: Resume },
+  { path: 'resume-scanner', component: ResumeScanner },
+  { path: 'resume-customizer', component: ResumeCustomizer },
+  { path: 'resume-guide', component: Resume },
   { path: 'jobs', component: Jobs },
   { path: 'jobs/:id', component: JobDetail },
   { path: 'jobs-home', component: JobsHome },
@@ -164,6 +186,14 @@ export const routes: Routes = [
   { path: 'practice', component: PublicPracticeComponent },
   { path: 'practice/:type/:id', component: PublicPracticeComponent },
   { path: 'leaderboard', component: PremiumLeaderboardComponent },
+  { path: 'mentors', component: Mentors },
+  { path: 'mentors/register', component: MentorRegisterComponent },
+  { path: 'mentors/:id', component: MentorDetail },
+  { path: 'profile/:id', component: MentorDetail },
+  { path: 'ping-room', component: MentorQaListComponent },
+  { path: 'ping-room/:id', component: MentorQaDetailComponent },
+  { path: 'qa', redirectTo: 'ping-room', pathMatch: 'full' },
+  { path: 'qa/:id', redirectTo: 'ping-room/:id', pathMatch: 'full' },
   /* =========================
      POLICY ROUTES
   ========================= */
@@ -296,6 +326,36 @@ export const routes: Routes = [
         component: NotificationsComponent,
         canActivate: [roleGuard(['MENTOR'])],
       },
+      {
+        path: 'mentor/edit-profile',
+        component: MentorProfileEdit,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/mentees',
+        component: MentorMenteesComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/sessions',
+        component: MentorSessionsComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/earnings',
+        component: MentorEarningsComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/availability',
+        component: MentorAvailabilityComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/chat/:relationId',
+        component: MentorChatComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
 
       /* --- SETTINGS PAGES FOR ALL ROLES --- */
 
@@ -425,6 +485,11 @@ export const routes: Routes = [
         canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
       },
       {
+        path: 'admin/manage-mentors',
+        component: ManageMentorsComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+      },
+      {
         path: 'admin/plan-access',
         component: AdminPlanAccessComponent,
         canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
@@ -516,6 +581,26 @@ export const routes: Routes = [
       {
         path: 'student/interview-questions',
         component: StudentInterviewQuestionsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
+        path: 'student/my-mentors',
+        component: StudentMyMentorsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
+        path: 'student/mentor-sessions',
+        component: StudentMentorSessionsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
+        path: 'student/mentor-progress',
+        component: StudentMentorProgressComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
+        path: 'student/chat/:relationId',
+        component: MentorChatComponent,
         canActivate: [roleGuard(['STUDENT'])],
       },
 
@@ -665,6 +750,11 @@ export const routes: Routes = [
   {
     path: 'dashboard/admin/manage-trainers',
     component: ManageTrainersComponent,
+    canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN'])],
+  },
+  {
+    path: 'dashboard/admin/manage-mentors',
+    component: ManageMentorsComponent,
     canActivate: [authGuard, roleGuard(['ADMIN', 'SUPER_ADMIN'])],
   },
   {

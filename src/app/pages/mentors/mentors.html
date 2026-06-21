@@ -1,0 +1,1578 @@
+<div class="mentors-container">
+  <!-- Immersive Interactive Hero Section -->
+  <div class="mentors-hero-section">
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+    
+    <div class="hero-split-layout">
+      <!-- Hero Left Content -->
+      <div class="hero-left">
+        <span class="badge-premium">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="badge-icon-svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+          Premium 1:1 Mentorship Console
+        </span>
+        <h1>Accelerate Your Tech Journey With Premium Mentorship</h1>
+        <p>Skip intermediate queues. Connect directly with software architects, frontend experts, backend developers, and product leads. Coordinate Mock interviews, System Design roadmaps, and Resume reviews via 1:1 sessions.</p>
+        
+        <div class="hero-actions-row">
+          <button (click)="openMatchWizard()" class="btn-hero-matchmaker">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Interactive Match-Maker
+          </button>
+          <a routerLink="/mentors/register" class="btn-hero-mentor-signup">
+            Become a Mentor
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-num">50+</span>
+            <span class="stat-lbl">Active Experts</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">100%</span>
+            <span class="stat-lbl">Direct Access</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">98%</span>
+            <span class="stat-lbl">Success Rate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Right: Dynamic Match Finder Console -->
+      <div class="hero-right">
+        <div class="match-finder-console">
+          <div class="console-header">
+            <div class="console-dot-group">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="console-title">Vidhura Matching Engine</span>
+          </div>
+          
+          <div class="console-body" *ngIf="!isMatchingActive">
+            <h3>Find Your Perfect Mentor</h3>
+            <p>Select your target domain and experience to run the matching algorithm.</p>
+            
+            <div class="console-field">
+              <label>Target Domain</label>
+              <div class="custom-select-wrapper">
+                <select [(ngModel)]="matchDomain" class="console-select">
+                  <option value="">Select Domain</option>
+                  <option *ngFor="let dom of domains" [value]="dom">{{dom}}</option>
+                </select>
+                <svg class="select-caret" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="console-field">
+              <label>Professional Tenure</label>
+              <div class="console-tenure-grid">
+                <button 
+                  type="button" 
+                  *ngFor="let exp of experienceRanges | slice:1:5" 
+                  class="tenure-console-btn"
+                  [class.active]="matchExperience === exp.value"
+                  (click)="matchExperience = exp.value"
+                >
+                  {{ exp.label }}
+                </button>
+              </div>
+            </div>
+
+            <button class="btn-console-submit" (click)="runMatchFinder()">
+              <span>Run Matcher Console</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Matching Loading Screen state -->
+          <div class="console-matching-screen" *ngIf="isMatchingActive">
+            <div class="matching-spinner-wrapper">
+              <div class="console-spinner"></div>
+              <span class="matching-percent">{{ matchingProgress }}%</span>
+            </div>
+            <h4>{{ matchingStatusText }}</h4>
+            <div class="console-progress-track">
+              <div class="console-progress-fill" [style.width.%]="matchingProgress"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Activity Ticker -->
+  <div class="live-activity-ticker-container">
+    <div class="live-ticker-label">
+      <span class="pulse-red-indicator"></span>
+      LIVE BOOKINGS:
+    </div>
+    <div class="live-ticker-track">
+      <div class="live-ticker-content">
+        <span *ngFor="let item of liveUpdates" class="ticker-item">
+          <svg class="ticker-dot" xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 8 8" fill="currentColor">
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+          <span class="ticker-text">{{ item.text }}</span>
+          <span class="ticker-time">{{ item.time }}</span>
+        </span>
+        <!-- Duplicate for infinite marquee scroll -->
+        <span *ngFor="let item of liveUpdates" class="ticker-item">
+          <svg class="ticker-dot" xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 8 8" fill="currentColor">
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+          <span class="ticker-text">{{ item.text }}</span>
+          <span class="ticker-time">{{ item.time }}</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Infinite Sliding Brand Logo Marquee -->
+  <div class="company-marquee-section">
+    <span class="marquee-title-lbl">OUR MENTORS WORK AT</span>
+    <div class="marquee-wrapper">
+      <div class="marquee-track">
+        <div *ngFor="let comp of companyLogos" class="marquee-logo-card">
+          <span class="marquee-dot"></span>
+          {{ comp }}
+        </div>
+        <!-- Duplicate for infinite seamless scroll -->
+        <div *ngFor="let comp of companyLogos" class="marquee-logo-card">
+          <span class="marquee-dot"></span>
+          {{ comp }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotlight Recommendations -->
+  <div class="spotlight-section" *ngIf="!loading && spotlightMentors.length > 0">
+    <div class="spotlight-header-row">
+      <span class="spotlight-tag">🔥 Spotlight Recommended</span>
+      <h2>Industry Veterans Recommended By Students</h2>
+      <p>Consult directly with software architects and technical leads guiding key product teams.</p>
+    </div>
+    
+    <div class="spotlight-grid">
+      <div *ngFor="let mentor of spotlightMentors" class="spotlight-card">
+        <div class="spotlight-card-glow"></div>
+        <div class="spotlight-card-inner">
+          <div class="spotlight-main-row">
+            <div class="spotlight-avatar-box">
+              <img *ngIf="mentor.profileImageUrl" [src]="mentor.profileImageUrl" [alt]="mentor.name" />
+              <div *ngIf="!mentor.profileImageUrl" class="spotlight-fallback">
+                {{ mentor.name.charAt(0).toUpperCase() }}
+              </div>
+              <span class="active-pulse-dot"></span>
+            </div>
+            
+            <div class="spotlight-meta">
+              <h3>{{ mentor.name }}</h3>
+              <p class="role-company">{{ mentor.currentRole }} at <strong>{{ mentor.currentCompany }}</strong></p>
+              <div class="rating-strip">
+                <span class="rating-badge-spot">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  {{ mentor.rating }}
+                </span>
+                <span class="reviews-lbl">({{ mentor.reviewsCount }} reviews)</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="spotlight-bio" *ngIf="mentor.biography">
+            "{{ mentor.biography | slice:0:110 }}..."
+          </p>
+
+          <div class="spotlight-skills">
+            <span *ngFor="let skill of getSkillsList(mentor.skills) | slice:0:3" class="spotlight-skill-tag">
+              {{ skill }}
+            </span>
+          </div>
+
+          <div class="spotlight-footer">
+            <div class="spotlight-pricing">
+              <span class="price-lbl">MONTHLY RATE</span>
+              <span class="price-val">₹{{ mentor.pricePerMonth || (mentor.pricePerHour ? mentor.pricePerHour * 4 : 3999) }}/mo</span>
+            </div>
+            <button (click)="openBookingModal(mentor, undefined, 'monthly')" class="btn-spotlight-cta">
+              Book WhatsApp Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works Flow Chart -->
+  <div class="how-it-works-section">
+    <div class="section-header">
+      <span class="sub-title">System Architecture</span>
+      <h2>How Direct Mentorship Works</h2>
+      <p>Coordinate learning blocks directly with industry leads in 4 simple steps.</p>
+    </div>
+    
+    <div class="flow-steps-grid">
+      <div class="flow-card" (click)="setActiveStep(1)" [class.active]="activeStep === 1">
+        <div class="flow-num">01</div>
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <h3>Select Your Expert</h3>
+        <p>Browse verified leaders. Filter dynamically by domain, role, company or budget range.</p>
+      </div>
+
+      <div class="flow-card" (click)="setActiveStep(2)" [class.active]="activeStep === 2">
+        <div class="flow-num">02</div>
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h3>Add Booking Details</h3>
+        <p>Select your consultation topic and describe what goals you want to achieve.</p>
+      </div>
+
+      <div class="flow-card" (click)="setActiveStep(3)" [class.active]="activeStep === 3">
+        <div class="flow-num">03</div>
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </div>
+        <h3>WhatsApp Handshake</h3>
+        <p>Vidhura's router redirects you instantly to their personal WhatsApp with a context checklist.</p>
+      </div>
+
+      <div class="flow-card" (click)="setActiveStep(4)" [class.active]="activeStep === 4">
+        <div class="flow-num">04</div>
+        <div class="flow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h3>Live Coordination</h3>
+        <p>Arrange video sessions directly. Share code bases, hold mock runs and get continuous support.</p>
+      </div>
+    </div>
+
+    <!-- Stepper Timeline line -->
+    <div class="flow-timeline">
+      <div class="timeline-bar-line">
+        <div class="timeline-bar-fill" [style.width.%]="(activeStep - 1) * 33.33"></div>
+      </div>
+      <div class="timeline-nodes">
+        <div class="node" [class.active]="activeStep >= 1" (click)="setActiveStep(1)">1</div>
+        <div class="node" [class.active]="activeStep >= 2" (click)="setActiveStep(2)">2</div>
+        <div class="node" [class.active]="activeStep >= 3" (click)="setActiveStep(3)">3</div>
+        <div class="node" [class.active]="activeStep >= 4" (click)="setActiveStep(4)">4</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mentorship Services & Support Spectrum -->
+  <div class="mentorship-services-section">
+    <div class="section-header">
+      <span class="sub-title">spectrum of support</span>
+      <h2>Direct Mentorship Services For Career Growth</h2>
+      <p>Our mentors don't just teach code—they groom your entire professional blueprint.</p>
+    </div>
+
+    <div class="services-dashboard-grid">
+      <!-- Card 1 -->
+      <div class="service-deck-card">
+        <div class="service-deck-icon bg-purple-tint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3>Mock Interviews & Whiteboarding</h3>
+        <p>Prepare under real exam conditions. Experience whiteboard coding questions modeled after top product company loops.</p>
+        <ul class="service-checklist">
+          <li>System Design (HLD/LLD) master sessions</li>
+          <li>DSA live whiteboard and execution coding drills</li>
+          <li>Detailed, rubric-based feedback scorecard</li>
+        </ul>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="service-deck-card">
+        <div class="service-deck-icon bg-blue-tint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </div>
+        <h3>References & Referrals</h3>
+        <p>Unlock internal referrals. Mentors guide you on preparing clean submissions that engineers are proud to advocate for.</p>
+        <ul class="service-checklist">
+          <li>Review of project reference materials</li>
+          <li>Advocate recommendations on resumes</li>
+          <li>Guidance on approaching hiring pipelines</li>
+        </ul>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="service-deck-card">
+        <div class="service-deck-icon bg-teal-tint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <h3>IT Environment Experience</h3>
+        <p>Learn what occurs after deployment. Understand daily operations, Agile sprint processes, and production monitoring stacks.</p>
+        <ul class="service-checklist">
+          <li>CI/CD, code review pipelines, and Git strategies</li>
+          <li>How architectural decisions impact production scale</li>
+          <li>Best practices in microservice testing cycles</li>
+        </ul>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="service-deck-card">
+        <div class="service-deck-icon bg-amber-tint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3>IT Lifestyle & Time Management</h3>
+        <p>Build sustainable habits. Master managing multiple tasks, navigating product deadlines, and avoiding developer burnout.</p>
+        <ul class="service-checklist">
+          <li>Time estimation and project sprint planning</li>
+          <li>Balancing technical debt vs feature development</li>
+          <li>Maintaining healthy work-life boundaries in tech</li>
+        </ul>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="service-deck-card">
+        <div class="service-deck-icon bg-rose-tint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.286L13 21l-2.286-6.857L5 12l5.714-2.286L13 3z" />
+          </svg>
+        </div>
+        <h3>Professional Grooming</h3>
+        <p>Polish your corporate presentation. Master clear communication with product managers, clients, and technical stakeholders.</p>
+        <ul class="service-checklist">
+          <li>Presenting complex technical designs cleanly</li>
+          <li>Behavioral questions (STAR method) preparation</li>
+          <li>Effective negotiation and career networking</li>
+        </ul>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="service-deck-card">
+        <div class="service-deck-icon bg-indigo-tint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h3>Motivation & Mindset Coaching</h3>
+        <p>Overcome imposter syndrome. Build a resilient mindset to navigate challenging projects, code bases, and performance reviews.</p>
+        <ul class="service-checklist">
+          <li>Building confidence for tech leads transitions</li>
+          <li>Strategies for handling constructive critiques</li>
+          <li>Long-term engineering goal setting and accountability</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Directory Controls (Tabs) -->
+  <div class="category-tabs-wrapper">
+    <div class="category-tabs-list">
+      <button 
+        class="category-tab-btn" 
+        [class.active]="activeCategoryTab === 'all'" 
+        (click)="selectCategoryTab('all')">
+        🌐 All Experts
+      </button>
+      <button 
+        class="category-tab-btn" 
+        [class.active]="activeCategoryTab === 'dsa'" 
+        (click)="selectCategoryTab('dsa')">
+        🧩 DSA & Coding
+      </button>
+      <button 
+        class="category-tab-btn" 
+        [class.active]="activeCategoryTab === 'system_design'" 
+        (click)="selectCategoryTab('system_design')">
+        🏗️ System Design
+      </button>
+      <button 
+        class="category-tab-btn" 
+        [class.active]="activeCategoryTab === 'frontend'" 
+        (click)="selectCategoryTab('frontend')">
+        🎨 Frontend / UI
+      </button>
+      <button 
+        class="category-tab-btn" 
+        [class.active]="activeCategoryTab === 'backend'" 
+        (click)="selectCategoryTab('backend')">
+        ⚙️ Backend / Cloud
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Split Directory Layout -->
+  <div class="directory-layout">
+    <!-- Left Column: Sticky Control Console -->
+    <div class="filters-sidebar-col">
+      <div class="filters-panel">
+        <div class="panel-header">
+          <h3>Refine Matches</h3>
+          <button class="btn-clear-all" (click)="resetFilters()">Reset All</button>
+        </div>
+
+        <!-- Query Search -->
+        <div class="filter-group">
+          <label>Query Search</label>
+          <div class="search-box-wrapper">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              type="text" 
+              [(ngModel)]="searchText" 
+              (input)="onSearch()" 
+              placeholder="Name, role, company, skills..."
+              class="search-input"
+            />
+            <button *ngIf="searchText" class="clear-btn" (click)="searchText = ''; applyFilters()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Tags -->
+        <div class="quick-tags-panel">
+          <span class="quick-tags-title">Popular Tags</span>
+          <div class="quick-tags-grid">
+            <button 
+              *ngFor="let tag of quickTags | slice:0:8" 
+              (click)="applyQuickTag(tag)" 
+              class="quick-tag-pill"
+              [class.active]="searchText.toLowerCase() === tag.toLowerCase()">
+              {{ tag }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Domain Dropdown Filter -->
+        <div class="filter-group select-group">
+          <label>Domain Area</label>
+          <div class="custom-select-wrapper">
+            <select [(ngModel)]="selectedDomain" (change)="applyFilters()" class="filter-select">
+              <option value="">All Domains</option>
+              <option *ngFor="let dom of domains" [value]="dom">{{dom}}</option>
+            </select>
+            <svg class="select-caret" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Multi-select Tech Skills Filter -->
+        <div class="filter-group">
+          <label>Filter by Technologies</label>
+          <div class="tech-skills-checklist">
+            <label *ngFor="let skill of skillsList" class="skill-chk-item">
+              <input 
+                type="checkbox" 
+                [checked]="isSkillSelected(skill)" 
+                (change)="toggleSkillFilter(skill)"
+              />
+              <span class="chk-label">{{ skill }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Premium Experience Card Selectors -->
+        <div class="filter-group">
+          <label>Professional Tenure</label>
+          <div class="experience-cards-grid">
+            <button 
+              *ngFor="let exp of experienceRanges" 
+              (click)="selectedExperience = exp.value; applyFilters()"
+              class="exp-filter-card"
+              [class.active]="selectedExperience === exp.value"
+            >
+              {{ exp.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Language Dropdown Filter -->
+        <div class="filter-group select-group">
+          <label>Primary Language</label>
+          <div class="custom-select-wrapper">
+            <select [(ngModel)]="selectedLanguage" (change)="applyFilters()" class="filter-select">
+              <option value="">All Languages</option>
+              <option *ngFor="let lang of languages" [value]="lang">{{lang}}</option>
+            </select>
+            <svg class="select-caret" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Sliding Price Indicator -->
+        <div class="filter-group price-slider-group">
+          <div class="slider-labels">
+            <label>Max Price/Month</label>
+            <span class="price-val">{{ maxPrice ? '₹' + maxPrice + '/mo' : 'Unlimited' }}</span>
+          </div>
+          <div class="slider-track-container">
+            <input 
+              type="range" 
+              min="0" 
+              max="50000" 
+              step="1000" 
+              [(ngModel)]="maxPrice" 
+              (input)="applyFilters()" 
+              class="premium-range-slider"
+            />
+          </div>
+        </div>
+
+        <!-- Featured Switch Toggle -->
+        <div class="filter-group toggle-group">
+          <span class="toggle-label">Verified Matches Only</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="featuredOnly" (change)="applyFilters()">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Session Pricing Estimator Card -->
+      <div class="estimator-widget-card">
+        <div class="estimator-header">
+          <div class="est-icon-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div class="est-title-wrap">
+            <h4>Package Calculator</h4>
+            <p>Estimate monthly retainer packages</p>
+          </div>
+        </div>
+        
+        <div class="estimator-body">
+          <div class="estimator-field">
+            <label>Mentorship Focus</label>
+            <div class="custom-select-wrapper">
+              <select [(ngModel)]="selectedCalcTopic" (change)="calculateCosts()" class="estimator-select">
+                <option value="dsa">DSA & coding prep</option>
+                <option value="system_design">System Design Architecture</option>
+                <option value="mock_interview">Mock Interview prep</option>
+                <option value="resume_audit">ATS Resume Audit</option>
+              </select>
+              <svg class="select-caret" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          
+          <div class="estimator-field">
+            <div class="field-label-row">
+              <label>Duration</label>
+              <span class="hours-val">{{ calcMonths }} Month(s)</span>
+            </div>
+            <input 
+              type="range" 
+              min="1" 
+              max="6" 
+              step="1" 
+              [(ngModel)]="calcMonths" 
+              (input)="calculateCosts()" 
+              class="estimator-range-slider"
+            />
+          </div>
+          
+          <div class="estimator-output">
+            <span class="output-label">Estimated Retainer Cost</span>
+            <span class="output-price">₹{{ calculatedMinCost }} - ₹{{ calculatedMaxCost }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive WhatsApp Chat Sandbox Widget -->
+      <div class="chat-sandbox-widget-card" *ngIf="chatMentor">
+        <div class="sandbox-header">
+          <div class="sandbox-avatar">
+            <img *ngIf="chatMentor.profileImageUrl" [src]="chatMentor.profileImageUrl" [alt]="chatMentor.name" />
+            <div *ngIf="!chatMentor.profileImageUrl" class="fallback">{{ chatMentor.name.charAt(0) }}</div>
+            <span class="active-dot"></span>
+          </div>
+          <div class="sandbox-meta">
+            <h4>WhatsApp Sandbox</h4>
+            <p>Direct chat preview with {{ chatMentor.name }}</p>
+          </div>
+        </div>
+        <div class="sandbox-chat-body">
+          <div class="sandbox-message-list">
+            <div *ngFor="let msg of chatMessages" class="sandbox-bubble" [class.user]="msg.sender === 'user'" [class.mentor]="msg.sender === 'mentor'">
+              <p>{{ msg.text }}</p>
+              <span class="bubble-time">{{ msg.time }}</span>
+            </div>
+            <div class="sandbox-bubble mentor typing-bubble" *ngIf="isChatTyping">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
+        </div>
+        <div class="sandbox-chat-footer">
+          <input 
+            type="text" 
+            [(ngModel)]="currentChatMessage" 
+            (keyup.enter)="sendSandboxMessage()" 
+            placeholder="Type a coding question..."
+            class="sandbox-chat-input"
+          />
+          <button class="btn-sandbox-send" (click)="sendSandboxMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Results Grid (Overhauled Widescreen Cards Layout) -->
+    <div class="results-col">
+      <!-- Search info row -->
+      <div class="results-meta-header" *ngIf="!loading">
+        <span class="count-text">
+          Vidhura Directory holds <strong>{{filteredMentors.length}}</strong> matching mentors
+        </span>
+        
+        <!-- Advanced Sorting Control -->
+        <div class="sort-control-wrapper">
+          <label for="sort-select">Sort By:</label>
+          <select id="sort-select" [(ngModel)]="sortBy" (change)="applyFilters()" class="sort-dropdown">
+            <option value="rating">★ Highest Rating</option>
+            <option value="popularity">🔥 Most Popular</option>
+            <option value="experience">💼 Tenure / Experience</option>
+            <option value="price">🪙 Retainer: Low to High</option>
+            <option *ngIf="sortBy === 'match'" value="match">🎯 Compatibility Match</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Active Filter Badges -->
+      <div class="active-chips-bar" *ngIf="!loading && (searchText || selectedDomain || selectedExperience || selectedLanguage || maxPrice || featuredOnly || activeCategoryTab !== 'all' || selectedSkills.length > 0)">
+        <span class="chip-label">Filters active:</span>
+        <span *ngIf="activeCategoryTab !== 'all'" class="filter-badge" (click)="selectCategoryTab('all')">
+          Tab: {{ activeCategoryTab.toUpperCase() }} ✕
+        </span>
+        <span *ngIf="searchText" class="filter-badge" (click)="searchText = ''; applyFilters()">
+          "{{searchText}}" ✕
+        </span>
+        <span *ngIf="selectedDomain" class="filter-badge" (click)="selectedDomain = ''; applyFilters()">
+          {{selectedDomain}} ✕
+        </span>
+        <span *ngIf="selectedExperience" class="filter-badge" (click)="selectedExperience = ''; applyFilters()">
+          {{selectedExperience}} Yrs ✕
+        </span>
+        <span *ngIf="selectedLanguage" class="filter-badge" (click)="selectedLanguage = ''; applyFilters()">
+          🗣️ {{selectedLanguage}} ✕
+        </span>
+        <span *ngIf="maxPrice" class="filter-badge" (click)="maxPrice = null; applyFilters()">
+          ₹{{maxPrice}} limit ✕
+        </span>
+        <span *ngIf="featuredOnly" class="filter-badge" (click)="featuredOnly = false; applyFilters()">
+          ★ Verified Leads ✕
+        </span>
+        <span *ngFor="let skill of selectedSkills" class="filter-badge" (click)="toggleSkillFilter(skill)">
+          Tag: {{skill}} ✕
+        </span>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="state-container card-shadow">
+        <div class="spinner-loader"></div>
+        <p class="loading-msg">Searching verified rosters...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="errorMessage" class="state-container error card-shadow">
+        <p class="error-msg">{{errorMessage}}</p>
+        <button class="btn-primary" (click)="loadMentors()">Retry</button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && filteredMentors.length === 0" class="state-container empty card-shadow">
+        <h3>No Matching Experts Found</h3>
+        <p>Adjust your search filters or range calculators to explore other mentors.</p>
+        <button class="btn-primary" (click)="resetFilters()">Reset Filters</button>
+      </div>
+
+      <!-- Widescreen Feed Grid -->
+      <div *ngIf="!loading && filteredMentors.length > 0" class="widescreen-feed-grid">
+        <div *ngFor="let mentor of filteredMentors" class="mentor-card-widescreen" [class.featured-gold-card]="mentor.featured">
+          <!-- Company Watermark -->
+          <div class="card-company-watermark" *ngIf="mentor.currentCompany">{{ mentor.currentCompany }}</div>
+
+          <div class="widescreen-card-inner">
+            <!-- Left Side: Profile Info & Bio -->
+            <div class="card-profile-column">
+              <div class="profile-avatar-row">
+                <div class="avatar-squircle-wrap" (click)="selectSandboxMentor(mentor)" title="Click to chat in WhatsApp Sandbox">
+                  <img *ngIf="mentor.profileImageUrl" [src]="mentor.profileImageUrl" [alt]="mentor.name" />
+                  <div *ngIf="!mentor.profileImageUrl" class="avatar-fallback-premium">
+                    {{ mentor.name ? mentor.name.charAt(0).toUpperCase() : 'M' }}
+                  </div>
+                  <span class="active-pulse-dot"></span>
+                </div>
+
+                <div class="profile-name-title">
+                  <div class="name-badge-row">
+                    <h3>{{mentor.name}}</h3>
+                    <span *ngIf="mentor.featured" class="gold-match-pill">Verified Lead</span>
+                    <!-- Compatibility Score badge -->
+                    <span *ngIf="mentorScores[mentor.userId]" class="compatibility-match-badge">
+                      🎯 {{ mentorScores[mentor.userId] }}% Match
+                    </span>
+                  </div>
+                  <p class="role-company-line">
+                    {{mentor.currentRole}} at <span class="highlight-company">{{mentor.currentCompany}}</span>
+                  </p>
+                  
+                  <div class="ratings-line">
+                    <span class="rating-badge-spot">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <strong>{{mentor.rating}}</strong>
+                    </span>
+                    <span class="reviews-count-text">({{mentor.reviewsCount}} verified consultations)</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="biography-text" *ngIf="mentor.biography">
+                "{{ mentor.biography | slice:0:160 }}..."
+              </p>
+
+              <div class="experience-pill-strip">
+                <span class="exp-badge">💼 <strong>{{mentor.yearsOfExperience}} Yrs</strong> Experience</span>
+                <span class="lang-badge" *ngIf="mentor.languages">🗣️ speaks: {{mentor.languages}}</span>
+              </div>
+
+              <!-- Skills Row -->
+              <div class="skills-wrap">
+                <span *ngFor="let skill of getSkillsList(mentor.skills) | slice:0:4" class="skill-tag">
+                  {{skill}}
+                </span>
+                <span *ngIf="getSkillsList(mentor.skills).length > 4" class="more-skills">
+                  +{{getSkillsList(mentor.skills).length - 4}} more
+                </span>
+              </div>
+
+              <!-- Social Buttons & Compare Checkbox -->
+              <div class="social-compare-row">
+                <div class="social-btn-strip" *ngIf="mentor.linkedinUrl || mentor.githubUrl">
+                  <a *ngIf="mentor.linkedinUrl" [href]="mentor.linkedinUrl" target="_blank" class="social-round-btn linkedin">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                  </a>
+                  <a *ngIf="mentor.githubUrl" [href]="mentor.githubUrl" target="_blank" class="social-round-btn github">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                  </a>
+                </div>
+                <label class="compare-checkbox-label">
+                  <input 
+                    type="checkbox" 
+                    [checked]="isCompareChecked(mentor)" 
+                    (change)="toggleCompareMentor(mentor)"
+                    class="compare-chk-input"
+                  />
+                  <span>Compare Mentor</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Right Side: Package Selector Workspace -->
+            <div class="card-workspace-column">
+              <div class="package-tabs-deck">
+                <button 
+                  type="button" 
+                  class="pkg-deck-btn" 
+                  [class.active]="mentor.selectedPlanType === 'trial'" 
+                  (click)="mentor.selectedPlanType = 'trial'; $event.stopPropagation()">
+                  ⚡ Trial Session
+                </button>
+                <button 
+                  type="button" 
+                  class="pkg-deck-btn" 
+                  [class.active]="mentor.selectedPlanType === 'monthly'" 
+                  (click)="mentor.selectedPlanType = 'monthly'; $event.stopPropagation()">
+                  💼 Monthly Retainer
+                </button>
+              </div>
+
+              <!-- Package details wrapper -->
+              <div class="package-details-deck">
+                <!-- Trial Session details -->
+                <div *ngIf="mentor.selectedPlanType === 'trial'" class="deck-pkg-details trial animate-fadeIn">
+                  <span class="subheading">Direct Trial Session Deliverables:</span>
+                  <ul class="features-checklist">
+                    <li><span class="check-icon">✓</span> Right-fit alignment check & roadmap</li>
+                    <li><span class="check-icon">✓</span> Identifying top system bottlenecks</li>
+                    <li><span class="check-icon">✓</span> 30-45 minutes direct video sync</li>
+                  </ul>
+                  <div class="next-available-badge">
+                    📅 Next Slot: <strong>Mon Jun 22 2026</strong>
+                  </div>
+                </div>
+
+                <!-- Monthly Retainer details -->
+                <div *ngIf="mentor.selectedPlanType === 'monthly'" class="deck-pkg-details monthly animate-fadeIn">
+                  <span class="subheading">Monthly Retainer support blueprint:</span>
+                  <ul class="features-checklist">
+                    <li><span class="check-icon">✓</span> 4 direct 1:1 mentorship syncs/month</li>
+                    <li><span class="check-icon">✓</span> Internal job referral recommendations</li>
+                    <li><span class="check-icon">✓</span> Direct WhatsApp chat thread support</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Availability Slots -->
+              <div class="booking-slots-section">
+                <span class="slots-lbl">Availability Slots:</span>
+                <div class="slots-container">
+                  <button 
+                    *ngFor="let slot of mockSlots" 
+                    (click)="openBookingModal(mentor, slot, mentor.selectedPlanType)"
+                    class="btn-slot-capsule-btn"
+                  >
+                    {{ slot }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card Action Row -->
+              <div class="card-footer-row">
+                <div class="footer-price-wrap">
+                  <span class="price-lbl">{{ mentor.selectedPlanType === 'trial' ? 'Trial Price' : 'Retainer Rate' }}</span>
+                  <span class="price-val">
+                    {{ mentor.selectedPlanType === 'trial' ? '₹99' : (mentor.pricePerMonth && mentor.pricePerMonth > 0 ? '₹' + mentor.pricePerMonth + '/mo' : (mentor.pricePerHour ? '₹' + (mentor.pricePerHour * 4) + '/mo' : '₹3,999/mo')) }}
+                  </span>
+                </div>
+                
+                <div class="action-buttons-wrap">
+                  <a [routerLink]="['/mentors', mentor.userId]" class="btn-action-outline">View Bio</a>
+                  <button (click)="openBookingModal(mentor, undefined, mentor.selectedPlanType)" class="btn-action-solid-btn">
+                    {{ mentor.selectedPlanType === 'trial' ? 'Book Trial' : 'Enroll Now' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Curriculum Comparison Checklist Grid (Replaces matrix table) -->
+  <div class="curriculum-comparison-section">
+    <div class="section-header">
+      <span class="sub-title">Program Matrix</span>
+      <h2>Why Direct 1:1 Mentorship Beats Self Learning</h2>
+      <p>Compare Vidhura Tech's direct roadmap model against traditional bootcamps.</p>
+    </div>
+
+    <div class="comparison-deck-grid">
+      <!-- Card 1: Self Learning -->
+      <div class="comparison-card">
+        <h3>Self Study & Tutorials</h3>
+        <p class="pricing-tier">Low Cost, Low Success</p>
+        <ul class="comparison-checklist">
+          <li class="negative"><span class="cross">✕</span> No real-time code reviews or debugging</li>
+          <li class="negative"><span class="cross">✕</span> Imposter syndrome without a milestones guide</li>
+          <li class="negative"><span class="cross">✕</span> Zero referral pathways or HR channels</li>
+        </ul>
+      </div>
+
+      <!-- Card 2: Vidhura Tech 1:1 -->
+      <div class="comparison-card featured-compare-card">
+        <div class="featured-badge">RECOMMENDED</div>
+        <h3>Vidhura Direct 1:1</h3>
+        <p class="pricing-tier">Highly Personalized, Direct Connection</p>
+        <ul class="comparison-checklist">
+          <li class="positive"><span class="check">✓</span> 1:1 Mock whiteboards & DSA reviews</li>
+          <li class="positive"><span class="check">✓</span> Direct WhatsApp handshake and flexible scheduling</li>
+          <li class="positive"><span class="check">✓</span> Verified referrals from tech leads</li>
+          <li class="positive"><span class="check">✓</span> Custom roadmaps resolving exact engineering tier</li>
+        </ul>
+      </div>
+
+      <!-- Card 3: Traditional Bootcamps -->
+      <div class="comparison-card">
+        <h3>Traditional Video Courses</h3>
+        <p class="pricing-tier">Expensive, Static Structure</p>
+        <ul class="comparison-checklist">
+          <li class="negative"><span class="cross">✕</span> Pre-recorded generic generic syllabus blocks</li>
+          <li class="negative"><span class="cross">✕</span> No customized attention to your resume gaps</li>
+          <li class="negative"><span class="cross">✕</span> Delayed support query tickets</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Success Testimonials -->
+  <div class="testimonials-section">
+    <div class="testimonials-header">
+      <span class="sub-title">Mentee Outplacement Wall</span>
+      <h2>Helped 500+ Professionals Transition</h2>
+      <p>Hear from engineers who accelerated their career timelines.</p>
+    </div>
+    
+    <div class="testimonials-grid">
+      <div *ngFor="let item of testimonials" class="testimonial-card">
+        <div class="stars-row">
+          <svg *ngFor="let star of [1,2,3,4,5]" class="star-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        </div>
+        <p class="quote">"{{ item.text }}"</p>
+        <div class="divider"></div>
+        <div class="author-block">
+          <div class="fallback-avatar">{{ item.avatar }}</div>
+          <div class="author-meta">
+            <h4>{{ item.name }}</h4>
+            <span class="transition-pill">{{ item.transition }}</span>
+            <span class="company-name">at {{ item.company }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Accordion FAQs -->
+  <div class="faqs-accordion-section">
+    <div class="section-header">
+      <span class="sub-title">Got questions?</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Quick facts about connecting directly with mentors.</p>
+    </div>
+
+    <div class="faqs-list">
+      <div *ngFor="let faq of faqs; let i = index" class="faq-item" [class.active]="faq.open">
+        <div class="faq-question" (click)="toggleFaq(i)">
+          <h3>{{faq.q}}</h3>
+          <span class="faq-icon-box">
+            <svg class="chevron-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </div>
+        <div class="faq-answer">
+          <p>{{faq.a}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     FLOATING MENTOR COMPARE BAR
+     ========================================== -->
+<div class="compare-floating-bar animate-slideUp" *ngIf="selectedCompareMentors.length > 0">
+  <div class="compare-bar-content">
+    <div class="compare-avatars">
+      <div class="compare-avatar-item" *ngFor="let m of selectedCompareMentors">
+        <img *ngIf="m.profileImageUrl" [src]="m.profileImageUrl" [alt]="m.name" />
+        <div *ngIf="!m.profileImageUrl" class="fallback">{{ m.name.charAt(0).toUpperCase() }}</div>
+        <button class="btn-remove-compare" (click)="toggleCompareMentor(m)">✕</button>
+      </div>
+      <span class="compare-count-lbl">
+        <strong>{{ selectedCompareMentors.length }}</strong>/3 Selected
+      </span>
+    </div>
+    <div class="compare-actions">
+      <button class="btn-compare-clear" (click)="clearCompareList()">Clear All</button>
+      <button 
+        class="btn-compare-action" 
+        [disabled]="selectedCompareMentors.length < 2" 
+        (click)="openCompareModal()"
+      >
+        Compare Side-by-Side
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     MATCH-MAKER WIZARD MODAL
+     ========================================== -->
+<div class="modal-overlay animate-fadeIn" *ngIf="showMatchWizard" (click)="closeMatchWizard()">
+  <div class="modal-card wizard-modal animate-scaleUp" (click)="$event.stopPropagation()">
+    <div class="wizard-header">
+      <div class="wizard-title-wrap">
+        <h3>🎯 Mentor Match-Maker</h3>
+        <p>Step {{ wizardStep }} of 4</p>
+      </div>
+      <button class="btn-close-modal" (click)="closeMatchWizard()">✕</button>
+    </div>
+
+    <!-- Wizard Steps -->
+    <div class="wizard-body">
+      <!-- Step 1: Goal / Domain -->
+      <div *ngIf="wizardStep === 1" class="wizard-step-content">
+        <h4>What is your target domain / career path?</h4>
+        <div class="wizard-options-grid">
+          <button 
+            *ngFor="let dom of domains" 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.domain === dom"
+            (click)="wizardAnswers.domain = dom"
+          >
+            {{ dom }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Experience level -->
+      <div *ngIf="wizardStep === 2" class="wizard-step-content">
+        <h4>What is your professional experience level?</h4>
+        <div class="wizard-options-grid">
+          <button 
+            *ngFor="let exp of experienceRanges | slice:1" 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.experience === exp.value"
+            (click)="wizardAnswers.experience = exp.value"
+          >
+            {{ exp.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Specific focus -->
+      <div *ngIf="wizardStep === 3" class="wizard-step-content">
+        <h4>Select your primary roadmap focus:</h4>
+        <div class="wizard-options-grid">
+          <button 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.focus === 'DSA'"
+            (click)="wizardAnswers.focus = 'DSA'"
+          >
+            🧩 DSA & Coding logic
+          </button>
+          <button 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.focus === 'System Design'"
+            (click)="wizardAnswers.focus = 'System Design'"
+          >
+            🏗️ System Design Architecture
+          </button>
+          <button 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.focus === 'Angular'"
+            (click)="wizardAnswers.focus = 'Angular'"
+          >
+            🎨 Angular Frontend Dev
+          </button>
+          <button 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.focus === 'Java'"
+            (click)="wizardAnswers.focus = 'Java'"
+          >
+            ⚙️ Java / Spring Boot Backend
+          </button>
+          <button 
+            class="wizard-opt-btn"
+            [class.active]="wizardAnswers.focus === 'AWS'"
+            (click)="wizardAnswers.focus = 'AWS'"
+          >
+            ☁️ AWS / Cloud Infrastructure
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Budget & Language -->
+      <div *ngIf="wizardStep === 4" class="wizard-step-content">
+        <h4>Budget & Communication Preferences</h4>
+        
+        <div class="wizard-field">
+          <label>Preferred Language</label>
+          <select [(ngModel)]="wizardAnswers.language" class="wizard-select">
+            <option value="">Any Language</option>
+            <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+          </select>
+        </div>
+
+        <div class="wizard-field">
+          <div class="wizard-slider-label">
+            <label>Maximum Monthly Budget</label>
+            <span class="val">₹{{ wizardAnswers.budget }}/mo</span>
+          </div>
+          <input 
+            type="range" 
+            min="2000" 
+            max="50000" 
+            step="1000" 
+            [(ngModel)]="wizardAnswers.budget"
+            class="wizard-slider"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="wizard-footer">
+      <button class="btn-wizard-back" *ngIf="wizardStep > 1" (click)="prevWizardStep()">Back</button>
+      <div class="flex-spacer"></div>
+      <button 
+        class="btn-wizard-next" 
+        [disabled]="(wizardStep === 1 && !wizardAnswers.domain) || (wizardStep === 2 && !wizardAnswers.experience)" 
+        (click)="nextWizardStep()"
+      >
+        {{ wizardStep === 4 ? 'Find Matches' : 'Next Step' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     MENTOR COMPARISON MODAL
+     ========================================== -->
+<div class="modal-overlay animate-fadeIn" *ngIf="showCompareModal" (click)="closeCompareModal()">
+  <div class="modal-card compare-modal-premium animate-scaleUp" (click)="$event.stopPropagation()">
+    <div class="compare-modal-header">
+      <div class="header-title-wrap">
+        <span class="premium-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Side-by-Side Match Matrix
+        </span>
+        <h3>Compare Selected Experts</h3>
+        <p>Analyze experience tiers, tech competencies, and package rates to find your perfect mentor</p>
+      </div>
+      <button class="btn-close-modal-round" (click)="closeCompareModal()" aria-label="Close Comparison">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="close-icon-svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <div class="compare-modal-body">
+      <div class="compare-grid-wrapper">
+        <table class="compare-premium-table">
+          <thead>
+            <tr>
+              <th class="attribute-col-header">
+                <span class="matrix-label">Attributes</span>
+              </th>
+              <th *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="compare-profile-card">
+                  <div class="compare-profile-badge" *ngIf="m.featured">★ Verified Lead</div>
+                  <div class="compare-avatar-wrapper">
+                    <img *ngIf="m.profileImageUrl" [src]="m.profileImageUrl" [alt]="m.name" />
+                    <div *ngIf="!m.profileImageUrl" class="fallback">{{ m.name.charAt(0).toUpperCase() }}</div>
+                    <span class="online-pill-indicator"></span>
+                  </div>
+                  <h4>{{ m.name }}</h4>
+                  <span class="compare-company-pill">{{ m.currentCompany }}</span>
+                  <p class="compare-role">{{ m.currentRole }}</p>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="attribute-name">
+                <span class="attr-icon">💼</span>
+                <span>Experience</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="exp-val-wrap">
+                  <strong>{{ m.yearsOfExperience }} Years</strong>
+                  <span class="exp-subtext">Active Industry Tenure</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="attribute-name">
+                <span class="attr-icon">⭐</span>
+                <span>Rating & Reviews</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="rating-val-wrap">
+                  <span class="rating-star-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="star-icon-mini" style="width: 12px; height: 12px;">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    {{ m.rating }}
+                  </span>
+                  <span class="reviews-count-sub">{{ m.reviewsCount }} sessions completed</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="attribute-name">
+                <span class="attr-icon">🪙</span>
+                <span>Monthly Retainer</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured" class="price-premium-cell">
+                <div class="price-val-wrap">
+                  <span class="price-amt">₹{{ m.pricePerMonth || (m.pricePerHour ? m.pricePerHour * 4 : 3999) }}</span>
+                  <span class="price-freq">/ month</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="attribute-name">
+                <span class="attr-icon">🧩</span>
+                <span>Tech Stack</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="skills-premium-list">
+                  <span *ngFor="let s of getSkillsList(m.skills)" class="skills-premium-tag">{{ s }}</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="attribute-name">
+                <span class="attr-icon">🗣️</span>
+                <span>Languages</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="languages-val-wrap">
+                  {{ m.languages }}
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="attribute-name">
+                <span class="attr-icon">🛡️</span>
+                <span>Trust Verification</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="verification-badges-wrap">
+                  <div class="v-pill-premium" [class.verified]="m.identityVerified">
+                    <span class="v-check">✓</span> Identity Audited
+                  </div>
+                  <div class="v-pill-premium" [class.verified]="m.companyVerified">
+                    <span class="v-check">✓</span> Company ID Checked
+                  </div>
+                  <div class="v-pill-premium" [class.verified]="m.certVerified">
+                    <span class="v-check">✓</span> Background Cleared
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr class="action-row-tr">
+              <td class="attribute-name">
+                <span>Start Journey</span>
+              </td>
+              <td *ngFor="let m of selectedCompareMentors" [class.featured-lead-col]="m.featured">
+                <div class="action-cell-wrap">
+                  <button 
+                    (click)="closeCompareModal(); openBookingModal(m, undefined, m.selectedPlanType || 'trial')"
+                    class="btn-compare-enroll-premium"
+                  >
+                    <span>Connect with {{ m.name.split(' ')[0] }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="arrow-icon-svg" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     BOOKING PREVIEW MODAL (WHATSAPP HANDSHAKE)
+     ========================================== -->
+<div class="modal-overlay animate-fadeIn" *ngIf="showBookingModal" (click)="closeBookingModal()">
+  <div class="modal-card booking-modal animate-scaleUp" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="booking-title-block">
+        <h3>WhatsApp Session Planner</h3>
+        <p>Enroll with your selected mentor</p>
+      </div>
+      <button class="btn-close-modal" (click)="closeBookingModal()">✕</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedBookingMentor">
+      <!-- Secure Trust Banner -->
+      <div class="secure-mediation-banner animate-scaleUp">
+        <span class="shield-icon">🛡️</span>
+        <div class="banner-text">
+          <strong>Secure Vidhura Match:</strong> Mentor contact details are protected. 
+          Vidhura Tech mediates, coordinates scheduling, and conducts the session on our portal.
+        </div>
+      </div>
+
+      <div class="booking-summary-row">
+        <div class="avatar">
+          <img *ngIf="selectedBookingMentor.profileImageUrl" [src]="selectedBookingMentor.profileImageUrl" />
+          <div *ngIf="!selectedBookingMentor.profileImageUrl" class="fallback">{{ selectedBookingMentor.name.charAt(0) }}</div>
+        </div>
+        <div class="meta">
+          <h4>{{ selectedBookingMentor.name }}</h4>
+          <p>{{ selectedBookingMentor.currentRole }} at <strong>{{ selectedBookingMentor.currentCompany }}</strong></p>
+        </div>
+      </div>
+
+      <div class="booking-form-grid">
+        <div class="form-group">
+          <label>Select Mentorship Program Package</label>
+          <div class="booking-package-selector">
+            <label class="package-radio-btn" [class.active]="selectedBookingPackage === 'trial'">
+              <input 
+                type="radio" 
+                name="bookingPackage" 
+                value="trial" 
+                [(ngModel)]="selectedBookingPackage"
+              />
+              <div class="radio-label-wrap">
+                <span class="title">⚡ 1:1 Trial Consultation</span>
+                <span class="price">₹99 / session</span>
+              </div>
+            </label>
+
+            <label class="package-radio-btn" [class.active]="selectedBookingPackage === 'monthly'">
+              <input 
+                type="radio" 
+                name="bookingPackage" 
+                value="monthly" 
+                [(ngModel)]="selectedBookingPackage"
+              />
+              <div class="radio-label-wrap">
+                <span class="title">💼 Monthly Retainer Contract</span>
+                <span class="price">
+                  ₹{{ selectedBookingMentor.pricePerMonth || (selectedBookingMentor.pricePerHour ? selectedBookingMentor.pricePerHour * 4 : 3999) }}/mo
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Select Timing / Slot Option</label>
+          <select [(ngModel)]="selectedBookingSlot" class="booking-select">
+            <option *ngFor="let slot of mockSlots" [value]="slot">{{ slot }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>My Goals / Core Coding Gaps</label>
+          <textarea 
+            [(ngModel)]="bookingNotes" 
+            placeholder="e.g. Need assistance with Spring Boot microservices design, or preparing for Microsoft SDE-2 frontend whiteboards."
+            rows="3"
+            class="booking-textarea"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions Checkbox Row -->
+      <div class="terms-consent-row">
+        <label class="terms-consent-label">
+          <input 
+            type="checkbox" 
+            [checked]="hasAgreedToTerms" 
+            (click)="onTermsCheckboxClick($event)"
+            class="consent-chk"
+          />
+          <span class="consent-text">
+            I agree to the <a href="javascript:void(0)" (click)="openTermsModal(); $event.stopPropagation()">VidhuraTech Mentorship Agreement, Legal Terms & Privacy Policy</a>. I understand VidhuraTech is not responsible for off-platform discussions or unverified direct payments.
+          </span>
+        </label>
+      </div>
+
+      <!-- Live Handshake Message Preview -->
+      <div class="whatsapp-preview-card">
+        <div class="wa-preview-header">
+          <div class="wa-user-info">
+            <div class="wa-avatar" style="background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; border: 1px solid rgba(255,255,255,0.8);">
+              V
+            </div>
+            <div class="wa-user-details">
+              <span class="wa-user-name">Vidhura Tech Support</span>
+              <span class="wa-status">Booking Coordinator</span>
+            </div>
+          </div>
+          <div class="wa-header-actions">
+            <!-- Mock Video Icon -->
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+            </svg>
+            <!-- Mock Call Icon -->
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-2.2 2.2a15.045 15.045 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.82 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.62c0-.55-.45-1-1-1z"/>
+            </svg>
+            <!-- Mock Menu Icon -->
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="whatsapp-chat-bubble animate-scaleUp">
+            <pre>Hello Vidhura Tech Support,
+
+I just submitted a booking request on the portal for a mediated trial session with mentor *{{ selectedBookingMentor.name }}* under the *{{ selectedBookingPackage === 'trial' ? 'Direct 1:1 Trial Session' : 'Monthly Retainer package' }}* ({{ selectedBookingPackage === 'trial' ? '₹99' : (selectedBookingMentor.pricePerMonth ? '₹' + selectedBookingMentor.pricePerMonth + '/mo' : '₹3,999/mo') }}).
+*Preferred Slot:* {{ selectedBookingSlot }}
+<span *ngIf="bookingNotes.trim()">*My Goals:* {{ bookingNotes.trim() }}</span>
+
+Please coordinate the trial session and details. Thanks!</pre>
+            <div class="bubble-status-row">
+              <span class="bubble-time-stamp">Just now</span>
+              <span class="double-check-icon">✓✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeBookingModal()">Cancel</button>
+      <button class="btn-submit-whatsapp" [disabled]="!hasAgreedToTerms" (click)="triggerWhatsAppBooking()">
+        <span>Submit Request & Coordinate</span>
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.859-4.407 9.862-9.83.001-2.628-1.02-5.1-2.877-6.958C16.599 1.96 14.137.942 11.514.941c-5.437 0-9.861 4.411-9.865 9.837-.002 1.636.425 3.234 1.24 4.673l-.992 3.622 3.75-.98zm11.758-6.834c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.521.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.568-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     TERMS & CONDITIONS PREVIEW MODAL
+     ========================================== -->
+<div class="modal-overlay animate-fadeIn terms-overlay-z" *ngIf="showTermsModal" (click)="closeTermsModal()">
+  <div class="modal-card terms-document-modal animate-scaleUp" (click)="$event.stopPropagation()">
+    <div class="terms-header">
+      <div class="header-icon-title">
+        <span class="scale-glowing-shield">🛡️</span>
+        <div class="title-sub">
+          <h3>VidhuraTech Legal Agreement</h3>
+          <p>Direct Mentorship Terms of Service & Privacy Policy</p>
+        </div>
+      </div>
+      <button class="btn-close-modal-round" (click)="closeTermsModal()">✕</button>
+    </div>
+
+    <div class="terms-body">
+      <div class="document-frame">
+        <div class="doc-header">
+          <h2>VIDHURATECH MENTORSHIP SERVICES AGREEMENT</h2>
+          <span class="doc-meta">Effective Date: June 20, 2026 | Version 2.0</span>
+        </div>
+        
+        <div class="doc-content">
+          <p class="intro-paragraph">
+            Please read this legal agreement carefully before requesting or scheduling any mentorship, consultation, or trial session on the VidhuraTech platform. By accepting this agreement, you acknowledge that you are bound by these terms. This Agreement is an electronic record in terms of the Information Technology Act, 2000 and rules made thereunder, and constitutes a legally binding agreement under the Indian Contract Act, 1872 between you (the Student/User) and VidhuraTech.
+          </p>
+
+          <div class="doc-section">
+            <h4>1. Intermediary Status & Section 79 Compliance</h4>
+            <p>
+              VidhuraTech operates as an online marketplace and "Intermediary" under Section 2(1)(w) of the Information Technology Act, 2000 and Section 79 of the IT Act. VidhuraTech does not initiate transmission, select the receiver of transmission, or select/modify the information contained in the transmission. Our role is strictly limited to providing automated match coordination and facilitated support channels. Safe harbor protections apply under Indian law.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>2. Strict Ban on Off-Platform Communication & Personal Data Sharing</h4>
+            <p class="highlight-clause danger">
+              <strong>CRITICAL DISCLOSURE:</strong> Students must NOT share personal contact details (including private phone numbers, personal email IDs, social media handles like LinkedIn or Twitter, or communication accounts like Slack or Discord) directly with the Mentor. All trial requests, slot bookings, and coordination remain mediated by the VidhuraTech Support Team. VidhuraTech is <strong>completely exempt from liability</strong> and will not be held responsible for any identity theft, personal data leakage, stalking, harassment, or data breaches arising from the voluntary disclosure of personal information outside VidhuraTech's portal.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>3. Unverified Payments & Financial Indemnity (Direct UPI / Cash Ban)</h4>
+            <p class="highlight-clause danger">
+              <strong>FINANCIAL DISCLAIMER:</strong> All payments for trial sessions (₹99) and monthly retainer packages must be processed exclusively through the official VidhuraTech Billing System and verified payment links. Direct transfers of funds (via UPI, GPAY, PhonePe, Net Banking, cash, or otherwise) to a Mentor's personal bank accounts are strictly prohibited. If you engage in out-of-portal financial discussions or pay a mentor directly:
+              <br/>• VidhuraTech has <strong>ZERO responsibility</strong> to recover or refund such funds.
+              <br/>• VidhuraTech is not liable for mentor default, no-shows, overpayments, or fraudulent transactions.
+              <br/>• Any such action constitutes a material breach of this Agreement and may lead to permanent account suspension.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>4. Academic Integrity & Anti-Dishonesty Clause</h4>
+            <p>
+              Pursuant to the guidelines of the University Grants Commission (UGC) and AICTE, mentorship sessions are strictly for educational and guidance purposes. Mentors are prohibited from completing homework, assignments, university projects, ghostwriting dissertations, or participating in examinations (live test cheating) on behalf of the student. The student assumes full legal and disciplinary responsibility for academic actions. VidhuraTech holds zero liability for academic misconduct.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>5. Independent Contractor Status (No Vicarious Liability)</h4>
+            <p>
+              Mentors listed on VidhuraTech are independent consultants and contractors. There is no employer-employee, agency, partnership, or joint venture relationship between VidhuraTech and the Mentors. VidhuraTech is not vicariously liable for any statements, behavior, guidance, code advice, architectural errors, or omissions of the Mentors.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>6. Intellectual Property Protection</h4>
+            <p>
+              All code snippets, system design diagrams, learning guides, or documentation shared during the sessions are the intellectual property of their respective creators. No ownership transfer takes place. Students are granted a limited, personal, non-commercial license to use shared educational materials solely for self-learning purposes. Commercial replication, public publication, or sharing of mentor-provided custom assets is strictly prohibited.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>7. Limitation of Liability & Indemnification</h4>
+            <p>
+              To the maximum extent permitted by applicable Indian law, VidhuraTech's aggregate liability for all claims arising out of this service shall be capped at the total amount paid by the student to VidhuraTech during the last 30 days. The student agrees to indemnify, defend, and hold harmless VidhuraTech, its founders, directors, employees, and agents from any third-party claims, legal actions, losses, damages, or costs (including attorney fees) arising from the student's violation of these terms or academic dishonesty.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>8. Governing Law and Arbitration Jurisdiction</h4>
+            <p>
+              This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes, claims, or controversies arising out of this agreement shall be settled through binding arbitration under the Arbitration and Conciliation Act, 1996. The seat of arbitration shall be **Hyderabad, Telangana, India**, and the proceedings shall be conducted in English. Subject to arbitration, the courts of Hyderabad, India shall have exclusive jurisdiction.
+            </p>
+          </div>
+
+          <div class="doc-section">
+            <h4>9. Intermediary Due Diligence & Grievance Redressal</h4>
+            <p>
+              In accordance with Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021, any user grievances regarding platform content, mentor listing, or terms violation should be addressed to our Grievance Officer at: <strong>grievance@vidhuratech.com</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-body-fade"></div>
+
+    <div class="terms-footer">
+      <p class="footer-notice">By clicking "Accept & Agree", you confirm that you have read, understood, and accept all clauses in this agreement.</p>
+      <div class="footer-actions">
+        <button class="btn-decline" (click)="declineTerms()">Decline</button>
+        <button class="btn-accept" (click)="acceptTerms()">Accept & Agree</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -32,6 +32,7 @@ export class App {
   userInput = '';
   selectedCourse = '';
   isDashboardRoute = false;
+  isResumeRoute = false;
 
   constructor(
     private cd: ChangeDetectorRef,
@@ -43,16 +44,23 @@ export class App {
       .subscribe((event: NavigationEnd) => {
         const url = event.urlAfterRedirects;
         this.isAuthPage =
-          url.includes('/login') ||
-          url.includes('/register');
+          url === '/login' ||
+          url === '/register' ||
+          url.startsWith('/login?') ||
+          url.startsWith('/register?');
         this.isDashboardRoute = url.startsWith('/dashboard');
+        this.isResumeRoute =
+          url.startsWith('/resume-workspace') ||
+          url.startsWith('/resume-scanner') ||
+          url.startsWith('/resume-customizer') ||
+          url.startsWith('/resume-guide');
       });
   }
 
   messages: ChatMessage[] = [
-    { 
-      text: `👋 Hello! Welcome to Vidhura Tech 🚀\n\nI am your Virtual Assistant. I'm here to help you guide through our training courses, placement drives, and practice tools.`, 
-      type: 'bot' 
+    {
+      text: `👋 Hello! Welcome to Vidhura Tech 🚀\n\nI am your Virtual Assistant. I'm here to help you guide through our training courses, placement drives, and practice tools.`,
+      type: 'bot'
     },
     {
       text: `Quick links to explore our platform:`,
@@ -95,7 +103,7 @@ export class App {
 
     this.typing = true;
     this.scrollToBottom();
-    
+
     setTimeout(() => {
       this.typing = false;
       if (option.includes('Java')) {
@@ -177,7 +185,7 @@ export class App {
     this.userInput = '';
     this.typing = true;
     this.scrollToBottom();
-    
+
     setTimeout(() => {
       this.typing = false;
       let reply = '';
@@ -200,10 +208,10 @@ export class App {
           { label: 'Browse Python Projects', path: '/projects', icon: 'fa-folder-open' },
           { label: 'Detailed Python Course', path: '/courses', icon: 'fa-graduation-cap' }
         ];
-      } 
+      }
       else if (query.includes('fee') || query.includes('cost') || query.includes('price')) {
         reply = `💰 *Course Fees Info*\n\nWe provide student discounts and flexible payments. Get in touch via WhatsApp to check ongoing offers.`;
-      } 
+      }
       else if (query.includes('project')) {
         reply = `🚀 *Academic & Practice Projects*\n\nWe provide a library of 52+ premium projects across Java, Python, AI, and Full Stack domains with synopsis, code repositories, reports, and viva help.`;
         routesList = [{ label: 'View Academic Projects', path: '/projects', icon: 'fa-diagram-project' }];
@@ -238,7 +246,7 @@ export class App {
         suggestedRoutes: routesList.length > 0 ? routesList : undefined,
         showCTA: !routesList.length ? true : undefined
       });
-      
+
       this.cd.detectChanges();
       this.scrollToBottom();
     }, 1200);
