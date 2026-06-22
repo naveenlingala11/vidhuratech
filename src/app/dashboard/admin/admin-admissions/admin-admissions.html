@@ -1,30 +1,382 @@
-<div class="admission-card">
-    <h2>🎓 Manual Admission</h2>
-    <div class="grid">
-        <input [(ngModel)]="form.name" placeholder="Student Name">
-        <input [(ngModel)]="form.email" placeholder="Email">
-        <input [(ngModel)]="form.phone" placeholder="Phone">
-        <select [(ngModel)]="form.batchId">
-            <option value="">
-                Select Batch
-            </option>
-            <option *ngFor="let b of batches" [value]="b.id">
-                {{ b.name }}
-            </option>
-        </select>
-        <input type="number" [(ngModel)]="form.amount" placeholder="Amount">
-        <select [(ngModel)]="form.paymentMethod">
-            <option>CASH</option>
-            <option>UPI</option>
-            <option>BANK_TRANSFER</option>
-        </select>
-        <select [(ngModel)]="form.paymentStatus">
-            <option>PAID</option>
-            <option>PENDING</option>
-            <option>PARTIAL</option>
-        </select>
+<section class="adm-page">
+  <!-- Glowing background elements -->
+  <div class="bg-radial-mesh-1"></div>
+  <div class="bg-radial-mesh-2"></div>
+  <div class="bg-grid-overlay"></div>
+
+  <!-- Frosted Glass Header Banner -->
+  <header class="adm-hero animate-fade-in">
+    <div class="hero-mesh"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <i class="bi bi-mortarboard-fill"></i>
+        LMS Control Panel
+      </span>
+      <h1>Manual Student Admissions</h1>
+      <p class="hero-desc">
+        Enroll new or existing students directly into training tracks. The system automatically provisions secure user accounts, handles batch enrollments, generates invoices, and dispatches credential setup emails.
+      </p>
     </div>
-    <button (click)="submit()" [disabled]="loading">
-        {{ loading ? 'Creating...' : 'Create Admission' }}
-    </button>
-</div>
+  </header>
+
+  <!-- Telemetry Metrics Grid -->
+  <section class="kpi-grid animate-fade-in">
+    <div class="kpi-card blue">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Active Batches</span>
+        <h3 class="kpi-value">{{ batches.length }}</h3>
+        <span class="kpi-change">Loaded from LMS</span>
+      </div>
+    </div>
+    <div class="kpi-card emerald">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-wallet2"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Automated Billing</span>
+        <h3 class="kpi-value">Active</h3>
+        <span class="kpi-change up">Invoice Sync Enabled</span>
+      </div>
+    </div>
+    <div class="kpi-card violet">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-envelope-paper-heart-fill"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">SMTP Gateway</span>
+        <h3 class="kpi-value">Online</h3>
+        <span class="kpi-change up">Secure Dispatch</span>
+      </div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Conflict Guard</span>
+        <h3 class="kpi-value">Active</h3>
+        <span class="kpi-change">Duplicate Prevention</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notification Banner HUD -->
+  <div class="adm-alerts-hud" *ngIf="errorMessage || successMessage">
+    <div class="hud-alert alert-success" *ngIf="successMessage">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>{{ successMessage }}</span>
+      <button type="button" class="btn-alert-close" (click)="successMessage = ''">&times;</button>
+    </div>
+    <div class="hud-alert alert-danger" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-octagon-fill"></i>
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="btn-alert-close" (click)="errorMessage = ''">&times;</button>
+    </div>
+  </div>
+
+  <!-- Main Workspace Layout -->
+  <div class="adm-workspace-grid">
+    <!-- Left Column: Manual Admission Form -->
+    <div class="adm-panel-card card-register-form">
+      <div class="card-header">
+        <i class="bi bi-person-plus-fill text-primary"></i>
+        <h3>Create Manual Student Admission</h3>
+      </div>
+      <div class="card-body">
+        <div class="input-groups-vertical">
+          <!-- Student Name -->
+          <label class="modern-input-group">
+            <span class="input-label">Student Full Name *</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-person input-icon"></i>
+              <input
+                type="text"
+                placeholder="e.g. Rahul Sharma"
+                [(ngModel)]="form.name"
+                class="modern-input-field"
+              />
+            </div>
+          </label>
+
+          <!-- Student Email -->
+          <label class="modern-input-group">
+            <span class="input-label">Email Address *</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-envelope input-icon"></i>
+              <input
+                type="email"
+                placeholder="student@example.com"
+                [(ngModel)]="form.email"
+                class="modern-input-field"
+              />
+            </div>
+          </label>
+
+          <!-- Contact Phone -->
+          <label class="modern-input-group">
+            <span class="input-label">Contact Phone Number *</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-telephone input-icon"></i>
+              <input
+                type="tel"
+                placeholder="e.g. +91 9876543210"
+                [(ngModel)]="form.phone"
+                class="modern-input-field"
+              />
+            </div>
+          </label>
+
+          <!-- Batch Target Selection -->
+          <label class="modern-input-group">
+            <span class="input-label">Target Training Batch *</span>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-mortarboard input-icon"></i>
+              <select [(ngModel)]="form.batchId" class="modern-input-field">
+                <option value="" disabled selected>Select active training batch...</option>
+                <option *ngFor="let b of batches" [value]="b.id">
+                  {{ b.name }} (ID: {{ b.id }})
+                </option>
+              </select>
+            </div>
+          </label>
+
+          <!-- Amount & Payment Configuration -->
+          <div class="input-groups-horizontal-row">
+            <!-- Amount -->
+            <label class="modern-input-group flex-2">
+              <span class="input-label">Admission Amount (₹) *</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-currency-rupee input-icon"></i>
+                <input
+                  type="number"
+                  placeholder="e.g. 15000"
+                  [(ngModel)]="form.amount"
+                  class="modern-input-field"
+                />
+              </div>
+            </label>
+
+            <!-- Payment Method -->
+            <label class="modern-input-group flex-1">
+              <span class="input-label">Payment Method</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-wallet2 input-icon"></i>
+                <select [(ngModel)]="form.paymentMethod" class="modern-input-field">
+                  <option value="CASH">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                </select>
+              </div>
+            </label>
+
+            <!-- Payment Status -->
+            <label class="modern-input-group flex-1">
+              <span class="input-label">Payment Status</span>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-activity input-icon"></i>
+                <select [(ngModel)]="form.paymentStatus" class="modern-input-field">
+                  <option value="PAID">Paid</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="PARTIAL">Partial</option>
+                </select>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button type="button" class="btn-submit-admission" (click)="submit()" [disabled]="loading">
+          <i class="bi bi-check-circle-fill me-2" *ngIf="!loading"></i>
+          <span class="spinner-border spinner-border-sm me-2" role="status" *ngIf="loading"></span>
+          {{ loading ? 'Processing Enrollment...' : 'Register Student Admission' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Column: Batch Directory -->
+    <div class="adm-panel-card card-batch-directory">
+      <div class="card-header">
+        <i class="bi bi-journal-text text-info"></i>
+        <h3>Active training Tracks</h3>
+      </div>
+      <div class="card-body">
+        <p class="section-hint">Selectable training batches registered in the LMS registry:</p>
+        <div class="batch-list-wrapper">
+          <!-- Loading state -->
+          <div class="batch-loading" *ngIf="loading && batches.length === 0">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <span>Syncing active tracks...</span>
+          </div>
+
+          <!-- Batches items -->
+          <div class="batch-item" *ngFor="let b of batches" (click)="form.batchId = b.id">
+            <div class="batch-icon-chip">
+              <i class="bi bi-folder-fill"></i>
+            </div>
+            <div class="batch-details">
+              <span class="batch-name-label">{{ b.name }}</span>
+              <span class="batch-id-tag">ID: {{ b.id }}</span>
+            </div>
+            <div class="batch-select-chevron">
+              <i class="bi" [ngClass]="form.batchId === b.id ? 'bi-check-circle-fill text-success' : 'bi-chevron-right'"></i>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="batch-empty-state" *ngIf="!loading && batches.length === 0">
+            <i class="bi bi-folder-x empty-icon"></i>
+            <p>No active training batches found. Create batches in the LMS module first.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium User Manual & Instructions -->
+  <div class="adm-panel-card card-user-guide animate-fade-in">
+    <div class="card-header">
+      <i class="bi bi-book-half text-primary"></i>
+      <h3>Manual Admissions & Enrollment Controls - Administrator Manual</h3>
+    </div>
+    
+    <div class="card-body">
+      <div class="guide-grid">
+        
+        <!-- Section 1: Core Admission Flow -->
+        <div class="guide-column">
+          <h4><i class="bi bi-signpost-split-fill text-indigo"></i> 1. Manual Admission Flow</h4>
+          <p>
+            Manual admissions are used when payments are collected offline (Cash, Direct Bank Transfer, UPI payments) and the administrator needs to provision access immediately. The flow triggers five backend events:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Account Search/Creation:</strong> The system searches for the email. If not found, a new Student account is generated with role <code>STUDENT</code> and a placeholder temporary password.</li>
+            <li><strong>Credential Dispatch:</strong> A secure password reset token link is generated and sent via email, allowing the student to set their secure password.</li>
+            <li><strong>LMS Enrollment:</strong> The student is enrolled in the selected training batch. This links their profile to courses, calendars, and assignments.</li>
+            <li><strong>Invoice Generation:</strong> An invoice is saved in the database reflecting the amount paid, payment method, verification timestamp, and outstanding balances.</li>
+          </ul>
+        </div>
+
+        <!-- Section 2: Invoicing & Telemetry -->
+        <div class="guide-column">
+          <h4><i class="bi bi-cash-stack text-warning"></i> 2. Financial Integrity & Verification</h4>
+          <p>
+            Invoices are generated instantly on submission. It is critical to configure payment indicators correctly to prevent discrepancy in accounts:
+          </p>
+          <ul class="guide-list">
+            <li><strong>PAID Status:</strong> Marks the invoice as fully paid. Sets remaining balance to ₹0 and flags the payment verified state as <code>true</code>.</li>
+            <li><strong>PENDING Status:</strong> Flags the invoice as unpaid. The student is granted platform access, but billing indicates outstanding dues.</li>
+            <li><strong>PARTIAL Status:</strong> Records partial collections. The invoice is generated with outstanding amounts, allowing tracking of payment installments.</li>
+            <li><strong>Offline Channels:</strong> Select <code>UPI</code> for QR code payments, <code>BANK_TRANSFER</code> for corporate wires, or <code>CASH</code> for in-hand collections.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sync Mechanism Card -->
+      <div class="guide-sync-info">
+        <h4><i class="bi bi-arrow-repeat text-success"></i> 3. Automatic Subsystem Synchronization</h4>
+        <p>
+          Creating an admission synchronizes three decoupled databases modules (User management, Lead tracking, and LMS Course structures):
+        </p>
+        <div class="sync-flow">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <h5>Lead Tracking Integration</h5>
+            <p>A lead is automatically created with status <code>"Joined"</code> and source <code>"ADMIN_MANUAL_ADMISSION"</code>. This updates the sales funnel statistics in real-time.</p>
+          </div>
+          <div class="flow-icon"><i class="bi bi-chevron-double-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">2</div>
+            <h5>LMS Notification Dispatch</h5>
+            <p>Decoupled alerts notify both the student and the batch's primary instructor, listing batch access instructions and classroom links.</p>
+          </div>
+          <div class="flow-icon"><i class="bi bi-chevron-double-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">3</div>
+            <h5>Account Security Link</h5>
+            <p>New profiles require the student to click the password setup link in their email. If mail fails, they can trigger a reset using the public recovery portal.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Troubleshooting Section -->
+      <div class="guide-troubleshoot">
+        <h4><i class="bi bi-info-circle-fill text-rose"></i> 4. Troubleshooting & Maintenance Runbook</h4>
+        <ul class="troubleshoot-list">
+          <li>
+            <strong>"Student already enrolled in batch"</strong>: If this occurs, the student is already linked to the training batch. The backend skips creating duplicate enrollments but generates a new invoice if needed. Verify their status under the batch directory.
+          </li>
+          <li>
+            <strong>Email SMTP Failures</strong>: In cases where network firewalls block the outgoing setup password email, the UI will display a <code>MAIL_FAILED</code> telemetry flag. Instruct the student to visit the login page and click "Forgot Password" to trigger a reset manually.
+          </li>
+          <li>
+            <strong>Invalid Email Formats</strong>: The form enforces syntax rules on the student's email. Verify there are no trailing whitespace characters or double domains (e.g. <code>.com.com</code>) before submitting.
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Premium Telemetry Success Modal -->
+  <div class="ac-modal-overlay" *ngIf="showSuccessModal">
+    <div class="ac-modal-card animate-scale-up">
+      <div class="modal-header">
+        <div class="modal-success-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h3>Admission Completed</h3>
+        <button type="button" class="btn-modal-close" (click)="closeSuccessModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          The manual admission for student <strong>{{ lastAdmittedEmail }}</strong> has been created and verified. System telemetry logs:
+        </p>
+        
+        <div class="telemetry-log-box">
+          <div class="telemetry-row">
+            <span class="label">User Profile:</span>
+            <span class="value badge" [ngClass]="successData?.studentCreated ? 'badge-success' : 'badge-info'">
+              {{ successData?.studentCreated ? 'New Account Generated' : 'Existing Account Found' }}
+            </span>
+          </div>
+          <div class="telemetry-row">
+            <span class="label">Temporary Password:</span>
+            <span class="value font-monospace text-primary">{{ successData?.temporaryPassword }}</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="label">LMS Enrollment:</span>
+            <span class="value badge" [ngClass]="successData?.enrollmentCreated ? 'badge-success' : 'badge-warning'">
+              {{ successData?.enrollmentCreated ? 'Enrollment Registered' : 'Already Enrolled' }}
+            </span>
+          </div>
+          <div class="telemetry-row">
+            <span class="label">Invoice Generated:</span>
+            <span class="value badge" [ngClass]="successData?.invoiceGenerated ? 'badge-success' : 'badge-danger'">
+              {{ successData?.invoiceGenerated ? 'Generated & Verified' : 'Failed' }}
+            </span>
+          </div>
+          <div class="telemetry-row">
+            <span class="label">Email Delivery Status:</span>
+            <span class="value badge" [ngClass]="successData?.setupPasswordMailSent ? 'badge-success' : 'badge-danger'">
+              <i class="bi" [ngClass]="successData?.setupPasswordMailSent ? 'bi-envelope-check-fill' : 'bi-envelope-exclamation-fill'"></i>
+              {{ successData?.setupPasswordStatus === 'MAIL_SENT' ? 'Setup Link Sent' : 'Failed to Dispatch Email' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="modal-next-steps">
+          <h5><i class="bi bi-info-circle-fill"></i> System Recommended Actions</h5>
+          <p>{{ successData?.nextStep }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-action" (click)="closeSuccessModal()">Dismiss Telemetry HUD</button>
+      </div>
+    </div>
+  </div>
+</section>

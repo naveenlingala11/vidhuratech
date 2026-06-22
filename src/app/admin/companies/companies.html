@@ -1,6 +1,11 @@
 <section class="ac-page">
+  <!-- Glowing meshes -->
+  <div class="bg-radial-mesh-1"></div>
+  <div class="bg-radial-mesh-2"></div>
+  <div class="bg-grid-overlay"></div>
+
   <!-- Interactive Frosted Glass Header -->
-  <header class="ac-hero">
+  <header class="ac-hero animate-fade-in">
     <div class="hero-mesh"></div>
     <div class="hero-grid"></div>
     <div class="hero-scan"></div>
@@ -8,11 +13,11 @@
     <div class="hero-copy">
       <span class="eyebrow">
         <i class="bi bi-shield-lock-fill"></i>
-        Admin Control Console
+        Platform Administration
       </span>
       <h1>Hiring Partners & Companies</h1>
       <p class="hero-desc">
-        Configure hiring partners, careers job boards, and automated crawler endpoints. Monitor success/failure telemetry, customize scraping platforms, and toggle crawling statuses.
+        Configure corporate partners, active career scrapers, and automated crawler endpoints. Monitor telemetry and manage recruitment integrations.
       </p>
     </div>
     
@@ -23,6 +28,50 @@
       </button>
     </div>
   </header>
+
+  <!-- Premium Metrics Grid -->
+  <section class="kpi-grid animate-fade-in">
+    <div class="kpi-card blue">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-building"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Total Partners</span>
+        <h3 class="kpi-value">{{ totalCompanies }}</h3>
+        <span class="kpi-change">Active Registry</span>
+      </div>
+    </div>
+    <div class="kpi-card emerald">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-activity"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Active Monitoring</span>
+        <h3 class="kpi-value">{{ getActiveCount() }}</h3>
+        <span class="kpi-change up">Live Crawlers</span>
+      </div>
+    </div>
+    <div class="kpi-card violet">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Crawler Success Rate</span>
+        <h3 class="kpi-value">{{ getSuccessRate() }}%</h3>
+        <span class="kpi-change up">Logs Integrity</span>
+      </div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon-wrapper">
+        <i class="bi bi-database"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-title">Total Logs Checked</span>
+        <h3 class="kpi-value">{{ getTotalSuccessLogs() }}</h3>
+        <span class="kpi-change">Crawled Batches</span>
+      </div>
+    </div>
+  </section>
 
   <!-- Notification Banner Hud -->
   <div class="ac-alerts-hud" *ngIf="successMessage || errorMessage">
@@ -84,6 +133,8 @@
               <select [(ngModel)]="newCompany.type" class="modern-input-field">
                 <option value="greenhouse">Greenhouse Crawler</option>
                 <option value="lever">Lever API</option>
+                <option value="workday">Workday Portal</option>
+                <option value="smartrecruiters">SmartRecruiters Board</option>
                 <option value="naukri">Naukri Feed</option>
               </select>
             </div>
@@ -206,7 +257,12 @@
             <!-- API Crawler Type -->
             <td class="td-crawler-type">
               <span class="type-badge" [ngClass]="'badge-' + c.type">
-                <i class="bi" [ngClass]="c.type === 'greenhouse' ? 'bi-tree-fill' : (c.type === 'lever' ? 'bi-layers-fill' : 'bi-newspaper')"></i>
+                <i class="bi" [ngClass]="
+                  c.type === 'greenhouse' ? 'bi-tree-fill' : 
+                  (c.type === 'lever' ? 'bi-layers-fill' : 
+                  (c.type === 'workday' ? 'bi-briefcase-fill' : 
+                  (c.type === 'smartrecruiters' ? 'bi-patch-check-fill' : 'bi-newspaper')))
+                "></i>
                 {{ c.type | titlecase }}
               </span>
             </td>
@@ -230,7 +286,7 @@
             </td>
 
             <!-- Status Badge -->
-            <td>
+            <td class="td-status-cell">
               <span [class]="getStatusClass(c.active)">
                 <span class="pulse-dot" *ngIf="c.active"></span>
                 {{ c.active ? 'Monitoring' : 'Suspended' }}
@@ -309,6 +365,139 @@
           Next <i class="bi bi-chevron-right ms-1"></i>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Premium User Manual & Instructions -->
+  <div class="ac-panel-card card-user-guide animate-fade-in">
+    <div class="card-header">
+      <i class="bi bi-book-half text-primary"></i>
+      <h3>Hiring Partners & Scraper Controls - Administrator Manual</h3>
+    </div>
+    
+    <div class="card-body">
+      <!-- Quick Info Grid -->
+      <div class="guide-grid">
+        
+        <!-- Section 1: Scraper Setup -->
+        <div class="guide-column">
+          <h4><i class="bi bi-gear-wide-connected text-indigo"></i> 1. Scraper Configuration</h4>
+          <p>
+            The hiring partner board controls which external career pages are automatically scanned for job listings. When adding a new partner, ensure you provide accurate information:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Company Name:</strong> The official name of the hiring partner (e.g. <code>Google India</code> or <code>Amazon</code>). This matches the brand shown in public job listings.</li>
+            <li><strong>Careers Portal URL:</strong> The exact web address of the careers landing page. It must begin with <code>http://</code> or <code>https://</code>.</li>
+            <li><strong>Integration API Type:</strong> Choose the crawler engine that matches the partner's ATS (Applicant Tracking System) framework. Refer to the spec sheet below for details.</li>
+          </ul>
+        </div>
+
+        <!-- Section 2: Monitoring & Telemetry -->
+        <div class="guide-column">
+          <h4><i class="bi bi-lightning-charge-fill text-warning"></i> 2. Crawler Actions & Telemetry</h4>
+          <p>
+            The registry displays real-time health data for each integrated partner board to ensure scrapers run seamlessly:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Telemetry Logs:</strong> Tracks extraction statistics:
+              <ul>
+                <li><span class="indicator-success-preview"><i class="bi bi-check-circle-fill"></i> Success Logs</span> Shows successful job listing crawls.</li>
+                <li><span class="indicator-fail-preview"><i class="bi bi-x-circle-fill"></i> Failed Logs</span> Shows crawl attempts that failed due to page updates or rate limits.</li>
+              </ul>
+            </li>
+            <li><strong>Crawler Status:</strong> Shows the active state of the scraper configuration:
+              <ul>
+                <li><span class="active-badge-preview">Monitoring</span> Active. The scheduler scrapes this board at configured intervals.</li>
+                <li><span class="inactive-badge-preview">Suspended</span> Paused. No new jobs are crawled. Current jobs remain active.</li>
+              </ul>
+            </li>
+            <li><strong>Actions:</strong> Use the toggle button to instantly pause or resume a scraper, or the bin button to permanently delete the configuration.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Spec Sheet Sub-Card -->
+      <div class="guide-spec-sheet">
+        <h4><i class="bi bi-file-earmark-spreadsheet text-teal"></i> Supported ATS Platforms & URL Spec Sheet</h4>
+        <p>For automated extraction to succeed, your Careers Portal URL must match the ATS format required by the scraper engine:</p>
+        
+        <div class="spec-table-wrapper">
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>ATS Platform</th>
+                <th>Required URL Pattern Examples</th>
+                <th>Scraper Behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="type-badge badge-greenhouse"><i class="bi bi-tree-fill me-1"></i> Greenhouse</span></td>
+                <td><code>https://boards.greenhouse.io/companyname</code></td>
+                <td>Queries the Greenhouse API to pull clean JSON listings directly.</td>
+              </tr>
+              <tr>
+                <td><span class="type-badge badge-lever"><i class="bi bi-layers-fill me-1"></i> Lever</span></td>
+                <td><code>https://jobs.lever.co/companyname</code></td>
+                <td>Queries Lever's public API endpoint for high-speed, structural jobs ingestion.</td>
+              </tr>
+              <tr>
+                <td><span class="type-badge badge-workday"><i class="bi bi-briefcase-fill me-1"></i> Workday</span></td>
+                <td><code>https://company.wd1.myworkdayjobs.com/Careers</code></td>
+                <td>Crawls page elements and parses Workday's standard pagination structure.</td>
+              </tr>
+              <tr>
+                <td><span class="type-badge badge-smartrecruiters"><i class="bi bi-patch-check-fill me-1"></i> SmartRecruiters</span></td>
+                <td><code>https://careers.smartrecruiters.com/companyname</code></td>
+                <td>Fetches structural XML and JSON feeds directly from SmartRecruiters.</td>
+              </tr>
+              <tr>
+                <td><span class="type-badge badge-naukri"><i class="bi bi-newspaper me-1"></i> Naukri Feed</span></td>
+                <td><code>https://www.naukri.com/company-jobs</code></td>
+                <td>Parses HTML job cards from the company's Naukri portal using scraper tags.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 3: Bidirectional Sync (Full Width) -->
+      <div class="guide-sync-info">
+        <h4><i class="bi bi-arrow-repeat text-success"></i> 3. Automated Bidirectional Synchronization</h4>
+        <p>
+          The system maintains database consistency through a smart synchronization engine:
+        </p>
+        <div class="sync-flow">
+          <div class="flow-step">
+            <div class="step-num">A</div>
+            <h5>Jobs Registry → Partners Dashboard</h5>
+            <p>If jobs are manually posted, seeded, or imported for a company that isn't in the scraper registry, a scraper configuration is automatically created with default settings upon viewing this page.</p>
+          </div>
+          <div class="flow-icon"><i class="bi bi-chevron-double-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">B</div>
+            <h5>Partners Dashboard → Jobs Registry</h5>
+            <p>Adding a company inside this dashboard automatically provisions the matching partner entity inside the main jobs database, allowing you to instantly assign manually created jobs to it.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Troubleshooting Section -->
+      <div class="guide-troubleshoot">
+        <h4><i class="bi bi-info-circle-fill text-rose"></i> 4. Troubleshooting & Maintenance</h4>
+        <ul class="troubleshoot-list">
+          <li>
+            <strong>High Failure Counts:</strong> If a partner's failed logs count is increasing, verify that the Careers URL is still active in your browser. Companies frequently change their ATS provider or alter their subdomain URL, requiring you to delete and re-register the partner with the updated URL.
+          </li>
+          <li>
+            <strong>Duplicate Key Errors:</strong> If seed operations show database constraint errors (e.g. key already exists), the seeder has encountered an identical job (matching title, company ID, and apply URL). The seeder automatically detects and skips duplicates to prevent corrupting the repository.
+          </li>
+          <li>
+            <strong>Scraper Interruption:</strong> Disabling a scraper pauses its execution. It will be skipped in scheduled background scraping tasks, preserving API limits. Use this for partners whose portals are undergoing maintenance.
+          </li>
+        </ul>
+      </div>
+
     </div>
   </div>
 </section>

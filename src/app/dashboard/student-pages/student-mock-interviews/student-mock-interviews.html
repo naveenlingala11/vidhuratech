@@ -208,15 +208,28 @@
             </div>
           </div>
 
-          <a
-            *ngIf="item.meetingLink"
-            class="meeting-link"
-            [href]="item.meetingLink"
-            target="_blank"
-          >
-            <i class="bi bi-box-arrow-up-right"></i>
-            Join Meeting
-          </a>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; width: 100%;">
+            <button
+              *ngIf="item.status === 'SCHEDULED'"
+              type="button"
+              class="meeting-link"
+              style="border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: #3b82f6; color: #fff;"
+              (click)="joinInAppRoom(item)"
+            >
+              <i class="bi bi-camera-video-fill"></i>
+              ⚡ Join Premium Call Room
+            </button>
+            <a
+              *ngIf="item.meetingLink && item.status === 'SCHEDULED'"
+              class="meeting-link"
+              [href]="item.meetingLink"
+              target="_blank"
+              style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: #f8fafc; color: #475569; border: 1px solid rgba(226,232,240,0.8);"
+            >
+              <i class="bi bi-box-arrow-up-right"></i>
+              📹 Open External Link
+            </a>
+          </div>
         </article>
       </div>
 

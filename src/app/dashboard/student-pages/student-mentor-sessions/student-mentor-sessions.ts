@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StudentMentorService } from '../service/student-mentor.service';
 import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-student-mentor-sessions',
@@ -21,7 +22,8 @@ export class StudentMentorSessionsComponent implements OnInit {
 
   constructor(
     private mentorService: StudentMentorService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -65,5 +67,10 @@ export class StudentMentorSessionsComponent implements OnInit {
 
   onSearch(): void {
     this.applyFilters();
+  }
+
+  joinInAppRoom(session: any): void {
+    const roomName = `VidhuraTech_Meeting_Session_${session.id || Math.floor(Math.random() * 10000)}`;
+    this.router.navigate(['/meeting', roomName]);
   }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MentorDashboardService } from '../../service/mentor-dashboard';
 import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-mentor-sessions',
@@ -32,7 +33,8 @@ export class MentorSessionsComponent implements OnInit {
 
   constructor(
     private dashboardService: MentorDashboardService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -127,6 +129,26 @@ export class MentorSessionsComponent implements OnInit {
       },
       error: () => {
         this.toastr.error('Failed to schedule session');
+      }
+    });
+  }
+
+  joinInAppRoom(session: any): void {
+    const roomName = `VidhuraTech_Meeting_Session_${session.id || Math.floor(Math.random() * 10000)}`;
+    this.router.navigate(['/meeting', roomName]);
+  }
+
+  sendInviteAlert(session: any): void {
+    if (!session.id) {
+      this.toastr.warning('Invite requires a scheduled session ID.');
+      return;
+    }
+    this.dashboardService.sendSessionInvite(session.id).subscribe({
+      next: (res: any) => {
+        this.toastr.success('Invitation alerts sent successfully via Email & In-App Notification!');
+      },
+      error: () => {
+        this.toastr.error('Failed to dispatch session invites.');
       }
     });
   }

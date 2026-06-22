@@ -155,6 +155,9 @@ import { StudentMentorProgressComponent } from './dashboard/student-pages/studen
 import { MentorChatComponent } from './dashboard/shared/mentor-chat/mentor-chat';
 import { MentorQaListComponent } from './pages/mentors/mentor-qa-list/mentor-qa-list';
 import { MentorQaDetailComponent } from './pages/mentors/mentor-qa-detail/mentor-qa-detail';
+import { VideoMeetingComponent } from './dashboard/shared/video-meeting/video-meeting';
+import { LiveConnectComponent } from './pages/live-connect/live-connect';
+import { LiveConnectCreateComponent } from './pages/live-connect-create/live-connect-create';
 
 export const routes: Routes = [
   /* =========================
@@ -166,6 +169,9 @@ export const routes: Routes = [
   { path: 'projects', component: Projects },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
+  { path: 'meeting/:roomName', component: VideoMeetingComponent },
+  { path: 'live-connect', component: LiveConnectComponent },
+  { path: 'live-connect/create', component: LiveConnectCreateComponent },
   { path: 'curriculum', component: Curriculum },
   { path: 'placements', component: Placements },
   { path: 'resume', component: ResumeLanding },
@@ -356,6 +362,7 @@ export const routes: Routes = [
         component: MentorChatComponent,
         canActivate: [roleGuard(['MENTOR'])],
       },
+
 
       /* --- SETTINGS PAGES FOR ALL ROLES --- */
 

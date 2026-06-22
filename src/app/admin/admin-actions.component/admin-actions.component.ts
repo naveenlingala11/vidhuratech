@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -22,10 +22,22 @@ export interface AdminModule {
   templateUrl: './admin-actions.component.html',
   styleUrls: ['./admin-actions.component.css']
 })
-export class AdminActionsComponent implements OnInit {
+export class AdminActionsComponent implements OnInit, OnDestroy {
   searchQuery = '';
   selectedCategory = 'All';
   loading = false;
+
+  // Seeder Tool State
+  showSeederModal = false;
+  seederCount = 10000;
+  seederClean = true;
+  seedingLoading = false;
+  seederResult: any = null;
+  seederError = '';
+  seederElapsedSeconds = 0;
+  seederCountProgress = 0;
+  private timerId: any = null;
+  private pollId: any = null;
 
   categories = ['All', 'Users', 'LMS', 'Operations', 'Careers', 'Finance'];
 
@@ -53,6 +65,7 @@ export class AdminActionsComponent implements OnInit {
     { title: 'Leads Pipeline', route: '/dashboard/admin/leads', icon: 'bi-funnel', category: 'Operations', description: 'Monitor inquiries, assign agents, and check conversion rates.' },
     { title: 'Bin / Recycle Center', route: '/admin/bin', icon: 'bi-trash3', category: 'Operations', description: 'Restore deleted leads, users, or system components.' },
     { title: 'Questions Database', route: '/admin/questions', icon: 'bi-patch-question', category: 'Operations', description: 'Manage test bank for mock assessments and challenges.' },
+    { title: 'Job Seeder Tool', route: 'seeder', icon: 'bi-database-fill-gear', category: 'Operations', description: 'Seed mock jobs database for testing. Configure count and database wipe options.' },
 
     // Careers & Placements
     { title: 'Jobs Manager', route: '/dashboard/admin/jobs', icon: 'bi-briefcase', category: 'Careers', description: 'Add or modify active recruitment roles, requirements, and salaries.' },
@@ -170,8 +183,96 @@ export class AdminActionsComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.cleanupTimers();
+  }
+
+  // Seeder Tool Actions
+  openSeederModal() {
+    this.showSeederModal = true;
+    this.seederResult = null;
+    this.seederError = '';
+    this.seederElapsedSeconds = 0;
+    this.seederCountProgress = 0;
+  }
+
+  closeSeederModal() {
+    if (!this.seedingLoading) {
+      this.showSeederModal = false;
+    }
+  }
+
+  triggerSeeding() {
+    this.seedingLoading = true;
+    this.seederResult = null;
+    this.seederError = '';
+    this.seederElapsedSeconds = 0;
+    this.seederCountProgress = 0;
+    this.cd.detectChanges();
+
+    // Start running timer
+    this.timerId = setInterval(() => {
+      this.seederElapsedSeconds++;
+      this.cd.detectChanges();
+    }, 1000);
+
+    // Start progress polling
+    this.pollId = setInterval(() => {
+      this.http.get<any>(`${environment.apiUrl}/jobs/seed/progress`).subscribe({
+        next: (res) => {
+          if (res) {
+            this.seederCountProgress = res.currentProgress || 0;
+            this.cd.detectChanges();
+          }
+        },
+        error: () => {}
+      });
+    }, 800);
+
+    this.http.get<any>(`${environment.apiUrl}/jobs/seed`, {
+      params: {
+        count: this.seederCount.toString(),
+        clean: this.seederClean.toString()
+      }
+    }).subscribe({
+      next: (res) => {
+        this.seedingLoading = false;
+        this.seederResult = res;
+        this.cleanupTimers();
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.seedingLoading = false;
+        this.seederError = err.error?.message || err.message || 'Unknown server error occurred during seeding.';
+        this.cleanupTimers();
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  cleanupTimers() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+    if (this.pollId) {
+      clearInterval(this.pollId);
+      this.pollId = null;
+    }
+  }
+
+  formatElapsedTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
   navigate(route: string) {
-    this.router.navigate([route]);
+    if (route === 'seeder') {
+      this.openSeederModal();
+    } else {
+      this.router.navigate([route]);
+    }
   }
 
   get filteredModules() {

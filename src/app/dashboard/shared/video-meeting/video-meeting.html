@@ -1,0 +1,311 @@
+<!-- STATE 1: GUEST NAME ENTRY (only for unauthenticated users who haven't entered name) -->
+<div class="guest-join-gate" *ngIf="isGuest && !guestNameEntered && !meetingEnded">
+  <div class="guest-join-backdrop"></div>
+  <div class="guest-join-card">
+    <div class="guest-join-orb">
+      <span>⚡</span>
+    </div>
+    <h2 class="guest-join-title">Join Live Session</h2>
+    <p class="guest-join-subtitle">You've been invited to a VidhuraTech mock interview room. Enter your name to get started.</p>
+    
+    <div class="guest-room-badge">
+      <span class="guest-room-icon">🔒</span>
+      <span class="guest-room-id">Room: {{ roomName }}</span>
+    </div>
+
+    <div class="guest-input-group">
+      <label class="guest-input-label" for="guest-name-input">Your Name</label>
+      <input 
+        type="text" 
+        id="guest-name-input" 
+        class="guest-name-input" 
+        [(ngModel)]="guestName" 
+        placeholder="Enter your display name" 
+        (keydown.enter)="joinAsGuest()"
+        autocomplete="off"
+      />
+    </div>
+
+    <button type="button" class="guest-join-btn" (click)="joinAsGuest()" [disabled]="!guestName.trim()">
+      <span class="guest-join-btn-icon">🎥</span>
+      <span>Continue</span>
+    </button>
+
+    <div class="guest-join-footer">
+      <span>Powered by</span>
+      <strong>VidhuraTech</strong>
+      <span>•</span>
+      <span>Free & Secure</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATE 2: PRE-JOIN LOBBY (like Teams/Google Meet — for ALL users after identification) -->
+<div class="guest-join-gate" *ngIf="showPrejoinLobby && (!isGuest || guestNameEntered) && !meetingEnded">
+  <div class="guest-join-backdrop"></div>
+  <div class="guest-join-card prejoin-lobby-card">
+
+    <!-- Camera Preview Area -->
+    <div class="prejoin-video-preview">
+      <video 
+        *ngIf="previewStream" 
+        id="prejoin-camera-preview" 
+        class="prejoin-video-element" 
+        autoplay 
+        playsinline 
+        muted>
+      </video>
+      <div class="prejoin-video-placeholder" *ngIf="!previewStream">
+        <div class="prejoin-avatar-circle">
+          <span>{{ (currentUser?.name || 'G').charAt(0).toUpperCase() }}</span>
+        </div>
+        <p class="prejoin-cam-off-label">Camera is off</p>
+      </div>
+    </div>
+
+    <h2 class="guest-join-title">Ready to Join?</h2>
+
+    <div class="prejoin-badges-row">
+      <div class="guest-room-badge">
+        <span class="guest-room-icon">👤</span>
+        <span class="guest-room-id">{{ currentUser?.name || 'Guest' }}</span>
+      </div>
+      <div class="guest-room-badge">
+        <span class="guest-room-icon">🔒</span>
+        <span class="guest-room-id">{{ roomName }}</span>
+      </div>
+    </div>
+
+    <!-- Mic / Camera Toggle Row -->
+    <div class="prejoin-toggles">
+      <button type="button"
+        class="prejoin-toggle-btn"
+        [class.active]="prejoinMicEnabled"
+        (click)="togglePrejoinMic()">
+        <span class="prejoin-toggle-icon">{{ prejoinMicEnabled ? '🎤' : '🔇' }}</span>
+        <span class="prejoin-toggle-label">{{ prejoinMicEnabled ? 'Mic On' : 'Mic Off' }}</span>
+      </button>
+
+      <button type="button"
+        class="prejoin-toggle-btn"
+        [class.active]="prejoinCamEnabled"
+        (click)="togglePrejoinCamera()">
+        <span class="prejoin-toggle-icon">{{ prejoinCamEnabled ? '📹' : '📷' }}</span>
+        <span class="prejoin-toggle-label">{{ prejoinCamEnabled ? 'Camera On' : 'Camera Off' }}</span>
+      </button>
+    </div>
+
+    <button type="button" class="guest-join-btn" (click)="joinFromLobby()">
+      <span class="guest-join-btn-icon">🚀</span>
+      <span>Join Meeting</span>
+    </button>
+
+    <div class="guest-join-footer">
+      <span>You can also change settings inside the meeting</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATE 3: MEETING WORKSPACE (only after user clicks 'Join Meeting' from lobby) -->
+<div class="video-workspace-container" *ngIf="!showPrejoinLobby && (!isGuest || guestNameEntered) && !meetingEnded">
+  <!-- Top Control Bar -->
+  <header class="workspace-header">
+    <div class="header-left">
+      <div class="logo-orb">⚡</div>
+      <div class="meeting-title-group">
+        <h2>VidhuraTech Mock Interview Room</h2>
+        <span class="room-pill">🔒 ID: {{ roomName }}</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- Recording HUD control -->
+      <div class="recording-hud-bar" [class.active]="isRecording">
+        <span *ngIf="isRecording" class="rec-dot-flash">●</span>
+        <span class="rec-timer-label">{{ isRecording ? 'REC ' + getFormattedDuration() : 'Not Recording' }}</span>
+        <button *ngIf="!isRecording" type="button" class="btn-rec start" (click)="startLocalRecording()">
+          🔴 Record Call
+        </button>
+        <button *ngIf="isRecording" type="button" class="btn-rec stop" (click)="stopLocalRecording()">
+          ⏹️ Stop & Save
+        </button>
+      </div>
+ 
+      <!-- Teams-style Control Toolbar -->
+      <div class="teams-control-toolbar" *ngIf="jitsiAPI">
+        <!-- Mic Toggle Button -->
+        <button type="button" 
+          class="toolbar-btn" 
+          [class.active]="!isMicMuted" 
+          [class.muted]="isMicMuted" 
+          (click)="toggleAudioState()"
+          [title]="isMicMuted ? 'Unmute Microphone' : 'Mute Microphone'">
+          <span class="btn-icon">{{ isMicMuted ? '🔇' : '🎤' }}</span>
+        </button>
+
+        <!-- Camera Toggle Button -->
+        <button type="button" 
+          class="toolbar-btn" 
+          [class.active]="!isCamMuted" 
+          [class.muted]="isCamMuted" 
+          (click)="toggleVideoState()"
+          [title]="isCamMuted ? 'Turn Camera On' : 'Turn Camera Off'">
+          <span class="btn-icon">{{ isCamMuted ? '📷' : '📹' }}</span>
+        </button>
+
+        <!-- Share Screen Button -->
+        <button type="button" 
+          class="toolbar-btn btn-share" 
+          [class.active]="isScreenSharing" 
+          (click)="toggleScreenShare()"
+          [title]="isScreenSharing ? 'Stop Presenting' : 'Share Screen'">
+          <span class="btn-icon">🖥️</span>
+        </button>
+
+        <!-- Raise Hand Button -->
+        <button type="button" 
+          class="toolbar-btn btn-hand" 
+          [class.active]="isHandRaised" 
+          (click)="toggleRaiseHand()"
+          [title]="isHandRaised ? 'Lower Hand' : 'Raise Hand'">
+          <span class="btn-icon">✋</span>
+        </button>
+
+        <!-- Grid View Button -->
+        <button type="button" 
+          class="toolbar-btn btn-grid" 
+          [class.active]="isTileView" 
+          (click)="toggleTileView()"
+          [title]="'Toggle Grid View'">
+          <span class="btn-icon">㗊</span>
+        </button>
+      </div>
+
+      <div class="user-chip">
+        <span class="role-badge" [ngClass]="userRole.toLowerCase()">{{ userRole }}</span>
+        <span class="user-name">{{ currentUser?.name }}</span>
+      </div>
+      
+      <button type="button" class="btn-end-call" (click)="leaveMeeting()">
+        <span class="icon">❌</span> End & Leave
+      </button>
+    </div>
+  </header>
+
+  <!-- Full Screen Calling Workspace -->
+  <div class="workspace-body">
+    <div class="video-feed-pane">
+      <div *ngIf="loading" class="video-loader">
+        <div class="loader-card" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 32px; max-width: 500px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: left;">
+          <div class="loader-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 24px;">
+            <div class="mesh-loader-spinner" style="width: 44px; height: 44px; border: 3px solid rgba(124, 58, 237, 0.1); border-left-color: #7c3aed; border-right-color: #db2777; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0 0 6px 0;">Diagnostic Room Connection</h3>
+            <p style="font-size: 0.8rem; color: rgba(255,255,255,0.45); margin: 0; line-height: 1.4;">Establishing secure end-to-end WebRTC channels for video and audio stream sync.</p>
+          </div>
+
+          <!-- Connection Steps List -->
+          <div class="diagnostic-steps" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+            <div class="diag-step" *ngFor="let step of connectionStatusSteps" style="display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: rgba(255,255,255,0.6);" [ngStyle]="{'color': step.status === 'error' ? '#ef4444' : step.status === 'success' ? '#34d399' : step.status === 'process' ? '#60a5fa' : 'rgba(255,255,255,0.4)'}">
+              <span class="step-bullet" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; font-size: 0.72rem; font-weight: bold; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" [ngStyle]="{'background': step.status === 'success' ? 'rgba(52,211,153,0.1)' : step.status === 'process' ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.05)', 'border-color': step.status === 'success' ? '#34d399' : step.status === 'process' ? '#60a5fa' : 'rgba(255,255,255,0.1)'}">
+                <span *ngIf="step.status === 'success'" style="color: #34d399;">✓</span>
+                <span *ngIf="step.status === 'process'" class="spinner-sm" style="width: 8px; height: 8px; border: 1.5px solid rgba(96,165,250,0.1); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                <span *ngIf="step.status === 'pending'" style="color: rgba(255,255,255,0.25);">○</span>
+                <span *ngIf="step.status === 'error'" style="color: #ef4444;">✗</span>
+              </span>
+              <span>{{ step.label }}</span>
+            </div>
+          </div>
+
+          <!-- Terminal Log Console -->
+          <div class="diagnostic-terminal" style="background: #030712; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; overflow: hidden;">
+            <div class="terminal-head" style="background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+              <span class="term-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+              <span class="term-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #fbbf24;"></span>
+              <span class="term-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+              <span style="font-family: 'Fira Code', monospace; font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-left: 8px;">meeting-session-diagnostics.log</span>
+            </div>
+            <div class="terminal-body" style="height: 120px; overflow-y: auto; padding: 10px; font-family: 'Fira Code', monospace; font-size: 0.72rem; line-height: 1.5; display: flex; flex-direction: column; gap: 4px;">
+              <div class="log-line" *ngFor="let log of activityLogs" [ngStyle]="{'color': log.type === 'error' ? '#fca5a5' : log.type === 'success' ? '#a7f3d0' : log.type === 'warning' ? '#fde047' : '#93c5fd'}">
+                <span style="color: rgba(255,255,255,0.25); margin-right: 6px;">[{{ log.timestamp }}]</span>
+                <span>{{ log.message }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="jitsi-container" class="jitsi-frame-wrapper"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATE 4: POST-MEETING FEEDBACK & NAVIGATION SCREEN -->
+<div class="guest-join-gate post-meeting-gate" *ngIf="meetingEnded">
+  <div class="guest-join-backdrop"></div>
+  <div class="guest-join-card post-meeting-card">
+    <div class="post-meeting-icon">
+      <span>👋</span>
+    </div>
+    <h2 class="guest-join-title">Meeting Ended</h2>
+    <p class="guest-join-subtitle">Thank you for attending the session on VidhuraTech.</p>
+
+    <!-- Feedback Section -->
+    <div class="feedback-container" *ngIf="!feedbackSubmitted">
+      <h3>Rate your Session Experience</h3>
+      <p class="feedback-prompt">How was the call quality and overall interaction?</p>
+      
+      <!-- Interactive Star Rating -->
+      <div class="feedback-stars">
+        <span *ngFor="let star of [1,2,3,4,5]" 
+          class="feedback-star" 
+          [class.filled]="feedbackRating >= star"
+          (click)="setFeedbackRating(star)">★</span>
+      </div>
+
+      <div class="guest-input-group">
+        <label class="guest-input-label" for="feedback-textarea">Feedback & Suggestions</label>
+        <textarea 
+          id="feedback-textarea" 
+          class="feedback-textarea" 
+          [(ngModel)]="feedbackText" 
+          placeholder="Tell us what went well or what we can improve..."
+          rows="3"></textarea>
+      </div>
+
+      <button type="button" class="guest-join-btn feedback-submit-btn" (click)="submitMeetingFeedback()" [disabled]="feedbackRating === 0">
+        <span>Submit Feedback</span>
+      </button>
+    </div>
+
+    <!-- Success Message after feedback submission -->
+    <div class="feedback-success-card" *ngIf="feedbackSubmitted">
+      <span class="success-check-badge">✓</span>
+      <h4>Feedback Submitted Successfully!</h4>
+      <p>Thank you for helping us improve VidhuraTech sessions.</p>
+    </div>
+
+    <!-- Navigation Hub Grid -->
+    <div class="navigation-hub">
+      <h4>🧭 Where would you like to go next?</h4>
+      <div class="nav-links-grid">
+        <button type="button" class="nav-hub-btn btn-nav-home" (click)="navigateToHome()">
+          <span class="nav-btn-icon">🏠</span>
+          <span class="nav-btn-label">Home Page</span>
+        </button>
+
+        <button type="button" class="nav-hub-btn btn-nav-dashboard" (click)="navigateToDashboard()" *ngIf="!isGuest">
+          <span class="nav-btn-icon">💻</span>
+          <span class="nav-btn-label">My Dashboard</span>
+        </button>
+
+        <button type="button" class="nav-hub-btn btn-nav-resume" (click)="navigateToResume()">
+          <span class="nav-btn-icon">📄</span>
+          <span class="nav-btn-label">Resume Builder</span>
+        </button>
+
+        <button type="button" class="nav-hub-btn btn-nav-interviews" (click)="navigateToMockInterviews()" *ngIf="!isGuest">
+          <span class="nav-btn-icon">🎥</span>
+          <span class="nav-btn-label">Mock Interviews</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

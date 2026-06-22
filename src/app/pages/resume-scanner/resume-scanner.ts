@@ -15,6 +15,7 @@ import { ResumePreview } from '../../components/resume-preview/resume-preview';
 export class ResumeScanner implements OnInit {
   public service = inject(ResumeService);
   private cdr = inject(ChangeDetectorRef);
+  activeMobileTab: string = 'editor';
 
   // Premium Custom Workspace parameters
   selectedAtsType: string = 'greenhouse';

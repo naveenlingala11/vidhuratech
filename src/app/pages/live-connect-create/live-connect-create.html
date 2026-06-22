@@ -1,0 +1,227 @@
+<div class="session-setup-page">
+  <!-- Glowing Background Orbs -->
+  <div class="setup-radial-glow primary"></div>
+  <div class="setup-radial-glow secondary"></div>
+
+  <div class="container setup-container">
+    <!-- Header Navigation Back button -->
+    <div class="setup-header-nav">
+      <button type="button" class="btn-back" (click)="goBack()">
+        <i class="fa-solid fa-arrow-left"></i> Back to Live Connect
+      </button>
+    </div>
+
+    <!-- Main Card -->
+    <div class="setup-card glass-panel">
+      <!-- Title Block -->
+      <div class="setup-title-block">
+        <span class="setup-badge animate-pulse">
+          <span class="setup-dot"></span>
+          <span>COLLABORATIVE SESSION CONFIGURATION</span>
+        </span>
+        <h2>Initialize Meeting Room</h2>
+        <p>Set up your workspace requirements to generate a secure, peer-to-peer WebRTC assessment room.</p>
+      </div>
+
+      <!-- Setup Form -->
+      <form (submit)="createSession(); $event.preventDefault()" class="setup-form">
+        <div class="form-grid">
+          
+          <!-- Column 1: Core Session details -->
+          <div class="form-column">
+            <h3 class="column-title">📋 Room Information</h3>
+            
+            <!-- Session Title -->
+            <div class="input-wrapper">
+              <label for="title-input">Session Topic / Title <span class="required">*</span></label>
+              <div class="input-icon-group">
+                <span class="input-icon">📝</span>
+                <input 
+                  type="text" 
+                  id="title-input" 
+                  [(ngModel)]="sessionTitle" 
+                  name="sessionTitle" 
+                  placeholder="e.g., Python Algorithmic Round, Frontend Mock Interview" 
+                  required
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <!-- Host Name -->
+            <div class="input-wrapper">
+              <label for="name-input">Your Display Name <span class="required">*</span></label>
+              <div class="input-icon-group">
+                <span class="input-icon">👤</span>
+                <input 
+                  type="text" 
+                  id="name-input" 
+                  [(ngModel)]="hostName" 
+                  name="hostName" 
+                  placeholder="Enter your name" 
+                  required
+                  [disabled]="isLoggedIn"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <!-- Host Email -->
+            <div class="input-wrapper">
+              <label for="email-input">Your Email Address <span class="required">*</span></label>
+              <div class="input-icon-group">
+                <span class="input-icon">✉️</span>
+                <input 
+                  type="email" 
+                  id="email-input" 
+                  [(ngModel)]="hostEmail" 
+                  name="hostEmail" 
+                  placeholder="Enter your email" 
+                  required
+                  [disabled]="isLoggedIn"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <!-- Role Selector -->
+            <div class="input-wrapper">
+              <label>Your Role in the Session <span class="required">*</span></label>
+              <div class="role-grid">
+                <button 
+                  type="button" 
+                  class="role-card-btn" 
+                  [class.active]="hostRole === 'STUDENT'" 
+                  (click)="setRole('STUDENT')"
+                  [disabled]="isLoggedIn">
+                  <span class="icon">🎓</span>
+                  <span class="label">Candidate</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="role-card-btn" 
+                  [class.active]="hostRole === 'MENTOR'" 
+                  (click)="setRole('MENTOR')"
+                  [disabled]="isLoggedIn">
+                  <span class="icon">👔</span>
+                  <span class="label">Mentor</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="role-card-btn" 
+                  [class.active]="hostRole === 'TRAINER'" 
+                  (click)="setRole('TRAINER')"
+                  [disabled]="isLoggedIn">
+                  <span class="icon">🏫</span>
+                  <span class="label">Trainer</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column 2: Parameters and quality settings -->
+          <div class="form-column">
+            <h3 class="column-title">⚙️ Workspace Settings</h3>
+
+            <!-- Session Duration limit -->
+            <div class="input-wrapper">
+              <label>Session Duration Tier <span class="required">*</span></label>
+              <div class="duration-grid">
+                <button 
+                  type="button" 
+                  class="dur-card-btn" 
+                  [class.active]="sessionDuration === 10" 
+                  (click)="setDuration(10)"
+                  [disabled]="isLoggedIn">
+                  <span class="time">10 Min</span>
+                  <span class="tier">Guest Trial</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="dur-card-btn" 
+                  [class.active]="sessionDuration === 45" 
+                  (click)="setDuration(45)"
+                  [disabled]="!isLoggedIn">
+                  <span class="time">45 Min</span>
+                  <span class="tier">Free Account</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="dur-card-btn premium" 
+                  [class.active]="sessionDuration === 0" 
+                  (click)="setDuration(0)">
+                  <span class="time">Unlimited</span>
+                  <span class="tier">Premium Slot</span>
+                </button>
+              </div>
+              <p class="duration-info-lbl" *ngIf="sessionDuration === 10">
+                ⚠️ Guest sessions will automatically expire after 10 minutes. Register for 45-minute limits.
+              </p>
+              <p class="duration-info-lbl" *ngIf="sessionDuration === 45">
+                ✓ Logged-in free user session limit (45 minutes per call).
+              </p>
+              <p class="duration-info-lbl premium" *ngIf="sessionDuration === 0">
+                ✨ Requires premium license / owner token validation when entering the room.
+              </p>
+            </div>
+
+            <!-- Default Hardware Toggles -->
+            <div class="input-wrapper">
+              <label>Initial Device Permissions</label>
+              <div class="device-toggles-row">
+                <label class="toggle-control">
+                  <input type="checkbox" [(ngModel)]="initialMic" name="initialMic" />
+                  <span class="toggle-visual"></span>
+                  <span class="toggle-text">🎤 Mic Active</span>
+                </label>
+                <label class="toggle-control">
+                  <input type="checkbox" [(ngModel)]="initialCam" name="initialCam" />
+                  <span class="toggle-visual"></span>
+                  <span class="toggle-text">📷 Camera Active</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Code Language selection -->
+            <div class="input-wrapper">
+              <label for="language-select">Default Code Scratchpad Language</label>
+              <div class="input-icon-group">
+                <span class="input-icon">💻</span>
+                <select id="language-select" [(ngModel)]="scratchpadLanguage" name="scratchpadLanguage">
+                  <option value="typescript">TypeScript</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                  <option value="cpp">C++</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Privacy & local WebM compliance check -->
+        <div class="compliance-wrapper">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="privacyChecked" name="privacyChecked" required />
+            <span class="checkbox-visual"></span>
+            <span class="checkbox-text">
+              I understand that VidhuraTech respects my confidentiality: all video recordings run <strong>100% locally in the browser</strong>. Feeds are secure, end-to-end WebRTC channels, and meeting data is never saved or uploaded to VidhuraTech servers.
+            </span>
+          </label>
+        </div>
+
+        <!-- Launch Button -->
+        <div class="action-footer">
+          <button 
+            type="submit" 
+            class="btn btn-primary-gradient btn-launch shadow-glow" 
+            [disabled]="!sessionTitle.trim() || !hostName.trim() || !privacyChecked">
+            <span class="launch-icon">🚀</span> Generate & Join Call Room
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

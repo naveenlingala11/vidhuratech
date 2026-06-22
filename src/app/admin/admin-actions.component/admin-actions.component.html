@@ -48,21 +48,13 @@
       <div class="controls-bar">
         <div class="search-box">
           <i class="bi bi-search search-icon"></i>
-          <input 
-            type="text" 
-            [(ngModel)]="searchQuery" 
-            placeholder="Search commands, actions, or modules..." 
-            class="search-input"
-          />
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search commands, actions, or modules..."
+            class="search-input" />
         </div>
 
         <div class="category-pills">
-          <button 
-            *ngFor="let cat of categories" 
-            (click)="selectCategory(cat)"
-            [class.active]="selectedCategory === cat"
-            class="category-btn"
-          >
+          <button *ngFor="let cat of categories" (click)="selectCategory(cat)" [class.active]="selectedCategory === cat"
+            class="category-btn">
             {{ cat }}
           </button>
         </div>
@@ -70,13 +62,9 @@
 
       <!-- Modules Grid -->
       <div class="modules-grid" *ngIf="filteredModules.length > 0">
-        <div 
-          class="module-card" 
-          *ngFor="let m of filteredModules" 
-          (click)="navigate(m.route)"
-        >
+        <div class="module-card" *ngFor="let m of filteredModules" (click)="navigate(m.route)">
           <div class="module-accent-border" [ngClass]="m.category.toLowerCase()"></div>
-          
+
           <div class="module-header">
             <div class="module-icon-box" [ngClass]="m.category.toLowerCase()">
               <i class="bi" [ngClass]="m.icon"></i>
@@ -146,5 +134,266 @@
         </div>
       </div>
     </aside>
+  </div>
+
+  <!-- Premium User Manual & Instructions -->
+  <div class="adm-panel-card card-user-guide animate-fade-in">
+    <div class="card-header">
+      <i class="bi bi-book-half text-primary"></i>
+      <h3>System Control Panel - Technical Operations Manual</h3>
+    </div>
+
+    <div class="card-body">
+      <!-- Quick Info Grid -->
+      <div class="guide-grid">
+
+        <!-- Section 1: Dashboard Navigation & Operations -->
+        <div class="guide-column">
+          <h4><i class="bi bi-gear-wide-connected text-indigo"></i> 1. Administrative Command Directory</h4>
+          <p>
+            The System Control Panel provides centralized routing to VidhuraTech’s operational modules. Commands are organized into five key administrative areas:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Users Directory & Access:</strong> Oversee student profiles in the <i>Users Directory</i>, provision coordinator accounts with <i>Create Employee</i>, and manage registrations in the <i>Admissions Panel</i>.</li>
+            <li><strong>LMS Schedule Cohorts:</strong> Build classrooms via the <i>Batches Manager</i>, publish broadcasts using <i>Batch Communication</i>, manage syllabi through the <i>Courses Database</i>, and load Excel files via <i>Bulk Course Upload</i>.</li>
+            <li><strong>CRM & Platform Operations:</strong> Monitor inbound student queries in the <i>Leads Pipeline</i>, empty or restore deleted items from the <i>Recycle Center (Bin)</i>, and manage test banks in the <i>Questions Database</i>.</li>
+            <li><strong>Careers & Placements:</strong> Configure scrapers in the <i>Companies Directory</i>, publish active vacancies in the <i>Jobs Manager</i>, and verify graduate credentials using the <i>Certificates Verifier</i>.</li>
+            <li><strong>Billing & Invoices:</strong> Inspect transaction histories in the <i>Invoice Registry</i> and check collection charts in the <i>Revenue Analytics</i> panel.</li>
+          </ul>
+        </div>
+
+        <!-- Section 2: Sandbox Job Seeder -->
+        <div class="guide-column">
+          <h4><i class="bi bi-database-fill-gear text-warning"></i> 2. Sandbox Data Seeding & Operations</h4>
+          <p>
+            For database testing, administrators can trigger the bulk job seeder. Ensure seeder runs comply with standard database parameters:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Custom Record Counts:</strong> Select a preset chip (100 to 50,000) or enter a custom integer value in the input field. The range slider supports seeding up to 100,000 items in a single run.</li>
+            <li><strong>Clean Ingestion:</strong> Enabling the <i>Clear Database First</i> toggle executes a truncate cascade on the jobs table before writing new listings, establishing a clean testing baseline.</li>
+            <li><strong>Seeder Progress Bar:</strong> The UI polls the backend every 800ms to update progress (X of Y) and runs a live stopwatch to display elapsed time.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Supported Systems Sub-Card -->
+      <div class="guide-spec-sheet">
+        <h4><i class="bi bi-shield-lock-fill text-teal"></i> Platform Module Specifications & Table Maps</h4>
+        <p>Administrative routes execute commands and query specific database tables across the platform:</p>
+
+        <div class="spec-table-wrapper">
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>Command Group</th>
+                <th>Target UI Route Link</th>
+                <th>Database Table Mapping</th>
+                <th>Key Operations</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Users & Admissions</strong></td>
+                <td><code>/dashboard/admin/admissions</code></td>
+                <td><code>users</code>, <code>batch_enrollments</code></td>
+                <td>Manually enroll student profiles and trigger setup password emails.</td>
+              </tr>
+              <tr>
+                <td><strong>LMS & Cohorts</strong></td>
+                <td><code>/dashboard/admin/batches</code></td>
+                <td><code>batches</code>, <code>courses</code></td>
+                <td>Create scheduling batches, upload Excel syllabus folders, and assign trainers.</td>
+              </tr>
+              <tr>
+                <td><strong>CRM Leads</strong></td>
+                <td><code>/dashboard/admin/leads</code></td>
+                <td><code>leads</code>, <code>leads_bin</code></td>
+                <td>Filter customer inquiries, assign sales agents, and restore deleted records.</td>
+              </tr>
+              <tr>
+                <td><strong>Careers & Partners</strong></td>
+                <td><code>/dashboard/admin/companies</code></td>
+                <td><code>scraper_configs</code>, <code>jobs</code></td>
+                <td>Configure Workday, Lever, and Greenhouse API scraper engines.</td>
+              </tr>
+              <tr>
+                <td><strong>Finance & Bills</strong></td>
+                <td><code>/dashboard/admin/invoice</code></td>
+                <td><code>invoice</code></td>
+                <td>Audit offline bank wire/UPI payments and issue verified receipts.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sync Architecture Section -->
+      <div class="guide-sync-info">
+        <h4><i class="bi bi-diagram-3-fill text-success"></i> 3. Administrative Search & Audit Log Sync</h4>
+        <p>
+          The Control Panel integrates real-time search filtration, diagnostic checkers, and operational logs:
+        </p>
+        <div class="sync-flow">
+          <div class="flow-step">
+            <div class="step-num">A</div>
+            <h5>Dynamic Filter Routing</h5>
+            <p>Entering terms in the search bar or clicking category pills (e.g. <i>Careers</i>, <i>LMS</i>) instantly filters the modules list to show relevant command cards.</p>
+          </div>
+          <div class="flow-icon"><i class="bi bi-chevron-double-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">B</div>
+            <h5>Integrated Diagnostics</h5>
+            <p>The panel measures latency by fetching analytics. It dynamically updates the status badge of the <i>Core API Gateway</i> and <i>Database Clusters</i>.</p>
+          </div>
+          <div class="flow-icon"><i class="bi bi-chevron-double-right"></i></div>
+          <div class="flow-step">
+            <div class="step-num">C</div>
+            <h5>Real-Time Audit Trail</h5>
+            <p>The sidebar pulls recent invoices and student billing updates, converting them into audit feed entries (e.g. <i>Payment Received</i>, <i>Invoice Generated</i>).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Troubleshooting Section -->
+      <div class="guide-troubleshoot">
+        <h4><i class="bi bi-exclamation-octagon-fill text-rose"></i> 4. Control Panel Troubleshooting & Diagnostics Runbook</h4>
+        <ul class="troubleshoot-list">
+          <li>
+            <strong>Command Directory is Empty:</strong> If search filters return a "No matching modules" state, click the "Reset Filters" button to restore all 15 administrative command cards.
+          </li>
+          <li>
+            <strong>Diagnostics Indicate Offline:</strong> If the <i>Core API Gateway</i> or <i>Database Clusters</i> status shows a red <code>Offline</code> or <code>Disconnected</code> badge, check the backend server logs. Latency values above 500ms indicate network overhead.
+          </li>
+          <li>
+            <strong>Bulk Seeding Locks:</strong> When seeding 50,000+ test jobs, database transactions may experience lock waiting times. Do not close the browser tab or refresh the dashboard until the seeder modal shows the final completed summary.
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Premium Seeder Modal -->
+  <div class="seeder-modal-backdrop" *ngIf="showSeederModal" (click)="closeSeederModal()">
+    <div class="seeder-modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="title-with-icon">
+          <div class="modal-icon-box">
+            <i class="bi bi-database-fill-gear"></i>
+          </div>
+          <div>
+            <h3>Job Seeder Control</h3>
+            <p class="modal-subtitle">Provision mock job listings for testing</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeSeederModal()" [disabled]="seedingLoading">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="control-group">
+          <label class="control-label">
+            <span>Job Records Count</span>
+            <input type="number" [(ngModel)]="seederCount" class="count-number-input" min="1"
+              placeholder="Enter count..." />
+          </label>
+          <div class="preset-buttons">
+            <button type="button" class="preset-btn" [class.active]="seederCount === 100"
+              (click)="seederCount = 100">100</button>
+            <button type="button" class="preset-btn" [class.active]="seederCount === 1000"
+              (click)="seederCount = 1000">1,000</button>
+            <button type="button" class="preset-btn" [class.active]="seederCount === 10000"
+              (click)="seederCount = 10000">10,000</button>
+            <button type="button" class="preset-btn" [class.active]="seederCount === 25000"
+              (click)="seederCount = 25000">25,000</button>
+            <button type="button" class="preset-btn" [class.active]="seederCount === 50000"
+              (click)="seederCount = 50000">50,000</button>
+          </div>
+          <input type="range" min="100" max="100000" step="100" [(ngModel)]="seederCount" class="range-slider" />
+        </div>
+
+        <div class="control-group flex-row">
+          <div class="toggle-description">
+            <h4>Clear Database First</h4>
+            <p>Delete all existing scraped and seeded jobs before writing new ones.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" [(ngModel)]="seederClean" />
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+
+        <!-- Progress or Results Panel -->
+        <div class="status-panel loading-status" *ngIf="seedingLoading">
+          <div class="spinner-container">
+            <div class="premium-spinner"></div>
+            <div class="spinner-glow"></div>
+          </div>
+          <h4>Generating Mock Jobs...</h4>
+
+          <div class="progress-details">
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" [style.width.%]="(seederCountProgress / seederCount) * 100"></div>
+            </div>
+            <div class="progress-metrics">
+              <span class="progress-count">Seeded <strong>{{ seederCountProgress | number }}</strong> of <strong>{{
+                  seederCount | number }}</strong></span>
+              <span class="progress-timer"><i class="bi bi-stopwatch"></i> Elapsed: <strong>{{
+                  formatElapsedTime(seederElapsedSeconds) }}</strong></span>
+            </div>
+          </div>
+          <p class="progress-hint">Executing bulk database insertions. Please keep this panel open...</p>
+        </div>
+
+        <div class="status-panel success-status" *ngIf="seederResult">
+          <div class="status-icon-wrapper success">
+            <i class="bi bi-check2-all"></i>
+          </div>
+          <h4>Seeding Completed!</h4>
+          <div class="results-table">
+            <div class="result-row">
+              <span class="label">Status</span>
+              <span class="value success">SUCCESS</span>
+            </div>
+            <div class="result-row" *ngIf="seederResult.jobsSeededCount !== undefined">
+              <span class="label">Seeded Jobs</span>
+              <span class="value highlight">{{ seederResult.jobsSeededCount | number }}</span>
+            </div>
+            <div class="result-row" *ngIf="seederResult.companiesCount !== undefined">
+              <span class="label">Corporate Brands</span>
+              <span class="value">{{ seederResult.companiesCount | number }}</span>
+            </div>
+            <div class="result-row" *ngIf="seederResult.skillsCount !== undefined">
+              <span class="label">Skills Cloud Size</span>
+              <span class="value">{{ seederResult.skillsCount | number }}</span>
+            </div>
+            <div class="result-row" *ngIf="seederResult.timeTakenMs !== undefined">
+              <span class="label">Execution Time</span>
+              <span class="value highlight">{{ formatElapsedTime(seederResult.timeTakenMs / 1000) }} ({{
+                seederResult.timeTakenMs | number }} ms)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-panel error-status" *ngIf="seederError">
+          <div class="status-icon-wrapper error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <h4>Seeding Failed</h4>
+          <p class="error-msg">{{ seederError }}</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeSeederModal()" [disabled]="seedingLoading">
+          Cancel
+        </button>
+        <button class="btn-primary-seeding" (click)="triggerSeeding()" [disabled]="seedingLoading">
+          <i class="bi bi-rocket-takeoff-fill" *ngIf="!seedingLoading"></i>
+          <span>{{ seedingLoading ? 'Processing...' : 'Execute Seeding' }}</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

@@ -32,6 +32,21 @@ export class CompaniesComponent implements OnInit {
     url: '',
   };
 
+  getActiveCount() {
+    return this.companies.filter(c => c.active).length;
+  }
+
+  getSuccessRate() {
+    const successes = this.companies.reduce((acc, c) => acc + (c.successCount || 0), 0);
+    const fails = this.companies.reduce((acc, c) => acc + (c.failCount || 0), 0);
+    if (successes + fails === 0) return 100;
+    return ((successes / (successes + fails)) * 100).toFixed(1);
+  }
+
+  getTotalSuccessLogs() {
+    return this.companies.reduce((acc, c) => acc + (c.successCount || 0), 0);
+  }
+
   constructor(private http: HttpClient, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
