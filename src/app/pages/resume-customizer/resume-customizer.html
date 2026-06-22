@@ -30,10 +30,22 @@
       </div>
     </header>
 
-    <div class="workspace-columns-split">
+    <div class="workspace-columns-split" [class.show-preview]="activeMobileTab === 'preview'">
       <!-- COLUMN 2: WORKSPACE EDITOR (CUSTOMIZER SECTION) -->
       <main class="workspace-editor custom-scrollbar">
-        <div class="tab-content-wrapper customizer-tab-wrapper">
+        <!-- Mobile-only tabs navigation (hidden on desktop) -->
+        <div class="workspace-tabs mobile-only">
+          <button type="button" class="tab-btn" [class.active]="activeMobileTab === 'editor'"
+            (click)="activeMobileTab = 'editor'">
+            <i class="fa-solid fa-sliders"></i> Design Control
+          </button>
+          <button type="button" class="tab-btn mobile-preview-tab" [class.active]="activeMobileTab === 'preview'"
+            (click)="activeMobileTab = 'preview'">
+            <i class="fa-solid fa-file-pdf"></i> Preview
+          </button>
+        </div>
+
+        <div class="tab-content-wrapper customizer-tab-wrapper" *ngIf="activeMobileTab === 'editor'">
           <!-- Filter bar at the top -->
           <div class="light-card customizer-filter-card animate-slide-up">
             <div class="customizer-bar-title border-b-light">

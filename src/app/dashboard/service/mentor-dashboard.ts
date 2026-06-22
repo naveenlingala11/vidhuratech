@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 export class MentorDashboardService {
   private API = `${environment.apiUrl}/api/mentor/profile/dashboard`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getDashboardData(): Observable<any> {
     return this.http.get<any>(this.API);
@@ -21,6 +21,10 @@ export class MentorDashboardService {
 
   scheduleSession(data: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/api/mentor/profile/sessions`, data);
+  }
+
+  sendSessionInvite(id: number): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/api/mentor/profile/sessions/${id}/invite`, null);
   }
 
   submitFeedback(data: any): Observable<any> {

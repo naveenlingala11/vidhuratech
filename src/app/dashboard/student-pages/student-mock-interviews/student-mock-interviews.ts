@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { StudentDashboardService } from '../../service/student-dashboard';
 import { StudentWorkflowService } from '../service/student-workflow';
 
@@ -42,6 +42,7 @@ export class StudentMockInterviewsComponent implements OnInit {
   constructor(
     private dashboardService: StudentDashboardService,
     private workflow: StudentWorkflowService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -175,5 +176,10 @@ export class StudentMockInterviewsComponent implements OnInit {
 
   trackById(_: number, item: any): any {
     return item.id || item.topic;
+  }
+
+  joinInAppRoom(item: any): void {
+    const roomName = `VidhuraTech_Mock_Session_${item.id || Math.floor(Math.random() * 10000)}`;
+    this.router.navigate(['/meeting', roomName]);
   }
 }

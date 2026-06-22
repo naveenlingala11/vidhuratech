@@ -1,0 +1,565 @@
+<div class="live-connect-page">
+  <!-- Glowing Floating Ambient Background Lights -->
+  <div class="connect-radial-glow primary"></div>
+  <div class="connect-radial-glow secondary"></div>
+  <div class="connect-radial-glow tertiary"></div>
+  <div class="connect-radial-glow quaternary"></div>
+
+  <!-- Hero Header Section -->
+  <section class="connect-hero">
+    <div class="container hero-container">
+      <div class="hero-content">
+        <span class="hero-badge animate-pulse">
+          <span class="live-indicator-dot"></span>
+          <span>⚡ COLLABORATIVE WEBRTC ENGiNE</span>
+        </span>
+        <h1 class="hero-title">
+          VidhuraTech <span class="gradient-text">Live Connect</span>
+        </h1>
+        <p class="hero-subtitle">
+          A high-fidelity remote assessment workspace. Conduct mock interviews, collaborative coding tests, and live mentor assessments using Teams-style controls, side-by-side reference systems, and client-side recorders.
+        </p>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-primary-gradient shadow-glow" (click)="navigateToCreateSession()">
+            <i class="fa-solid fa-circle-play"></i> Start Free Session
+          </button>
+          <button type="button" class="btn btn-secondary-outline hover-up" (click)="scrollToManual()">
+            <i class="fa-solid fa-compass"></i> Explore User Manual
+          </button>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE SIMULATOR CARD (redesigned, branded browser mockup) -->
+      <div class="hero-visual-wrapper">
+        <div class="simulated-workspace-card glass-panel">
+          <div class="mac-bar">
+            <div class="mac-dot red"></div>
+            <div class="mac-dot yellow"></div>
+            <div class="mac-dot green"></div>
+            <span class="card-address"><i class="fa-solid fa-lock"></i> vidhuratech.com/meeting/Mock_Session_99</span>
+          </div>
+
+          <!-- Interactive Simulator Nav Tabs -->
+          <div class="simulator-tabs">
+            <button type="button" class="sim-tab-btn" [class.active]="activeSimulatorTab === 'video'" (click)="setSimulatorTab('video')">
+              🎥 Video Feed
+            </button>
+            <button type="button" class="sim-tab-btn" [class.active]="activeSimulatorTab === 'scratchpad'" (click)="setSimulatorTab('scratchpad')">
+              📝 Scratchpad
+            </button>
+            <button type="button" class="sim-tab-btn" [class.active]="activeSimulatorTab === 'rubric'" (click)="setSimulatorTab('rubric')">
+              📊 Rubrics
+            </button>
+            <button type="button" class="sim-tab-btn" [class.active]="activeSimulatorTab === 'recording'" (click)="setSimulatorTab('recording')">
+              ⭐ End Gate
+            </button>
+          </div>
+
+          <!-- Simulator Tab Screen Contents -->
+          <div class="simulated-screen-body">
+            
+            <!-- Tab 1: Video Call Mode -->
+            <div class="sim-pane-video" *ngIf="activeSimulatorTab === 'video'">
+              <div class="video-grid-mockup">
+                <div class="video-item host">
+                  <div class="avatar">👔</div>
+                  <span class="label">Mentor (Host)</span>
+                </div>
+                <div class="video-item guest">
+                  <div class="avatar">🎓</div>
+                  <span class="label">Candidate (Guest)</span>
+                </div>
+              </div>
+              <div class="toolbar-overlay">
+                <span class="icon active">🎤</span>
+                <span class="icon active">📹</span>
+                <span class="icon active">🖥️</span>
+                <span class="icon hangup">❌</span>
+              </div>
+            </div>
+
+            <!-- Tab 2: Code Scratchpad Mode -->
+            <div class="sim-pane-scratchpad" *ngIf="activeSimulatorTab === 'video' || activeSimulatorTab === 'scratchpad'">
+              <div class="scratchpad-header">
+                <span>📝 Collaborative Scratchpad</span>
+                <span class="lang-tag">TypeScript</span>
+              </div>
+              <pre class="scratchpad-code"><code><span class="keyword">import</span> &#123; Candidate &#125; <span class="keyword">from</span> <span class="string">'vidhuratech'</span>;
+
+<span class="keyword">export function</span> <span class="fn">checkSkills</span>(candidate) &#123;
+  <span class="keyword">const</span> score = candidate.solveProblem();
+  <span class="keyword">return</span> score >= <span class="number">9</span> ? <span class="string">'Exceptional Talent'</span> : <span class="string">'Practice More'</span>;
+&#125;</code></pre>
+              <div class="compiler-console">
+                <span class="console-tag">Compiled: Success</span>
+                <span class="console-run">Result: Exceptional Talent (0.012ms)</span>
+              </div>
+            </div>
+
+            <!-- Tab 3: Evaluation Rubrics Mode -->
+            <div class="sim-pane-rubric" *ngIf="activeSimulatorTab === 'rubric'">
+              <div class="rubric-mockup-card">
+                <h4>📊 Performance Evaluation Scorecard</h4>
+                <p class="subtitle">Drag sliders to score candidate performance in real-time.</p>
+                <div class="mock-slider-group">
+                  <div class="slider-info">
+                    <span>Problem Solving</span>
+                    <strong>8.5 / 10</strong>
+                  </div>
+                  <div class="slider-bar"><div class="fill" style="width: 85%"></div></div>
+                </div>
+                <div class="mock-slider-group">
+                  <div class="slider-info">
+                    <span>Coding & Syntax</span>
+                    <strong>9.0 / 10</strong>
+                  </div>
+                  <div class="slider-bar"><div class="fill" style="width: 90%"></div></div>
+                </div>
+                <div class="mock-slider-group">
+                  <div class="slider-info">
+                    <span>Communication</span>
+                    <strong>7.5 / 10</strong>
+                  </div>
+                  <div class="slider-bar"><div class="fill" style="width: 75%"></div></div>
+                </div>
+                <div class="score-summary">
+                  <span>Aggregate Rating:</span>
+                  <span class="score-badge">8.3 / 10</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 4: Post-Meeting Feedback End Gate -->
+            <div class="sim-pane-recording" *ngIf="activeSimulatorTab === 'recording'">
+              <div class="exit-card-mockup" *ngIf="!feedbackSubmitted">
+                <div class="exit-header">
+                  <span class="wave">👋</span>
+                  <h5>Meeting Ended Successfully</h5>
+                </div>
+                <p>Please take a moment to rate the session quality.</p>
+                <div class="mock-stars-row">
+                  <span *ngFor="let s of [1,2,3,4,5]" class="star-item" [class.active]="simulatedRating >= s" (click)="setSimulatedFeedbackRating(s)">★</span>
+                </div>
+                <div class="mock-textarea-wrap">
+                  <input type="text" placeholder="Write feedback notes..." [(ngModel)]="simulatedFeedbackText" class="mock-input" />
+                </div>
+                <button type="button" class="btn-mock-submit" (click)="submitSimulatedFeedback()">Submit & Download Recording</button>
+              </div>
+              <div class="success-screen-mockup" *ngIf="feedbackSubmitted">
+                <span class="check">✓</span>
+                <h5>Feedback Sent!</h5>
+                <p>WebM Video Recording started downloading directly to your local computer.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Section Tabs Navigator -->
+  <section class="connect-tabs-section" id="quick-manual">
+    <div class="container">
+      <div class="tabs-navigator">
+        <button type="button" class="tab-nav-link" [class.active]="activeSection === 'manual'" (click)="selectSection('manual')">
+          <span class="tab-icon">📖</span>
+          <span class="tab-label">User Manual & Flow</span>
+        </button>
+
+        <button type="button" class="tab-nav-link" [class.active]="activeSection === 'roles'" (click)="selectSection('roles')">
+          <span class="tab-icon">👥</span>
+          <span class="tab-label">Role Workflows</span>
+        </button>
+
+        <button type="button" class="tab-nav-link" [class.active]="activeSection === 'pricing'" (click)="selectSection('pricing')">
+          <span class="tab-icon">⚡</span>
+          <span class="tab-label">Tiers & Limits</span>
+        </button>
+
+        <button type="button" class="tab-nav-link" [class.active]="activeSection === 'terms'" (click)="selectSection('terms')">
+          <span class="tab-icon">🛡️</span>
+          <span class="tab-label">Privacy & Rules</span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="tab-content-wrapper">
+        
+        <!-- SECTION 1: USER MANUAL & STEP FLOW -->
+        <div class="tab-pane-content" *ngIf="activeSection === 'manual'">
+          <div class="pane-intro">
+            <h2>Workflow Steps Manual</h2>
+            <p>From generating a secure session invitation to submitting performance scorecards and downloading local logs.</p>
+          </div>
+
+          <div class="manual-steps-grid">
+            <div class="manual-step-card" *ngFor="let s of userManualSteps" [ngClass]="s.color">
+              <span class="step-badge">{{ s.badge }}</span>
+              <div class="step-header">
+                <span class="step-number-pill">{{ s.step }}</span>
+                <span class="step-icon-big">{{ s.icon }}</span>
+              </div>
+              <h3>{{ s.title }}</h3>
+              <p>{{ s.desc }}</p>
+            </div>
+          </div>
+
+          <!-- Interactive UI Live Previews -->
+          <div class="live-ui-previews">
+            <h3>🖥️ Live Calling Interface Highlights</h3>
+            <div class="previews-carousel">
+              <div class="preview-slide">
+                <div class="slide-info">
+                  <strong>1. Pre-Join Device Warmup Lobby</strong>
+                  <p>Students and hosts test camera and microphone inputs prior to WebRTC engine initialization, caching hardware approvals and avoiding connectivity lockups.</p>
+                </div>
+                <div class="slide-mockup lobby-mockup">
+                  <div class="lobby-cam-box">
+                    <span class="lobby-cam-avatar">👤</span>
+                    <span class="lobby-label">Camera Feed Calibrating...</span>
+                  </div>
+                  <div class="lobby-toggles-row">
+                    <span class="lobby-pill active">🎤 Microphone Active</span>
+                    <span class="lobby-pill muted">📷 Camera Off</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-slide">
+                <div class="slide-info">
+                  <strong>2. Integrated Devices Controller</strong>
+                  <p>Real-time device toggles connect directly to Matrix-powered WebRTC stream APIs, reflecting device states instantly with visible toolbar feedback.</p>
+                </div>
+                <div class="slide-mockup toolbar-mockup">
+                  <div class="device-toolbar">
+                    <div class="dev-btn active"><span class="icon">🎤</span><span class="lbl">Muted: No</span></div>
+                    <div class="dev-btn muted"><span class="icon">🔇</span><span class="lbl">Camera: Off</span></div>
+                    <div class="dev-btn share"><span class="icon">🖥️</span><span class="lbl">Sharing Screen</span></div>
+                    <div class="dev-btn leave">❌ Leave Session</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-slide">
+                <div class="slide-info">
+                  <strong>3. Post-Meeting Feedback Portal</strong>
+                  <p>Once a session ends, the WebRTC connection is disposed instantly. The user is redirected to a glassmorphic star rating page with redirection hub links.</p>
+                </div>
+                <div class="slide-mockup feedback-mockup">
+                  <h5>Rate Session Experience</h5>
+                  <div class="mock-stars">★ ★ ★ ★ ★</div>
+                  <div class="mock-grid">
+                    <span class="mock-grid-btn">🏠 Home</span>
+                    <span class="mock-grid-btn">💻 Dashboard</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complete Project Integration Flow Chart -->
+          <div class="project-integration-flow">
+            <h3 class="flow-section-title">🔗 Complete Platform Integration & Data Flow</h3>
+            <p class="flow-section-subtitle">How Live Connect integrates with the Candidate, Mentor, and Trainer dashboards across the VidhuraTech project.</p>
+            
+            <div class="flow-diagram-container">
+              <!-- Grid of flow nodes -->
+              <div class="flow-node-card first">
+                <span class="flow-step-num">Step 1</span>
+                <div class="node-icon-wrapper">🏠</div>
+                <h4>Quick Creator / Booking</h4>
+                <p>Public users generate room URLs from the Home Page quick creator. Alternatively, logged-in candidates request scheduled mock sessions via Mentor availability slots.</p>
+                <div class="flow-connector-line"></div>
+              </div>
+
+              <div class="flow-node-card second">
+                <span class="flow-step-num">Step 2</span>
+                <div class="node-icon-wrapper">🔑</div>
+                <h4>Lobby Identification</h4>
+                <p>Hosts and guest candidates hit the `/meeting/:roomName` route. Logged-in accounts bypass directly, while new guest users must submit details at the authorization gate.</p>
+                <div class="flow-connector-line"></div>
+              </div>
+
+              <div class="flow-node-card third">
+                <span class="flow-step-num">Step 3</span>
+                <div class="node-icon-wrapper">📞</div>
+                <h4>WebRTC Session Init</h4>
+                <p>Loads Element Call's secure script. Toggles sync local mic, cam, and presenter states with Jitsi iframe APIs. Video indicators reflect active streaming states.</p>
+                <div class="flow-connector-line"></div>
+              </div>
+
+              <div class="flow-node-card fourth">
+                <span class="flow-step-num">Step 4</span>
+                <div class="node-icon-wrapper">📊</div>
+                <h4>Live Review & Score</h4>
+                <p>Side-by-side dashboard opens. Interviewers view candidate resumes, run scratchpad coding tests, compile logic, and grade criteria on score sliders.</p>
+                <div class="flow-connector-line"></div>
+              </div>
+
+              <div class="flow-node-card fifth">
+                <span class="flow-step-num">Step 5</span>
+                <div class="node-icon-wrapper">💾</div>
+                <h4>End Call & Auto-Save</h4>
+                <p>Clicking "End Call" terminates calling channels, initiates a local download of the WebM screen recording file, and brings up the feedback rating dashboard.</p>
+              </div>
+            </div>
+            
+            <div class="flow-relations-box">
+              <h4>🖥️ Related Project Components & Files Map</h4>
+              <div class="relations-grid">
+                <div class="relation-item">
+                  <span class="relation-badge html">HTML</span>
+                  <strong>Home Page Creator:</strong> 
+                  <span class="file-link">home.html</span>
+                  <p>Defines the session setup modal, duration selection toggles, and secure invite clipboard sharing tools.</p>
+                </div>
+                <div class="relation-item">
+                  <span class="relation-badge ts">TS</span>
+                  <strong>Meeting Workspace:</strong> 
+                  <span class="file-link">video-meeting.ts</span>
+                  <p>Operates lobbying, camera preview calibration, Matrix/Element script embedding, and browser capture recording buffers.</p>
+                </div>
+                <div class="relation-item">
+                  <span class="relation-badge css">CSS</span>
+                  <strong>Workspace styling:</strong> 
+                  <span class="file-link">video-meeting.css</span>
+                  <p>Handles the layout of splitscreen panels, Teams-style headers, and light-theme overrides.</p>
+                </div>
+                <div class="relation-item">
+                  <span class="relation-badge db">DB</span>
+                  <strong>Dashboard Services:</strong> 
+                  <span class="file-link">mentor-dashboard.ts</span>
+                  <p>Handles requests for candidate booking approvals, request status modifications, and rubric grading sheet syncing.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: ROLE WORKFLOWS -->
+        <div class="tab-pane-content" *ngIf="activeSection === 'roles'">
+          <div class="pane-intro">
+            <h2>User Role Adaptability</h2>
+            <p>Our mock interview ecosystem changes features dynamically based on whether you are evaluating or being evaluated.</p>
+          </div>
+
+          <!-- Interactive Role Selector -->
+          <div class="role-selector-bar">
+            <button type="button" class="role-selector-btn student" [class.active]="selectedRoleUsage === 'student'" (click)="setRoleUsage('student')">
+              <span class="role-icon">🎓</span> Candidate / Student
+            </button>
+            <button type="button" class="role-selector-btn mentor" [class.active]="selectedRoleUsage === 'mentor'" (click)="setRoleUsage('mentor')">
+              <span class="role-icon">👔</span> Industry Mentor
+            </button>
+            <button type="button" class="role-selector-btn trainer" [class.active]="selectedRoleUsage === 'trainer'" (click)="setRoleUsage('trainer')">
+              <span class="role-icon">🏫</span> Batch Coordinator
+            </button>
+          </div>
+
+          <!-- Selected Role Details Card -->
+          <div class="role-usage-card" [ngClass]="selectedRoleUsage">
+            <div class="role-card-header">
+              <span class="role-circle-icon">{{ roleUsages[selectedRoleUsage].icon }}</span>
+              <div>
+                <span class="role-badge-pill">{{ roleUsages[selectedRoleUsage].badge }}</span>
+                <h3>{{ roleUsages[selectedRoleUsage].title }}</h3>
+                <p class="role-summary-txt">{{ roleUsages[selectedRoleUsage].summary }}</p>
+              </div>
+            </div>
+
+            <div class="role-bullet-section">
+              <h4>Key Capabilities & Workspace Tools:</h4>
+              <ul class="role-bullets-list">
+                <li *ngFor="let bullet of roleUsages[selectedRoleUsage].bulletPoints">
+                  <span class="bullet-check">✓</span>
+                  <span>{{ bullet }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Role Simulated Mockup Preview Box -->
+            <div class="role-mockup-preview">
+              <div class="preview-badge">Live Console Preview</div>
+              <h5>{{ roleUsages[selectedRoleUsage].previewHeadline }}</h5>
+              <p>{{ roleUsages[selectedRoleUsage].previewDetails }}</p>
+              <div class="simulated-preview-box-graphic">
+                <div class="graphic-line long"></div>
+                <div class="graphic-line medium"></div>
+                <div class="graphic-line short"></div>
+                <div class="graphic-indicator-bar">
+                  <div class="dot green"></div>
+                  <div class="dot blue"></div>
+                  <div class="dot yellow"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: TIERS & LIMITS -->
+        <div class="tab-pane-content" *ngIf="activeSection === 'pricing'">
+          <div class="pane-intro">
+            <h2>Current Free vs Future Premium Model</h2>
+            <p>VidhuraTech Live Connect is committed to free educational resources. Review our session duration tiers, quality standards, and the upcoming premium suite below.</p>
+          </div>
+
+          <div class="tiers-grid">
+            <!-- Free Tier Card -->
+            <div class="tier-card free-tier">
+              <div class="tier-badge">Currently Active</div>
+              <h3>Free Plan</h3>
+              <div class="tier-price">₹0 <span>/ lifetime</span></div>
+              <p class="tier-desc">Perfect for students and candidates seeking peer-to-peer coding practice rooms and quick mock sessions.</p>
+              <ul class="tier-features-list">
+                <li><span class="feat-check">✓</span> <strong>10 Mins / Session:</strong> Unauthenticated guest call duration limit</li>
+                <li><span class="feat-check">✓</span> <strong>45 Mins / Session:</strong> Logged-in free user session limit</li>
+                <li><span class="feat-check">✓</span> <strong>Standard Video (720p):</strong> Secure WebRTC streams via Element Call</li>
+                <li><span class="feat-check">✓</span> <strong>Device Warmup Lobby:</strong> Calibrate microphone and camera inputs</li>
+                <li><span class="feat-check">✓</span> <strong>Client Screen Sharing:</strong> Present slide decks or code layouts</li>
+                <li><span class="feat-check">✓</span> <strong>Local WebM Recorder:</strong> Direct local download (100% private)</li>
+                <li><span class="feat-check">✓</span> <strong>Shared Code Scratchpad:</strong> Collaborative editing tool</li>
+              </ul>
+            </div>
+
+            <!-- Premium Tier Card -->
+            <div class="tier-card premium-tier">
+              <div class="tier-badge-premium animate-pulse">Future Launch</div>
+              <h3>Premium Pro</h3>
+              <div class="tier-price">Launch Soon <span>/ monthly</span></div>
+              <p class="tier-desc">Tailored for colleges, training bootcamps, and professional recruitment agencies conducting high-volume assessments.</p>
+              <ul class="tier-features-list">
+                <li><span class="feat-check">✓</span> <strong>EVERYTHING IN FREE PLAN</strong></li>
+                <li><span class="feat-check">✓</span> <strong>Unlimited Duration:</strong> Hold meetings as per owner license policies</li>
+                <li><span class="feat-check">✓</span> <strong>Ultra HD Video (1080p):</strong> High-bitrate WebRTC channels</li>
+                <li><span class="feat-check">✓</span> <strong>AI Code Assistant:</strong> Live code logic checks, bugs & Big O helper</li>
+                <li><span class="feat-check">✓</span> <strong>Automatic Cloud Sync:</strong> Automatically host recordings on secure servers</li>
+                <li><span class="feat-check">✓</span> <strong>Custom Rubric Builder:</strong> Standardized scorecards & live grading sheets</li>
+                <li><span class="feat-check">✓</span> <strong>ATS Pipeline Sync:</strong> Auto-link results to Workday, SmartRecruiters, etc.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Feature Matrix Table -->
+          <div class="feature-matrix-wrapper">
+            <h3>Detailed Feature Comparison</h3>
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Feature Category</th>
+                  <th>Current Free Tier</th>
+                  <th>Future Premium Pro</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of featuresComparison">
+                  <td class="feat-name">{{ item.category }}</td>
+                  <td class="feat-free">{{ item.free }}</td>
+                  <td class="feat-premium">{{ item.premium }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECTION 4: PRIVACY & RULES -->
+        <div class="tab-pane-content" *ngIf="activeSection === 'terms'">
+          <div class="pane-intro">
+            <h2>Terms of Service & Room Rules</h2>
+            <p>Guidelines to maintain a highly professional, secure, and ethical training environment for all session attendees.</p>
+          </div>
+
+          <div class="terms-grid">
+            <div class="term-rule-card">
+              <span class="rule-icon-box cyan">🛡️</span>
+              <h4>1. Session Conduct Code</h4>
+              <p>All hosts, students, and mentor participants are expected to maintain professional behavior. Any form of harassment, inappropriate language, or sharing of copyrighted assessment materials is strictly prohibited and will result in access bans.</p>
+            </div>
+
+            <div class="term-rule-card">
+              <span class="rule-icon-box violet">💾</span>
+              <h4>2. Client-Side Recording Policy</h4>
+              <p>Our local WebM screen recorder captures sessions directly within the host's browser using HTML5 display media capture. Since these video recordings are stored purely in your browser's temporary memory buffers and downloaded locally to your computer, **VidhuraTech does not store or access your session files** on our databases, ensuring total data privacy.</p>
+            </div>
+
+            <div class="term-rule-card">
+              <span class="rule-icon-box pink">🔒</span>
+              <h4>3. Guest Entry Gate Verification</h4>
+              <p>While registration is not required to join a mock interview, new unauthenticated guest users must fill out their full name, email address, and designated role on our glassmorphic gate screen before gaining access to the room. This secures call channels from unauthorized bot joins.</p>
+            </div>
+
+            <div class="term-rule-card">
+              <span class="rule-icon-box amber">📄</span>
+              <h4>4. Content Ownership & IP</h4>
+              <p>All algorithmic questions, system design interview templates, and custom evaluation rubric patterns provided in the VidhuraTech question bank remain the exclusive intellectual property of VidhuraTech. Redistribution is strictly forbidden.</p>
+            </div>
+          </div>
+
+          <div class="ethics-disclaimer-box">
+            <div class="disclaimer-header">
+              <span class="shield-badge">🔒 Privacy Assurance</span>
+            </div>
+            <p>Because Free Tier sessions utilize secure, end-to-end peer WebRTC protocols via Element Call integrations at meet.element.io, your video feeds, audio channels, and code scratchpad content are directly streamed between participants. Your private conversations and proprietary code solutions are never cached or uploaded to our servers.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Collapsible Searchable FAQ Section -->
+  <section class="connect-faq">
+    <div class="container">
+      <div class="faq-header-block">
+        <span class="faq-kicker">Got Questions?</span>
+        <h2>Frequently Asked Questions</h2>
+        <p>Everything you need to know about setting up and participating in mock interview sessions.</p>
+        
+        <!-- Live FAQ Search input -->
+        <div class="faq-search-box">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            [(ngModel)]="faqSearchQuery" 
+            placeholder="Search FAQs (e.g., recording, free)..."
+            class="faq-search-input"
+          />
+        </div>
+      </div>
+
+      <!-- FAQ Accordion List -->
+      <div class="faq-accordion-list">
+        <div 
+          class="faq-accordion-item" 
+          *ngFor="let item of filteredFaqs; let idx = index"
+          [class.expanded]="activeFaqIndex === idx">
+          <button type="button" class="faq-question-btn" (click)="toggleFaq(idx)">
+            <span><span class="faq-bullet-dot"></span> {{ item.question }}</span>
+            <span class="accordion-arrow">▼</span>
+          </button>
+          <div class="faq-answer-pane">
+            <div class="faq-answer-content">
+              <p>{{ item.answer }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-faqs-found" *ngIf="filteredFaqs.length === 0">
+          <i class="fa-solid fa-circle-question"></i>
+          <p>No matching FAQs found for your search query. Try searching for "free" or "recording".</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Banner Call to Action -->
+  <section class="connect-cta-footer">
+    <div class="container footer-cta-card">
+      <h2>Ready to schedule your live session?</h2>
+      <p>Configure your microphone, share your room link, and connect with candidates instantly.</p>
+      <button type="button" class="btn btn-primary-white shadow-glow-white hover-up" (click)="navigateToCreateSession()">
+        <span class="btn-icon-pack">🎥</span> Create Free Session
+      </button>
+    </div>
+  </section>
+</div>

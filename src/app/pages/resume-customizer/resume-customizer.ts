@@ -14,6 +14,7 @@ import { ResumePreview } from '../../components/resume-preview/resume-preview';
 })
 export class ResumeCustomizer implements OnInit {
   public service = inject(ResumeService);
+  activeMobileTab: string = 'editor';
 
   ngOnInit() {
     this.service.activeTab = 'customizer';

@@ -30,10 +30,22 @@
       </div>
     </header>
 
-    <div class="workspace-columns-split">
+    <div class="workspace-columns-split" [class.show-preview]="activeMobileTab === 'preview'">
       <!-- COLUMN 2: WORKSPACE EDITOR (SCANNER SECTION) -->
       <main class="workspace-editor custom-scrollbar">
-        <div class="tab-content-wrapper scanner-tab-wrapper">
+        <!-- Mobile-only tabs navigation (hidden on desktop) -->
+        <div class="workspace-tabs mobile-only">
+          <button type="button" class="tab-btn" [class.active]="activeMobileTab === 'editor'"
+            (click)="activeMobileTab = 'editor'">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Scanner Control
+          </button>
+          <button type="button" class="tab-btn mobile-preview-tab" [class.active]="activeMobileTab === 'preview'"
+            (click)="activeMobileTab = 'preview'">
+            <i class="fa-solid fa-file-pdf"></i> Preview
+          </button>
+        </div>
+
+        <div class="tab-content-wrapper scanner-tab-wrapper" *ngIf="activeMobileTab === 'editor'">
           <!-- Scanner Sub-tabs Nav Row -->
           <div class="scanner-sub-tabs light-tab-row">
             <button type="button" class="sub-tab-btn" [class.active]="service.scannerSubTab === 'input'"

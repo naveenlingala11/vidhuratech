@@ -214,10 +214,12 @@
         </label>
       </div>
 
-      <div class="meeting-action-row" *ngIf="item.meetingLink">
-        <a class="meeting-launch-link" [href]="item.meetingLink" target="_blank">
-          <i class="bi bi-box-arrow-up-right me-1"></i>
-          <span>Launch Session Room</span>
+      <div class="meeting-action-row" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+        <button *ngIf="item.status === 'SCHEDULED'" type="button" class="meeting-launch-link" style="border: none; cursor: pointer; justify-content: center; width: 100%;" (click)="joinInAppRoom(item)">
+          ⚡ Join Premium Call Room
+        </button>
+        <a *ngIf="item.meetingLink && item.status === 'SCHEDULED'" class="meeting-launch-link" [href]="item.meetingLink" target="_blank" style="justify-content: center; width: 100%; background: #f8fafc; color: #475569; border-color: rgba(226,232,240,0.8);">
+          📹 Open External Link
         </a>
       </div>
 

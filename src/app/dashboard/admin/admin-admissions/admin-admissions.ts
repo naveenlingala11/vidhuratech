@@ -13,6 +13,13 @@ import { environment } from '../../../../environments/environment';
 export class AdminAdmissionsComponent implements OnInit {
   batches: any[] = [];
   loading = false;
+  
+  successMessage = '';
+  errorMessage = '';
+  showSuccessModal = false;
+  successData: any = null;
+  lastAdmittedEmail = '';
+
   form: any = {
     name: '',
     email: '',
@@ -22,88 +29,98 @@ export class AdminAdmissionsComponent implements OnInit {
     paymentMethod: 'CASH',
     paymentStatus: 'PAID'
   };
-  constructor(
-    private http: HttpClient
-  ) { }
+
+  constructor(private http: HttpClient) { }
+
   ngOnInit(): void {
     this.loadBatches();
   }
+
   loadBatches() {
+    this.loading = true;
     this.http.get<any>(
       `${environment.apiUrl}/api/lms/batches`
     ).subscribe({
       next: (res) => {
-        console.log(res);
         this.batches = res?.data || [];
+        this.loading = false;
       },
       error: (err) => {
         console.error(err);
-        alert('Failed to load batches');
+        this.showError('Failed to load active training batches.');
+        this.loading = false;
       }
     });
   }
+
   submit() {
     if (!this.validate()) return;
     this.loading = true;
+    this.errorMessage = '';
+    
     this.http.post<any>(
       `${environment.apiUrl}/api/admin/admissions`,
       this.form
     ).subscribe({
       next: (res: any) => {
-        console.log(res);
         const data = res?.data;
-        let message = ` Admission Created Successfully
-                        Student Email:
-                        ${data?.studentEmail}
-                        Student Created:
-                        ${data?.studentCreated}
-                        Existing Student:
-                        ${data?.existingStudent}
-                        Enrollment Created:
-                        ${data?.enrollmentCreated}
-                        Invoice Generated:
-                        ${data?.invoiceGenerated}
-                        Mail Status:
-                        ${data?.setupPasswordStatus}
-                        Next Step:
-                        ${data?.nextStep} `;
-        alert(message);
+        this.successData = data;
+        this.lastAdmittedEmail = this.form.email;
+        this.showSuccessModal = true;
         this.reset();
         this.loading = false;
       },
       error: (err) => {
         console.error(err);
-        alert(
-          err?.error?.message ||
-          'Admission failed'
-        );
+        this.showError(err?.error?.message || 'Failed to complete admission process.');
         this.loading = false;
       }
     });
   }
+
   validate(): boolean {
     if (!this.form.name) {
-      alert('Name required');
+      this.showError('Student Name is required.');
       return false;
     }
     if (!this.form.email) {
-      alert('Email required');
+      this.showError('Student Email Address is required.');
+      return false;
+    }
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailPattern.test(this.form.email)) {
+      this.showError('Please enter a valid Email Address.');
       return false;
     }
     if (!this.form.phone) {
-      alert('Phone required');
+      this.showError('Contact Phone Number is required.');
       return false;
     }
     if (!this.form.batchId) {
-      alert('Select batch');
+      this.showError('Please select a target training batch.');
       return false;
     }
-    if (!this.form.amount) {
-      alert('Amount required');
+    if (!this.form.amount || this.form.amount <= 0) {
+      this.showError('Please enter a valid positive admission amount.');
       return false;
     }
     return true;
   }
+
+  showError(msg: string) {
+    this.errorMessage = msg;
+    setTimeout(() => {
+      if (this.errorMessage === msg) {
+        this.errorMessage = '';
+      }
+    }, 5000);
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
+    this.successData = null;
+  }
+
   reset() {
     this.form = {
       name: '',

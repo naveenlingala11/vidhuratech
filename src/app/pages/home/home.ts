@@ -10,7 +10,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ModalService } from '../../services/modal';
@@ -137,6 +137,14 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     message: '',
   };
 
+  // ========= PUBLIC QUICK SESSION =========
+  sessionTitle = '';
+  sessionDesc = '';
+  sessionHostName = '';
+  sessionCreated = false;
+  generatedRoomLink = '';
+  generatedRoomName = '';
+
   heroCountdown = signal({
     days: 0,
     hours: 0,
@@ -157,6 +165,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     private courseService: PublicCourseService,
     private publicPracticeService: PublicPracticeService,
     private mentorService: MentorService,
+    private router: Router,
   ) {}
 
   // ================= INIT =================
@@ -586,6 +595,61 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       .finally(() => {
         this.mockInterviewSubmitting = false;
       });
+  }
+
+  // ========= PUBLIC QUICK SESSION METHODS =========
+  createPublicSession(): void {
+    const title = this.sessionTitle.trim();
+    const host = this.sessionHostName.trim();
+
+    if (!title || !host) {
+      this.mockInterviewLeadError = 'Please enter session title and your name.';
+      return;
+    }
+
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    this.generatedRoomName = `VidhuraTech_Public_${timestamp}_${randomSuffix}`;
+    this.generatedRoomLink = `${window.location.origin}/meeting/${this.generatedRoomName}`;
+    this.sessionCreated = true;
+    this.mockInterviewLeadError = '';
+  }
+
+  copyGeneratedLink(): void {
+    const text = `Join my VidhuraTech session: ${this.generatedRoomLink}`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.mockInterviewLeadSuccess = 'Invite link copied to clipboard!';
+        setTimeout(() => (this.mockInterviewLeadSuccess = ''), 2500);
+      });
+    }
+  }
+
+  shareGeneratedWhatsApp(): void {
+    const text = encodeURIComponent(`Join my VidhuraTech Mock Interview Session: ${this.generatedRoomLink}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  }
+
+  shareGeneratedEmail(): void {
+    const subject = encodeURIComponent(`VidhuraTech Mock Interview Session Invitation`);
+    const body = encodeURIComponent(`Hi,\n\nI've created a mock interview session on VidhuraTech. Please join using the link below:\n\n${this.generatedRoomLink}\n\nRegards,\n${this.sessionHostName}`);
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
+  }
+
+  startCreatedSession(): void {
+    this.router.navigate(['/meeting', this.generatedRoomName]);
+  }
+
+  resetPublicSessionForm(): void {
+    this.sessionTitle = '';
+    this.sessionDesc = '';
+    this.sessionHostName = '';
+    this.sessionCreated = false;
+    this.generatedRoomLink = '';
+    this.generatedRoomName = '';
+    this.mockInterviewLeadSuccess = '';
+    this.mockInterviewLeadError = '';
+    this.showMockInterviewLeadForm = false;
   }
 
   ngOnDestroy() {

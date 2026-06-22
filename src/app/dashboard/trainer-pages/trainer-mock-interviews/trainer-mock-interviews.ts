@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TrainerDashboardService } from '../../service/trainer-dashboard';
 
 type MockFilter = 'ALL' | 'REQUESTED' | 'SCHEDULED' | 'COMPLETED' | 'REJECTED';
@@ -21,7 +22,10 @@ export class TrainerMockInterviewsComponent implements OnInit {
   selectedFilter: MockFilter = 'ALL';
   mockRequests: any[] = [];
 
-  constructor(private service: TrainerDashboardService) {}
+  constructor(
+    private service: TrainerDashboardService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadMockInterviews();
@@ -134,5 +138,10 @@ export class TrainerMockInterviewsComponent implements OnInit {
 
   trackById(_: number, item: any): any {
     return item.id;
+  }
+
+  joinInAppRoom(item: any): void {
+    const roomName = `VidhuraTech_Mock_Session_${item.id || Math.floor(Math.random() * 10000)}`;
+    this.router.navigate(['/meeting', roomName]);
   }
 }
