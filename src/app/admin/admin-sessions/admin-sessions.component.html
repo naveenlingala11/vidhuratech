@@ -1,0 +1,503 @@
+<div class="admin-sessions-wrapper">
+  <!-- Top Navigation Header -->
+  <header class="admin-sessions-header">
+    <div class="header-left">
+      <button class="btn-back" onclick="window.history.back()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back</span>
+      </button>
+      <div class="title-group">
+        <h2>Live Sessions Registry</h2>
+        <p class="subtitle">Securely audit session IDs, WebRTC chat logs, evaluation sheets, and summaries</p>
+      </div>
+    </div>
+    <div class="header-right" style="display: flex; gap: 12px; align-items: center;">
+      <button class="btn-create-public" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle-fill"></i> Create Public Session
+      </button>
+      <button class="btn-refresh" (click)="loadSessions()" [disabled]="loading">
+        <span *ngIf="!loading">🔄 Sync Database</span>
+        <span *ngIf="loading">⌛ Synchronizing...</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Statistics Overview Grid -->
+  <section class="stats-grid">
+    <div class="stat-card blue">
+      <div class="stat-icon"><i class="bi bi-shield-fill-check"></i></div>
+      <div class="stat-info">
+        <span class="stat-title">Total Session Audits</span>
+        <h3 class="stat-value">{{ sessions.length }}</h3>
+      </div>
+    </div>
+    <div class="stat-card emerald">
+      <div class="stat-icon"><i class="bi bi-chat-left-dots-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-title">Chats Archived</span>
+        <h3 class="stat-value">
+          {{ sessions.filter(s => s.sessionChat && s.sessionChat.trim().length > 0 && s.sessionChat !== 'No chat
+          messages were recorded during this session.').length }}
+        </h3>
+      </div>
+    </div>
+    <div class="stat-card violet">
+      <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-title">Summaries Sync</span>
+        <h3 class="stat-value">
+          {{ sessions.filter(s => s.sessionSummary && s.sessionSummary.trim().length > 0).length }}
+        </h3>
+      </div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-title">Active Batches</span>
+        <h3 class="stat-value">
+          {{ sessions.map(s => s.batch).filter(b => b).length }}
+        </h3>
+      </div>
+    </div>
+  </section>
+
+  <!-- Session Type Tabs -->
+  <div class="sessions-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'professional'" (click)="activeTab = 'professional'">
+      <i class="bi bi-shield-check"></i> Mock Interviews
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'public'" (click)="activeTab = 'public'">
+      <i class="bi bi-camera-video-fill"></i> Quick Sessions & Teams Calls
+    </button>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="toolbar-pane">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search sessions by ID, Student, Email, or Topic..."
+        autocomplete="off" />
+    </div>
+
+    <div class="filter-controls">
+      <label for="status-filter">Status:</label>
+      <select id="status-filter" [(ngModel)]="statusFilter">
+        <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Sessions List Table -->
+  <div class="sessions-table-container">
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Synchronizing secure session indexes from database...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && filteredSessions.length === 0">
+      <span class="empty-icon">📁</span>
+      <h4>No session records found</h4>
+      <p>Try refining your search keyword or selecting a different status filter.</p>
+    </div>
+
+    <table class="sessions-table" *ngIf="!loading && filteredSessions.length > 0">
+      <thead>
+        <tr>
+          <th><i class="bi bi-hash"></i> ID</th>
+          <th><i class="bi bi-person-fill"></i> Candidate</th>
+          <th><i class="bi bi-person-badge-fill"></i> Assessor</th>
+          <th><i class="bi bi-journal-text"></i> Topic & Meeting ID</th>
+          <th><i class="bi bi-calendar-event-fill"></i> Schedule</th>
+          <th><i class="bi bi-bar-chart-line-fill"></i> Call Stats</th>
+          <th><i class="bi bi-info-circle-fill"></i> Status</th>
+          <th><i class="bi bi-archive-fill"></i> Saved Telemetry</th>
+          <th><i class="bi bi-tools"></i> Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of filteredSessions" [class.highlighted]="selectedSession?.id === s.id">
+          <td class="col-id">#{{ s.id }}</td>
+          <td class="col-student">
+            <div class="student-details">
+              <span class="detail-name"><i class="bi bi-person-circle text-primary"></i> <strong>{{ s.student || 'Guest Candidate' }}</strong></span>
+              <span class="detail-email"><i class="bi bi-envelope-fill text-muted"></i> {{ s.email || 'No Email' }}</span>
+            </div>
+          </td>
+          <td class="col-host">
+            <div class="host-details" style="display: flex; flex-direction: column; gap: 2px;">
+              <span class="detail-name"><i class="bi bi-person-workspace text-indigo"></i> <strong>{{ s.trainerName || 'Assessor (Guest)' }}</strong></span>
+              <span class="detail-email" style="font-size: 0.76rem; color: #64748b;"><i class="bi bi-envelope-at-fill text-muted"></i> {{ s.trainerEmail || 'No Email' }}</span>
+              <span *ngIf="s.expirationDate" style="font-size: 0.72rem; color: #ef4444; margin-top: 2px; font-weight: 500;">
+                <i class="bi bi-clock-history"></i> Expires: {{ s.expirationDate | date:'short':'+0530' }}
+              </span>
+              <span *ngIf="!s.expirationDate" style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                <i class="bi bi-infinity"></i> Unlimited Access
+              </span>
+            </div>
+          </td>
+          <td class="col-topic">
+            <div class="topic-details">
+              <span class="detail-topic"><i class="bi bi-bookmark-fill text-amber"></i> <strong>{{ s.topic }}</strong></span>
+              <span class="batch-badge"><i class="bi bi-folder2-open"></i> {{ s.batch || 'Self-Study' }}</span>
+              <div class="meeting-link-wrapper" style="margin-top: 6px; font-size: 0.76rem;">
+                <a *ngIf="s.meetingLink" [href]="s.meetingLink" target="_blank" class="workspace-join-link" style="color: #2563eb; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #bfdbfe; background: #eff6ff; padding: 2px 8px; border-radius: 6px; transition: all 0.2s;">
+                  <i class="bi bi-camera-video-fill"></i> Join Room
+                </a>
+                <span *ngIf="!s.meetingLink" style="color: #94a3b8; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #f1f5f9; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">
+                  <i class="bi bi-camera-video-off-fill"></i> Room Offline
+                </span>
+              </div>
+            </div>
+          </td>
+          <td class="col-schedule">
+            <div class="schedule-details">
+              <span class="detail-date"><i class="bi bi-calendar3 text-indigo"></i> <strong>{{ (s.preferredDate ? s.preferredDate : (s.createdAt | date:'mediumDate':'+0530')) || 'Instant Call' }}</strong></span>
+              <span class="detail-time" style="font-size: 0.78rem; color: #64748b; margin-top: 2px;"><i class="bi bi-clock text-muted"></i> {{ s.preferredTime ? s.preferredTime : (s.createdAt | date:'shortTime':'+0530') }}</span>
+            </div>
+          </td>
+          <td class="col-stats">
+            <div class="stats-details" style="display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-size: 0.78rem; color: #0284c7; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; width: fit-content;">
+                <i class="bi bi-hourglass-split"></i> {{ s.actualDurationMinutes || 0 }} min
+              </span>
+              <span style="font-size: 0.78rem; color: #7c3aed; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; background: #f3e8ff; padding: 2px 6px; border-radius: 4px; width: fit-content;">
+                <i class="bi bi-people-fill"></i> {{ s.participantCount || 0 }} joined
+              </span>
+            </div>
+          </td>
+          <td class="col-status">
+            <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+              <span class="status-pill" [ngClass]="s.status.toLowerCase()">
+                <i class="bi" [ngClass]="{
+                  'bi-clock-history': s.status === 'REQUESTED',
+                  'bi-calendar-check': s.status === 'SCHEDULED',
+                  'bi-check-circle-fill': s.status === 'COMPLETED',
+                  'bi-x-circle-fill': s.status === 'CANCELLED'
+                }"></i> {{ s.status }}
+              </span>
+              <span *ngIf="!s.isEnded && s.status === 'SCHEDULED'" class="live-indicator" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #ef4444; font-weight: 700; margin-top: 2px;">
+                <span class="live-dot" style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block; animation: pulse-live 1.2s infinite;"></span> LIVE NOW
+              </span>
+            </div>
+          </td>
+          <td class="col-archives">
+            <div class="archive-badges">
+              <span class="badge" 
+                [class.active]="s.sessionChat && s.sessionChat.trim().length > 0 && s.sessionChat !== 'No chat messages were recorded during this session.'"
+                [style.cursor]="(s.sessionChat && s.sessionChat.trim().length > 0 && s.sessionChat !== 'No chat messages were recorded during this session.') ? 'pointer' : 'default'"
+                (click)="s.sessionChat && s.sessionChat.trim().length > 0 && s.sessionChat !== 'No chat messages were recorded during this session.' && openChatPreview(s)"
+                title="Click to preview chat logs">
+                <i class="bi bi-chat-text-fill"></i> Chat
+              </span>
+              <span class="badge" 
+                [class.active]="s.sessionSummary && s.sessionSummary.trim().length > 0"
+                [style.cursor]="(s.sessionSummary && s.sessionSummary.trim().length > 0) ? 'pointer' : 'default'"
+                (click)="s.sessionSummary && s.sessionSummary.trim().length > 0 && viewDetails(s)"
+                title="Click to view session summary">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i> Summary
+              </span>
+            </div>
+          </td>
+          <td class="col-actions">
+            <div class="action-buttons">
+              <button class="btn-action view" (click)="viewDetails(s)" title="Inspect Session Logs">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              <button class="btn-action export" (click)="exportChatTranscript(s)" [disabled]="!s.sessionChat || s.sessionChat.trim().length === 0 || s.sessionChat === 'No chat messages were recorded during this session.'"
+                title="Export Chat Transcript">
+                <i class="bi bi-download"></i>
+              </button>
+              <button class="btn-action delete" (click)="confirmDelete(s)" title="Purge Session Audit Logs">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Inspect Session Details Modal -->
+<div class="admin-modal-backdrop" *ngIf="showDetailsModal && selectedSession" (click)="closeDetailsModal()"></div>
+<div class="admin-modal" *ngIf="showDetailsModal && selectedSession">
+  <div class="modal-header">
+    <div class="modal-title-group">
+      <h3>Inspect Session Audit: #{{ selectedSession.id }}</h3>
+      <span class="modal-subtitle">Logged under secure WebRTC channels</span>
+    </div>
+    <button class="btn-close-modal" (click)="closeDetailsModal()">&times;</button>
+  </div>
+
+  <div class="modal-body-split">
+    <!-- Left Pane: General Metadata & Summary Form -->
+    <div class="modal-pane-left">
+      <div class="meta-section">
+        <h4 class="section-title">Session Configuration & Telemetry Control</h4>
+        <div class="meta-grid" style="grid-template-columns: repeat(2, 1fr) !important; gap: 14px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 14px;">
+          <div class="meta-item">
+            <span class="label">Candidate Name:</span>
+            <input type="text" class="modal-input" [(ngModel)]="selectedSession.student" placeholder="Candidate Name" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Candidate Email:</span>
+            <input type="email" class="modal-input" [(ngModel)]="selectedSession.email" placeholder="Candidate Email" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Assigned Host Name:</span>
+            <input type="text" class="modal-input" [(ngModel)]="selectedSession.trainerName" placeholder="Assigned Host Name" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Assigned Host Email:</span>
+            <input type="email" class="modal-input" [(ngModel)]="selectedSession.trainerEmail" placeholder="Assigned Host Email" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Workspace Topic:</span>
+            <input type="text" class="modal-input" [(ngModel)]="selectedSession.topic" placeholder="Workspace Topic" />
+          </div>
+          <div class="meta-item">
+            <span class="label">LMS Batch:</span>
+            <input type="text" class="modal-input" [(ngModel)]="selectedSession.batch" placeholder="LMS Batch" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Status:</span>
+            <select class="modal-select" [(ngModel)]="selectedSession.status">
+              <option value="REQUESTED">REQUESTED</option>
+              <option value="SCHEDULED">SCHEDULED</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+          </div>
+          <div class="meta-item">
+            <span class="label">Link Expiration (IST):</span>
+            <input type="datetime-local" class="modal-input" [ngModel]="formatDateTimeForInput(selectedSession.expirationDate)" (ngModelChange)="selectedSession.expirationDate = $event" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Max Duration Limit (mins):</span>
+            <input type="number" class="modal-input" [(ngModel)]="selectedSession.maxDurationMinutes" placeholder="Max Duration" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Actual Duration (mins):</span>
+            <input type="number" class="modal-input" [(ngModel)]="selectedSession.actualDurationMinutes" placeholder="Actual Duration" />
+          </div>
+          <div class="meta-item">
+            <span class="label">Attendees Count:</span>
+            <input type="number" class="modal-input" [(ngModel)]="selectedSession.participantCount" placeholder="Attendees Count" />
+          </div>
+          <div class="meta-item checkbox-item" style="display: flex; flex-direction: row !important; align-items: center; gap: 8px; margin-top: 18px;">
+            <input type="checkbox" id="isEndedCheckbox" [(ngModel)]="selectedSession.isEnded" style="width: 16px; height: 16px; margin: 0; cursor: pointer;" />
+            <label for="isEndedCheckbox" class="label" style="margin: 0; font-weight: 700; cursor: pointer;">Closed / Ended</label>
+          </div>
+          <div class="meta-item" style="grid-column: span 2; margin-top: 8px;">
+            <span class="label">Meeting Link / Room URL:</span>
+            <div style="display: flex; gap: 8px; width: 100%;">
+              <input type="text" class="modal-input" [(ngModel)]="selectedSession.meetingLink" placeholder="No room URL generated yet" style="flex: 1;" />
+              <a *ngIf="selectedSession.meetingLink" [href]="selectedSession.meetingLink" target="_blank" class="btn-action view" style="padding: 0 12px; height: 38px; display: inline-flex; align-items: center; border-radius: 8px; text-decoration: none;" title="Join / Test Room">
+                <i class="bi bi-box-arrow-up-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable Session Summary Section -->
+      <div class="form-section" *ngIf="selectedSession">
+        <div class="section-header-row">
+          <h4 class="section-title">Session Evaluation Summary</h4>
+          <span class="sec-badge">Editable</span>
+        </div>
+        <p class="section-desc">Audit notes compiled by the mentor or assessor. Admins can update this record.</p>
+        <textarea class="summary-textarea" [(ngModel)]="selectedSession.sessionSummary"
+          placeholder="No session summary has been recorded. Write key milestones, rating scores, and remarks here..."
+          rows="10"></textarea>
+      </div>
+    </div>
+
+    <!-- Right Pane: Real-Time WebRTC Chat Log Transcript -->
+    <div class="modal-pane-right">
+      <div class="section-header-row">
+        <h4 class="section-title">WebRTC Chat Logs</h4>
+        <button class="btn-action-export" (click)="exportChatTranscript(selectedSession)"
+          [disabled]="!selectedSession.sessionChat">
+          <i class="bi bi-download"></i> Export Logs
+        </button>
+      </div>
+      <p class="section-desc">Full transcript of messages exchanged during the video meeting room.</p>
+
+      <!-- Terminal Emulator look-alike -->
+      <div class="chat-terminal">
+        <div class="terminal-header">
+          <div class="dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="term-title">webrtc-chat-logs-session-{{ selectedSession.id }}.log</span>
+        </div>
+        <div class="terminal-body">
+          <pre *ngIf="selectedSession.sessionChat">{{ selectedSession.sessionChat }}</pre>
+          <pre *ngIf="!selectedSession.sessionChat"
+            class="dim">No messages were sent during this assessment session.</pre>
+        </div>
+      </div>
+
+      <!-- System & Activity Event Logs Terminal -->
+      <div class="section-header-row" style="margin-top: 24px;">
+        <h4 class="section-title">System & Activity Event Logs</h4>
+      </div>
+      <p class="section-desc">Audit logs of all actions performed in the call workspace with exact timestamps.</p>
+
+      <div class="chat-terminal" style="margin-top: 0; background: #020617; border-color: rgba(167, 139, 250, 0.15);">
+        <div class="terminal-header" style="background: rgba(167, 139, 250, 0.03); border-bottom-color: rgba(167, 139, 250, 0.1);">
+          <div class="dots">
+            <span class="dot red" style="background: #ef4444;"></span>
+            <span class="dot yellow" style="background: #eab308;"></span>
+            <span class="dot green" style="background: #10b981;"></span>
+          </div>
+          <span class="term-title" style="color: #a78bfa;">session-activity-audit-logs-{{ selectedSession.id }}.log</span>
+        </div>
+        <div class="terminal-body" style="height: 180px; background: #000;">
+          <pre *ngIf="selectedSession.meetingLogs" style="color: #a78bfa; margin: 0; font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all;">{{ selectedSession.meetingLogs }}</pre>
+          <pre *ngIf="!selectedSession.meetingLogs" class="dim" style="margin: 0; font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.6; color: #475569;">No system activity events were logged for this session.</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn-modal cancel" (click)="closeDetailsModal()">Discard Changes</button>
+    <button class="btn-modal save" (click)="saveSummary()" [disabled]="saving">
+      <span *ngIf="!saving">Save Evaluation Summary</span>
+      <span *ngIf="saving">Saving Changes...</span>
+    </button>
+  </div>
+</div>
+
+<!-- Secure Deletion Purge Warning Modal -->
+<div class="admin-modal-backdrop" *ngIf="deleteSessionTarget" (click)="cancelDelete()"></div>
+<div class="admin-modal delete-modal" *ngIf="deleteSessionTarget">
+  <div class="modal-header warning">
+    <div class="modal-title-group">
+      <h3>⚠️ PURGE AUDIT LOG CONFIRMATION</h3>
+      <span class="modal-subtitle text-rose">HIGHLY SENSITIVE SYSTEM ACTION</span>
+    </div>
+  </div>
+  <div class="modal-body text-center">
+    <div class="alert-banner">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <p>This action is irreversible. It will permanently purge all session records, evaluations, chat history logs, and
+        notes for <strong>Session #{{ deleteSessionTarget.id }}</strong> from the database.</p>
+    </div>
+    <div class="target-details">
+      <p><strong>Session ID:</strong> #{{ deleteSessionTarget.id }}</p>
+      <p><strong>Assessment Topic:</strong> {{ deleteSessionTarget.topic }}</p>
+      <p><strong>Candidate:</strong> {{ deleteSessionTarget.student }} ({{ deleteSessionTarget.email }})</p>
+    </div>
+    <p class="prompt-text">Are you absolutely sure you want to proceed with this deletion?</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-modal cancel" (click)="cancelDelete()">Cancel</button>
+    <button class="btn-modal purge" (click)="executeDelete()" [disabled]="saving">
+      <span *ngIf="!saving">Purge Records</span>
+      <span *ngIf="saving">Purging Database...</span>
+    </button>
+  </div>
+</div>
+
+<!-- Create Public Session Modal -->
+<div class="admin-modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()"></div>
+<div class="admin-modal delete-modal" style="max-width: 600px !important;" *ngIf="showCreateModal">
+  <div class="modal-header" style="background: #ecfdf5; border-bottom-color: #a7f3d0;">
+    <div class="modal-title-group">
+      <h3 style="color: #047857;"><i class="bi bi-plus-circle-fill"></i> Create Public Session</h3>
+      <span class="modal-subtitle" style="color: #065f46;">Instantly spin up a quick-launch guest or peer meeting room</span>
+    </div>
+    <button class="btn-close-modal" (click)="closeCreateModal()">&times;</button>
+  </div>
+  
+  <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div class="meta-item">
+      <span class="label" style="font-weight: 700; color: var(--text-muted);">Session Topic / Title:</span>
+      <input type="text" class="modal-input" [(ngModel)]="newSession.topic" placeholder="e.g. JavaScript Basics Discussion" style="width: 100%; box-sizing: border-box;" />
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="meta-item">
+        <span class="label" style="font-weight: 700; color: var(--text-muted);">Host/Assessor Name:</span>
+        <input type="text" class="modal-input" [(ngModel)]="newSession.hostName" placeholder="e.g. Guest Host" style="width: 100%; box-sizing: border-box;" />
+      </div>
+      <div class="meta-item">
+        <span class="label" style="font-weight: 700; color: var(--text-muted);">Host/Assessor Email (Optional):</span>
+        <input type="email" class="modal-input" [(ngModel)]="newSession.hostEmail" placeholder="e.g. host@example.com" style="width: 100%; box-sizing: border-box;" />
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="meta-item">
+        <span class="label" style="font-weight: 700; color: var(--text-muted);">Candidate Name (Optional):</span>
+        <input type="text" class="modal-input" [(ngModel)]="newSession.candidateName" placeholder="e.g. Guest Candidate" style="width: 100%; box-sizing: border-box;" />
+      </div>
+      <div class="meta-item">
+        <span class="label" style="font-weight: 700; color: var(--text-muted);">Candidate Email (Optional):</span>
+        <input type="email" class="modal-input" [(ngModel)]="newSession.candidateEmail" placeholder="e.g. candidate@example.com" style="width: 100%; box-sizing: border-box;" />
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="meta-item">
+        <span class="label" style="font-weight: 700; color: var(--text-muted);">Max Duration Limit (minutes):</span>
+        <input type="number" class="modal-input" [(ngModel)]="newSession.maxDurationMinutes" style="width: 100%; box-sizing: border-box;" />
+      </div>
+      <div class="meta-item">
+        <span class="label" style="font-weight: 700; color: var(--text-muted);">Link Expiration (Optional):</span>
+        <input type="datetime-local" class="modal-input" [(ngModel)]="newSession.expirationDate" style="width: 100%; box-sizing: border-box;" />
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer" style="background: #f8fafc; border-top-color: var(--border-color);">
+    <button class="btn-modal cancel" (click)="closeCreateModal()">Cancel</button>
+    <button class="btn-modal save" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: transparent; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" (click)="createPublicSession()" [disabled]="saving">
+      <span *ngIf="!saving">Create & Generate Meeting</span>
+      <span *ngIf="saving">Creating Session...</span>
+    </button>
+  </div>
+</div>
+
+<!-- Sleek Glassmorphic Chat Preview Modal -->
+<div class="admin-modal-backdrop" *ngIf="showChatPreviewModal && chatPreviewSession" (click)="closeChatPreview()"></div>
+<div class="admin-modal" style="max-width: 650px !important;" *ngIf="showChatPreviewModal && chatPreviewSession">
+  <div class="modal-header" style="background: rgba(99, 102, 241, 0.05); border-bottom-color: rgba(99, 102, 241, 0.15);">
+    <div class="modal-title-group">
+      <h3 style="display: flex; align-items: center; gap: 8px; color: #4f46e5; margin: 0;">
+        <i class="bi bi-chat-text-fill"></i>
+        <span>Chat History Logs: Session #{{ chatPreviewSession.id }}</span>
+      </h3>
+      <span class="modal-subtitle">Topic: {{ chatPreviewSession.topic }}</span>
+    </div>
+    <button class="btn-close-modal" (click)="closeChatPreview()">&times;</button>
+  </div>
+  <div class="modal-body" style="padding: 24px;">
+    <!-- Chat log window -->
+    <div class="chat-terminal" style="margin-top: 0; background: #0f172a; border-color: rgba(99, 102, 241, 0.15);">
+      <div class="terminal-header" style="background: #1e293b; border-bottom: 1px solid #334155;">
+        <div class="dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="term-title">room-chat-log-session-{{ chatPreviewSession.id }}.txt</span>
+      </div>
+      <div class="terminal-body" style="height: 300px; padding: 20px; overflow-y: auto; background: #020617;">
+        <pre *ngIf="chatPreviewSession.sessionChat" style="color: #34d399; font-family: 'Fira Code', monospace; font-size: 0.82rem; margin: 0; white-space: pre-wrap; word-break: break-all;">{{ chatPreviewSession.sessionChat }}</pre>
+        <pre *ngIf="!chatPreviewSession.sessionChat" class="dim" style="color: #64748b; font-family: 'Fira Code', monospace; font-size: 0.82rem; margin: 0;">No chat messages were recorded during this session.</pre>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer" style="background: #f8fafc; border-top-color: var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+    <button class="btn-modal cancel" (click)="closeChatPreview()">Close Preview</button>
+    <button class="btn-modal save" style="display: inline-flex; align-items: center; gap: 8px;" (click)="exportChatTranscript(chatPreviewSession)" [disabled]="!chatPreviewSession.sessionChat">
+      <i class="bi bi-download"></i> Export Chat
+    </button>
+  </div>
+</div>

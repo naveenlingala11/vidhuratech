@@ -16,4 +16,19 @@ export class StudentWorkflowService {
   getMockInterviews() {
     return this.http.get(`${this.API}/mock-interviews`);
   }
+  checkPublicSessionStatus(id: number) {
+    return this.http.get(`${environment.apiUrl}/api/public/mock-interviews/check/${id}`);
+  }
+  createPublicSession(payload: any) {
+    return this.http.post(`${environment.apiUrl}/api/public/mock-interviews/create`, payload);
+  }
+  updatePublicSession(id: number, payload: any) {
+    return this.http.patch(`${environment.apiUrl}/api/public/mock-interviews/${id}`, payload);
+  }
+  getOrCreatePublicSession(payload: any) {
+    return this.http.post(`${environment.apiUrl}/api/public/mock-interviews/get-or-create`, payload);
+  }
+  logSessionJoin(id: number, payload: any) {
+    return this.http.post(`${environment.apiUrl}/api/public/mock-interviews/${id}/join`, payload);
+  }
 }
