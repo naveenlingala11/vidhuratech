@@ -214,6 +214,46 @@
         </label>
       </div>
 
+      <!-- Expiry and Limit Configs for Host -->
+      <div class="rules-config-section" style="margin-bottom: 20px; padding: 0 16px;">
+        <div class="rules-header" (click)="item.showRules = !item.showRules" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); margin-top: 8px;">
+          <span style="font-size: 0.76rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;">
+            <i class="bi bi-shield-lock-fill"></i> Expiry & Time Constraints Config
+          </span>
+          <i class="bi" [class.bi-chevron-down]="!item.showRules" [class.bi-chevron-up]="item.showRules" style="color: #64748b; font-size: 0.8rem;"></i>
+        </div>
+
+        <div class="rules-body" *ngIf="item.showRules" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px;">
+          <label class="form-group">
+            <span class="input-label" style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block;">Link Expiration Date</span>
+            <div class="input-icon-wrapper" style="position: relative;">
+              <i class="bi bi-calendar-x input-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+              <input
+                type="datetime-local"
+                [(ngModel)]="item.expirationDate"
+                class="modern-input"
+                style="padding-left: 36px; height: 38px; width: 100%; background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: white; outline: none; font-size: 0.82rem;"
+              />
+            </div>
+          </label>
+
+          <label class="form-group">
+            <span class="input-label" style="font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block;">Max Session Duration</span>
+            <div class="input-icon-wrapper" style="position: relative;">
+              <i class="bi bi-hourglass-top input-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+              <select [(ngModel)]="item.maxDurationMinutes" class="modern-input" style="background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: white; padding-left: 36px; height: 38px; width: 100%; outline: none; font-size: 0.82rem; cursor: pointer; appearance: none;">
+                <option [value]="30">30 Minutes</option>
+                <option [value]="60">60 Minutes</option>
+                <option [value]="90">90 Minutes</option>
+                <option [value]="120">120 Minutes</option>
+                <option [value]="1440">24 Hours</option>
+                <option [value]="999999">Unlimited</option>
+              </select>
+            </div>
+          </label>
+        </div>
+      </div>
+
       <div class="meeting-action-row" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
         <button *ngIf="item.status === 'SCHEDULED'" type="button" class="meeting-launch-link" style="border: none; cursor: pointer; justify-content: center; width: 100%;" (click)="joinInAppRoom(item)">
           ⚡ Join Premium Call Room

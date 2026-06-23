@@ -237,8 +237,28 @@ export class LiveConnectComponent implements OnInit {
     );
   }
 
+  joinRoomName = '';
+
   navigateToCreateSession(): void {
     this.router.navigate(['/live-connect/create']);
+  }
+
+  joinSession(): void {
+    let room = this.joinRoomName.trim();
+    if (!room) return;
+
+    // Extract room name if full URL was pasted
+    if (room.includes('/meeting/')) {
+      const parts = room.split('/meeting/');
+      room = parts[parts.length - 1];
+    }
+
+    // Clean query params/trailing slashes
+    room = room.split('?')[0].split('#')[0].replace(/\/+$/, '');
+
+    if (room) {
+      this.router.navigate(['/meeting', room]);
+    }
   }
 
   scrollToManual(): void {

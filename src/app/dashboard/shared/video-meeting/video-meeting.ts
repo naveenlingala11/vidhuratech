@@ -36,12 +36,29 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
   isInterviewerMode = false;
   mockSessionId: number | null = null;
 
+  // Premium Pre-join effects and status
+  lobbyBackgroundBlur = false;
+  lobbyStudioLight = false;
+  lobbyNetworkLatency = 42; // ms
+
   // External control toolbar states (Teams-style)
   isMicMuted = true;
   isCamMuted = true;
   isScreenSharing = false;
   isHandRaised = false;
   isTileView = false;
+  activeDrawer: 'invite' | 'chat' | null = null;
+  hasUnreadMessages = false;
+  chatMessages: Array<{ senderId: string; senderName: string; message: string; timestamp: Date; isLocal: boolean }> = [];
+  chatInputText = '';
+
+  isBlocked = false;
+  blockReason = '';
+  sessionDetails: any = null;
+  meetingStartTimestamp: Date | null = null;
+  uniqueParticipants = new Set<string>();
+  meetingLogsText = '';
+  isCurrentUserHost = false;
 
   // Post-meeting feedback and navigation state
   meetingEnded = false;
@@ -64,6 +81,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
   isRecording = false;
   recordingDuration = 0;
   recordingTimer: any = null;
+  telemetryTimer: any = null;
 
   // Connected Attendees & Lobby State
   participants: any[] = [];
@@ -203,13 +221,76 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.roomName = params['roomName'] || 'VidhuraTech_Default_Room';
       this.roomName = this.roomName.replace(/[^a-zA-Z0-9_-]/g, '');
 
-      const match = this.roomName.match(/^VidhuraTech_Mock_Session_(\d+)$/);
-      if (match) {
-        this.mockSessionId = parseInt(match[1], 10);
-      }
-
       this.addLog(`Resolved secure room channel ID: '${this.roomName}'`, 'info');
-      this.loadMockDetails();
+
+      const payload = {
+        roomName: this.roomName,
+        hostEmail: this.currentUser?.email || '',
+        hostName: this.currentUser?.name || 'Guest User'
+      };
+
+      this.studentWorkflowService.getOrCreatePublicSession(payload).subscribe({
+        next: (res: any) => {
+          const session = res?.data;
+          if (session) {
+            this.mockSessionId = session.id;
+            this.sessionDetails = session;
+
+            const isEnded = session.isEnded || session.status === 'COMPLETED';
+            let isExpired = false;
+            if (session.expirationDate) {
+              const expDate = new Date(session.expirationDate);
+              if (!isNaN(expDate.getTime()) && new Date() > expDate) {
+                isExpired = true;
+              }
+            }
+
+            const hostEmail = session.trainerEmail;
+            this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail &&
+                                      this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
+                                      || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
+
+            if (isEnded || isExpired) {
+              if (!this.isCurrentUserHost) {
+                this.isBlocked = true;
+                this.blockReason = isEnded
+                  ? 'This meeting ID has already been used and completed. Only the host can access this workspace to review logs.'
+                  : 'This meeting invitation has expired. Please coordinate with the host to schedule a new mock interview session.';
+                this.toastr.error(this.blockReason);
+                this.cdr.detectChanges();
+                return;
+              } else {
+                this.toastr.info('Entering completed/expired session room as authorized Host.');
+              }
+            }
+          }
+
+          this.loadMockDetails();
+          this.meetingStartTimestamp = new Date();
+          this.uniqueParticipants.add(this.currentUser?.name || 'Local User');
+          this.logMeetingAction(`Session initialized. User: ${this.currentUser?.name || 'Guest'} joined the lobby.`);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to get-or-create public session registry:', err);
+          const match = this.roomName.match(/^VidhuraTech_Mock_Session_(\d+)$/);
+          if (match) {
+            this.mockSessionId = parseInt(match[1], 10);
+          }
+          if (this.mockSessionId) {
+            if (localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true') {
+              this.isCurrentUserHost = true;
+            }
+            this.checkSessionValidityAndLoad();
+          } else {
+            this.loadMockDetails();
+            this.meetingStartTimestamp = new Date();
+            this.uniqueParticipants.add(this.currentUser?.name || 'Local User');
+            this.logMeetingAction(`Session initialized fallback. User: ${this.currentUser?.name || 'Guest'} joined the lobby.`);
+            this.cdr.detectChanges();
+          }
+        }
+      });
     });
   }
 
@@ -275,6 +356,58 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+
+  logMeetingAction(action: string): void {
+    const timestamp = new Date().toLocaleTimeString();
+    const logLine = `[${timestamp}] ${action}\n`;
+    this.meetingLogsText += logLine;
+    this.addLog(action, 'info');
+  }
+
+  checkSessionValidityAndLoad(): void {
+    this.studentWorkflowService.checkPublicSessionStatus(this.mockSessionId!).subscribe({
+      next: (res: any) => {
+        const session = res?.data;
+        if (session) {
+          this.sessionDetails = session;
+          const isEnded = session.isEnded || session.status === 'COMPLETED';
+          let isExpired = false;
+          if (session.expirationDate) {
+            const expDate = new Date(session.expirationDate);
+            if (!isNaN(expDate.getTime()) && new Date() > expDate) {
+              isExpired = true;
+            }
+          }
+
+          const hostEmail = session.trainerEmail;
+          this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail && 
+                                    this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
+                                    || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
+
+          if (isEnded || isExpired) {
+            if (!this.isCurrentUserHost) {
+              this.isBlocked = true;
+              this.blockReason = isEnded 
+                ? 'This meeting ID has already been used and completed. Only the host can access this workspace to review logs.'
+                : 'This meeting invitation has expired. Please coordinate with the host to schedule a new mock interview session.';
+              this.toastr.error(this.blockReason);
+              this.cdr.detectChanges();
+              return;
+            } else {
+              this.toastr.info('Entering completed/expired session room as authorized Host.');
+            }
+          }
+        }
+        this.loadMockDetails();
+        this.meetingStartTimestamp = new Date();
+        this.uniqueParticipants.add(this.currentUser?.name || 'Local User');
+        this.logMeetingAction(`Session initialized. User: ${this.currentUser?.name || 'Guest'} joined the lobby.`);
+      },
+      error: () => {
+        this.loadMockDetails();
+      }
+    });
   }
 
   initLobbyDevices(): void {
@@ -390,6 +523,16 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.stopCameraPreview();
     }
+  }
+
+  toggleLobbyBlur(): void {
+    this.lobbyBackgroundBlur = !this.lobbyBackgroundBlur;
+    this.cdr.detectChanges();
+  }
+
+  toggleLobbyStudioLight(): void {
+    this.lobbyStudioLight = !this.lobbyStudioLight;
+    this.cdr.detectChanges();
   }
 
   togglePrejoinMic(): void {
@@ -518,8 +661,21 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
         this.connectionStatusSteps[2].status = 'success';
         this.connectionStatusSteps[3].status = 'success';
         this.loading = false;
-        this.addLog(`Securely connected to room: '${this.roomName}' (User ID: ${event?.id || 'Local'})`, 'success');
+        this.logMeetingAction(`Connected to room: '${this.roomName}' (User ID: ${event?.id || 'Local'})`);
         this.cdr.detectChanges();
+        this.startTelemetrySyncTimer();
+
+        if (this.mockSessionId) {
+          const joinPayload = {
+            name: this.currentUser?.name || 'Guest User',
+            email: this.currentUser?.email || '',
+            role: this.userRole
+          };
+          this.studentWorkflowService.logSessionJoin(this.mockSessionId, joinPayload).subscribe({
+            next: () => this.addLog(`Join audit logged successfully for: ${joinPayload.name} (${joinPayload.role})`, 'success'),
+            error: (err) => console.error('Failed to log join event telemetry:', err)
+          });
+        }
       });
 
       // Safety timeout: automatically hide loader after 6 seconds to prevent stuck loader
@@ -540,37 +696,63 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // Participant events
       this.jitsiAPI.addEventListener('participantJoined', (event: any) => {
-        this.addLog(`New participant joined: ${event.displayName || 'Candidate Member'} (ID: ${event.id})`, 'success');
+        this.logMeetingAction(`Remote participant joined: ${event.displayName || 'Attendee'} (ID: ${event.id})`);
+        if (event.displayName) {
+          this.uniqueParticipants.add(event.displayName);
+        }
         this.addParticipantToList(event);
+        this.syncTelemetryInRealTime();
       });
 
       this.jitsiAPI.addEventListener('participantLeft', (event: any) => {
-        this.addLog(`Participant disconnected: ID ${event.id}`, 'warning');
+        this.logMeetingAction(`Remote participant disconnected: ID ${event.id}`);
         this.removeParticipantFromList(event);
+        this.syncTelemetryInRealTime();
       });
 
       // Mute state loggers
       this.jitsiAPI.addEventListener('audioMuteStatusChanged', (event: any) => {
-        this.addLog(`Your microphone is now ${event.muted ? 'MUTED' : 'UNMUTED'}.`, 'info');
         this.isMicMuted = event.muted;
+        this.logMeetingAction(`Microphone toggled: ${event.muted ? 'MUTED' : 'UNMUTED'} (User: ${this.currentUser?.name || 'Local'})`);
         this.cdr.detectChanges();
       });
 
       this.jitsiAPI.addEventListener('videoMuteStatusChanged', (event: any) => {
-        this.addLog(`Your camera feed is now ${event.muted ? 'DISABLED' : 'ENABLED'}.`, 'info');
         this.isCamMuted = event.muted;
+        this.logMeetingAction(`Camera feed toggled: ${event.muted ? 'DISABLED' : 'ENABLED'} (User: ${this.currentUser?.name || 'Local'})`);
         this.cdr.detectChanges();
       });
 
       this.jitsiAPI.addEventListener('screenSharingStatusChanged', (event: any) => {
-        this.addLog(`Screen sharing turned ${event.on ? 'ON' : 'OFF'}.`, 'info');
         this.isScreenSharing = event.on;
+        this.logMeetingAction(`Screen sharing presentation toggled: ${event.on ? 'STARTED' : 'STOPPED'} (User: ${this.currentUser?.name || 'Local'})`);
         this.cdr.detectChanges();
       });
 
       this.jitsiAPI.addEventListener('tileViewChanged', (event: any) => {
         this.isTileView = event.enabled;
         this.cdr.detectChanges();
+      });
+
+      // Chat message listeners
+      this.jitsiAPI.addEventListener('incomingMessage', (event: any) => {
+        this.addChatMessage({
+          senderId: event.from,
+          senderName: event.nick || 'Participant',
+          message: event.message,
+          timestamp: new Date(),
+          isLocal: false
+        });
+      });
+
+      this.jitsiAPI.addEventListener('outgoingMessage', (event: any) => {
+        this.addChatMessage({
+          senderId: 'local',
+          senderName: this.currentUser?.name || 'You',
+          message: event.message,
+          timestamp: new Date(),
+          isLocal: true
+        });
       });
 
       // Hardware access error handlers
@@ -722,7 +904,62 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.evaluation[metric] = val;
   }
 
+  getChatTranscript(): string {
+    if (!this.chatMessages || this.chatMessages.length === 0) {
+      return 'No chat messages were recorded during this session.';
+    }
+    return this.chatMessages.map(msg => {
+      const timeStr = msg.timestamp instanceof Date ? msg.timestamp.toLocaleTimeString() : new Date(msg.timestamp).toLocaleTimeString();
+      return `[${timeStr}] ${msg.senderName}: ${msg.message}`;
+    }).join('\n');
+  }
+
+  getSessionSummaryText(): string {
+    return `Milestone: ${this.evaluation.milestone}\nProgress: ${this.evaluation.progress}%\nFeedback Note: ${this.evaluation.note}\n` +
+      `Coding Skills: ${this.evaluation.codingSkills}/5\n` +
+      `System Design: ${this.evaluation.systemDesign}/5\n` +
+      `Communication: ${this.evaluation.communication}/5\n` +
+      `Problem Solving: ${this.evaluation.problemSolving}/5`;
+  }
+
   leaveMeeting(): void {
+    this.stopTelemetrySyncTimer();
+    // Securely back up chat logs and summary to server database if active interview
+    if (this.mockSessionId && (this.isInterviewer || this.isCurrentUserHost)) {
+      const chatTranscript = this.getChatTranscript();
+      const sessionSummary = this.getSessionSummaryText();
+      
+      let actualDuration = 0;
+      if (this.meetingStartTimestamp) {
+        const now = new Date();
+        actualDuration = Math.round((now.getTime() - this.meetingStartTimestamp.getTime()) / 60000);
+        actualDuration = Math.max(1, actualDuration);
+      }
+      this.logMeetingAction('Meeting session ended and closed by host.');
+
+      const payload = {
+        status: 'COMPLETED',
+        sessionChat: chatTranscript,
+        sessionSummary: sessionSummary,
+        isEnded: true,
+        actualDurationMinutes: actualDuration,
+        participantCount: this.uniqueParticipants.size,
+        meetingLogs: this.meetingLogsText
+      };
+
+      if (this.isInterviewer && !this.isGuest) {
+        this.trainerService.updateMockInterview(this.mockSessionId, payload).subscribe({
+          next: () => console.log('[SecurityAudit] Session chat logs and summary backed up securely via trainer service.'),
+          error: (err) => console.error('[SecurityAudit] Failed to auto-backup session details via trainer service:', err)
+        });
+      } else {
+        this.studentWorkflowService.updatePublicSession(this.mockSessionId, payload).subscribe({
+          next: () => console.log('[SecurityAudit] Session chat logs and summary backed up securely via public update.'),
+          error: (err) => console.error('[SecurityAudit] Failed to auto-backup session details via public update:', err)
+        });
+      }
+    }
+
     // 1. Dispose Jitsi to free up microphone, camera, and websocket connections
     if (this.jitsiAPI) {
       this.jitsiAPI.dispose();
@@ -805,14 +1042,30 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.mockSessionId) {
       const formattedRemarks = `Milestone: ${this.evaluation.milestone.trim()}\nProgress: ${this.evaluation.progress}%\nFeedback: ${this.evaluation.note.trim()}${scoreBreakdown}`;
 
+      const chatTranscript = this.getChatTranscript();
+      const sessionSummary = this.getSessionSummaryText();
+
+      let actualDuration = 0;
+      if (this.meetingStartTimestamp) {
+        const now = new Date();
+        actualDuration = Math.round((now.getTime() - this.meetingStartTimestamp.getTime()) / 60000);
+      }
+      this.logMeetingAction('Assessor submitted evaluation review sheet.');
+
       this.trainerService.updateMockInterview(this.mockSessionId, {
         status: 'COMPLETED',
         trainerRemarks: formattedRemarks,
-        meetingLink: this.getMeetingUrl()
+        meetingLink: this.getMeetingUrl(),
+        sessionSummary: sessionSummary,
+        sessionChat: chatTranscript,
+        isEnded: true,
+        actualDurationMinutes: actualDuration,
+        participantCount: this.uniqueParticipants.size,
+        meetingLogs: this.meetingLogsText
       }).subscribe({
         next: (res: any) => {
           this.isSubmittingFeedback = false;
-          this.toastr.success('Mock Interview feedback and ratings synced successfully!');
+          this.toastr.success('Mock Interview feedback, summary and chat history saved successfully!');
         },
         error: () => {
           this.isSubmittingFeedback = false;
@@ -863,6 +1116,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.jitsiAPI) {
       this.jitsiAPI.executeCommand('toggleRaiseHand');
       this.isHandRaised = !this.isHandRaised;
+      this.logMeetingAction(`Raise hand state toggled: ${this.isHandRaised ? 'RAISED' : 'LOWERED'} (User: ${this.currentUser?.name || 'Local'})`);
       this.cdr.detectChanges();
     }
   }
@@ -871,5 +1125,134 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.jitsiAPI) {
       this.jitsiAPI.executeCommand('toggleTileView');
     }
+  }
+
+  toggleDrawer(drawer: 'invite' | 'chat' | null): void {
+    if (drawer === null) {
+      this.activeDrawer = null;
+      this.cdr.detectChanges();
+      return;
+    }
+    if (this.activeDrawer === drawer) {
+      this.activeDrawer = null;
+    } else {
+      this.activeDrawer = drawer;
+    }
+    this.cdr.detectChanges();
+    
+    if (this.activeDrawer === 'chat') {
+      this.hasUnreadMessages = false;
+      this.scrollToBottom();
+    }
+  }
+
+  sendChatMessage(): void {
+    const text = this.chatInputText.trim();
+    if (!text) return;
+    
+    if (this.jitsiAPI) {
+      this.jitsiAPI.executeCommand('sendChatMessage', text);
+      this.chatInputText = '';
+      this.cdr.detectChanges();
+    } else {
+      this.toastr.warning('Meeting is not active. Cannot send message.');
+    }
+  }
+
+  addChatMessage(msg: { senderId: string; senderName: string; message: string; timestamp: Date; isLocal: boolean }): void {
+    this.chatMessages.push(msg);
+    this.cdr.detectChanges();
+    this.scrollToBottom();
+    
+    if (!msg.isLocal) {
+      this.playNotificationSound();
+      if (this.activeDrawer !== 'chat') {
+        this.hasUnreadMessages = true;
+      }
+    }
+    this.syncTelemetryInRealTime();
+  }
+
+  playNotificationSound(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.35);
+      
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(880.00, ctx.currentTime + 0.1);
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      
+      osc2.start(ctx.currentTime + 0.1);
+      osc2.stop(ctx.currentTime + 0.5);
+    } catch (e) {
+      console.warn('AudioContext sound failed to play', e);
+    }
+  }
+
+  scrollToBottom(): void {
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.chat-messages-scroll');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
+  }
+
+  startTelemetrySyncTimer(): void {
+    this.stopTelemetrySyncTimer();
+    this.telemetryTimer = setInterval(() => {
+      this.syncTelemetryInRealTime();
+    }, 15000); // Sync every 15 seconds
+  }
+
+  stopTelemetrySyncTimer(): void {
+    if (this.telemetryTimer) {
+      clearInterval(this.telemetryTimer);
+      this.telemetryTimer = null;
+    }
+  }
+
+  syncTelemetryInRealTime(): void {
+    if (!this.mockSessionId || !this.isCurrentUserHost) return;
+
+    let actualDuration = 0;
+    if (this.meetingStartTimestamp) {
+      const now = new Date();
+      actualDuration = Math.round((now.getTime() - this.meetingStartTimestamp.getTime()) / 60000);
+      actualDuration = Math.max(1, actualDuration); // Ensure at least 1 min is recorded if call started
+    }
+
+    const payload = {
+      sessionChat: this.getChatTranscript(),
+      actualDurationMinutes: actualDuration,
+      participantCount: this.uniqueParticipants.size,
+      meetingLogs: this.meetingLogsText
+    };
+
+    this.studentWorkflowService.updatePublicSession(this.mockSessionId, payload).subscribe({
+      next: () => console.log('[SecurityTelemetry] Real-time session telemetry updated.'),
+      error: (err) => console.error('[SecurityTelemetry] Failed to update real-time telemetry:', err)
+    });
   }
 }

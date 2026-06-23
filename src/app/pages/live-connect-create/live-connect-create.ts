@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { StudentWorkflowService } from '../../dashboard/student-pages/service/student-workflow';
 
 @Component({
   selector: 'app-live-connect-create',
@@ -16,7 +17,7 @@ export class LiveConnectCreateComponent implements OnInit {
   sessionTitle = '';
   hostName = '';
   hostEmail = '';
-  hostRole: 'STUDENT' | 'MENTOR' | 'TRAINER' = 'STUDENT';
+  hostRole: 'STUDENT' | 'MENTOR' | 'TRAINER' | 'GUEST' = 'STUDENT';
   
   // Target Candidate Details (Optional)
   candidateName = '';
@@ -29,17 +30,42 @@ export class LiveConnectCreateComponent implements OnInit {
   scratchpadLanguage = 'typescript';
   privacyChecked = false;
 
+  // Advanced Schedule & Recurrence
+  preferredDate = '';
+  preferredTime = '';
+  recurringType = 'ONCE';
+  recurringDays = '';
+  invitedEmails = '';
+  timezone = 'Asia/Kolkata';
+
+  recurrenceDaysList = [
+    { name: 'M', selected: false, value: 'MON' },
+    { name: 'T', selected: false, value: 'TUE' },
+    { name: 'W', selected: false, value: 'WED' },
+    { name: 'T', selected: false, value: 'THU' },
+    { name: 'F', selected: false, value: 'FRI' },
+    { name: 'S', selected: false, value: 'SAT' },
+    { name: 'S', selected: false, value: 'SUN' }
+  ];
+
   isLoggedIn = false;
   currentUser: any = null;
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private studentService: StudentWorkflowService
   ) {}
 
   ngOnInit(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
+    // Set default date & time
+    const now = new Date();
+    this.preferredDate = now.toISOString().split('T')[0];
+    this.preferredTime = now.toTimeString().split(' ')[0].substring(0, 5);
+    this.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata';
+
     // Check if user is logged in to pre-fill
     const user = this.authService.getUser();
     const hasUser = user && (user.name || user.email || user.role);
@@ -53,17 +79,29 @@ export class LiveConnectCreateComponent implements OnInit {
       this.sessionDuration = 45; // Logged-in free users get 45 mins
     } else {
       this.isLoggedIn = false;
-      this.hostRole = 'STUDENT';
+      this.hostRole = 'GUEST';
       this.sessionDuration = 10; // Guests get 10 mins
     }
   }
 
-  setRole(role: 'STUDENT' | 'MENTOR' | 'TRAINER'): void {
+  setRole(role: 'STUDENT' | 'MENTOR' | 'TRAINER' | 'GUEST'): void {
     this.hostRole = role;
   }
 
   setDuration(duration: number): void {
     this.sessionDuration = duration;
+  }
+
+  toggleRecurrenceDay(day: any): void {
+    day.selected = !day.selected;
+    this.updateRecurringDaysString();
+  }
+
+  updateRecurringDaysString(): void {
+    this.recurringDays = this.recurrenceDaysList
+      .filter(d => d.selected)
+      .map(d => d.value)
+      .join(',');
   }
 
   createSession(): void {
@@ -95,12 +133,49 @@ export class LiveConnectCreateComponent implements OnInit {
     localStorage.setItem('vidhuratech_session_cam', String(this.initialCam));
     localStorage.setItem('vidhuratech_session_language', this.scratchpadLanguage);
 
-    // Generate secure session ID
-    const randomId = Math.floor(100000 + Math.random() * 900000);
-    const roomName = `VidhuraTech_Mock_Session_${randomId}`;
+    // Call public create API
+    const payload = {
+      topic: this.sessionTitle.trim(),
+      hostEmail: this.hostEmail.trim(),
+      hostName: this.hostName.trim(),
+      hostRole: this.hostRole,
+      candidateName: this.candidateName.trim(),
+      candidateEmail: this.candidateEmail.trim(),
+      maxDurationMinutes: this.sessionDuration,
+      preferredDate: this.preferredDate,
+      preferredTime: this.preferredTime,
+      recurringType: this.recurringType,
+      recurringDays: this.recurringDays,
+      invitedEmails: this.invitedEmails.trim(),
+      timezone: this.timezone
+    };
 
-    // Navigate to call room
-    this.router.navigate(['/meeting', roomName]);
+    this.studentService.createPublicSession(payload).subscribe({
+      next: (res: any) => {
+        const dbId = res?.data?.id;
+        if (dbId) {
+          // Set host flag in localStorage so the current browser is marked as the meeting host
+          localStorage.setItem('is_host_of_session_' + dbId, 'true');
+
+          const roomName = `VidhuraTech_Mock_Session_${dbId}`;
+          // Navigate to call room
+          this.router.navigate(['/meeting', roomName]);
+        } else {
+          console.error('Failed to resolve database ID from session creation response.');
+          // Fallback
+          const randomId = Math.floor(100000 + Math.random() * 900000);
+          const roomName = `VidhuraTech_Mock_Session_${randomId}`;
+          this.router.navigate(['/meeting', roomName]);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to create database session entry:', err);
+        // Fallback to random ID in case server is down
+        const randomId = Math.floor(100000 + Math.random() * 900000);
+        const roomName = `VidhuraTech_Mock_Session_${randomId}`;
+        this.router.navigate(['/meeting', roomName]);
+      }
+    });
   }
 
   goBack(): void {

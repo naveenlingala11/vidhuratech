@@ -110,6 +110,7 @@ import { CourseBulkUploadComponent } from './pages/courses/course-bulk-upload/co
 import { BatchCommunicationComponent } from './admin/batches/batch-communication/batch-communication';
 import { AdminAdmissionsComponent } from './dashboard/admin/admin-admissions/admin-admissions';
 import { AdminPublicPracticePublishingComponent } from './admin/public-practice-publishing/public-practice-publishing';
+import { AdminSessionsComponent } from './admin/admin-sessions/admin-sessions.component';
 
 /* =========================
    ASSESSMENTS
@@ -415,6 +416,11 @@ export const routes: Routes = [
         path: 'admin/actions',
         component: AdminActionsComponent,
         canActivate: [roleGuard(['ADMIN'])],
+      },
+      {
+        path: 'admin/sessions',
+        component: AdminSessionsComponent,
+        canActivate: [roleGuard(['ADMIN', 'SUPER_ADMIN'])],
       },
       {
         path: 'admin/leads',

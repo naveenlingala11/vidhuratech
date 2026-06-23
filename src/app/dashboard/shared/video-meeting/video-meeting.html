@@ -1,13 +1,38 @@
+<!-- STATE 0: BLOCKED ACCESS (if room is expired or ended and user is not host) -->
+<div class="guest-join-gate blocked-gate" *ngIf="isBlocked">
+  <div class="guest-join-backdrop"></div>
+  <div class="guest-join-card blocked-card" style="border: 2px solid rgba(239, 68, 68, 0.25); background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+    <div class="guest-join-orb blocked-orb" style="background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); animation: pulse-ring 1.8s infinite; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+      <span>🔒</span>
+    </div>
+    <h2 class="guest-join-title" style="color: #fca5a5; font-size: 1.45rem; font-weight: 800; margin-top: 20px; margin-bottom: 8px;">Access Closed</h2>
+    <p class="guest-join-subtitle" style="font-size: 0.86rem; color: #cbd5e1; margin: 0 0 24px 0; line-height: 1.6; max-width: 420px; text-align: center;">
+      {{ blockReason }}
+    </p>
+
+    <div class="guest-room-badge" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); color: #fca5a5; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; justify-content: center;">
+      <span class="guest-room-icon">🔑</span>
+      <span class="guest-room-id">Assigned Host: {{ sessionDetails?.trainerName || 'Trainer Assessor' }} ({{ sessionDetails?.trainerEmail }})</span>
+    </div>
+
+    <button type="button" class="guest-join-btn" (click)="navigateToHome()" style="background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); border: none; margin-top: 24px; width: 100%; height: 42px; border-radius: 8px; color: white; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span class="guest-join-btn-icon">🏠</span>
+      <span>Return to Home</span>
+    </button>
+  </div>
+</div>
+
 <!-- STATE 1: GUEST NAME ENTRY (only for unauthenticated users who haven't entered name) -->
-<div class="guest-join-gate" *ngIf="isGuest && !guestNameEntered && !meetingEnded">
+<div class="guest-join-gate" *ngIf="isGuest && !guestNameEntered && !meetingEnded && !isBlocked">
   <div class="guest-join-backdrop"></div>
   <div class="guest-join-card">
     <div class="guest-join-orb">
       <span>⚡</span>
     </div>
     <h2 class="guest-join-title">Join Live Session</h2>
-    <p class="guest-join-subtitle">You've been invited to a VidhuraTech mock interview room. Enter your name to get started.</p>
-    
+    <p class="guest-join-subtitle">You've been invited to a VidhuraTech mock interview room. Enter your name to get
+      started.</p>
+
     <div class="guest-room-badge">
       <span class="guest-room-icon">🔒</span>
       <span class="guest-room-id">Room: {{ roomName }}</span>
@@ -15,15 +40,8 @@
 
     <div class="guest-input-group">
       <label class="guest-input-label" for="guest-name-input">Your Name</label>
-      <input 
-        type="text" 
-        id="guest-name-input" 
-        class="guest-name-input" 
-        [(ngModel)]="guestName" 
-        placeholder="Enter your display name" 
-        (keydown.enter)="joinAsGuest()"
-        autocomplete="off"
-      />
+      <input type="text" id="guest-name-input" class="guest-name-input" [(ngModel)]="guestName"
+        placeholder="Enter your display name" (keydown.enter)="joinAsGuest()" autocomplete="off" />
     </div>
 
     <button type="button" class="guest-join-btn" (click)="joinAsGuest()" [disabled]="!guestName.trim()">
@@ -40,74 +58,179 @@
   </div>
 </div>
 
-<!-- STATE 2: PRE-JOIN LOBBY (like Teams/Google Meet — for ALL users after identification) -->
-<div class="guest-join-gate" *ngIf="showPrejoinLobby && (!isGuest || guestNameEntered) && !meetingEnded">
+<!-- STATE 2: PRE-JOIN LOBBY (horizontal two-column layout) -->
+<div class="guest-join-gate" *ngIf="showPrejoinLobby && (!isGuest || guestNameEntered) && !meetingEnded && !isBlocked">
   <div class="guest-join-backdrop"></div>
-  <div class="guest-join-card prejoin-lobby-card">
 
-    <!-- Camera Preview Area -->
-    <div class="prejoin-video-preview">
-      <video 
-        *ngIf="previewStream" 
-        id="prejoin-camera-preview" 
-        class="prejoin-video-element" 
-        autoplay 
-        playsinline 
-        muted>
-      </video>
-      <div class="prejoin-video-placeholder" *ngIf="!previewStream">
-        <div class="prejoin-avatar-circle">
-          <span>{{ (currentUser?.name || 'G').charAt(0).toUpperCase() }}</span>
+  <div class="guest-join-card prejoin-lobby-card horizontal-lobby">
+    <!-- Left Column: Camera Preview + Media Controls -->
+    <div class="lobby-col-left">
+      <div class="prejoin-video-preview">
+        <video *ngIf="previewStream" id="prejoin-camera-preview" class="prejoin-video-element"
+          [class.apply-blur]="lobbyBackgroundBlur" [class.apply-studio]="lobbyStudioLight" autoplay playsinline muted>
+        </video>
+        <div class="prejoin-video-placeholder" *ngIf="!previewStream">
+          <div class="prejoin-avatar-circle">
+            <span>{{ (currentUser?.name || 'G').charAt(0).toUpperCase() }}</span>
+          </div>
+          <p class="prejoin-cam-off-label">Camera is off</p>
         </div>
-        <p class="prejoin-cam-off-label">Camera is off</p>
+
+        <!-- Glowing Audio Visualizer Indicator -->
+        <div class="prejoin-audio-visualizer" *ngIf="prejoinMicEnabled">
+          <span class="voice-pulse-dot"></span>
+          <div class="voice-bar pulse-1"></div>
+          <div class="voice-bar pulse-2"></div>
+          <div class="voice-bar pulse-3"></div>
+          <div class="voice-bar pulse-4"></div>
+          <div class="voice-bar pulse-5"></div>
+          <span class="mic-status-text">Mic Ready</span>
+        </div>
+
+        <!-- Video Effect Overlay buttons inside camera bar -->
+        <div class="video-effects-toolbar" *ngIf="previewStream">
+          <button type="button" class="effect-badge-btn" [class.enabled]="lobbyBackgroundBlur"
+            (click)="toggleLobbyBlur()" title="Toggle Background Blur">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Blur Background
+          </button>
+          <button type="button" class="effect-badge-btn" [class.enabled]="lobbyStudioLight"
+            (click)="toggleLobbyStudioLight()" title="Toggle Studio lighting">
+            <i class="fa-solid fa-lightbulb"></i> Studio Light
+          </button>
+        </div>
+      </div>
+
+      <!-- Mic / Camera Toggle Row -->
+      <div class="prejoin-toggles">
+        <button type="button" class="prejoin-toggle-btn" [class.active]="prejoinMicEnabled"
+          (click)="togglePrejoinMic()">
+          <span class="prejoin-toggle-icon">
+            <svg *ngIf="prejoinMicEnabled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+            <svg *ngIf="!prejoinMicEnabled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20"
+              height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+              <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+              <path d="M17 11a6.97 6.97 0 0 1-1.07 3.73M19.07 19.07A7 7 0 0 1 5 12v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </span>
+          <span class="prejoin-toggle-label">{{ prejoinMicEnabled ? 'Mic On' : 'Mic Off' }}</span>
+        </button>
+
+        <button type="button" class="prejoin-toggle-btn" [class.active]="prejoinCamEnabled"
+          (click)="togglePrejoinCamera()">
+          <span class="prejoin-toggle-icon">
+            <svg *ngIf="prejoinCamEnabled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 7l-7 5 7 5V7z"></path>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            <svg *ngIf="!prejoinCamEnabled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20"
+              height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+              <path
+                d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10">
+              </path>
+            </svg>
+          </span>
+          <span class="prejoin-toggle-label">{{ prejoinCamEnabled ? 'Camera On' : 'Camera Off' }}</span>
+        </button>
       </div>
     </div>
 
-    <h2 class="guest-join-title">Ready to Join?</h2>
+    <!-- Right Column: Title + Info checks + Join Trigger -->
+    <div class="lobby-col-right ready-to-join-section">
+      <h2 class="guest-join-title">Ready to Join?</h2>
+      <p class="prejoin-subtitle-detailed">Check your hardware permissions and confirm details before launching your
+        collaborative workspace.</p>
 
-    <div class="prejoin-badges-row">
-      <div class="guest-room-badge">
-        <span class="guest-room-icon">👤</span>
-        <span class="guest-room-id">{{ currentUser?.name || 'Guest' }}</span>
-      </div>
-      <div class="guest-room-badge">
-        <span class="guest-room-icon">🔒</span>
-        <span class="guest-room-id">{{ roomName }}</span>
-      </div>
-    </div>
+      <div class="prejoin-status-checklist">
+        <div class="status-check-item" [class.active]="prejoinMicEnabled">
+          <span class="check-bullet">
+            <i class="fa-solid" [class.fa-microphone]="prejoinMicEnabled"
+              [class.fa-microphone-slash]="!prejoinMicEnabled"></i>
+          </span>
+          <div class="status-details">
+            <strong>Microphone Input Status</strong>
+            <span>{{ prejoinMicEnabled ? '🎙️ Mic Active - Ready to speak' : '🔇 Muted - Please enable mic permission'
+              }}</span>
+          </div>
+        </div>
 
-    <!-- Mic / Camera Toggle Row -->
-    <div class="prejoin-toggles">
-      <button type="button"
-        class="prejoin-toggle-btn"
-        [class.active]="prejoinMicEnabled"
-        (click)="togglePrejoinMic()">
-        <span class="prejoin-toggle-icon">{{ prejoinMicEnabled ? '🎤' : '🔇' }}</span>
-        <span class="prejoin-toggle-label">{{ prejoinMicEnabled ? 'Mic On' : 'Mic Off' }}</span>
+        <div class="status-check-item" [class.active]="prejoinCamEnabled">
+          <span class="check-bullet">
+            <i class="fa-solid" [class.fa-video]="prejoinCamEnabled" [class.fa-video-slash]="!prejoinCamEnabled"></i>
+          </span>
+          <div class="status-details">
+            <strong>Camera Preview Status</strong>
+            <span>{{ prejoinCamEnabled ? '📷 Video Stream Active - Preview rendering' : '📹 Camera Off - Toggle camera
+              to display video' }}</span>
+          </div>
+        </div>
+
+        <div class="status-check-item active">
+          <span class="check-bullet">
+            <i class="fa-solid fa-circle-nodes"></i>
+          </span>
+          <div class="status-details">
+            <strong>Session Workspace Target</strong>
+            <span>🔒 Secured Room ID: {{ roomName }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time Diagnostics HUD -->
+      <div class="lobby-diagnostics-card">
+        <div class="diagnostic-title">
+          <span class="diagnostic-pulse-green"></span>
+          <strong>Connection Live Diagnostics</strong>
+        </div>
+        <div class="diagnostic-grid">
+          <div class="diag-item">
+            <span class="diag-label">Encryption</span>
+            <strong class="val green"><i class="fa-solid fa-shield-halved"></i> E2E Active</strong>
+          </div>
+          <div class="diag-item">
+            <span class="diag-label">Signal Latency</span>
+            <strong class="val blue"><i class="fa-solid fa-wifi"></i> Excellent ({{ lobbyNetworkLatency }}ms)</strong>
+          </div>
+          <div class="diag-item">
+            <span class="diag-label">Engine Tunnel</span>
+            <strong class="val purple"><i class="fa-solid fa-server"></i> WebRTC 2.0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="prejoin-badges-row">
+        <div class="guest-room-badge">
+          <span class="guest-room-icon">👤</span>
+          <span class="guest-room-id">Attendee Identity: {{ currentUser?.name || 'Guest' }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="guest-join-btn" (click)="joinFromLobby()">
+        <span class="guest-join-btn-icon">🚀</span>
+        <span>Join Meeting</span>
       </button>
 
-      <button type="button"
-        class="prejoin-toggle-btn"
-        [class.active]="prejoinCamEnabled"
-        (click)="togglePrejoinCamera()">
-        <span class="prejoin-toggle-icon">{{ prejoinCamEnabled ? '📹' : '📷' }}</span>
-        <span class="prejoin-toggle-label">{{ prejoinCamEnabled ? 'Camera On' : 'Camera Off' }}</span>
-      </button>
-    </div>
-
-    <button type="button" class="guest-join-btn" (click)="joinFromLobby()">
-      <span class="guest-join-btn-icon">🚀</span>
-      <span>Join Meeting</span>
-    </button>
-
-    <div class="guest-join-footer">
-      <span>You can also change settings inside the meeting</span>
+      <div class="guest-join-footer">
+        <span>You can also change settings inside the meeting</span>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- STATE 3: MEETING WORKSPACE (only after user clicks 'Join Meeting' from lobby) -->
-<div class="video-workspace-container" *ngIf="!showPrejoinLobby && (!isGuest || guestNameEntered) && !meetingEnded">
+<div class="video-workspace-container" *ngIf="!showPrejoinLobby && (!isGuest || guestNameEntered) && !meetingEnded && !isBlocked">
   <!-- Top Control Bar -->
   <header class="workspace-header">
     <div class="header-left">
@@ -129,54 +252,122 @@
           ⏹️ Stop & Save
         </button>
       </div>
- 
+
       <!-- Teams-style Control Toolbar -->
       <div class="teams-control-toolbar" *ngIf="jitsiAPI">
         <!-- Mic Toggle Button -->
-        <button type="button" 
-          class="toolbar-btn" 
-          [class.active]="!isMicMuted" 
-          [class.muted]="isMicMuted" 
-          (click)="toggleAudioState()"
-          [title]="isMicMuted ? 'Unmute Microphone' : 'Mute Microphone'">
-          <span class="btn-icon">{{ isMicMuted ? '🔇' : '🎤' }}</span>
+        <button type="button" class="toolbar-btn" [class.active]="!isMicMuted" [class.muted]="isMicMuted"
+          (click)="toggleAudioState()" [title]="isMicMuted ? 'Unmute Microphone' : 'Mute Microphone'">
+          <span class="btn-icon">
+            <svg *ngIf="!isMicMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-mic">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+            <svg *ngIf="isMicMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-mic-off">
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+              <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+              <path d="M17 11a6.97 6.97 0 0 1-1.07 3.73M19.07 19.07A7 7 0 0 1 5 12v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </span>
         </button>
 
         <!-- Camera Toggle Button -->
-        <button type="button" 
-          class="toolbar-btn" 
-          [class.active]="!isCamMuted" 
-          [class.muted]="isCamMuted" 
-          (click)="toggleVideoState()"
-          [title]="isCamMuted ? 'Turn Camera On' : 'Turn Camera Off'">
-          <span class="btn-icon">{{ isCamMuted ? '📷' : '📹' }}</span>
+        <button type="button" class="toolbar-btn" [class.active]="!isCamMuted" [class.muted]="isCamMuted"
+          (click)="toggleVideoState()" [title]="isCamMuted ? 'Turn Camera On' : 'Turn Camera Off'">
+          <span class="btn-icon">
+            <svg *ngIf="!isCamMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-video">
+              <path d="M23 7l-7 5 7 5V7z"></path>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            <svg *ngIf="isCamMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+              fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-video-off">
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+              <path
+                d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10">
+              </path>
+            </svg>
+          </span>
         </button>
 
         <!-- Share Screen Button -->
-        <button type="button" 
-          class="toolbar-btn btn-share" 
-          [class.active]="isScreenSharing" 
-          (click)="toggleScreenShare()"
-          [title]="isScreenSharing ? 'Stop Presenting' : 'Share Screen'">
-          <span class="btn-icon">🖥️</span>
+        <button type="button" class="toolbar-btn btn-share" [class.active]="isScreenSharing"
+          (click)="toggleScreenShare()" [title]="isScreenSharing ? 'Stop Presenting' : 'Share Screen'">
+          <span class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-monitor">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </span>
         </button>
 
         <!-- Raise Hand Button -->
-        <button type="button" 
-          class="toolbar-btn btn-hand" 
-          [class.active]="isHandRaised" 
-          (click)="toggleRaiseHand()"
+        <button type="button" class="toolbar-btn btn-hand" [class.active]="isHandRaised" (click)="toggleRaiseHand()"
           [title]="isHandRaised ? 'Lower Hand' : 'Raise Hand'">
-          <span class="btn-icon">✋</span>
+          <span class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="hand-icon">
+              <path
+                d="M18 11V6a2 2 0 0 0-4 0v5m0 0V4a2 2 0 0 0-4 0v7m0 0V2a2 2 0 0 0-4 0v9m0 0V5a2 2 0 0 0-4 0v9a6 6 0 0 0 12 0v-3">
+              </path>
+            </svg>
+          </span>
         </button>
 
         <!-- Grid View Button -->
-        <button type="button" 
-          class="toolbar-btn btn-grid" 
-          [class.active]="isTileView" 
-          (click)="toggleTileView()"
+        <button type="button" class="toolbar-btn btn-grid" [class.active]="isTileView" (click)="toggleTileView()"
           [title]="'Toggle Grid View'">
-          <span class="btn-icon">㗊</span>
+          <span class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-grid">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </span>
+        </button>
+
+        <!-- Add People / Invite Button -->
+        <button type="button" class="toolbar-btn btn-invite" [class.active]="activeDrawer === 'invite'"
+          (click)="toggleDrawer('invite')" [title]="'Invite & Add People'">
+          <span class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-user-plus">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+          </span>
+        </button>
+
+        <!-- Chat Button -->
+        <button type="button" class="toolbar-btn btn-chat" [class.active]="activeDrawer === 'chat'"
+          (click)="toggleDrawer('chat')" [title]="'Open Chat'">
+          <span class="btn-icon chat-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-message-square">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="chat-badge-dot" *ngIf="hasUnreadMessages"></span>
+          </span>
         </button>
       </div>
 
@@ -184,9 +375,16 @@
         <span class="role-badge" [ngClass]="userRole.toLowerCase()">{{ userRole }}</span>
         <span class="user-name">{{ currentUser?.name }}</span>
       </div>
-      
+
       <button type="button" class="btn-end-call" (click)="leaveMeeting()">
-        <span class="icon">❌</span> End & Leave
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          class="btn-end-call-svg" style="transform: rotate(135deg); margin-right: 6px;">
+          <path
+            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+          </path>
+        </svg>
+        <span>End & Leave</span>
       </button>
     </div>
   </header>
@@ -195,44 +393,221 @@
   <div class="workspace-body">
     <div class="video-feed-pane">
       <div *ngIf="loading" class="video-loader">
-        <div class="loader-card" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 32px; max-width: 500px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: left;">
-          <div class="loader-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 24px;">
-            <div class="mesh-loader-spinner" style="width: 44px; height: 44px; border: 3px solid rgba(124, 58, 237, 0.1); border-left-color: #7c3aed; border-right-color: #db2777; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0 0 6px 0;">Diagnostic Room Connection</h3>
-            <p style="font-size: 0.8rem; color: rgba(255,255,255,0.45); margin: 0; line-height: 1.4;">Establishing secure end-to-end WebRTC channels for video and audio stream sync.</p>
+        <!-- Ambient decorative background glow orbs -->
+        <div class="loader-bg-ambient">
+          <div class="ambient-orb orb-1"></div>
+          <div class="ambient-orb orb-2"></div>
+        </div>
+
+        <div class="loader-card">
+          <!-- Glassmorphic header card with dual outer/inner rotating cyber rings -->
+          <div class="loader-header">
+            <div class="cyber-spinner-wrapper">
+              <div class="cyber-ring ring-outer"></div>
+              <div class="cyber-ring ring-inner"></div>
+              <div class="cyber-center">⚡</div>
+            </div>
+            <h3>Diagnostic Room Connection</h3>
+            <p>Establishing secure end-to-end WebRTC channels for video and audio stream sync.</p>
           </div>
 
           <!-- Connection Steps List -->
-          <div class="diagnostic-steps" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
-            <div class="diag-step" *ngFor="let step of connectionStatusSteps" style="display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: rgba(255,255,255,0.6);" [ngStyle]="{'color': step.status === 'error' ? '#ef4444' : step.status === 'success' ? '#34d399' : step.status === 'process' ? '#60a5fa' : 'rgba(255,255,255,0.4)'}">
-              <span class="step-bullet" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; font-size: 0.72rem; font-weight: bold; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" [ngStyle]="{'background': step.status === 'success' ? 'rgba(52,211,153,0.1)' : step.status === 'process' ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.05)', 'border-color': step.status === 'success' ? '#34d399' : step.status === 'process' ? '#60a5fa' : 'rgba(255,255,255,0.1)'}">
-                <span *ngIf="step.status === 'success'" style="color: #34d399;">✓</span>
-                <span *ngIf="step.status === 'process'" class="spinner-sm" style="width: 8px; height: 8px; border: 1.5px solid rgba(96,165,250,0.1); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                <span *ngIf="step.status === 'pending'" style="color: rgba(255,255,255,0.25);">○</span>
-                <span *ngIf="step.status === 'error'" style="color: #ef4444;">✗</span>
+          <div class="diagnostic-steps">
+            <div class="diag-step" *ngFor="let step of connectionStatusSteps" [ngClass]="step.status">
+              <span class="step-bullet">
+                <svg *ngIf="step.status === 'success'" class="bullet-icon success-icon" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span *ngIf="step.status === 'process'" class="bullet-spinner"></span>
+                <span *ngIf="step.status === 'pending'" class="bullet-pending"></span>
+                <svg *ngIf="step.status === 'error'" class="bullet-icon error-icon" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </span>
-              <span>{{ step.label }}</span>
+              <span class="step-label">{{ step.label }}</span>
             </div>
           </div>
 
           <!-- Terminal Log Console -->
-          <div class="diagnostic-terminal" style="background: #030712; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; overflow: hidden;">
-            <div class="terminal-head" style="background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
-              <span class="term-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
-              <span class="term-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #fbbf24;"></span>
-              <span class="term-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
-              <span style="font-family: 'Fira Code', monospace; font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-left: 8px;">meeting-session-diagnostics.log</span>
+          <div class="diagnostic-terminal">
+            <div class="terminal-head">
+              <span class="term-dot red"></span>
+              <span class="term-dot yellow"></span>
+              <span class="term-dot green"></span>
+              <span class="term-title">meeting-session-diagnostics.log</span>
             </div>
-            <div class="terminal-body" style="height: 120px; overflow-y: auto; padding: 10px; font-family: 'Fira Code', monospace; font-size: 0.72rem; line-height: 1.5; display: flex; flex-direction: column; gap: 4px;">
-              <div class="log-line" *ngFor="let log of activityLogs" [ngStyle]="{'color': log.type === 'error' ? '#fca5a5' : log.type === 'success' ? '#a7f3d0' : log.type === 'warning' ? '#fde047' : '#93c5fd'}">
-                <span style="color: rgba(255,255,255,0.25); margin-right: 6px;">[{{ log.timestamp }}]</span>
-                <span>{{ log.message }}</span>
+            <div class="terminal-body">
+              <div class="log-line" *ngFor="let log of activityLogs" [ngClass]="log.type">
+                <span class="log-timestamp">[{{ log.timestamp }}]</span>
+                <span class="log-message">{{ log.message }}</span>
+              </div>
+              <div class="log-line cursor-line">
+                <span class="terminal-cursor">_</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div id="jitsi-container" class="jitsi-frame-wrapper"></div>
+    </div>
+
+    <!-- Premium Invite & Participants Drawer -->
+    <div class="invite-drawer" [class.open]="activeDrawer !== null">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <h3 *ngIf="activeDrawer === 'invite'">Meeting Info & Invite</h3>
+          <h3 *ngIf="activeDrawer === 'chat'">Session Chat</h3>
+          <span class="drawer-subtitle" *ngIf="activeDrawer === 'invite'">Share room access details</span>
+          <span class="drawer-subtitle" *ngIf="activeDrawer === 'chat'">Chat with other attendees</span>
+        </div>
+        <button type="button" class="btn-close-drawer" (click)="toggleDrawer(activeDrawer)" title="Close Drawer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        <!-- INVITE TAB CONTENT -->
+        <ng-container *ngIf="activeDrawer === 'invite'">
+          <!-- Invite Sharing Links -->
+          <div class="share-section">
+            <h4 class="section-title">Invite Participants</h4>
+            <p class="section-desc">Copy meeting details or share directly via email or WhatsApp.</p>
+
+            <div class="copy-link-box">
+              <span class="link-url-text">{{ getMeetingUrl() }}</span>
+              <button type="button" class="btn-action-copy" (click)="copyInviteLink()" title="Copy invite message">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                <span>Copy Link</span>
+              </button>
+            </div>
+
+            <div class="share-buttons-grid">
+              <button type="button" class="btn-share-platform whatsapp" (click)="shareOnWhatsApp()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                  class="bi bi-whatsapp" viewBox="0 0 16 16">
+                  <path
+                    d="M13.601 2.326A7.85 7.85 0 0 0 8 0a7.86 7.86 0 0 0-6.608 3.56 8 8 0 0 0-.944 4.885c.34 1.577.832 3.1 1.472 4.54L.198 16a.4.4 0 0 0 .523.523l3.033-1.01a7.87 7.87 0 0 0 3.738.941c2.16 0 4.192-.852 5.728-2.4a7.86 7.86 0 0 0 2.378-5.728 7.86 7.86 0 0 0-2.378-5.728zm-6.19 11.066a6.26 6.26 0 0 1-3.037-.78l-.218-.13-1.854.618.63-1.854-.143-.228a6.22 6.22 0 0 1-1.02-3.385c0-3.46 2.817-6.28 6.284-6.28a6.26 6.26 0 0 1 4.444 1.84 6.26 6.26 0 0 1 1.84 4.444c0 3.463-2.82 6.28-6.286 6.28zM11.56 9.8c-.27-.133-1.58-.78-1.82-.871-.243-.09-.42-.134-.596.13-.177.265-.688.87-.844 1.05-.156.176-.312.2-.58.066-.27-.133-1.14-.42-2.17-1.34-.8-.713-1.34-1.597-1.5-1.862-.156-.266-.017-.41.118-.543.12-.12.27-.31.404-.464.135-.15.18-.256.27-.426.09-.17.045-.32-.02-.454-.067-.133-.596-1.436-.816-1.97-.215-.516-.432-.446-.597-.454l-.508-.01a.98.98 0 0 0-.71.332C4.16 4.8 3.5 5.4 3.5 6.63c0 1.23.89 2.42.1.1 1.134 1.554 2.23 2.754 4.11 3.56.446.193.794.308 1.065.394.448.143.856.123 1.178.075.358-.053 1.58-.646 1.8-.1.238-.22.4-.2.4-.33.1-.4-.067-.133-.58-.78z" />
+                </svg>
+                <span>WhatsApp</span>
+              </button>
+              <button type="button" class="btn-share-platform email" (click)="shareByEmail()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  class="feather feather-mail">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span>Email</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Participants List Section -->
+          <div class="participants-section">
+            <div class="section-header-row">
+              <h4 class="section-title">Attendees</h4>
+              <span class="attendee-count-pill">{{ participants.length + 1 }}</span>
+            </div>
+
+            <div class="attendees-list-scroll">
+              <!-- Current User (You) -->
+              <div class="attendee-item self">
+                <div class="avatar-wrapper">
+                  <div class="avatar-circle">
+                    <span>{{ (currentUser?.name || 'Y').charAt(0).toUpperCase() }}</span>
+                  </div>
+                  <span class="status-indicator online"></span>
+                </div>
+                <div class="attendee-details">
+                  <span class="attendee-name">{{ currentUser?.name || 'You' }} (You)</span>
+                  <span class="attendee-role">{{ userRole }}</span>
+                </div>
+              </div>
+
+              <!-- Other Participants -->
+              <div class="attendee-item" *ngFor="let p of participants">
+                <div class="avatar-wrapper">
+                  <div class="avatar-circle">
+                    <span>{{ (p.name || 'P').charAt(0).toUpperCase() }}</span>
+                  </div>
+                  <span class="status-indicator online"></span>
+                </div>
+                <div class="attendee-details">
+                  <span class="attendee-name">{{ p.name }}</span>
+                  <span class="attendee-role">Participant</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lobby Waiting Queue (Only for Interviewers) -->
+          <div class="lobby-section-wrapper" *ngIf="isInterviewer && lobbyQueue.length > 0">
+            <h4 class="section-title warning-title">
+              <span class="pulse-indicator"></span>
+              <span>Waiting in Lobby ({{ lobbyQueue.length }})</span>
+            </h4>
+            <div class="lobby-items-list">
+              <div class="lobby-card-item" *ngFor="let p of lobbyQueue">
+                <div class="lobby-item-details">
+                  <span class="lobby-user-name">{{ p.name }}</span>
+                  <span class="lobby-user-desc">Wants to join</span>
+                </div>
+                <div class="lobby-item-actions">
+                  <button type="button" class="btn-lobby-admit" (click)="admitParticipant(p)">Admit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- CHAT TAB CONTENT -->
+        <ng-container *ngIf="activeDrawer === 'chat'">
+          <div class="chat-drawer-container">
+            <div class="chat-messages-scroll">
+              <div class="empty-chat-state" *ngIf="chatMessages.length === 0">
+                <span class="chat-placeholder-icon">💬</span>
+                <h5>No messages yet</h5>
+                <p>Send a message to start the conversation.</p>
+              </div>
+
+              <div class="chat-message-bubble" *ngFor="let msg of chatMessages" [class.local]="msg.isLocal">
+                <div class="message-meta">
+                  <span class="message-sender">{{ msg.senderName }}</span>
+                  <span class="message-time">{{ msg.timestamp | date:'shortTime' }}</span>
+                </div>
+                <div class="message-payload">
+                  <p>{{ msg.message }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-bar">
+              <input type="text" class="chat-textbox" [(ngModel)]="chatInputText" placeholder="Type message..."
+                (keydown.enter)="sendChatMessage()" autocomplete="off" />
+              <button type="button" class="btn-chat-send" (click)="sendChatMessage()"
+                [disabled]="!chatInputText.trim()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="feather feather-send">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
     </div>
   </div>
 </div>
@@ -251,26 +626,21 @@
     <div class="feedback-container" *ngIf="!feedbackSubmitted">
       <h3>Rate your Session Experience</h3>
       <p class="feedback-prompt">How was the call quality and overall interaction?</p>
-      
+
       <!-- Interactive Star Rating -->
       <div class="feedback-stars">
-        <span *ngFor="let star of [1,2,3,4,5]" 
-          class="feedback-star" 
-          [class.filled]="feedbackRating >= star"
+        <span *ngFor="let star of [1,2,3,4,5]" class="feedback-star" [class.filled]="feedbackRating >= star"
           (click)="setFeedbackRating(star)">★</span>
       </div>
 
       <div class="guest-input-group">
         <label class="guest-input-label" for="feedback-textarea">Feedback & Suggestions</label>
-        <textarea 
-          id="feedback-textarea" 
-          class="feedback-textarea" 
-          [(ngModel)]="feedbackText" 
-          placeholder="Tell us what went well or what we can improve..."
-          rows="3"></textarea>
+        <textarea id="feedback-textarea" class="feedback-textarea" [(ngModel)]="feedbackText"
+          placeholder="Tell us what went well or what we can improve..." rows="3"></textarea>
       </div>
 
-      <button type="button" class="guest-join-btn feedback-submit-btn" (click)="submitMeetingFeedback()" [disabled]="feedbackRating === 0">
+      <button type="button" class="guest-join-btn feedback-submit-btn" (click)="submitMeetingFeedback()"
+        [disabled]="feedbackRating === 0">
         <span>Submit Feedback</span>
       </button>
     </div>
@@ -301,7 +671,8 @@
           <span class="nav-btn-label">Resume Builder</span>
         </button>
 
-        <button type="button" class="nav-hub-btn btn-nav-interviews" (click)="navigateToMockInterviews()" *ngIf="!isGuest">
+        <button type="button" class="nav-hub-btn btn-nav-interviews" (click)="navigateToMockInterviews()"
+          *ngIf="!isGuest">
           <span class="nav-btn-icon">🎥</span>
           <span class="nav-btn-label">Mock Interviews</span>
         </button>

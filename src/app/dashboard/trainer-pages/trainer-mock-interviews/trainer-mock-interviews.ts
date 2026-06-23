@@ -36,11 +36,24 @@ export class TrainerMockInterviewsComponent implements OnInit {
 
     this.service.getMockInterviewRequests().subscribe({
       next: (res: any) => {
-        this.mockRequests = (res?.data || []).map((item: any) => ({
-          ...item,
-          meetingLink: item.meetingLink || '',
-          trainerRemarks: item.trainerRemarks || '',
-        }));
+        this.mockRequests = (res?.data || []).map((item: any) => {
+          let formattedExp = '';
+          if (item.expirationDate) {
+            const d = new Date(item.expirationDate);
+            if (!isNaN(d.getTime())) {
+              const pad = (n: number) => n.toString().padStart(2, '0');
+              formattedExp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+          }
+          return {
+            ...item,
+            meetingLink: item.meetingLink || '',
+            trainerRemarks: item.trainerRemarks || '',
+            expirationDate: formattedExp,
+            maxDurationMinutes: item.maxDurationMinutes || 60,
+            showRules: false
+          };
+        });
         this.loading = false;
       },
       error: () => {
@@ -108,12 +121,21 @@ export class TrainerMockInterviewsComponent implements OnInit {
 
     this.savingId = item.id;
 
+    const payload: any = {
+      status,
+      meetingLink: item.meetingLink || '',
+      trainerRemarks: item.trainerRemarks || '',
+      maxDurationMinutes: item.maxDurationMinutes || 60
+    };
+
+    if (item.expirationDate) {
+      payload.expirationDate = new Date(item.expirationDate).toISOString();
+    } else {
+      payload.expirationDate = null;
+    }
+
     this.service
-      .updateMockInterview(item.id, {
-        status,
-        meetingLink: item.meetingLink || '',
-        trainerRemarks: item.trainerRemarks || '',
-      })
+      .updateMockInterview(item.id, payload)
       .subscribe({
         next: () => {
           this.savingId = null;
