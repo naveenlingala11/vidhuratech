@@ -698,6 +698,162 @@
   </div>
 </div>
 
+<!-- Premium Adzuna Scraper Modal -->
+<div class="seeder-modal-backdrop" *ngIf="showAdzunaModal" (click)="closeAdzunaModal()">
+  <div class="seeder-modal-content adzuna-modal-expanded" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title-with-icon">
+        <div class="modal-icon-box adzuna-header-icon">
+          <i class="bi bi-cloud-download-fill"></i>
+        </div>
+        <div>
+          <h3>Adzuna Job Scraper Control</h3>
+          <p class="modal-subtitle">Scrape live recruitment openings in India</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeAdzunaModal()" [disabled]="adzunaLoading">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body adzuna-split-layout">
+      <!-- Left Column: Controls & Configuration -->
+      <div class="adzuna-left-panel">
+        <!-- Validation / Config Card -->
+        <div class="adzuna-cred-card configured" *ngIf="adzunaConfigured">
+          <div class="adzuna-cred-icon configured">
+            <i class="bi bi-shield-fill-check"></i>
+          </div>
+          <div class="adzuna-cred-details">
+            <h4>API Credentials Validated</h4>
+            <p>Adzuna App ID ({{ adzunaAppId }}) is active and ready.</p>
+          </div>
+        </div>
+
+        <div class="adzuna-cred-card unconfigured" *ngIf="!adzunaConfigured">
+          <div class="adzuna-cred-icon unconfigured">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+          </div>
+          <div class="adzuna-cred-details">
+            <h4>API Credentials Missing</h4>
+            <p>Scraper is using dummy properties. Please configure adzuna in backend.</p>
+          </div>
+        </div>
+
+        <!-- Scrape Configurations (Form) -->
+        <div class="control-group">
+          <label class="control-label adzuna-control-label">
+            <span>Job Role / Search Query</span>
+          </label>
+          <input type="text" [(ngModel)]="adzunaSearchTerm" [disabled]="adzunaLoading" class="count-number-input adzuna-search-input"
+            placeholder="e.g. Software Developer, Java Engineer..." />
+          <div class="preset-buttons adzuna-presets-group">
+            <button type="button" class="preset-btn" [class.active]="adzunaSearchTerm === 'Software Developer'"
+              [disabled]="adzunaLoading" (click)="adzunaSearchTerm = 'Software Developer'">Software Developer</button>
+            <button type="button" class="preset-btn" [class.active]="adzunaSearchTerm === 'Java Developer'"
+              [disabled]="adzunaLoading" (click)="adzunaSearchTerm = 'Java Developer'">Java Developer</button>
+            <button type="button" class="preset-btn" [class.active]="adzunaSearchTerm === 'Frontend Developer'"
+              [disabled]="adzunaLoading" (click)="adzunaSearchTerm = 'Frontend Developer'">Frontend</button>
+            <button type="button" class="preset-btn" [class.active]="adzunaSearchTerm === 'Full Stack Developer'"
+              [disabled]="adzunaLoading" (click)="adzunaSearchTerm = 'Full Stack Developer'">Full Stack</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label adzuna-control-label">
+            <span>Max Crawl Pages</span>
+            <span class="badge-value adzuna-pages-badge">{{ adzunaPages }} page(s)</span>
+          </label>
+          <div class="preset-buttons adzuna-presets-pages">
+            <button type="button" class="preset-btn" [class.active]="adzunaPages === 1" [disabled]="adzunaLoading" (click)="adzunaPages = 1">1 Page (50 jobs)</button>
+            <button type="button" class="preset-btn" [class.active]="adzunaPages === 3" [disabled]="adzunaLoading" (click)="adzunaPages = 3">3 Pages</button>
+            <button type="button" class="preset-btn" [class.active]="adzunaPages === 5" [disabled]="adzunaLoading" (click)="adzunaPages = 5">5 Pages</button>
+          </div>
+          <input type="range" min="1" max="10" step="1" [(ngModel)]="adzunaPages" [disabled]="adzunaLoading" class="range-slider adzuna-range-slider" />
+        </div>
+      </div>
+
+      <!-- Right Column: Live Monitor Terminal / Results -->
+      <div class="adzuna-right-panel">
+        <div class="console-tab-header">
+          <div class="console-tab-title">
+            <span class="status-indicator-light" [ngClass]="adzunaLoading ? 'green' : 'amber'"></span>
+            <span>LIVE MONITOR DAEMON</span>
+          </div>
+          <div class="console-stopwatch" *ngIf="adzunaLoading || adzunaResult || adzunaError">
+            <i class="bi bi-stopwatch" [class.spin-icon]="adzunaLoading"></i>
+            <strong>{{ formatElapsedTime(adzunaElapsedSeconds) }}</strong>
+          </div>
+        </div>
+
+        <div class="adzuna-terminal-wrapper">
+          <div class="adzuna-logs-terminal-expanded">
+            <!-- Initial Standby text when Idle -->
+            <div class="idle-standby-message" *ngIf="!adzunaLoading && !adzunaResult && !adzunaError">
+              <div><span class="prompt-host">root@vidhuratech:~#</span> systemctl status adzuna-scraper</div>
+              <div>[SYSTEM] Daemon active. Scraper is idle.</div>
+              <div>[SYSTEM] Awaiting execution trigger...</div>
+              <div class="instructions-line">* Select search term, max pages, and click 'Execute Scraper' below.</div>
+            </div>
+
+            <!-- Ingestion results stats when completed -->
+            <div class="terminal-result-summary success" *ngIf="adzunaResult">
+              <div class="result-summary-title">
+                <i class="bi bi-check-circle-fill"></i> SCRAPE COMPLETED SUCCESSFULLY
+              </div>
+              <div class="result-summary-grid">
+                <div>Status: <strong class="text-success">SUCCESS</strong></div>
+                <div>Jobs Saved: <strong class="text-badge">+{{ adzunaResult.jobsSavedCount || 0 }}</strong></div>
+                <div>Skipped/Failed: <strong>{{ adzunaResult.failedCount || 0 }}</strong></div>
+                <div>Elapsed Time: <strong>{{ formatElapsedTime(adzunaElapsedSeconds) }}</strong></div>
+              </div>
+            </div>
+
+            <!-- Ingestion results stats when failed -->
+            <div class="terminal-result-summary error" *ngIf="adzunaError">
+              <div class="result-summary-title">
+                <i class="bi bi-exclamation-triangle-fill"></i> SCRAPER EXECUTION FAILED
+              </div>
+              <div class="error-msg-line">
+                {{ adzunaError }}
+              </div>
+            </div>
+
+            <!-- Streaming logs list -->
+            <div class="terminal-running-logs" *ngIf="adzunaLogs.length > 0">
+              <div class="log-line" *ngFor="let log of adzunaLogs" [ngClass]="{'text-danger': log.includes('❌'), 'text-success': log.includes('✅') || log.includes('🏁'), 'text-info': log.includes('🚀') || log.includes('🔍')}">
+                {{ log }}
+              </div>
+              <!-- Blinking Cursor when loading -->
+              <div class="log-line prompt-line" *ngIf="adzunaLoading">
+                <span class="prompt-host">root@vidhuratech:~#</span>
+                <span class="terminal-cursor-blink"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Scanning Glow overlay -->
+          <div class="terminal-scan-overlay" *ngIf="adzunaLoading"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeAdzunaModal()" [disabled]="adzunaLoading">
+        Cancel
+      </button>
+      <button class="btn-primary-seeding adzuna-execute-btn" (click)="triggerAdzunaScraper()" [disabled]="adzunaLoading"
+        *ngIf="!adzunaResult && !adzunaError">
+        <i class="bi bi-cloud-download-fill" *ngIf="!adzunaLoading"></i>
+        <span>{{ adzunaLoading ? 'Crawling...' : 'Execute Scraper' }}</span>
+      </button>
+      <button class="btn-primary-seeding adzuna-reset-btn" (click)="resetAdzunaState()" *ngIf="adzunaResult || adzunaError">
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>Run Another Scrape</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Sleek Glassmorphic Chat Preview Modal -->
 <div class="modal-backdrop-custom" *ngIf="showChatPreviewModal && chatPreviewSession" (click)="closeChatPreview()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1050; padding: 20px; box-sizing: border-box;">
   <div class="modal-content-custom glass-panel-dark animate-scale-in" (click)="$event.stopPropagation()" style="background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(124, 58, 237, 0.2); border-radius: 20px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; font-family: 'Outfit', sans-serif;">

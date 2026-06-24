@@ -467,6 +467,7 @@
                 [class.remote-card]="job.location === 'Remote'"
                 [class.hybrid-card]="job.location && job.location.toLowerCase().includes('hybrid')"
                 [class.onsite-card]="job.location && job.location !== 'Remote' && !job.location.toLowerCase().includes('hybrid')"
+                [class.hot-job-card]="isPostedToday(job.postedAt)"
                 (click)="openQuickView(job, $event)">
                 <!-- Sparkly shine sweep visual overlay -->
                 <div class="card-shine"></div>
@@ -487,7 +488,11 @@
                             class="bi bi-patch-check-fill text-primary"></i></span>
                       </div>
                       <div class="job-highlights-row"
-                        *ngIf="job.jobType === 'Walk-in' || (job.title && (job.title.toLowerCase().includes('walk-in') || job.title.toLowerCase().includes('walkin'))) || job.jobType === 'Internship' || (job.title && job.title.toLowerCase().includes('intern')) || (job.experience && (job.experience.includes('0-1') || job.experience.includes('0-2') || job.experience.startsWith('0')))">
+                        *ngIf="isPostedToday(job.postedAt) || job.jobType === 'Walk-in' || (job.title && (job.title.toLowerCase().includes('walk-in') || job.title.toLowerCase().includes('walkin'))) || job.jobType === 'Internship' || (job.title && job.title.toLowerCase().includes('intern')) || (job.experience && (job.experience.includes('0-1') || job.experience.includes('0-2') || job.experience.startsWith('0')))">
+                        <span class="highlight-badge badge-hot"
+                          *ngIf="isPostedToday(job.postedAt)">
+                          <i class="bi bi-fire text-danger"></i> 🔥 Hot Job
+                        </span>
                         <span class="highlight-badge badge-walkin"
                           *ngIf="job.jobType === 'Walk-in' || (job.title && (job.title.toLowerCase().includes('walk-in') || job.title.toLowerCase().includes('walkin')))">
                           <i class="bi bi-lightning-fill"></i> 🚶 Walk-In Drive
