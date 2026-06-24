@@ -51,7 +51,7 @@
       <label>
         <span>Batch</span>
         <select [(ngModel)]="form.batchId">
-          <option value="">Select batch</option>
+          <option value="0">None (Public / General Practice)</option>
           <option *ngFor="let batch of batches" [value]="batch.id">
             {{ batch.name || batch.batchName || 'Batch #' + batch.id }}
           </option>
@@ -61,6 +61,11 @@
       <label>
         <span>Company</span>
         <input [(ngModel)]="form.company" placeholder="TCS, Infosys, Wipro..." />
+      </label>
+
+      <label>
+        <span>Asked Year</span>
+        <input type="number" [(ngModel)]="form.askedYear" placeholder="e.g. 2024" />
       </label>
 
       <label>
@@ -199,7 +204,7 @@
     <div class="question-grid" *ngIf="!loading && viewMode === 'GRID' && filteredQuestions.length">
       <article class="question-card" *ngFor="let q of filteredQuestions">
         <div class="card-top">
-          <span>{{ q.company || 'General' }}</span>
+          <span>{{ q.company || 'General' }} <span *ngIf="q.askedYear">({{ q.askedYear }})</span></span>
           <b [class.public]="q.publicVisible">{{ q.publicVisible ? 'Published' : 'Private' }}</b>
         </div>
 
@@ -228,7 +233,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let q of filteredQuestions">
-            <td>{{ q.company }}</td>
+            <td>{{ q.company }} <span *ngIf="q.askedYear">({{ q.askedYear }})</span></td>
             <td>{{ q.question }}</td>
             <td>{{ q.role }}</td>
             <td>{{ q.topic }}</td>

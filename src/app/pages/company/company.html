@@ -344,6 +344,9 @@
             <span class="mpc-badge" [class.badge-teal]="item.type === 'CHALLENGE'">
               {{ item.skill || (item.type === 'ASSESSMENT' ? 'Assessment' : 'Coding') }}
             </span>
+            <span class="mpc-badge" *ngIf="item.askedYear" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #a0aec0; margin-left: 6px;">
+              Asked in {{ item.askedYear }}
+            </span>
             <span class="mpc-hot-tag" *ngIf="isHotItem(item)">
               <i class="fa-solid fa-fire" aria-hidden="true"></i> Hot Picks
             </span>
@@ -510,7 +513,7 @@
 
             <span class="plp-main">
               <strong>{{ question.question }}</strong>
-              <span class="plp-sub-type">{{ question.type }}</span>
+              <span class="plp-sub-type">{{ question.type }} <span *ngIf="question.askedYear" style="color: #718096; font-size: 0.85em; margin-left: 8px;">· Asked in {{ question.askedYear }}</span></span>
             </span>
 
             <span class="plp-topic">{{ question.topic || 'General' }}</span>
@@ -576,6 +579,7 @@
           >
             {{ selectedQuestion.difficulty }}
           </span>
+          <span class="acp-pill" *ngIf="selectedQuestion.askedYear" style="background: rgba(255, 255, 255, 0.1); color: #cbd5e0;">Asked: {{ selectedQuestion.askedYear }}</span>
         </div>
 
         <div class="acp-scroll-content">

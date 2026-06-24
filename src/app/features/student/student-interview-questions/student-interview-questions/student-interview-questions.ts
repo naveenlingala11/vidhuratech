@@ -16,6 +16,7 @@ interface InterviewQuestionItem {
   topic: string;
   type: string;
   difficulty: string;
+  askedYear?: number;
   saved: boolean;
   done: boolean;
   confidence: number;
@@ -256,6 +257,7 @@ export class StudentInterviewQuestionsComponent implements OnInit {
       topic: this.safe(q.topic, 'General'),
       type: this.safe(q.type, 'CONCEPTUAL'),
       difficulty: this.safe(q.difficulty, 'MEDIUM').toUpperCase(),
+      askedYear: q.askedYear ? Number(q.askedYear) : undefined,
       saved: Boolean(old.saved),
       done: Boolean(old.done),
       confidence: Number(old.confidence ?? 50),

@@ -36,12 +36,22 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
   types = ['CONCEPTUAL', 'SCENARIO', 'IMPLEMENTATION', 'HR'];
   difficulties = ['EASY', 'MEDIUM', 'HARD'];
 
-  form = this.emptyForm();
+  form: {
+    batchId: string;
+    company: string;
+    role: string;
+    type: string;
+    topic: string;
+    difficulty: string;
+    question: string;
+    answer: string;
+    askedYear?: number;
+  } = this.emptyForm();
 
   constructor(
     private service: TrainerInterviewQuestionService,
     private batchLookup: TrainerBatchLookupService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadBatches();
@@ -144,7 +154,7 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
   edit(q: any): void {
     this.editingId = q.id;
     this.form = {
-      batchId: String(q.batchId || ''),
+      batchId: String(q.batchId !== null && q.batchId !== undefined ? q.batchId : 0),
       company: q.company || '',
       role: q.role || 'JAVA',
       type: q.type || 'CONCEPTUAL',
@@ -152,8 +162,10 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
       difficulty: q.difficulty || 'MEDIUM',
       question: q.question || '',
       answer: q.answer || '',
+      askedYear: q.askedYear ? Number(q.askedYear) : undefined,
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showToast('Question loaded for editing');
   }
 
   delete(id: number): void {
@@ -180,7 +192,6 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
   reset(): void {
     this.editingId = null;
     this.form = this.emptyForm();
-    if (this.batches.length) this.form.batchId = String(this.batches[0].id);
   }
 
   clearFilters(): void {
@@ -240,10 +251,11 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
         .toUpperCase(),
       question: String(item.question || '').trim(),
       answer: String(item.answer || '').trim(),
+      askedYear: item.askedYear ? Number(item.askedYear) : (this.form.askedYear ? Number(this.form.askedYear) : null),
     }));
 
     const invalid = payload.find(
-      (x) => !x.batchId || !x.question || !x.answer || !x.company || !x.role,
+      (x) => (x.batchId === undefined || x.batchId === null) || !x.question || !x.answer || !x.company || !x.role,
     );
 
     if (invalid) {
@@ -313,7 +325,7 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
   }
 
   private isValid(): boolean {
-    if (!this.form.batchId) return this.fail('Batch is required');
+    if (this.form.batchId === undefined || this.form.batchId === null || this.form.batchId === '') return this.fail('Batch is required');
     if (!this.form.company.trim()) return this.fail('Company is required');
     if (!this.form.role.trim()) return this.fail('Role is required');
     if (!this.form.topic.trim()) return this.fail('Topic is required');
@@ -332,6 +344,7 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
       difficulty: this.form.difficulty,
       question: this.form.question.trim(),
       answer: this.form.answer.trim(),
+      askedYear: this.form.askedYear ? Number(this.form.askedYear) : null,
     };
   }
 
@@ -340,9 +353,19 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
     return false;
   }
 
-  private emptyForm() {
+  private emptyForm(): {
+    batchId: string;
+    company: string;
+    role: string;
+    type: string;
+    topic: string;
+    difficulty: string;
+    question: string;
+    answer: string;
+    askedYear?: number;
+  } {
     return {
-      batchId: '',
+      batchId: '0',
       company: '',
       role: 'JAVA',
       type: 'CONCEPTUAL',
@@ -350,6 +373,7 @@ export class TrainerInterviewQuestionsComponent implements OnInit {
       difficulty: 'MEDIUM',
       question: '',
       answer: '',
+      askedYear: new Date().getFullYear(),
     };
   }
 

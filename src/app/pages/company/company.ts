@@ -20,6 +20,7 @@ interface PracticeItem {
   durationMinutes: number;
   totalMarks: number;
   questionCount: number;
+  askedYear?: number;
 }
 
 interface InterviewQuestion {
@@ -31,6 +32,7 @@ interface InterviewQuestion {
   topic: string;
   difficulty: string;
   show: boolean;
+  askedYear?: number;
 }
 
 @Component({
@@ -297,6 +299,7 @@ export class Company implements OnInit {
             topic: question.topic || 'General',
             difficulty: question.difficulty || 'MEDIUM',
             show: false,
+            askedYear: question.askedYear || null,
           }));
 
           this.questionTotalPages = response?.totalPages || 0;

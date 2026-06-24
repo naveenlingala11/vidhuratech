@@ -227,7 +227,7 @@
               <label class="input-label-styled">Target Cohort / Batch ID</label>
               <div class="input-wrapper-styled select-wrapper">
                 <select [(ngModel)]="form.batchId" name="batchId">
-                  <option value="">Select batch assignment</option>
+                  <option value="0">None (Public / General Practice)</option>
                   <option *ngFor="let b of trainerBatches" [value]="b.id">
                     Batch #{{ b.id }} - {{ b.name }} ({{ b.course }})
                   </option>
@@ -250,6 +250,15 @@
               <div class="input-wrapper-styled">
                 <i class="bi bi-tag"></i>
                 <input [(ngModel)]="form.skill" name="skill" placeholder="e.g. Java OOP, DSA, Array" />
+              </div>
+            </div>
+
+            <!-- Asked Year -->
+            <div class="form-input-group">
+              <label class="input-label-styled">Asked Year</label>
+              <div class="input-wrapper-styled">
+                <i class="bi bi-calendar-event"></i>
+                <input type="number" [(ngModel)]="form.askedYear" name="askedYear" placeholder="e.g. 2024" />
               </div>
             </div>
 
@@ -598,7 +607,7 @@ e.g.
         >
           <div class="group-card-header">
             <div class="header-titles">
-              <span class="company-badge-label"><i class="bi bi-building"></i> {{ group.companyName }}</span>
+              <span class="company-badge-label"><i class="bi bi-building"></i> {{ group.companyName }} <span *ngIf="group.challenges[0]?.askedYear">({{ group.challenges[0].askedYear }})</span></span>
               <h3>{{ group.title }}</h3>
               <p>Batch ID #{{ group.batchId }} · Configured for recruitment assessments.</p>
             </div>

@@ -41,6 +41,7 @@ interface ChallengeForm {
   testCases: ChallengeTestCase[];
   skill: string;
   hintText: string;
+  askedYear?: number;
 }
 
 interface ChallengeGroup {
@@ -450,7 +451,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   get validationErrors(): string[] {
     const errors: string[] = [];
 
-    if (!this.form.batchId || Number(this.form.batchId) <= 0) {
+    if (this.form.batchId === undefined || this.form.batchId === null || this.form.batchId === '') {
       errors.push('Batch is required');
     }
     if (!this.form.challengeGroupTitle.trim()) errors.push('Group title is required');
@@ -958,7 +959,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     const rules = Array.isArray(payload?.rules) ? payload.rules : [];
 
     return {
-      batchId: String(payload?.batchId || fallback.batchId),
+      batchId: String(payload?.batchId !== undefined && payload?.batchId !== null ? payload.batchId : fallback.batchId),
       companyName: String(payload?.companyName || fallback.companyName),
       challengeGroupTitle: String(
         payload?.challengeGroupTitle || payload?.groupTitle || fallback.challengeGroupTitle,
@@ -986,6 +987,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       })),
       skill: String(payload?.skill || fallback.skill),
       hintText: String(payload?.hintText || ''),
+      askedYear: payload?.askedYear ? Number(payload.askedYear) : undefined,
     };
   }
 
@@ -1012,12 +1014,14 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         marks: Number(tc.marks || 0),
         hidden: Boolean(tc.hidden),
       })),
+      askedYear: form.askedYear ? Number(form.askedYear) : null,
     };
   }
 
   private isValidChallengePayload(payload: any): boolean {
     return (
-      Number(payload.batchId) > 0 &&
+      payload.batchId !== undefined &&
+      payload.batchId !== null &&
       String(payload.companyName || '').trim().length > 0 &&
       String(payload.challengeGroupTitle || '').trim().length > 0 &&
       String(payload.title || '').trim().length > 0 &&
@@ -1058,7 +1062,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
   private getEmptyForm(): ChallengeForm {
     return {
-      batchId: this.trainerBatches?.length ? String(this.trainerBatches[0].id) : '',
+      batchId: '0',
       companyName: '',
       skill: 'Coding',
       challengeGroupTitle: '',
@@ -1073,6 +1077,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       rules: [],
       testCases: [{ inputData: '', expectedOutput: '', marks: 100, hidden: true }],
       hintText: '',
+      askedYear: new Date().getFullYear(),
     };
   }
 }

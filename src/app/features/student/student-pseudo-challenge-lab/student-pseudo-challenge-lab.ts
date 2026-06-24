@@ -988,22 +988,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       });
     }
 
-    const lang = this.normalizeLanguage(language);
-    const patterns = this.blockedCodePatterns[lang] || [];
-    for (const patternStr of patterns) {
-      const regex = new RegExp(patternStr, 'im');
-      const match = regex.exec(code);
-      if (match) {
-        const pos = this.getLineAndColumn(code, match.index);
-        diagnostics.push({
-          line: pos.line,
-          column: pos.column,
-          message: `Blocked unsafe code pattern: ${this.readable(patternStr)}`,
-          raw: match[0]
-        });
-      }
-    }
-
+    // Since we now use a secure isolated sandbox (Judge0), we do not need to block code patterns in the frontend.
     return diagnostics;
   }
 
@@ -1409,23 +1394,13 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     const code = lines.join('\n');
     const hasScannerImport = /import\s+java\.util\.(Scanner|\*)\s*;/.test(code);
     const usesScanner = /\bScanner\b/.test(code);
-    const hasMainClass = /public\s+class\s+Main\b/.test(code);
-    const mainLine = Math.max(1, lines.findIndex((line) => line.includes('class Main')) + 1 || 1);
+    const hasClass = /\bclass\s+\w+/.test(code);
+    const mainLine = Math.max(1, lines.findIndex((line) => line.includes('class ')) + 1 || 1);
     const hasMainMethod = /public\s+static\s+void\s+main\s*\(\s*String\s*\[\]\s+\w+\s*\)/.test(
       code,
     );
 
-    if (code.trim() && !hasMainClass) {
-      diagnostics.push({
-        line: 1,
-        column: 1,
-        message:
-          'Line 1: Java compile error: Online compiler expects `public class Main` in Main.java.',
-        raw: lines[0] || '',
-      });
-    }
-
-    if (code.trim() && !hasMainMethod) {
+    if (hasClass && !hasMainMethod) {
       diagnostics.push({
         line: mainLine,
         column: 1,
