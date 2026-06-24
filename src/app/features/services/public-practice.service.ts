@@ -35,6 +35,10 @@ export class PublicPracticeService {
     return this.http.post(`${this.baseUrl}/challenges/${id}/run`, payload);
   }
 
+  runChallengeCustom(id: number, payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/challenges/${id}/run-custom`, payload);
+  }
+
   saveLead(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/lead`, payload);
   }

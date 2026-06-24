@@ -37,6 +37,9 @@ interface CompilerDiagnostic {
 export class PublicPracticeComponent implements OnInit, OnDestroy {
   compilerDiagnostics: CompilerDiagnostic[] = [];
   localDiagnostics: CompilerDiagnostic[] = [];
+  serverCompileErrors: CompilerDiagnostic[] = [];
+  selectedTheme = 'vs-dark';
+  isFullScreen = false;
 
   private editorInstance: any;
   private monacoInstance: any;
@@ -62,7 +65,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     bracketPairColorization: { enabled: true },
     renderValidationDecorations: 'on',
     contextmenu: true,
-    quickSuggestions: { other: true, comments: false, strings: false },
+    quickSuggestions: { other: true, comments: true, strings: true },
     suggestOnTriggerCharacters: true,
     parameterHints: { enabled: true },
     hover: { enabled: true, delay: 100, sticky: true },
@@ -70,6 +73,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     mouseWheelScrollSensitivity: 1,
     fastScrollSensitivity: 5,
     spellcheck: true,
+    autoIndent: 'full' as any,
+    acceptSuggestionOnEnter: 'on' as any,
+    tabCompletion: 'on' as any,
     scrollbar: {
       vertical: 'visible',
       horizontal: 'visible',
@@ -306,7 +312,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
   leftTab: 'problem' | 'submissions' | 'discussions' = 'problem';
   consoleExpanded = true;
-  activeConsoleTab: 'samples' | 'results' = 'samples';
+  activeConsoleTab: 'samples' | 'results' | 'custom' = 'samples';
+  customInputText = '';
+  customRunResult: any = null;
 
   assessmentId = 0;
   assessment: any = null;
@@ -399,11 +407,13 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
     if (type === 'assessment' && id) {
       this.loadAssessment(id);
+      this.ensureLibraryLoaded();
       return;
     }
 
     if (type === 'challenge' && id) {
       this.loadChallenge(id);
+      this.ensureLibraryLoaded();
       return;
     }
 
@@ -518,8 +528,16 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.lastStarterCode = this.sourceCode;
     this.challengeResult = null;
     this.editorError = '';
+    this.serverCompileErrors = [];
     this.hasUnsavedChanges = false;
     this.draftSavedAt = '';
+    this.customRunResult = null;
+
+    if (this.challenge?.sampleTestCases?.length > 0) {
+      this.customInputText = this.challenge.sampleTestCases[0].inputData || '';
+    } else {
+      this.customInputText = '';
+    }
 
     this.restoreDraftLocally();
     this.startHintUnlockTimer();
@@ -669,6 +687,71 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         this.showToast('Unable to load free practice tests');
       },
     });
+  }
+
+  ensureLibraryLoaded(): void {
+    if (this.assessments.length || this.challenges.length) return;
+    this.publicPracticeService.getLibrary().subscribe({
+      next: (res: any) => {
+        const data = res?.data || {};
+        this.assessments = data.assessments || [];
+        this.challenges = data.challenges || [];
+        this.companies = Array.from(data.companies || []);
+        this.skills = Array.from(data.skills || []);
+      },
+      error: () => { }
+    });
+  }
+
+  get similarSuggestions(): any[] {
+    if (this.mode === 'LIBRARY') return [];
+
+    const currentItem = this.mode === 'ASSESSMENT' ? this.assessment : this.challenge;
+    if (!currentItem) return [];
+
+    const currentId = Number(this.mode === 'ASSESSMENT' ? this.assessmentId : this.challengeId);
+    const pool = this.mode === 'ASSESSMENT' ? this.assessments : this.challenges;
+
+    // Filter out current item and ensure unique IDs
+    const seenIds = new Set<number>();
+    const otherItems = pool.filter(item => {
+      const itemId = Number(item.id);
+      if (itemId === currentId) return false;
+      if (seenIds.has(itemId)) return false;
+      seenIds.add(itemId);
+      return true;
+    });
+
+    // Score other items based on skill/company
+    const scored = otherItems.map(item => {
+      let score = 0;
+      if (item.skill && currentItem.skill && String(item.skill).toLowerCase() === String(currentItem.skill).toLowerCase()) {
+        score += 3;
+      }
+      if (item.company && currentItem.company && String(item.company).toLowerCase() === String(currentItem.company).toLowerCase()) {
+        score += 2;
+      }
+      return { item, score };
+    });
+
+    // Sort descending and take top 5
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .map(entry => entry.item)
+      .slice(0, 5);
+  }
+
+  navigateToSuggestion(item: any): void {
+    const type = this.resolvePracticeType(item);
+    if (type === 'ASSESSMENT') {
+      this.router.navigate(['/practice', 'assessment', item.id]).then(() => {
+        this.loadAssessment(item.id);
+      });
+    } else if (type === 'CHALLENGE') {
+      this.router.navigate(['/practice', 'challenge', item.id]).then(() => {
+        this.loadChallenge(item.id);
+      });
+    }
   }
 
   requestWorkspaceAccess(message = 'Please register to continue with this practice item'): void {
@@ -1152,7 +1235,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
     this.editorError = '';
     this.challengeResult = null;
+    this.customRunResult = null;
     this.editorValidationErrors = [];
+    this.serverCompileErrors = [];
 
     setTimeout(() => {
       this.syncEditorValue();
@@ -1197,12 +1282,90 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       fixedOverflowWidgets: false,
       hover: { enabled: true, delay: 80, sticky: true },
       renderValidationDecorations: 'on',
+      autoIndent: 'full',
+      acceptSuggestionOnEnter: 'on',
+      tabCompletion: 'on',
     });
 
+    this.registerCustomAutocomplete();
     this.syncEditorValue();
 
-    if (this.monacoInstance && editor.getModel()) {
-      this.monacoInstance.editor.setModelLanguage(editor.getModel(), this.editorLanguage);
+    if (this.monacoInstance) {
+      if (editor.getModel()) {
+        this.monacoInstance.editor.setModelLanguage(editor.getModel(), this.editorLanguage);
+      }
+      this.monacoInstance.editor.setTheme(this.selectedTheme);
+
+      // Keyboard Shortcuts
+      editor.addCommand(this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.Enter, () => {
+        this.runChallenge();
+      });
+
+      editor.addCommand(this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KeyS, () => {
+        this.saveDraftLocally();
+        this.showToast('Draft saved successfully');
+      });
+
+      editor.addCommand(this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyCode.KeyL, () => {
+        this.clearServerDiagnostics();
+        this.showToast('Diagnostics cleared');
+      });
+
+      editor.addCommand(this.monacoInstance.KeyMod.CtrlCmd | this.monacoInstance.KeyMod.Alt | this.monacoInstance.KeyCode.KeyF, () => {
+        this.formatCode();
+      });
+
+      // Cursor position change to toggle readOnly dynamically
+      editor.onDidChangeCursorPosition((event: any) => {
+        const model = editor.getModel();
+        const range = this.getEditableRange(model);
+        if (range) {
+          const { startLine, endLine } = range;
+          const isInside = event.position.lineNumber > startLine && event.position.lineNumber < endLine;
+          editor.updateOptions({ readOnly: !isInside });
+        } else {
+          editor.updateOptions({ readOnly: false });
+        }
+      });
+
+      // Selection change to prevent editing selections spanning outside logic bounds
+      editor.onDidChangeCursorSelection((event: any) => {
+        const model = editor.getModel();
+        const range = this.getEditableRange(model);
+        if (range) {
+          const { startLine, endLine } = range;
+          const selection = event.selection;
+          const isSelectionInside = selection.startLineNumber > startLine && selection.endLineNumber < endLine;
+          editor.updateOptions({ readOnly: !isSelectionInside });
+        }
+      });
+
+      // Keydown handler to block backspace/delete at marker margins
+      editor.onKeyDown((e: any) => {
+        const model = editor.getModel();
+        const range = this.getEditableRange(model);
+        if (!range) return;
+
+        const { startLine, endLine } = range;
+        const position = editor.getPosition();
+
+        // Backspace on first column of first logic line -> Block merging into start marker line
+        if (e.keyCode === this.monacoInstance.KeyCode.Backspace) {
+          if (position.lineNumber === startLine + 1 && position.column === 1) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+
+        // Delete at last column of last logic line -> Block merging into end marker line
+        if (e.keyCode === this.monacoInstance.KeyCode.Delete) {
+          const lineContent = model.getLineContent(position.lineNumber);
+          if (position.lineNumber === endLine - 1 && position.column === lineContent.length + 1) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+      });
     }
 
     this.registerDiagnosticHoverProvider();
@@ -1218,6 +1381,225 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       editor.layout();
       editor.focus();
       this.validateCode();
+    });
+  }
+
+  onThemeChange(): void {
+    if (this.editorInstance && this.monacoInstance) {
+      this.monacoInstance.editor.setTheme(this.selectedTheme);
+      this.editorOptions.theme = this.selectedTheme;
+    }
+  }
+
+  increaseFontSize(): void {
+    if (this.editorOptions.fontSize < 28) {
+      this.editorOptions.fontSize += 1;
+      this.editorInstance?.updateOptions({ fontSize: this.editorOptions.fontSize });
+    }
+  }
+
+  decreaseFontSize(): void {
+    if (this.editorOptions.fontSize > 11) {
+      this.editorOptions.fontSize -= 1;
+      this.editorInstance?.updateOptions({ fontSize: this.editorOptions.fontSize });
+    }
+  }
+
+  getFileExtension(): string {
+    const map: Record<string, string> = {
+      JAVA: 'java',
+      PYTHON: 'py',
+      C: 'c',
+      CPP: 'cpp',
+      CSHARP: 'cs',
+      PHP: 'php',
+      RUBY: 'rb',
+      GO: 'go',
+      RUST: 'rs',
+      TYPESCRIPT: 'ts',
+    };
+    return map[this.language] || 'txt';
+  }
+
+  downloadCode(): void {
+    if (!this.sourceCode) {
+      this.showToast('No code to download');
+      return;
+    }
+    const ext = this.getFileExtension();
+    const filename = `solution_${this.challengeId || 'challenge'}.${ext}`;
+    const blob = new Blob([this.sourceCode], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+    this.showToast(`Downloaded solution as ${filename}`);
+  }
+
+  toggleFullScreen(): void {
+    this.isFullScreen = !this.isFullScreen;
+    setTimeout(() => {
+      this.editorInstance?.layout?.();
+    }, 200);
+  }
+
+  getEditableRange(model: any): { startLine: number; endLine: number } | null {
+    if (!model) return null;
+    const linesCount = model.getLineCount();
+    let start = -1;
+    let end = -1;
+
+    for (let i = 1; i <= linesCount; i++) {
+      const content = model.getLineContent(i);
+      if (content.includes('START OF USER LOGIC')) {
+        start = i;
+      }
+      if (content.includes('END OF USER LOGIC')) {
+        end = i;
+        break;
+      }
+    }
+
+    if (start !== -1 && end !== -1) {
+      return { startLine: start, endLine: end };
+    }
+    return null;
+  }
+
+  private registerCustomAutocomplete(): void {
+    if (!this.monacoInstance) return;
+    if ((window as any).__vidhuraMonacoCompletionsRegistered) return;
+    (window as any).__vidhuraMonacoCompletionsRegistered = true;
+
+    const monaco = this.monacoInstance;
+
+    // Define helper to create keyword suggestion
+    const keyword = (text: string) => ({
+      label: text,
+      kind: monaco.languages.CompletionItemKind.Keyword,
+      insertText: text,
+    });
+
+    // Define helper to create function suggestion
+    const func = (text: string, detail?: string) => ({
+      label: text,
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: text + '(${1})',
+      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      detail: detail || 'Built-in function',
+    });
+
+    // Define helper to create snippet suggestion
+    const snippet = (label: string, code: string, doc?: string) => ({
+      label,
+      kind: monaco.languages.CompletionItemKind.Snippet,
+      insertText: code,
+      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation: doc || '',
+    });
+
+    // 1. PYTHON PROVIDER
+    const pythonKeywords = [
+      'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del',
+      'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in',
+      'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while',
+      'with', 'yield', 'True', 'False', 'None'
+    ].map(keyword);
+
+    const pythonFunctions = [
+      'print', 'len', 'range', 'enumerate', 'zip', 'sum', 'min', 'max', 'abs', 'round',
+      'sorted', 'reversed', 'map', 'filter', 'input', 'int', 'float', 'str', 'bool', 'list',
+      'dict', 'set', 'tuple', 'type', 'isinstance', 'open'
+    ].map(f => func(f, 'Python built-in'));
+
+    const pythonSnippets = [
+      snippet('def', 'def ${1:function_name}(${2:args}):\n\t${3:pass}', 'Define a function'),
+      snippet('for', 'for ${1:item} in ${2:iterable}:\n\t${3:pass}', 'For loop'),
+      snippet('while', 'while ${1:condition}:\n\t${2:pass}', 'While loop'),
+      snippet('if', 'if ${1:condition}:\n\t${2:pass}', 'If statement'),
+      snippet('ife', 'if ${1:condition}:\n\t${2:pass}\nelse:\n\t${3:pass}', 'If-Else statement'),
+      snippet('class', 'class ${1:ClassName}:\n\tdef __init__(self):\n\t\t${2:pass}', 'Define a class'),
+      snippet('try', 'try:\n\t${1:pass}\nexcept ${2:Exception} as e:\n\t${3:pass}', 'Try-Except block'),
+      snippet('solve', 'def solve():\n    # Write logic here\n    pass', 'Challenge solve template'),
+      snippet('sysread', 'import sys\n\ndata = sys.stdin.read().strip().split()\n', 'Read all tokens from stdin')
+    ];
+
+    monaco.languages.registerCompletionItemProvider('python', {
+      provideCompletionItems: () => {
+        return {
+          suggestions: [...pythonKeywords, ...pythonFunctions, ...pythonSnippets]
+        };
+      }
+    });
+
+    // 2. JAVA PROVIDER
+    const javaKeywords = [
+      'abstract', 'assert', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class',
+      'continue', 'default', 'do', 'double', 'else', 'enum', 'extends', 'final', 'finally',
+      'float', 'for', 'if', 'implements', 'import', 'instanceof', 'int', 'interface', 'long',
+      'new', 'package', 'private', 'protected', 'public', 'return', 'short', 'static',
+      'super', 'switch', 'this', 'throw', 'throws', 'try', 'void', 'while', 'true', 'false', 'null'
+    ].map(keyword);
+
+    const javaFunctions = [
+      'length', 'equals', 'toString', 'indexOf', 'substring', 'charAt', 'contains', 'split',
+      'parseInt', 'parseDouble', 'valueOf', 'size', 'add', 'get', 'put', 'containsKey'
+    ].map(f => func(f, 'Java method'));
+
+    const javaSnippets = [
+      snippet('sysout', 'System.out.println(${1});', 'Print line to console'),
+      snippet('sysprint', 'System.out.print(${1});', 'Print to console'),
+      snippet('psvm', 'public static void main(String[] args) {\n\t${1}\n}', 'Main method declaration'),
+      snippet('class', 'public class ${1:Main} {\n\tpublic static void main(String[] args) {\n\t\t${2}\n\t}\n}', 'Java Class skeleton'),
+      snippet('for', 'for (int i = 0; i < ${1:limit}; i++) {\n\t${2}\n}', 'Standard for loop'),
+      snippet('scanner', 'Scanner sc = new Scanner(System.in);\n', 'Scanner for console input'),
+      snippet('list', 'List<${1:String}> list = new ArrayList<>();\n', 'ArrayList declaration'),
+      snippet('map', 'Map<${1:String}, ${2:Integer}> map = new HashMap<>();\n', 'HashMap declaration')
+    ];
+
+    monaco.languages.registerCompletionItemProvider('java', {
+      provideCompletionItems: () => {
+        return {
+          suggestions: [...javaKeywords, ...javaFunctions, ...javaSnippets]
+        };
+      }
+    });
+
+    // 3. C / CPP PROVIDER
+    const cppKeywords = [
+      'auto', 'break', 'case', 'char', 'const', 'continue', 'default', 'do', 'double', 'else',
+      'enum', 'extern', 'float', 'for', 'goto', 'if', 'int', 'long', 'return', 'short', 'signed',
+      'sizeof', 'static', 'struct', 'switch', 'typedef', 'union', 'unsigned', 'void', 'volatile',
+      'while', 'class', 'namespace', 'using', 'public', 'private', 'protected', 'template',
+      'typename', 'new', 'delete', 'try', 'catch', 'throw', 'std', 'true', 'false'
+    ].map(keyword);
+
+    const cppSnippets = [
+      snippet('main', 'int main() {\n\t${1}\n\treturn 0;\n}', 'C/C++ main function'),
+      snippet('cout', 'std::cout << ${1} << std::endl;', 'Console output'),
+      snippet('cin', 'std::cin >> ${1};', 'Console input'),
+      snippet('for', 'for (int i = 0; i < ${1:n}; i++) {\n\t${2}\n}', 'Standard loop'),
+      snippet('vector', 'std::vector<${1:int}> ${2:vec};', 'std::vector declaration'),
+      snippet('string', 'std::string ${1:str};', 'std::string declaration'),
+      snippet('solve', '#include <iostream>\nusing namespace std;\n\nint main() {\n\t${1}\n\treturn 0;\n}', 'Solve template')
+    ];
+
+    monaco.languages.registerCompletionItemProvider('c', {
+      provideCompletionItems: () => {
+        return {
+          suggestions: [...cppKeywords, ...cppSnippets]
+        };
+      }
+    });
+
+    monaco.languages.registerCompletionItemProvider('cpp', {
+      provideCompletionItems: () => {
+        return {
+          suggestions: [...cppKeywords, ...cppSnippets]
+        };
+      }
     });
   }
 
@@ -1239,74 +1621,52 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       raw: message,
     }));
 
-    this.compilerDiagnostics = [...validationDiagnostics, ...this.localDiagnostics];
+    this.compilerDiagnostics = [
+      ...validationDiagnostics,
+      ...this.localDiagnostics,
+      ...this.serverCompileErrors,
+    ];
 
     if (!this.editorInstance || !this.monacoInstance) return;
 
     const model = this.editorInstance.getModel();
     const sourceLines = this.sourceCode.split('\n');
+
+    // Clean up old markers
+    this.monacoInstance.editor.setModelMarkers(model, 'compiler', []);
     this.monacoInstance.editor.setModelMarkers(model, 'public-validation', []);
 
-    const markers = this.localDiagnostics.map((item) => {
-      const lineNumber = item.line || 1;
-      const lineText = sourceLines[lineNumber - 1] || '';
-      const startColumn = item.column || 1;
-      const matchLength = item.raw ? item.raw.length : (lineText.length - startColumn + 1);
-      const endColumn = Math.max(startColumn + 1, Math.min(startColumn + matchLength, lineText.length + 1));
+    const markers = this.compilerDiagnostics
+      .filter((item) => item.line !== null)
+      .map((item) => {
+        const lineNumber = item.line || 1;
+        const lineText = sourceLines[lineNumber - 1] || '';
+        const startColumn = item.column || 1;
+        const matchLength = item.raw ? item.raw.length : (lineText.length - startColumn + 1);
+        const endColumn = Math.max(startColumn + 1, Math.min(startColumn + matchLength, lineText.length + 1));
 
-      return {
-        startLineNumber: lineNumber,
-        endLineNumber: lineNumber,
-        startColumn,
-        endColumn,
-        message: item.message,
-        severity: this.monacoInstance.MarkerSeverity.Error,
-        source: 'Compiler Diagnostics',
-      };
-    });
+        return {
+          startLineNumber: lineNumber,
+          endLineNumber: lineNumber,
+          startColumn,
+          endColumn,
+          message: item.message,
+          severity: this.monacoInstance.MarkerSeverity.Error,
+          source: 'Workspace Diagnostics',
+        };
+      });
 
-    this.monacoInstance.editor.setModelMarkers(model, 'public-validation', markers);
-
-    if (!markers.length) {
-      this.compilerDiagnostics = [];
-      this.monacoInstance.editor.setModelMarkers(model, 'compiler', []);
-    }
+    this.monacoInstance.editor.setModelMarkers(model, 'workspace-validation', markers);
   }
 
   applyCompilerErrors(error?: string): void {
-    const compilerItems = this.extractCompilerDiagnostics(error);
-    const isGenericCompilerError =
-      !!error && /internal error|code execution failed|execution failed/i.test(error);
+    this.validateCode();
+  }
 
-    this.compilerDiagnostics =
-      compilerItems.length && !isGenericCompilerError
-        ? compilerItems
-        : this.localDiagnostics.length
-          ? this.localDiagnostics
-          : compilerItems;
-
-    if (!this.editorInstance || !this.monacoInstance) return;
-
-    const model = this.editorInstance.getModel();
-
-    if (!this.compilerDiagnostics.length) {
-      this.monacoInstance.editor.setModelMarkers(model, 'compiler', []);
-      return;
-    }
-
-    const markers = this.compilerDiagnostics.map((item) => ({
-      startLineNumber: item.line || 1,
-      endLineNumber: item.line || 1,
-      startColumn: item.column || 1,
-      endColumn: 999,
-      message: item.message,
-      severity: this.monacoInstance.MarkerSeverity.Error,
-      source: 'Compiler Diagnostics',
-    }));
-
-    this.monacoInstance.editor.setModelMarkers(model, 'compiler', markers);
-    const first = this.compilerDiagnostics.find((item) => item.line);
-    if (first?.line) this.editorInstance.revealLineInCenter(first.line);
+  clearServerDiagnostics(): void {
+    this.serverCompileErrors = [];
+    this.editorError = '';
+    this.validateCode();
   }
 
   private syncEditorValue(): void {
@@ -1325,6 +1685,10 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     const lines = this.sourceCode.split('\n');
     const language = String(this.language || '').toUpperCase();
 
+    // 1. Run global bracket/brace matching checker for all languages
+    this.collectBracketDiagnostics(this.sourceCode, language, diagnostics);
+
+    // 2. Run language-specific diagnostics
     if (language === 'PYTHON') {
       this.collectPythonDiagnostics(lines, diagnostics);
     } else if (language === 'JAVA') {
@@ -1339,15 +1703,158 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     return diagnostics;
   }
 
+  private collectBracketDiagnostics(code: string, language: string, diagnostics: CompilerDiagnostic[]): void {
+    const lines = code.split(/\r?\n/);
+    const stack: { char: string; line: number; col: number }[] = [];
+    let inString: '"' | "'" | '`' | null = null;
+    let escaped = false;
+    let inLineComment = false;
+    let inBlockComment = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      inLineComment = false;
+
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+
+        // Handle string literals
+        if (inString) {
+          if (char === '\\') {
+            escaped = true;
+          } else if (char === inString) {
+            inString = null;
+          }
+          continue;
+        }
+
+        // Handle block comments
+        if (inBlockComment) {
+          if (char === '*' && line[j + 1] === '/') {
+            inBlockComment = false;
+            j++;
+          }
+          continue;
+        }
+
+        // Check for comment starts
+        if (language === 'PYTHON' || language === 'RUBY') {
+          if (char === '#') {
+            inLineComment = true;
+            break; // Skip rest of line
+          }
+        } else {
+          // C-style comments
+          if (char === '/' && line[j + 1] === '/') {
+            inLineComment = true;
+            break; // Skip rest of line
+          }
+          if (char === '/' && line[j + 1] === '*') {
+            inBlockComment = true;
+            j++;
+            continue;
+          }
+        }
+
+        // String boundary check
+        if (char === '"' || char === "'" || (char === '`' && ['TYPESCRIPT', 'PHP', 'GO'].includes(language))) {
+          inString = char;
+          continue;
+        }
+
+        // Bracket matching
+        if (char === '(' || char === '[' || char === '{') {
+          stack.push({ char, line: i + 1, col: j + 1 });
+        } else if (char === ')' || char === ']' || char === '}') {
+          const matchingOpen: Record<string, string> = { ')': '(', ']': '[', '}': '{' };
+          const expectedOpen = matchingOpen[char];
+
+          if (stack.length === 0) {
+            diagnostics.push({
+              line: i + 1,
+              column: j + 1,
+              message: `SyntaxError: unmatched closing '${char}'`,
+              raw: line,
+            });
+          } else {
+            const top = stack.pop();
+            if (top && top.char !== expectedOpen) {
+              diagnostics.push({
+                line: i + 1,
+                column: j + 1,
+                message: `SyntaxError: mismatched brackets. Opened '${top.char}' on line ${top.line} but closed with '${char}'`,
+                raw: line,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Any remaining items in stack are unclosed open brackets
+    while (stack.length > 0) {
+      const top = stack.pop();
+      if (top) {
+        diagnostics.push({
+          line: top.line,
+          column: top.col,
+          message: `SyntaxError: unclosed '${top.char}'`,
+          raw: lines[top.line - 1] || '',
+        });
+      }
+    }
+  }
+
   private collectPythonDiagnostics(lines: string[], diagnostics: CompilerDiagnostic[]): void {
     lines.forEach((line, index) => {
       const trimmed = line.trim();
       const lineNumber = index + 1;
       if (!trimmed || trimmed.startsWith('#')) return;
 
+      const withoutComment = trimmed.split('#')[0].trim();
+      if (!withoutComment) return;
+
+      // Check Python imports
+      if (withoutComment.startsWith('import ') || withoutComment.startsWith('from ')) {
+        const standardPythonModules = new Set([
+          'sys', 'math', 'collections', 'itertools', 'heapq', 'bisect', 'json', 're', 'random',
+          'datetime', 'time', 'copy', 'functools', 'typing', 'array', 'string', 'queue', 'operator',
+          'io', 'os', 'pathlib', 'abc', 'enum', 'glob', 'shutil', 'statistics', 'bisect', 'hashlib'
+        ]);
+
+        let importedModules: string[] = [];
+        if (withoutComment.startsWith('import ')) {
+          const parts = withoutComment.slice(7).split(',');
+          parts.forEach(p => {
+            const mod = p.trim().split(/\s+/)[0].split('.')[0];
+            if (mod) importedModules.push(mod);
+          });
+        } else if (withoutComment.startsWith('from ')) {
+          const parts = withoutComment.slice(5).trim().split(/\s+/);
+          const mod = parts[0].split('.')[0];
+          if (mod) importedModules.push(mod);
+        }
+
+        importedModules.forEach(mod => {
+          if (!standardPythonModules.has(mod)) {
+            diagnostics.push({
+              line: lineNumber,
+              column: line.indexOf(mod) + 1,
+              message: `Warning: Module '${mod}' may not be available in the sandbox.`,
+              raw: line,
+            });
+          }
+        });
+      }
+
       if (
-        /=\s*.+:\s*$/.test(trimmed) &&
-        !/^(if|elif|while|for|def|class|try|except|finally|with)\b/.test(trimmed)
+        /=\s*.+:\s*$/.test(withoutComment) &&
+        !/^(if|elif|while|for|def|class|try|except|finally|with)\b/.test(withoutComment)
       ) {
         diagnostics.push({
           line: lineNumber,
@@ -1358,8 +1865,8 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       }
 
       if (
-        /^(if|elif|else|for|while|def|class|try|except|finally|with)\b/.test(trimmed) &&
-        !trimmed.endsWith(':')
+        /^(if|elif|else|for|while|def|class|try|except|finally|with)\b/.test(withoutComment) &&
+        !withoutComment.endsWith(':')
       ) {
         diagnostics.push({
           line: lineNumber,
@@ -1369,7 +1876,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         });
       }
 
-      if (trimmed.endsWith(':')) {
+      if (withoutComment.endsWith(':')) {
         let nextIndex = index + 1;
         while (nextIndex < lines.length) {
           const nextTrimmed = lines[nextIndex].trim();
@@ -1394,24 +1901,24 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       }
 
       // Check for incomplete expression ending in operator
-      if (/[+\-*/=<>]$/.test(trimmed) && !trimmed.endsWith('\\')) {
+      if (/[+\-*/=<>]$/.test(withoutComment) && !withoutComment.endsWith('\\')) {
         diagnostics.push({
           line: lineNumber,
           column: line.length,
-          message: `SyntaxError: incomplete expression ending with operator '${trimmed.slice(-1)}'.`,
+          message: `SyntaxError: incomplete expression ending with operator '${withoutComment.slice(-1)}'.`,
           raw: line,
         });
       }
 
       // Check for standalone single undefined word/variable typos (e.g. uniqu)
       if (
-        /^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed) &&
-        !/^(pass|break|continue|return|True|False|None)$/.test(trimmed)
+        /^[A-Za-z_][A-Za-z0-9_]*$/.test(withoutComment) &&
+        !/^(pass|break|continue|return|True|False|None)$/.test(withoutComment)
       ) {
         diagnostics.push({
           line: lineNumber,
-          column: line.indexOf(trimmed) + 1,
-          message: `SyntaxError: incomplete statement or name '${trimmed}' is not defined.`,
+          column: line.indexOf(withoutComment) + 1,
+          message: `SyntaxError: incomplete statement or name '${withoutComment}' is not defined.`,
           raw: line,
         });
       }
@@ -1427,36 +1934,20 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           });
         }
       }
-
-      const stringDiagnostic = this.getUnclosedStringDiagnostic(line, lineNumber);
-      if (stringDiagnostic) diagnostics.push(stringDiagnostic);
-
-      this.addBracketDiagnostics(line, lineNumber, diagnostics, 'SyntaxError');
     });
   }
 
   private collectJavaDiagnostics(lines: string[], diagnostics: CompilerDiagnostic[]): void {
-    let braceBalance = 0;
     const code = lines.join('\n');
     const hasScannerImport = /import\s+java\.util\.(Scanner|\*)\s*;/.test(code);
     const usesScanner = /\bScanner\b/.test(code);
-    const hasMainClass = /public\s+class\s+Main\b/.test(code);
-    const mainLine = Math.max(1, lines.findIndex((line) => line.includes('class Main')) + 1 || 1);
+    const hasClass = /\bclass\s+\w+/.test(code);
+    const mainLine = Math.max(1, lines.findIndex((line) => line.includes('class ')) + 1 || 1);
     const hasMainMethod = /public\s+static\s+void\s+main\s*\(\s*String\s*\[\]\s+\w+\s*\)/.test(
       code,
     );
 
-    if (code.trim() && !hasMainClass) {
-      diagnostics.push({
-        line: 1,
-        column: 1,
-        message:
-          'Line 1: Java compile error: Online compiler expects `public class Main` in Main.java.',
-        raw: lines[0] || '',
-      });
-    }
-
-    if (code.trim() && !hasMainMethod) {
+    if (hasClass && !hasMainMethod) {
       diagnostics.push({
         line: mainLine,
         column: 1,
@@ -1483,6 +1974,25 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       if (!realTrimmed || realTrimmed.startsWith('//') || realTrimmed.startsWith('*')) return;
 
       const statementOnly = trimmed.split('//')[0].trim();
+      
+      // Check Java imports
+      if (statementOnly.startsWith('import ')) {
+        const allowedJavaPackages = [
+          'java.util', 'java.io', 'java.math', 'java.lang', 'java.text', 'java.time'
+        ];
+        const importPath = statementOnly.slice(7).replace(';', '').trim();
+        const rootPkg = importPath.split('.').slice(0, 2).join('.');
+        
+        if (!allowedJavaPackages.includes(rootPkg) && !importPath.startsWith('static ')) {
+          diagnostics.push({
+            line: lineNumber,
+            column: line.indexOf(importPath) + 1,
+            message: `Warning: Package '${importPath}' may not be available or permitted in the sandbox.`,
+            raw: line,
+          });
+        }
+      }
+
       if (/^(import|package)\b/.test(statementOnly) && !statementOnly.endsWith(';')) {
         diagnostics.push({
           line: lineNumber,
@@ -1534,31 +2044,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           raw: line,
         });
       }
-
-      braceBalance += (withoutString.match(/{/g) || []).length;
-      braceBalance -= (withoutString.match(/}/g) || []).length;
-
-      if (braceBalance < 0) {
-        diagnostics.push({
-          line: lineNumber,
-          column: line.indexOf('}') + 1,
-          message: `Line ${lineNumber}: Java compile error: unmatched closing brace \`}\`.`,
-          raw: line,
-        });
-        braceBalance = 0;
-      }
-
-      this.addBracketDiagnostics(line, lineNumber, diagnostics, 'Java compile error');
     });
-
-    if (braceBalance > 0) {
-      diagnostics.push({
-        line: lines.length,
-        column: Math.max(1, lines[lines.length - 1]?.length || 1),
-        message: `Line ${lines.length}: Java compile error: missing closing brace \`}\`.`,
-        raw: lines[lines.length - 1] || '',
-      });
-    }
   }
 
   private getUnclosedStringDiagnostic(line: string, lineNumber: number): CompilerDiagnostic | null {
@@ -1601,61 +2087,11 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     };
   }
 
-  private addBracketDiagnostics(
-    line: string,
-    lineNumber: number,
-    diagnostics: CompilerDiagnostic[],
-    prefix: string,
-  ): void {
-    const withoutString = this.stripStrings(line);
-    const openParen = (withoutString.match(/\(/g) || []).length;
-    const closeParen = (withoutString.match(/\)/g) || []).length;
-    const openSquare = (withoutString.match(/\[/g) || []).length;
-    const closeSquare = (withoutString.match(/\]/g) || []).length;
-
-    if (openParen > closeParen) {
-      diagnostics.push({
-        line: lineNumber,
-        column: line.length + 1,
-        message: `${prefix}: missing closing ")".`,
-        raw: line,
-      });
-    }
-
-    if (closeParen > openParen) {
-      diagnostics.push({
-        line: lineNumber,
-        column: line.indexOf(')') + 1,
-        message: `${prefix}: unmatched ")".`,
-        raw: line,
-      });
-    }
-
-    if (openSquare > closeSquare) {
-      diagnostics.push({
-        line: lineNumber,
-        column: line.length + 1,
-        message: `${prefix}: missing closing "]".`,
-        raw: line,
-      });
-    }
-
-    if (closeSquare > openSquare) {
-      diagnostics.push({
-        line: lineNumber,
-        column: line.indexOf(']') + 1,
-        message: `${prefix}: unmatched "]".`,
-        raw: line,
-      });
-    }
-  }
-
   private stripStrings(line: string): string {
     return line.replace(/"([^"\\]|\\.)*"/g, '""').replace(/'([^'\\]|\\.)*'/g, "''");
   }
 
   private collectGenericDiagnostics(lines: string[], diagnostics: CompilerDiagnostic[], language: string): void {
-    let braceBalance = 0;
     const needsSemicolon = ['C', 'CPP', 'CSHARP', 'PHP', 'RUST'].includes(language);
 
     lines.forEach((line, index) => {
@@ -1668,9 +2104,6 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       // Unclosed string check
       const stringDiag = this.getUnclosedStringDiagnostic(line, lineNumber);
       if (stringDiag) diagnostics.push(stringDiag);
-
-      // Bracket matching check
-      this.addBracketDiagnostics(line, lineNumber, diagnostics, `${language} syntax error`);
 
       // Semicolon check
       const statementOnly = trimmed.split('//')[0].trim();
@@ -1714,26 +2147,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           });
         }
       }
-
-      braceBalance += (withoutString.match(/{/g) || []).length;
-      braceBalance -= (withoutString.match(/}/g) || []).length;
     });
-
-    if (braceBalance > 0) {
-      diagnostics.push({
-        line: lines.length,
-        column: Math.max(1, lines[lines.length - 1]?.length || 1),
-        message: `Syntax Error: missing closing brace \`}\`.`,
-        raw: lines[lines.length - 1] || '',
-      });
-    } else if (braceBalance < 0) {
-      diagnostics.push({
-        line: lines.length,
-        column: Math.max(1, lines[lines.length - 1]?.length || 1),
-        message: `Syntax Error: unmatched closing brace \`}\`.`,
-        raw: lines[lines.length - 1] || '',
-      });
-    }
   }
 
   private extractCompilerDiagnostics(error?: string): CompilerDiagnostic[] {
@@ -1868,6 +2282,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   }
 
   saveDraftLocally(): void {
+    if (!this.isLoggedIn) return;
     if (!this.challengeId || !this.sourceCode) return;
 
     localStorage.setItem(this.draftKey, this.sourceCode);
@@ -1879,6 +2294,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   }
 
   restoreDraftLocally(): boolean {
+    if (!this.isLoggedIn) return false;
     const saved = localStorage.getItem(this.draftKey);
 
     if (!saved) return false;
@@ -1891,7 +2307,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   clearCode(): void {
     this.sourceCode = '';
     this.challengeResult = null;
+    this.customRunResult = null;
     this.editorError = '';
+    this.serverCompileErrors = [];
     this.hasUnsavedChanges = true;
     localStorage.removeItem(this.draftKey);
     this.editorValidationErrors = this.collectEditorValidationErrors();
@@ -1901,7 +2319,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.sourceCode = this.getStarterCode(this.language);
     this.lastStarterCode = this.sourceCode;
     this.challengeResult = null;
+    this.customRunResult = null;
     this.editorError = '';
+    this.serverCompileErrors = [];
     this.hasUnsavedChanges = false;
     localStorage.removeItem(this.draftKey);
     this.editorValidationErrors = [];
@@ -2226,22 +2646,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       });
     }
 
-    const lang = this.normalizeLanguage(language);
-    const patterns = this.blockedCodePatterns[lang] || [];
-    for (const patternStr of patterns) {
-      const regex = new RegExp(patternStr, 'im');
-      const match = regex.exec(code);
-      if (match) {
-        const pos = this.getLineAndColumn(code, match.index);
-        diagnostics.push({
-          line: pos.line,
-          column: pos.column,
-          message: `Blocked unsafe code pattern: ${this.readable(patternStr)}`,
-          raw: match[0]
-        });
-      }
-    }
-
+    // Since we now use a secure isolated sandbox (Judge0), we do not need to block code patterns in the frontend.
     return diagnostics;
   }
 
@@ -2296,9 +2701,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
     // If it's a comment or common programming starting construct, it's not a shell command
     const codeStarters = [
-      'import ', 'from ', 'package ', 'using ', 'public ', 'class ', 'private ', 
+      'import ', 'from ', 'package ', 'using ', 'public ', 'class ', 'private ',
       'protected ', 'void ', 'int ', 'float ', 'double ', 'char ', 'bool ', 'boolean ',
-      'let ', 'const ', 'var ', 'function ', 'def ', 'namespace ', 
+      'let ', 'const ', 'var ', 'function ', 'def ', 'namespace ',
       '#include', 'include ', 'struct ', 'enum ', '//', '/*', '*', '<?php', '<?',
       'const', 'let', 'var', 'def', 'import', 'from'
     ];
@@ -2362,7 +2767,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     return this.validateSourceCode();
   }
 
-  runChallenge(): void {
+  runCustomChallenge(): void {
     if (!this.canUseWorkspace || !this.workspaceUnlocked) {
       this.requestWorkspaceAccess(
         'Please fill the registration form before running this challenge',
@@ -2370,6 +2775,68 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.serverCompileErrors = [];
+    this.validateCode();
+
+    if (this.localDiagnostics.length) {
+      this.editorError = this.localDiagnostics.map((item) => item.message).join('\n');
+      this.customRunResult = {
+        status: 'FAIL',
+        errorMessage: this.editorError,
+      };
+      this.showToast('Fix highlighted syntax errors before running');
+      return;
+    }
+
+    if (this.editorValidationErrors.length) {
+      this.editorError = '';
+      this.showToast('Fix validation errors before running');
+      return;
+    }
+
+    this.consoleExpanded = true;
+    this.submitting = true;
+    this.customRunResult = null;
+
+    this.publicPracticeService
+      .runChallengeCustom(this.challengeId, {
+        accessToken: this.currentGrant?.accessToken,
+        language: this.language,
+        sourceCode: this.sourceCode,
+        customInput: this.customInputText,
+      })
+      .subscribe({
+        next: (res: any) => {
+          this.customRunResult = res?.data || res;
+          this.submitting = false;
+          this.hasUnsavedChanges = false;
+        },
+        error: (err: any) => {
+          this.submitting = false;
+          const msg = err?.error?.message || 'Failed to run custom input';
+          this.customRunResult = {
+            status: 'FAIL',
+            errorMessage: msg,
+          };
+          this.showToast(msg);
+        },
+      });
+  }
+
+  runChallenge(): void {
+    if (this.activeConsoleTab === 'custom') {
+      this.runCustomChallenge();
+      return;
+    }
+
+    if (!this.canUseWorkspace || !this.workspaceUnlocked) {
+      this.requestWorkspaceAccess(
+        'Please fill the registration form before running this challenge',
+      );
+      return;
+    }
+
+    this.serverCompileErrors = [];
     this.validateCode();
 
     if (this.localDiagnostics.length) {
@@ -2406,6 +2873,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           const data = res?.data || res;
           const compilerError = this.compilerErrorFromResult(data);
 
+          this.serverCompileErrors = this.extractCompilerDiagnostics(compilerError);
           this.challengeResult = compilerError ? { ...data, compileError: compilerError } : data;
           this.editorError = compilerError;
           this.submitting = false;
@@ -2433,6 +2901,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           const message = err?.error?.message || err?.error?.error || 'Challenge run failed';
 
           this.editorError = message;
+          this.serverCompileErrors = this.extractCompilerDiagnostics(message);
           this.challengeResult = {
             status: 'FAIL',
             percentage: 0,
@@ -2897,8 +3366,10 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
 def solve():
     data = sys.stdin.read().strip().split()
+    # --- START OF USER LOGIC ---
     # Write your logic here
-    print(" ".join(data))
+    pass
+    # --- END OF USER LOGIC ---
 
 if __name__ == "__main__":
     solve()`,
@@ -2916,8 +3387,9 @@ public class Main {
             input.append(line).append("\\n");
         }
 
+        // --- START OF USER LOGIC ---
         // Write your logic here
-        System.out.print(input.toString().trim());
+        // --- END OF USER LOGIC ---
     }
 }`,
 
@@ -2928,8 +3400,9 @@ int main(void) {
     char input[10000];
 
     while (fgets(input, sizeof(input), stdin) != NULL) {
+        // --- START OF USER LOGIC ---
         // Write your logic here
-        printf("%s", input);
+        // --- END OF USER LOGIC ---
     }
 
     return 0;
@@ -2949,11 +3422,9 @@ int main() {
         tokens.push_back(value);
     }
 
+    // --- START OF USER LOGIC ---
     // Write your logic here
-    for (int i = 0; i < (int)tokens.size(); i++) {
-        if (i) cout << ' ';
-        cout << tokens[i];
-    }
+    // --- END OF USER LOGIC ---
 
     return 0;
 }`,
@@ -2963,8 +3434,9 @@ int main() {
 const input = fs.readFileSync(0, "utf8").trim();
 const tokens = input.length ? input.split(/\\s+/) : [];
 
+// --- START OF USER LOGIC ---
 // Write your logic here
-console.log(tokens.join(" "));`,
+// --- END OF USER LOGIC ---`,
 
       GO: `package main
 
@@ -2984,13 +3456,9 @@ func main() {
         values = append(values, scanner.Text())
     }
 
+    // --- START OF USER LOGIC ---
     // Write your logic here
-    for i, value := range values {
-        if i > 0 {
-            fmt.Println()
-        }
-        fmt.Print(value)
-    }
+    // --- END OF USER LOGIC ---
 }`,
 
       RUST: `use std::io::{self, Read};
@@ -3001,8 +3469,9 @@ fn main() {
 
     let tokens: Vec<&str> = input.split_whitespace().collect();
 
+    // --- START OF USER LOGIC ---
     // Write your logic here
-    println!("{}", tokens.join(" "));
+    // --- END OF USER LOGIC ---
 }`,
 
       CSHARP: `using System;
@@ -3013,8 +3482,9 @@ public class Program {
         string input = Console.In.ReadToEnd();
         string[] tokens = input.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
 
+        // --- START OF USER LOGIC ---
         // Write your logic here
-        Console.WriteLine(string.Join(" ", tokens));
+        // --- END OF USER LOGIC ---
     }
 }`,
 
@@ -3022,15 +3492,17 @@ public class Program {
 $input = trim(stream_get_contents(STDIN));
 $tokens = $input === "" ? [] : preg_split('/\\s+/', $input);
 
+// --- START OF USER LOGIC ---
 // Write your logic here
-echo implode(" ", $tokens);
+// --- END OF USER LOGIC ---
 ?>`,
 
       RUBY: `input = STDIN.read.strip
 tokens = input.empty? ? [] : input.split
 
+# --- START OF USER LOGIC ---
 # Write your logic here
-puts tokens.join(" ")`,
+# --- END OF USER LOGIC ---`,
     };
 
     return starters[language] || starters['PYTHON'];
@@ -3255,7 +3727,7 @@ puts tokens.join(" ")`,
     this.leftTab = tab;
   }
 
-  switchConsoleTab(tab: 'samples' | 'results'): void {
+  switchConsoleTab(tab: 'samples' | 'results' | 'custom'): void {
     this.activeConsoleTab = tab;
   }
 

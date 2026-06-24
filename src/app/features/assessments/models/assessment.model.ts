@@ -33,6 +33,7 @@ export interface IAssessment {
   publicAttemptLimit?: number;
   publishedAt?: Date;
   publishedByUserId?: number;
+  askedYear?: number;
 }
 
 export interface IStudentAnswer {

@@ -33,6 +33,7 @@ export class CreateAssessmentComponent implements OnInit {
     totalMarks: 100,
     durationMinutes: 60,
     questions: [],
+    askedYear: new Date().getFullYear(),
   };
   toast = '';
   templateCopied = false;
@@ -69,7 +70,7 @@ export class CreateAssessmentComponent implements OnInit {
         this.trainerBatches = res?.data || [];
         this.batchLoading = false;
 
-        if (this.trainerBatches.length && !this.assessment.batchId) {
+        if (this.trainerBatches.length && !this.editingAssessmentId && (this.assessment.batchId === null || this.assessment.batchId === undefined || this.assessment.batchId === 0)) {
           this.assessment.batchId = Number(this.trainerBatches[0].id);
         }
       },
@@ -88,7 +89,7 @@ export class CreateAssessmentComponent implements OnInit {
         const data = res?.data || res;
 
         this.assessment = {
-          batchId: Number(data.batchId || 0),
+          batchId: Number(data.batchId !== null && data.batchId !== undefined ? data.batchId : 0),
           title: data.title || '',
           description: data.description || '',
           companyName: data.companyName || 'General',
@@ -96,6 +97,7 @@ export class CreateAssessmentComponent implements OnInit {
           totalMarks: Number(data.totalMarks || 100),
           durationMinutes: Number(data.durationMinutes || 60),
           questions: data.questions || [],
+          askedYear: data.askedYear ? Number(data.askedYear) : undefined,
         };
 
         this.mode = 'manual';
@@ -144,8 +146,8 @@ export class CreateAssessmentComponent implements OnInit {
       this.loading = false;
       return;
     }
-    if (!this.assessment.batchId) {
-      this.errorMessages = ['Please select one of your assigned batches'];
+    if (this.assessment.batchId === null || this.assessment.batchId === undefined) {
+      this.errorMessages = ['Please select a target batch or select Public/General Practice'];
       this.loading = false;
       return;
     }
@@ -183,7 +185,7 @@ export class CreateAssessmentComponent implements OnInit {
     }
     const parsed = JSON.parse(this.bulkJsonInput);
     this.bulkAssessment = {
-      batchId: this.assessment.batchId || parsed.batchId,
+      batchId: (this.assessment.batchId !== null && this.assessment.batchId !== undefined) ? this.assessment.batchId : (parsed.batchId || 0),
       title: parsed.title,
       description: parsed.description || '',
       totalMarks: parsed.totalMarks || 100,
@@ -191,6 +193,7 @@ export class CreateAssessmentComponent implements OnInit {
       questions: AssessmentUtils.parseQuestions(parsed.questions),
       companyName: parsed.companyName || 'General',
       skill: parsed.skill || 'Placement Readiness',
+      askedYear: parsed.askedYear ? Number(parsed.askedYear) : undefined,
     };
     this.showPreview = true;
   }
@@ -224,6 +227,7 @@ export class CreateAssessmentComponent implements OnInit {
       totalMarks: 100,
       durationMinutes: 60,
       questions: [],
+      askedYear: new Date().getFullYear(),
     };
   }
   resetBulkForm() {
@@ -273,7 +277,8 @@ export class CreateAssessmentComponent implements OnInit {
 
   get canSubmitManual(): boolean {
     return (
-      !!this.assessment.batchId &&
+      this.assessment.batchId !== null &&
+      this.assessment.batchId !== undefined &&
       !!this.assessment.title.trim() &&
       this.assessment.questions.length > 0 &&
       this.assessment.questions.every(

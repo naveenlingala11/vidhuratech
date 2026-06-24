@@ -421,7 +421,7 @@
 
   <!-- ═══════════════════ CHALLENGE MODE ═══════════════════ -->
   <ng-container *ngIf="!loading && mode === 'CHALLENGE' && challenge && workspaceUnlocked">
-    <section class="challenge-workspace">
+    <section class="challenge-workspace" [class.full-screen]="isFullScreen">
       <!-- Challenge Command Bar -->
       <header class="challenge-command-bar">
         <button type="button" class="back-btn" (click)="backToLibrary()">
@@ -768,7 +768,7 @@
                 <strong>{{ language }}</strong>
               </div>
 
-              <div class="editor-topbar-right">
+              <div class="editor-topbar-right" *ngIf="isLoggedIn">
                 <b *ngIf="hasUnsavedChanges" class="draft-saving">Saving draft...</b>
                 <b class="draft-saved" *ngIf="!hasUnsavedChanges && draftSavedAt">
                   <i class="fa-solid fa-circle-check"></i> Saved {{ draftSavedAt }}
@@ -777,24 +777,39 @@
             </div>
 
             <div class="editor-toolbar">
-              <select [(ngModel)]="language" (ngModelChange)="onLanguageChange()">
-                <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
-              </select>
+              <div class="editor-toolbar-controls">
+                <select [(ngModel)]="language" (ngModelChange)="onLanguageChange()" title="Select Language">
+                  <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+                </select>
+
+                <div class="font-adjusters">
+                  <button type="button" class="font-btn" (click)="decreaseFontSize()" title="Decrease Font Size">A-</button>
+                  <span class="font-size-indicator">{{ editorOptions.fontSize }}px</span>
+                  <button type="button" class="font-btn" (click)="increaseFontSize()" title="Increase Font Size">A+</button>
+                </div>
+              </div>
 
               <div class="editor-tool-actions">
-                <button type="button" class="tool-btn danger" (click)="clearCode()">
+                <button type="button" class="tool-btn" (click)="downloadCode()" title="Download Solution Code">
+                  <i class="fa-solid fa-download"></i> Download
+                </button>
+                <button type="button" class="tool-btn" (click)="toggleFullScreen()" title="Toggle distraction-free full screen">
+                  <i class="fa-solid" [ngClass]="isFullScreen ? 'fa-compress' : 'fa-expand'"></i>
+                  {{ isFullScreen ? 'Exit Full' : 'Full Screen' }}
+                </button>
+                <button type="button" class="tool-btn danger" (click)="clearCode()" title="Clear editor content">
                   <i class="fa-solid fa-trash-can"></i> Clear
                 </button>
-                <button type="button" class="tool-btn" (click)="formatCode()">
+                <button type="button" class="tool-btn" (click)="formatCode()" title="Auto format source code">
                   <i class="fa-solid fa-align-left"></i> Format
                 </button>
-                <button type="button" class="tool-btn" (click)="resetCode()">
+                <button type="button" class="tool-btn" (click)="resetCode()" title="Reset to starter code template">
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
                 <button type="button" class="run-btn" [disabled]="submitting || !!editorSecurityWarning"
                   (click)="runChallenge()">
                   <i class="fa-solid fa-play"></i>
-                  {{ submitting ? 'Running...' : 'Run Code' }}
+                  {{ submitting ? 'Running...' : (activeConsoleTab === 'custom' ? 'Run Custom' : 'Run Code') }}
                 </button>
               </div>
             </div>
@@ -807,29 +822,38 @@
                   {{
                   editorSecurityWarning
                   ? editorSecurityWarning
-                  : 'Secure editor: file, network, process, reflection, and unsafe APIs are blocked.'
+                  : 'Secure sandbox: code runs in an isolated container environment.'
                   }}
                 </span>
+              </div>
+              <div class="login-save-prompt" *ngIf="!isLoggedIn">
+                <i class="fa-solid fa-circle-exclamation text-danger"></i>
+                <a routerLink="/login" class="login-link-red">Login to save code</a>
               </div>
               <small>{{ sourceCharCount }}/{{ maxSourceChars }} chars • {{ sourceLineCount }}/{{ maxSourceLines }}
                 lines</small>
             </div>
 
-            <!-- Validation Panel -->
-            <div class="validation-panel" *ngIf="editorValidationErrors.length">
-              <div class="validation-head">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <strong>Fix before running</strong>
+            <!-- Premium Live Diagnostics Panel -->
+            <div class="live-diagnostics-panel" *ngIf="compilerDiagnostics.length">
+              <div class="diagnostics-header">
+                <div class="header-title">
+                  <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                  <span>Problems & Diagnostics ({{ compilerDiagnostics.length }})</span>
+                </div>
+                <button type="button" class="clear-diagnostics-btn" *ngIf="serverCompileErrors.length" (click)="clearServerDiagnostics()">
+                  Clear Compile Errors
+                </button>
               </div>
-              <ul>
-                <li *ngFor="let error of editorValidationErrors">{{ error }}</li>
-              </ul>
-            </div>
-
-            <!-- Compiler Error -->
-            <div class="compiler-error-bar" *ngIf="editorError">
-              <i class="fa-solid fa-bug"></i>
-              {{ editorError }}
+              <div class="diagnostics-list">
+                <div class="diagnostic-item" *ngFor="let error of compilerDiagnostics" (click)="goToDiagnostic(error)" [class.clickable]="error.line">
+                  <div class="diag-meta">
+                    <span class="loc-badge" *ngIf="error.line">Line {{ error.line }}<span *ngIf="error.column">, Col {{ error.column }}</span></span>
+                    <span class="loc-badge" *ngIf="!error.line">General</span>
+                  </div>
+                  <pre class="diag-text">{{ error.message }}</pre>
+                </div>
+              </div>
             </div>
 
             <!-- Running Overlay with Wave Animation and Blur -->
@@ -866,6 +890,12 @@
                 <button type="button" [class.active]="activeConsoleTab === 'samples'"
                   (click)="switchConsoleTab('samples')">
                   <i class="fa-solid fa-flask"></i> Samples
+                </button>
+                <button type="button" [class.active]="activeConsoleTab === 'custom'"
+                  (click)="switchConsoleTab('custom')">
+                  <i class="fa-solid fa-keyboard"></i> Custom Input
+                  <span class="result-dot" *ngIf="customRunResult"
+                    [class.pass]="customRunResult.status === 'SUCCESS'"></span>
                 </button>
                 <button type="button" [class.active]="activeConsoleTab === 'results'"
                   (click)="switchConsoleTab('results')">
@@ -905,6 +935,58 @@
                     No visible samples. Hidden tests will run after submit.
                   </div>
                 </ng-template>
+              </div>
+
+              <!-- Custom Input Console -->
+              <div class="console-content" *ngIf="activeConsoleTab === 'custom'">
+                <div class="custom-input-grid">
+                  <div class="input-editor-wrapper">
+                    <label class="console-label">Write your custom input data here:</label>
+                    <textarea class="custom-input-textarea" [(ngModel)]="customInputText"
+                      placeholder="Type custom test case input..."></textarea>
+                  </div>
+                  
+                  <!-- Execution Results -->
+                  <div class="custom-result-wrapper">
+                    <div class="console-label">Execution Output:</div>
+                    
+                    <div class="custom-result-empty" *ngIf="!customRunResult && !submitting">
+                      <i class="fa-solid fa-terminal"></i>
+                      <span>Run your code to see the custom execution output.</span>
+                    </div>
+
+                    <div class="custom-result-loading" *ngIf="submitting">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <span>Executing custom test case...</span>
+                    </div>
+                    
+                    <div class="custom-result-card" *ngIf="customRunResult && !submitting">
+                      <div class="result-header" [class.success]="customRunResult.status === 'SUCCESS'" [class.fail]="customRunResult.status === 'FAIL'">
+                        <span class="status-badge">
+                          <i class="fa-solid" [ngClass]="customRunResult.status === 'SUCCESS' ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+                          {{ customRunResult.status === 'SUCCESS' ? 'SUCCESS' : 'FAIL' }}
+                        </span>
+                        <span class="runtime-badge" *ngIf="customRunResult.executionTimeMs">
+                          <i class="fa-regular fa-clock"></i> {{ customRunResult.executionTimeMs }} ms
+                        </span>
+                      </div>
+                      
+                      <div class="result-body">
+                        <div class="result-row" *ngIf="customRunResult.errorMessage">
+                          <label>Compiler / Execution Error</label>
+                          <pre class="error-output">{{ customRunResult.errorMessage }}</pre>
+                        </div>
+                        
+                        <div class="result-row" *ngIf="!customRunResult.errorMessage">
+                          <label>Standard Output (Stdout)</label>
+                          <pre class="stdout-output">{{ customRunResult.actualOutput || '(No output)' }}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Results Console -->
@@ -948,7 +1030,7 @@
                     [class.pass]="item.status === 'PASS'" [class.fail]="item.status !== 'PASS'">
                     <header>
                       <strong>Test {{ i + 1 }}</strong>
-                      <span>{{ item.status }}</span>
+                      <span>{{ item.status }}<span class="metrics-time" *ngIf="item.executionTimeMs != null"> • {{ item.executionTimeMs }}ms</span></span>
                     </header>
                     <div class="case-row">
                       <label>Input</label>
@@ -967,7 +1049,7 @@
                       [class.pass]="item.status === 'PASS'" [class.fail]="item.status !== 'PASS'">
                       <b>Test {{ i + 4 }}</b>
                       <span>{{ hiddenTestStatusIcon(item) }}</span>
-                      <strong>{{ item.status }}</strong>
+                      <strong>{{ item.status }}<span class="metrics-time-small" *ngIf="item.executionTimeMs != null"> ({{ item.executionTimeMs }}ms)</span></strong>
                     </article>
                   </div>
                 </div>
@@ -1002,6 +1084,41 @@
       (click)="requestWorkspaceAccess('Please register to start this coding challenge')">
       <i class="fa-solid fa-key"></i> Register to Open Lab
     </button>
+  </section>
+
+  <!-- ═══════════════════ SIMILAR SUGGESTIONS ═══════════════════ -->
+  <section class="similar-suggestions-section" *ngIf="similarSuggestions.length">
+    <div class="suggestions-container">
+      <div class="suggestions-header">
+        <i class="fa-solid fa-lightbulb icon-glow"></i>
+        <div>
+          <h2>Similar Practice Arenas</h2>
+          <p>Handpicked recommendations based on topic and target companies.</p>
+        </div>
+      </div>
+      
+      <div class="suggestions-grid">
+        <article class="suggestion-card" *ngFor="let sug of similarSuggestions" (click)="navigateToSuggestion(sug)">
+          <div class="sug-accent" [attr.data-level]="getChallengeDifficulty(sug.totalMarks)"></div>
+          <div class="sug-body">
+            <div class="sug-meta">
+              <span class="sug-company">{{ sug.company }}</span>
+              <span class="sug-difficulty" [attr.data-level]="getChallengeDifficulty(sug.totalMarks)">
+                {{ getChallengeDifficulty(sug.totalMarks) }}
+              </span>
+            </div>
+            <h3>{{ sug.title }}</h3>
+            <div class="sug-info">
+              <span><i class="fa-regular fa-clock"></i> {{ sug.durationMinutes || 0 }}m</span>
+              <span><i class="fa-solid fa-star"></i> {{ sug.totalMarks || 0 }} pts</span>
+            </div>
+          </div>
+          <button class="sug-action-btn">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </article>
+      </div>
+    </div>
   </section>
 </section>
 

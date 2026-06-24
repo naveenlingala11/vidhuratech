@@ -163,7 +163,7 @@ export class TrainerMockInterviewsComponent implements OnInit {
   }
 
   joinInAppRoom(item: any): void {
-    const roomName = `VidhuraTech_Mock_Session_${item.id || Math.floor(Math.random() * 10000)}`;
+    const roomName = `VT_session_${item.id || Math.floor(Math.random() * 10000)}`;
     this.router.navigate(['/meeting', roomName]);
   }
 }

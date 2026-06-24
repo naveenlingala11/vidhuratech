@@ -273,7 +273,10 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         error: (err) => {
           console.error('Failed to get-or-create public session registry:', err);
-          const match = this.roomName.match(/^VidhuraTech_Mock_Session_(\d+)$/);
+          let match = this.roomName.match(/^VT_session_(\d+)$/);
+          if (!match) {
+            match = this.roomName.match(/^VidhuraTech_Mock_Session_(\d+)$/);
+          }
           if (match) {
             this.mockSessionId = parseInt(match[1], 10);
           }
