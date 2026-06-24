@@ -32,12 +32,26 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
   seederCount = 10000;
   seederClean = true;
   seedingLoading = false;
+  purgingLoading = false;
+  adzunaLoading = false;
   seederResult: any = null;
   seederError = '';
   seederElapsedSeconds = 0;
   seederCountProgress = 0;
   private timerId: any = null;
   private pollId: any = null;
+
+  // Adzuna Scraper State
+  showAdzunaModal = false;
+  adzunaSearchTerm = 'Software Developer';
+  adzunaPages = 3;
+  adzunaResult: any = null;
+  adzunaError = '';
+  adzunaElapsedSeconds = 0;
+  adzunaConfigured = false;
+  adzunaAppId = '';
+  adzunaLogs: string[] = [];
+  private adzunaTimerId: any = null;
 
   categories = ['All', 'Users', 'LMS', 'Operations', 'Careers', 'Finance'];
 
@@ -86,6 +100,7 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
     // Careers & Placements
     { title: 'Jobs Manager', route: '/dashboard/admin/jobs', icon: 'bi-briefcase', category: 'Careers', description: 'Add or modify active recruitment roles, requirements, and salaries.' },
     { title: 'Companies Directory', route: '/dashboard/admin/companies', icon: 'bi-building', category: 'Careers', description: 'Manage corporate hiring partners and placement coordinators.' },
+    { title: 'Adzuna Job Scraper', route: 'adzuna', icon: 'bi-cloud-download-fill', category: 'Careers', description: 'Scrape live vacancies from 10,000+ Indian companies using Adzuna API.' },
     { title: 'Certificates Verifier', route: '/dashboard/admin/certificates', icon: 'bi-patch-check', category: 'Careers', description: 'Issue, view, and verify unique credentials for academy graduates.' },
 
     // Finance & Auditing
@@ -203,6 +218,7 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.cleanupTimers();
+    this.cleanupAdzunaTimer();
     if (this.clockTimer) {
       clearInterval(this.clockTimer);
     }
@@ -288,6 +304,152 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
     }
   }
 
+  triggerPurgeSeededJobs() {
+    if (confirm('Are you sure you want to delete all seeded dummy jobs? This will not affect real scraped jobs.')) {
+      this.addLog(`Triggered bulk purge command for seeded dummy jobs.`, 'warning');
+      this.purgingLoading = true;
+      this.seedingLoading = true; // Block UI inputs same as seeding
+      this.seederResult = null;
+      this.seederError = '';
+      this.cd.detectChanges();
+
+      this.http.delete<any>(`${environment.apiUrl}/jobs/seed/clean`).subscribe({
+        next: (res) => {
+          this.purgingLoading = false;
+          this.seedingLoading = false;
+          this.seederResult = {
+            status: 'SUCCESS',
+            isPurge: true,
+            deletedJobsCount: res.deletedJobsCount,
+            deletedSkillsAssociationsCount: res.deletedSkillsAssociationsCount,
+            message: res.message
+          };
+          this.addLog(`Purge complete! Deleted ${res.deletedJobsCount} dummy jobs and ${res.deletedSkillsAssociationsCount} skill connections.`, 'success');
+          this.cd.detectChanges();
+        },
+        error: (err) => {
+          this.purgingLoading = false;
+          this.seedingLoading = false;
+          this.seederError = err.error?.error || err.error?.message || err.message || 'Unknown server error occurred during purge.';
+          this.addLog(`Purge failed: ${this.seederError}`, 'error');
+          this.cd.detectChanges();
+        }
+      });
+    }
+  }
+
+  openAdzunaModal() {
+    this.showAdzunaModal = true;
+    this.adzunaResult = null;
+    this.adzunaError = '';
+    this.adzunaElapsedSeconds = 0;
+    this.adzunaLogs = [];
+    this.checkAdzunaStatus();
+    this.cd.detectChanges();
+  }
+
+  closeAdzunaModal() {
+    if (!this.adzunaLoading) {
+      this.showAdzunaModal = false;
+      this.cleanupAdzunaTimer();
+    }
+  }
+
+  checkAdzunaStatus() {
+    this.http.get<any>(`${environment.apiUrl}/jobs/scrape/adzuna/status`).subscribe({
+      next: (res) => {
+        if (res) {
+          this.adzunaConfigured = res.configured;
+          this.adzunaAppId = res.appId;
+          this.cd.detectChanges();
+        }
+      },
+      error: () => {
+        this.adzunaConfigured = false;
+        this.adzunaAppId = '';
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  triggerAdzunaScraper() {
+    if (!this.adzunaSearchTerm.trim()) {
+      this.adzunaError = 'Search term cannot be empty.';
+      return;
+    }
+    if (this.adzunaPages < 1 || this.adzunaPages > 10) {
+      this.adzunaError = 'Pages must be between 1 and 10.';
+      return;
+    }
+
+    this.adzunaLoading = true;
+    this.adzunaResult = null;
+    this.adzunaError = '';
+    this.adzunaElapsedSeconds = 0;
+    this.adzunaLogs = [
+      `[${new Date().toLocaleTimeString()}] 🚀 Initiating scraper request...`,
+      `[${new Date().toLocaleTimeString()}] 🔍 Query: "${this.adzunaSearchTerm}"`,
+      `[${new Date().toLocaleTimeString()}] 📄 Max Pages: ${this.adzunaPages}`,
+      `[${new Date().toLocaleTimeString()}] ⏳ Waiting for backend response...`
+    ];
+    this.addLog(`Triggered Adzuna API job crawler: query="${this.adzunaSearchTerm}", pages=${this.adzunaPages}`, 'warning');
+    this.cd.detectChanges();
+
+    // Start elapsed timer
+    this.adzunaTimerId = setInterval(() => {
+      this.adzunaElapsedSeconds++;
+      this.cd.detectChanges();
+    }, 1000);
+
+    this.http.get<any>(`${environment.apiUrl}/jobs/scrape/adzuna`, {
+      params: {
+        what: this.adzunaSearchTerm,
+        pages: this.adzunaPages.toString()
+      }
+    }).subscribe({
+      next: (res) => {
+        this.adzunaLoading = false;
+        this.cleanupAdzunaTimer();
+        
+        if (res && res.success === false) {
+          this.adzunaError = res.message || 'Scrape failed.';
+          this.adzunaLogs = res.logs || this.adzunaLogs;
+          this.adzunaLogs.push(`[${new Date().toLocaleTimeString()}] ❌ Scrape finished with error: ${this.adzunaError}`);
+          this.addLog(`Adzuna Scraper failed: ${this.adzunaError}`, 'error');
+        } else {
+          this.adzunaResult = res;
+          this.adzunaLogs = res.logs || this.adzunaLogs;
+          this.adzunaLogs.push(`[${new Date().toLocaleTimeString()}] 🏁 Scrape completed successfully. Saved ${res.jobsSavedCount || 0} jobs.`);
+          this.addLog(`Adzuna Scraper complete! Saved ${res.jobsSavedCount || 0} live openings.`, 'success');
+        }
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.adzunaLoading = false;
+        this.cleanupAdzunaTimer();
+        this.adzunaError = err.error?.message || err.message || 'Unknown server error occurred during scrape.';
+        this.adzunaLogs.push(`[${new Date().toLocaleTimeString()}] ❌ Network or server error: ${this.adzunaError}`);
+        this.addLog(`Adzuna Scraper failed: ${this.adzunaError}`, 'error');
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  cleanupAdzunaTimer() {
+    if (this.adzunaTimerId) {
+      clearInterval(this.adzunaTimerId);
+      this.adzunaTimerId = null;
+    }
+  }
+
+  resetAdzunaState() {
+    this.adzunaResult = null;
+    this.adzunaError = '';
+    this.adzunaElapsedSeconds = 0;
+    this.adzunaLogs = [];
+    this.cd.detectChanges();
+  }
+
   formatElapsedTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -297,6 +459,8 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
   navigate(route: string) {
     if (route === 'seeder') {
       this.openSeederModal();
+    } else if (route === 'adzuna') {
+      this.openAdzunaModal();
     } else {
       this.router.navigate([route]);
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -156,6 +156,13 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    if (!this.showPrejoinLobby && !this.meetingEnded) {
+      $event.returnValue = true;
+    }
+  }
 
   ngOnInit(): void {
     const rawUser = this.authService.getUser();
@@ -458,14 +465,21 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Always show the pre-join lobby first — Jitsi is NOT initialized until user clicks 'Join Meeting'
-    // For guests who haven't entered their name yet, show the guest name entry screen (handled in HTML)
     this.loading = false;
-    this.showPrejoinLobby = true;
-    this.cdr.detectChanges();
+    
+    // Check if user previously joined this meeting session to support auto-join on refresh
+    const hasJoinedBefore = typeof window !== 'undefined' && sessionStorage.getItem('vidhuratech_joined_session_' + this.roomName) === 'true';
+    
+    if (hasJoinedBefore && (!this.isGuest || this.guestNameEntered)) {
+      this.showPrejoinLobby = false;
+      this.joinFromLobby();
+    } else {
+      this.showPrejoinLobby = true;
+      this.cdr.detectChanges();
 
-    if (!this.isGuest) {
-      this.initLobbyDevices();
+      if (!this.isGuest) {
+        this.initLobbyDevices();
+      }
     }
   }
 
@@ -514,6 +528,10 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     // Sync initial meeting mute states
     this.isMicMuted = !this.prejoinMicEnabled;
     this.isCamMuted = !this.prejoinCamEnabled;
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('vidhuratech_joined_session_' + this.roomName, 'true');
+    }
 
     this.cdr.detectChanges();
     this.bootstrapJitsi();
@@ -926,6 +944,9 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   leaveMeeting(): void {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('vidhuratech_joined_session_' + this.roomName);
+    }
     this.stopTelemetrySyncTimer();
     // Securely back up chat logs and summary to server database if active interview
     if (this.mockSessionId && (this.isInterviewer || this.isCurrentUserHost)) {
@@ -1018,9 +1039,31 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.toastr.warning('Please select a star rating before submitting.');
       return;
     }
-    this.feedbackSubmitted = true;
-    this.toastr.success('Thank you for sharing your feedback and suggestions!');
-    this.cdr.detectChanges();
+
+    if (this.mockSessionId) {
+      const payload = {
+        feedbackRating: this.feedbackRating,
+        feedbackText: this.feedbackText || '',
+        feedbackUser: this.currentUser?.name || 'Guest User',
+        feedbackEmail: this.currentUser?.email || 'guest@vidhuratech.com'
+      };
+
+      this.studentWorkflowService.updatePublicSession(this.mockSessionId, payload).subscribe({
+        next: () => {
+          this.feedbackSubmitted = true;
+          this.toastr.success('Thank you for sharing your feedback and suggestions!');
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to submit feedback:', err);
+          this.toastr.error('Failed to submit feedback to server.');
+        }
+      });
+    } else {
+      this.feedbackSubmitted = true;
+      this.toastr.success('Thank you for sharing your feedback and suggestions!');
+      this.cdr.detectChanges();
+    }
   }
 
   submitEvaluation(): void {
@@ -1257,5 +1300,15 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
       next: () => console.log('[SecurityTelemetry] Real-time session telemetry updated.'),
       error: (err) => console.error('[SecurityTelemetry] Failed to update real-time telemetry:', err)
     });
+  }
+
+  rejoinMeeting(): void {
+    this.meetingEnded = false;
+    this.showPrejoinLobby = false;
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('vidhuratech_joined_session_' + this.roomName, 'true');
+    }
+    this.bootstrapJitsi();
+    this.cdr.detectChanges();
   }
 }

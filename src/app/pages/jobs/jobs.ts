@@ -639,6 +639,13 @@ export class Jobs implements OnInit {
     return days === 0 ? 'Today' : `${days} days ago`;
   }
 
+  isPostedToday(postedAt: string): boolean {
+    if (!postedAt) return false;
+    const diff = Date.now() - new Date(postedAt).getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    return days === 0;
+  }
+
   // ===== NEW PREMIUM HANDLERS =====
   changeViewMode(mode: 'grid' | 'list') {
     this.viewMode = mode;
