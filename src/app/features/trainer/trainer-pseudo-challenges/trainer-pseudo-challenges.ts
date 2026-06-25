@@ -112,7 +112,8 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   groupEditForm = {
     groupId: '',
     title: '',
-    companyName: ''
+    companyName: '',
+    challengeCount: 0
   };
 
   activeWorkspaceTab: WorkspaceTab = 'BUILDER';
@@ -781,6 +782,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
         this.attempts = [];
         this.previewLoading = false;
         this.showJsonImporter = false;
+        this.activeWorkspaceTab = 'BUILDER';
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
         this.showToast('Challenge loaded for editing');
@@ -828,6 +830,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     });
 
     this.editingChallengeId = null;
+    this.activeWorkspaceTab = 'BUILDER';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.showToast('Challenge copied into builder');
   }
@@ -843,6 +846,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
     this.jsonChallengeText = JSON.stringify(copied, null, 2);
     this.showJsonImporter = true;
+    this.activeWorkspaceTab = 'BUILDER';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.showToast('Group copied into JSON uploader');
   }
@@ -905,14 +909,15 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     this.groupEditForm = {
       groupId: group.id,
       title: group.title,
-      companyName: group.companyName
+      companyName: group.companyName,
+      challengeCount: group.challenges.length
     };
     this.showEditGroupModal = true;
   }
 
   closeEditGroupModal(): void {
     this.showEditGroupModal = false;
-    this.groupEditForm = { groupId: '', title: '', companyName: '' };
+    this.groupEditForm = { groupId: '', title: '', companyName: '', challengeCount: 0 };
   }
 
   saveGroupEdit(): void {

@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { SuperAdminService } from '../../features/pages/super-admin/service/super-admin';
 
 export interface AdminModule {
   title: string;
@@ -96,6 +97,7 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
     { title: 'Bin / Recycle Center', route: '/admin/bin', icon: 'bi-trash3', category: 'Operations', description: 'Restore deleted leads, users, or system components.' },
     { title: 'Questions Database', route: '/admin/questions', icon: 'bi-patch-question', category: 'Operations', description: 'Manage test bank for mock assessments and challenges.' },
     { title: 'Job Seeder Tool', route: 'seeder', icon: 'bi-database-fill-gear', category: 'Operations', description: 'Seed mock jobs database for testing. Configure count and database wipe options.' },
+    { title: 'AI Model Switcher', route: 'ai-config', icon: 'bi-robot', category: 'Operations', description: 'Dynamically configure active AI providers, switch model versions, and update API keys.' },
 
     // Careers & Placements
     { title: 'Jobs Manager', route: '/dashboard/admin/jobs', icon: 'bi-briefcase', category: 'Careers', description: 'Add or modify active recruitment roles, requirements, and salaries.' },
@@ -122,7 +124,8 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private http: HttpClient,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private superAdminService: SuperAdminService
   ) { }
 
   ngOnInit() {
@@ -456,11 +459,136 @@ export class AdminActionsComponent implements OnInit, OnDestroy {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
+  // AI Configuration State
+  showAiConfigModal = false;
+  aiConfigLoading = false;
+  aiConfigSaving = false;
+  aiConfigSuccessMsg = '';
+  aiConfigErrorMsg = '';
+  aiConfig: any = {
+    activeProvider: 'GEMINI',
+    geminiModel: 'gemini-2.5-flash',
+    groqModel: 'llama-3.3-70b-specdec',
+    deepseekModel: 'deepseek-chat',
+    openrouterModel: 'meta-llama/llama-3-8b-instruct:free',
+    geminiConfigured: false,
+    groqConfigured: false,
+    deepseekConfigured: false,
+    openrouterConfigured: false,
+    geminiApiKey: '',
+    groqApiKey: '',
+    deepseekApiKey: '',
+    openrouterApiKey: '',
+    suggestedGeminiModels: [],
+    suggestedGroqModels: [],
+    suggestedDeepSeekModels: [],
+    suggestedOpenRouterModels: []
+  };
+
+  openAiConfigModal() {
+    this.showAiConfigModal = true;
+    this.aiConfigLoading = true;
+    this.aiConfigSuccessMsg = '';
+    this.aiConfigErrorMsg = '';
+    this.cd.detectChanges();
+
+    this.superAdminService.getAiConfig().subscribe({
+      next: (res: any) => {
+        this.aiConfigLoading = false;
+        if (res && res.success && res.data) {
+          this.aiConfig = {
+            ...this.aiConfig,
+            ...res.data,
+            geminiApiKey: '', // Don't pre-populate key in UI, let them override
+            groqApiKey: '',
+            deepseekApiKey: '',
+            openrouterApiKey: ''
+          };
+          this.addLog(`AI Configuration loaded successfully. Active provider: ${this.aiConfig.activeProvider}`, 'success');
+        } else {
+          this.aiConfigErrorMsg = res?.message || 'Failed to fetch AI configuration details.';
+          this.addLog(`Failed to load AI configuration: ${this.aiConfigErrorMsg}`, 'error');
+        }
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.aiConfigLoading = false;
+        this.aiConfigErrorMsg = err.error?.message || err.message || 'Server error loading AI configuration.';
+        this.addLog(`Failed to load AI configuration: ${this.aiConfigErrorMsg}`, 'error');
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  closeAiConfigModal() {
+    if (!this.aiConfigSaving) {
+      this.showAiConfigModal = false;
+    }
+  }
+
+  saveAiConfig() {
+    this.aiConfigSaving = true;
+    this.aiConfigSuccessMsg = '';
+    this.aiConfigErrorMsg = '';
+    this.cd.detectChanges();
+
+    const payload: any = {
+      activeProvider: this.aiConfig.activeProvider,
+      geminiModel: this.aiConfig.geminiModel,
+      groqModel: this.aiConfig.groqModel,
+      deepseekModel: this.aiConfig.deepseekModel,
+      openrouterModel: this.aiConfig.openrouterModel
+    };
+
+    if (this.aiConfig.geminiApiKey && this.aiConfig.geminiApiKey.trim()) {
+      payload.geminiApiKey = this.aiConfig.geminiApiKey.trim();
+    }
+    if (this.aiConfig.groqApiKey && this.aiConfig.groqApiKey.trim()) {
+      payload.groqApiKey = this.aiConfig.groqApiKey.trim();
+    }
+    if (this.aiConfig.deepseekApiKey && this.aiConfig.deepseekApiKey.trim()) {
+      payload.deepseekApiKey = this.aiConfig.deepseekApiKey.trim();
+    }
+    if (this.aiConfig.openrouterApiKey && this.aiConfig.openrouterApiKey.trim()) {
+      payload.openrouterApiKey = this.aiConfig.openrouterApiKey.trim();
+    }
+
+    this.superAdminService.updateAiConfig(payload).subscribe({
+      next: (res: any) => {
+        this.aiConfigSaving = false;
+        if (res && res.success && res.data) {
+          this.aiConfigSuccessMsg = res.message || 'AI configuration updated successfully.';
+          this.aiConfig = {
+            ...this.aiConfig,
+            ...res.data,
+            geminiApiKey: '', // Reset keys input
+            groqApiKey: '',
+            deepseekApiKey: '',
+            openrouterApiKey: ''
+          };
+          this.addLog(`AI Configuration updated. Active provider switched to ${this.aiConfig.activeProvider}.`, 'success');
+        } else {
+          this.aiConfigErrorMsg = res?.message || 'Failed to update AI configuration.';
+          this.addLog(`Failed to update AI configuration: ${this.aiConfigErrorMsg}`, 'error');
+        }
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        this.aiConfigSaving = false;
+        this.aiConfigErrorMsg = err.error?.message || err.message || 'Server error updating AI configuration.';
+        this.addLog(`Failed to update AI configuration: ${this.aiConfigErrorMsg}`, 'error');
+        this.cd.detectChanges();
+      }
+    });
+  }
+
   navigate(route: string) {
     if (route === 'seeder') {
       this.openSeederModal();
     } else if (route === 'adzuna') {
       this.openAdzunaModal();
+    } else if (route === 'ai-config') {
+      this.openAiConfigModal();
     } else {
       this.router.navigate([route]);
     }

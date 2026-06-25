@@ -453,6 +453,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     clearTimeout(this.hoverTimer);
     this.diagnosticHoverDisposable?.dispose?.();
     this.cursorHoverDisposable?.dispose?.();
+    this.stopChallengeTimer();
   }
 
   get allItems(): any[] {
@@ -627,6 +628,12 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
     this.restoreDraftLocally();
     this.startHintUnlockTimer();
+
+    if (this.challenge?.durationMinutes) {
+      this.startChallengeTimer(Number(this.challenge.durationMinutes));
+    } else {
+      this.startChallengeTimer(30);
+    }
 
     setTimeout(() => {
       this.syncEditorValue();
@@ -4262,5 +4269,42 @@ tokens = input.empty? ? [] : input.split
     }
 
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  challengeTimer: any;
+  timeLeftSeconds = 0;
+  timerExpired = false;
+
+  get formattedTimeLeft(): string {
+    const mins = Math.floor(this.timeLeftSeconds / 60);
+    const secs = this.timeLeftSeconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  startChallengeTimer(durationMinutes: number): void {
+    if (this.challengeTimer) {
+      clearInterval(this.challengeTimer);
+    }
+    this.timeLeftSeconds = (durationMinutes || 30) * 60;
+    this.timerExpired = false;
+    this.challengeTimer = setInterval(() => {
+      if (this.timeLeftSeconds > 0) {
+        this.timeLeftSeconds--;
+        if (this.timeLeftSeconds === 0) {
+          this.timerExpired = true;
+          clearInterval(this.challengeTimer);
+          this.showToast('Time limit reached for this challenge!');
+        }
+      } else {
+        clearInterval(this.challengeTimer);
+      }
+    }, 1000);
+  }
+
+  stopChallengeTimer(): void {
+    if (this.challengeTimer) {
+      clearInterval(this.challengeTimer);
+      this.challengeTimer = null;
+    }
   }
 }

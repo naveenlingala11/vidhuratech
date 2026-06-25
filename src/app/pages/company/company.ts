@@ -97,6 +97,14 @@ export class Company implements OnInit {
   practiceSort: PracticeSort = 'POPULAR';
   cardView: CardView = 'GRID';
 
+  spotlightView: CardView = 'GRID';
+  spotlightPage = 0;
+  spotlightPageSize = 3;
+
+  catalogPage = 0;
+  catalogPageSize = 6;
+  loadingTabContent = false;
+
   questionSearch = '';
   selectedRole = '';
   selectedType = '';
@@ -162,6 +170,45 @@ export class Company implements OnInit {
     return this.sortPractice([...this.assessments, ...this.challenges]).slice(0, 4);
   }
 
+  get allHotPracticeItems(): PracticeItem[] {
+    return this.sortPractice([...this.assessments, ...this.challenges]);
+  }
+
+  get paginatedHotPracticeItems(): PracticeItem[] {
+    const startIndex = this.spotlightPage * this.spotlightPageSize;
+    return this.allHotPracticeItems.slice(startIndex, startIndex + this.spotlightPageSize);
+  }
+
+  get spotlightTotalPages(): number {
+    return Math.ceil(this.allHotPracticeItems.length / this.spotlightPageSize);
+  }
+
+  get spotlightPageLabel(): string {
+    return this.spotlightTotalPages
+      ? `Page ${this.spotlightPage + 1} of ${this.spotlightTotalPages}`
+      : 'Page 1';
+  }
+
+  get spotlightPageNumbers(): number[] {
+    return Array.from({ length: this.spotlightTotalPages }, (_, i) => i);
+  }
+
+  nextSpotlightPage(): void {
+    if (this.spotlightPage < this.spotlightTotalPages - 1) {
+      this.spotlightPage++;
+    }
+  }
+
+  previousSpotlightPage(): void {
+    if (this.spotlightPage > 0) {
+      this.spotlightPage--;
+    }
+  }
+
+  setSpotlightView(view: CardView): void {
+    this.spotlightView = view;
+  }
+
   get availableInterviewRoles(): string[] {
     const roles = new Set<string>();
 
@@ -187,6 +234,43 @@ export class Company implements OnInit {
 
   get activePracticeItems(): PracticeItem[] {
     return this.activeTab === 'ASSESSMENTS' ? this.filteredAssessments : this.filteredChallenges;
+  }
+
+  get paginatedCatalogPracticeItems(): PracticeItem[] {
+    const total = this.catalogTotalPages;
+    if (this.catalogPage >= total && total > 0) {
+      this.catalogPage = total - 1;
+    } else if (total === 0) {
+      this.catalogPage = 0;
+    }
+    const startIndex = this.catalogPage * this.catalogPageSize;
+    return this.activePracticeItems.slice(startIndex, startIndex + this.catalogPageSize);
+  }
+
+  get catalogTotalPages(): number {
+    return Math.ceil(this.activePracticeItems.length / this.catalogPageSize);
+  }
+
+  get catalogPageNumbers(): number[] {
+    return Array.from({ length: this.catalogTotalPages }, (_, i) => i);
+  }
+
+  get catalogPageLabel(): string {
+    return this.catalogTotalPages
+      ? `Page ${this.catalogPage + 1} of ${this.catalogTotalPages}`
+      : 'Page 1';
+  }
+
+  nextCatalogPage(): void {
+    if (this.catalogPage < this.catalogTotalPages - 1) {
+      this.catalogPage++;
+    }
+  }
+
+  previousCatalogPage(): void {
+    if (this.catalogPage > 0) {
+      this.catalogPage--;
+    }
   }
 
   get sortedQuestions(): InterviewQuestion[] {
@@ -218,7 +302,14 @@ export class Company implements OnInit {
   }
 
   setTab(tab: CompanyTab): void {
-    this.activeTab = tab;
+    if (this.activeTab !== tab) {
+      this.activeTab = tab;
+      this.catalogPage = 0;
+      this.loadingTabContent = true;
+      setTimeout(() => {
+        this.loadingTabContent = false;
+      }, 400);
+    }
   }
 
   backToPreparation(): void {
@@ -337,6 +428,7 @@ export class Company implements OnInit {
     this.selectedSkill = '';
     this.selectedDuration = '';
     this.practiceSort = 'POPULAR';
+    this.catalogPage = 0;
   }
 
   changeRole(role: string): void {
@@ -447,6 +539,9 @@ export class Company implements OnInit {
     this.practiceError = '';
     this.questionError = '';
     this.questionPage = 0;
+    this.spotlightPage = 0;
+    this.catalogPage = 0;
+    this.spotlightView = 'GRID';
     this.clearPracticeFilters();
   }
 

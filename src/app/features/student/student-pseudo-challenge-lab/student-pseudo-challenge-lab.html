@@ -17,9 +17,13 @@
     </div>
 
     <div class="navbar-center" *ngIf="selectedChallenge">
-      <div class="meta-pill">
+      <div class="meta-pill" *ngIf="timeLeftSeconds <= 0">
         <i class="bi bi-clock-history"></i>
         <span>Duration: <strong>{{ selectedChallenge.durationMinutes }} mins</strong></span>
+      </div>
+      <div class="meta-pill countdown-timer-pill" *ngIf="timeLeftSeconds > 0" [class.urgent-blink]="timeLeftSeconds <= 60">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Time Left: <strong>{{ formattedTimeLeft }}</strong></span>
       </div>
       <div class="meta-pill">
         <i class="bi bi-award"></i>

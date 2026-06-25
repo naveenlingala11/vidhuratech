@@ -147,6 +147,15 @@ export class SuperAdminService {
   updateSettings(data: any) {
     return this.http.put(`${this.API}/settings`, data);
   }
+  /* =====================================================
+     AI MODEL CONFIGURATION
+  ===================================================== */
+  getAiConfig() {
+    return this.http.get(`${this.API}/ai-config`);
+  }
+  updateAiConfig(data: any) {
+    return this.http.put(`${this.API}/ai-config`, data);
+  }
   createUser(data: any) {
     return this.http.post(`${this.API}/users`, data);
   }
