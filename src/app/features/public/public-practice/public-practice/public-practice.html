@@ -499,9 +499,13 @@
             <i class="fa-solid fa-star"></i>
             {{ challenge.totalMarks }} pts
           </span>
-          <span class="duration-pill">
+          <span class="duration-pill" *ngIf="timeLeftSeconds <= 0">
             <i class="fa-regular fa-clock"></i>
             {{ challenge.durationMinutes || '-' }} min
+          </span>
+          <span class="timer-pill" *ngIf="timeLeftSeconds > 0" [class.urgent-blink]="timeLeftSeconds <= 60">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <span>Time Left: <strong>{{ formattedTimeLeft }}</strong></span>
           </span>
         </div>
       </header>

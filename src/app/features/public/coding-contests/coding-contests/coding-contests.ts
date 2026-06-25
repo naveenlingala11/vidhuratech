@@ -75,7 +75,7 @@ export class CodingContestsComponent implements OnInit {
     private publicPracticeService: PublicPracticeService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.loadContestData();
     this.loadMyPlanAccess();
@@ -201,6 +201,16 @@ export class CodingContestsComponent implements OnInit {
     return this.challenges.length - this.premiumChallengeCount;
   }
 
+  get challengeOfTheDay(): any {
+    if (!this.challenges || this.challenges.length === 0) {
+      return null;
+    }
+    const today = new Date();
+    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    const index = seed % this.challenges.length;
+    return this.challenges[index];
+  }
+
   loadContestData(): void {
     this.loading = true;
     this.publicPracticeService.getLibrary().subscribe({
@@ -211,7 +221,12 @@ export class CodingContestsComponent implements OnInit {
         this.skills = Array.from(data.skills || []);
         this.loading = false;
         if (this.challenges.length) {
-          this.selectChallenge(this.challenges[0], false);
+          const cotd = this.challengeOfTheDay;
+          if (cotd) {
+            this.selectChallenge(cotd, false);
+          } else {
+            this.selectChallenge(this.challenges[0], false);
+          }
         }
       },
       error: () => {
@@ -420,10 +435,10 @@ export class CodingContestsComponent implements OnInit {
   private accessCode(challenge: any): string {
     const raw = String(
       challenge?.accessLevel ||
-        challenge?.publicAccessLevel ||
-        challenge?.accessPolicy ||
-        challenge?.policy ||
-        'LEAD_REQUIRED',
+      challenge?.publicAccessLevel ||
+      challenge?.accessPolicy ||
+      challenge?.policy ||
+      'LEAD_REQUIRED',
     )
       .trim()
       .toUpperCase();

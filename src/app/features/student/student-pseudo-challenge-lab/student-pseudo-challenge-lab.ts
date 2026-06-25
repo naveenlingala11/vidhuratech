@@ -357,6 +357,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     clearInterval(this.hintUnlockTimer);
     this.diagnosticHoverDisposable?.dispose?.();
     this.cursorHoverDisposable?.dispose?.();
+    this.stopChallengeTimer();
   }
 
   get selectedLanguage(): LanguageOption {
@@ -496,6 +497,12 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
         };
 
         this.startHintTimer();
+        
+        if (this.selectedChallenge?.durationMinutes) {
+          this.startChallengeTimer(Number(this.selectedChallenge.durationMinutes));
+        } else {
+          this.startChallengeTimer(30);
+        }
 
         setTimeout(() => {
           this.syncEditorValue();
@@ -2245,6 +2252,52 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   parseMarkdown(md: string): SafeHtml {
     if (!md) return this.sanitizer.bypassSecurityTrustHtml('');
 
+    const buildVscodeFrame = (codeText: string, codeLanguage: string, codeLinesCount: number) => {
+      let lineNumbersHtml = '';
+      for (let l = 1; l <= codeLinesCount; l++) {
+        lineNumbersHtml += `<div>${l}</div>`;
+      }
+
+      const extMap: Record<string, string> = {
+        python: 'py',
+        java: 'java',
+        c: 'c',
+        cpp: 'cpp',
+        csharp: 'cs',
+        php: 'php',
+        ruby: 'rb',
+        go: 'go',
+        rust: 'rs',
+        typescript: 'ts',
+        javascript: 'js'
+      };
+      const fileExt = extMap[codeLanguage] || 'txt';
+      const fileName = `AlternativeSolution.${fileExt}`;
+
+      return `
+        <div class="vscode-frame">
+          <div class="vscode-header">
+            <div class="vscode-controls">
+              <span class="control-dot close"></span>
+              <span class="control-dot minimize"></span>
+              <span class="control-dot maximize"></span>
+            </div>
+            <div class="vscode-tab active">
+              <i class="fa-solid fa-code"></i>
+              <span>${fileName}</span>
+            </div>
+            <button type="button" class="vscode-copy-btn" onclick="const code = this.closest('.vscode-frame').querySelector('.vscode-code code').innerText; navigator.clipboard.writeText(code); const icon = this.querySelector('i'); icon.className = 'fa-solid fa-check'; setTimeout(() => icon.className = 'fa-regular fa-copy', 2000);">
+              <i class="fa-regular fa-copy"></i> Copy
+            </button>
+          </div>
+          <div class="vscode-editor-body">
+            <div class="vscode-line-numbers">${lineNumbersHtml}</div>
+            <pre class="vscode-code"><code class="language-${codeLanguage}">${codeText}</code></pre>
+          </div>
+        </div>
+      `;
+    };
+
     const lines = md.split('\n');
     let html = '';
     let inList = false;
@@ -2263,7 +2316,7 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-          html += `<pre class="ai-code-block language-${codeLanguage}"><code>${codeText}</code></pre>`;
+          html += buildVscodeFrame(codeText, codeLanguage, codeBlockContent.length);
           codeBlockContent = [];
           codeLanguage = '';
         } else {
@@ -2329,9 +2382,46 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
-      html += `<pre class="ai-code-block language-${codeLanguage}"><code>${codeText}</code></pre>`;
+      html += buildVscodeFrame(codeText, codeLanguage, codeBlockContent.length);
     }
 
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  challengeTimer: any;
+  timeLeftSeconds = 0;
+  timerExpired = false;
+
+  get formattedTimeLeft(): string {
+    const mins = Math.floor(this.timeLeftSeconds / 60);
+    const secs = this.timeLeftSeconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  startChallengeTimer(durationMinutes: number): void {
+    if (this.challengeTimer) {
+      clearInterval(this.challengeTimer);
+    }
+    this.timeLeftSeconds = (durationMinutes || 30) * 60;
+    this.timerExpired = false;
+    this.challengeTimer = setInterval(() => {
+      if (this.timeLeftSeconds > 0) {
+        this.timeLeftSeconds--;
+        if (this.timeLeftSeconds === 0) {
+          this.timerExpired = true;
+          clearInterval(this.challengeTimer);
+          this.showToast('Time limit reached for this challenge!');
+        }
+      } else {
+        clearInterval(this.challengeTimer);
+      }
+    }, 1000);
+  }
+
+  stopChallengeTimer(): void {
+    if (this.challengeTimer) {
+      clearInterval(this.challengeTimer);
+      this.challengeTimer = null;
+    }
   }
 }

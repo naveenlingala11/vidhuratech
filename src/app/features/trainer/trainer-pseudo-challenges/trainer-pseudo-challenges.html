@@ -476,8 +476,8 @@ e.g.
             <button type="button" class="footer-control-secondary-btn" (click)="setWorkspaceTab('LIBRARY')">
               <i class="bi bi-grid"></i> Return to Library
             </button>
-            <button type="button" class="footer-control-primary-btn" [disabled]="saving || isFormInvalid" (click)="saveChallenge()">
-              <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-cloud-arrow-up-fill'"></i>
+            <button type="button" class="footer-control-primary-btn" [class.editing]="editingChallengeId" [disabled]="saving || isFormInvalid" (click)="saveChallenge()">
+              <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : editingChallengeId ? 'bi-check-all' : 'bi-cloud-arrow-up-fill'"></i>
               <span>{{ saving ? 'Saving...' : editingChallengeId ? 'Update Challenge' : 'Post Challenge' }}</span>
             </button>
           </div>
@@ -1074,12 +1074,20 @@ e.g.
 </div>
 
 <!-- Edit Challenge Group Modal -->
-<div class="edit-group-modal-overlay" *ngIf="showEditGroupModal">
-  <div class="edit-group-modal-card">
+<div class="edit-group-modal-overlay" *ngIf="showEditGroupModal" (click)="closeEditGroupModal()">
+  <div class="edit-group-modal-card" (click)="$event.stopPropagation()">
+    <button type="button" class="modal-close-x-btn" (click)="closeEditGroupModal()">&times;</button>
+    
     <h3>
-      <i class="bi bi-pencil-square"></i>
+      <i class="bi bi-pencil-square animate-pulse"></i>
       <span>Modify Challenge Group</span>
     </h3>
+
+    <!-- Dynamic info banner showing affected challenges count -->
+    <div class="group-edit-info-banner">
+      <i class="bi bi-info-circle-fill"></i>
+      <span>This update will apply to all <strong>{{ groupEditForm.challengeCount }} challenges</strong> linked to this group.</span>
+    </div>
 
     <div class="input-field-group">
       <label>Group Title</label>

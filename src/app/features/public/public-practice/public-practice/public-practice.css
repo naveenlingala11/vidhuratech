@@ -5077,7 +5077,8 @@ ngx-monaco-editor.code-editor,
 }
 
 /* VSCODE FRAME STYLING */
-.vscode-frame {
+/* VSCODE FRAME STYLING */
+:host ::ng-deep .vscode-frame {
   margin: 20px 0;
   background: #1e1e1e;
   border: 1px solid #3c3c3c;
@@ -5088,7 +5089,7 @@ ngx-monaco-editor.code-editor,
   flex-direction: column;
 }
 
-.vscode-header {
+:host ::ng-deep .vscode-header {
   background: #2d2d2d;
   height: 36px;
   display: flex;
@@ -5099,23 +5100,23 @@ ngx-monaco-editor.code-editor,
   user-select: none;
 }
 
-.vscode-controls {
+:host ::ng-deep .vscode-controls {
   display: flex;
   gap: 6px;
 }
 
-.vscode-controls .control-dot {
+:host ::ng-deep .vscode-controls .control-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   display: block;
 }
 
-.vscode-controls .control-dot.close { background: #ff5f56; }
-.vscode-controls .control-dot.minimize { background: #ffbd2e; }
-.vscode-controls .control-dot.maximize { background: #27c93f; }
+:host ::ng-deep .vscode-controls .control-dot.close { background: #ff5f56; }
+:host ::ng-deep .vscode-controls .control-dot.minimize { background: #ffbd2e; }
+:host ::ng-deep .vscode-controls .control-dot.maximize { background: #27c93f; }
 
-.vscode-tab {
+:host ::ng-deep .vscode-tab {
   height: 100%;
   background: #1e1e1e;
   color: #cccccc;
@@ -5130,12 +5131,12 @@ ngx-monaco-editor.code-editor,
   margin-left: 12px;
 }
 
-.vscode-tab i {
+:host ::ng-deep .vscode-tab i {
   color: #388bfd;
   font-size: 11px;
 }
 
-.vscode-copy-btn {
+:host ::ng-deep .vscode-copy-btn {
   background: transparent;
   border: none;
   color: #858585;
@@ -5151,22 +5152,25 @@ ngx-monaco-editor.code-editor,
   cursor: pointer;
 }
 
-.vscode-copy-btn:hover {
+:host ::ng-deep .vscode-copy-btn:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05);
 }
 
-.vscode-copy-btn i {
+:host ::ng-deep .vscode-copy-btn i {
   font-size: 12px;
 }
 
-.vscode-editor-body {
+:host ::ng-deep .vscode-editor-body {
   display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex-wrap: nowrap;
   background: #1e1e1e;
   border-top: none;
 }
 
-.vscode-line-numbers {
+:host ::ng-deep .vscode-line-numbers {
   width: 42px;
   padding: 14px 0;
   display: flex;
@@ -5175,33 +5179,97 @@ ngx-monaco-editor.code-editor,
   padding-right: 12px;
   border-right: 1px solid #2d2d2d;
   user-select: none;
+  flex-shrink: 0;
 }
 
-.vscode-line-numbers div {
+:host ::ng-deep .vscode-line-numbers div {
   font-family: 'Fira Code', Consolas, Monaco, monospace;
   font-size: 13px;
   line-height: 1.6;
   color: #858585;
+  height: 20.8px; /* Force line height height match */
 }
 
-.vscode-code {
+:host ::ng-deep .vscode-code {
   margin: 0;
   padding: 14px 16px;
   flex-grow: 1;
   overflow-x: auto;
   background: transparent;
   border: none;
+  min-width: 0;
+  white-space: pre !important;
+  word-break: normal !important;
 }
 
-.vscode-code code {
+:host ::ng-deep .vscode-code code {
   font-family: 'Fira Code', Consolas, Monaco, monospace;
   font-size: 13px;
   line-height: 1.6;
   color: #d4d4d4;
-  white-space: pre;
+  white-space: pre !important;
+  word-break: normal !important;
 }
 
 /* Generic vscode syntax highlighting cues */
-.vscode-code .language-python { color: #9cdcfe; }
-.vscode-code .language-java { color: #dcdcaa; }
-.vscode-code .language-cpp { color: #4fc1ff; }
+:host ::ng-deep .vscode-code .language-python { color: #9cdcfe; }
+:host ::ng-deep .vscode-code .language-java { color: #dcdcaa; }
+:host ::ng-deep .vscode-code .language-cpp { color: #4fc1ff; }
+
+/* Challenge Countdown Timer Styles */
+.timer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  font-size: 12px;
+  font-weight: 800;
+  color: #2563eb;
+  transition: all 0.3s ease;
+}
+
+.timer-pill i {
+  color: #2563eb;
+  animation: timerSpin 3s linear infinite;
+}
+
+.timer-pill strong {
+  font-weight: 800;
+}
+
+.urgent-blink {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.15);
+  animation: timerBlinkRed 1s ease-in-out infinite alternate !important;
+}
+
+.urgent-blink i {
+  color: #ef4444 !important;
+  animation: timerBlinkRedIcon 0.5s ease-in-out infinite alternate !important;
+}
+
+@keyframes timerSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes timerBlinkRed {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.2);
+  }
+  100% {
+    opacity: 0.6;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+  }
+}
+
+@keyframes timerBlinkRedIcon {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}

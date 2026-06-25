@@ -447,41 +447,43 @@
     </div>
 
     <!-- Premium Challenge of the Day Spotlight Banner -->
-    <div class="challenge-of-the-day-banner" *ngIf="!loading && challenges.length && challengePage === 1">
+    <div class="challenge-of-the-day-banner" *ngIf="!loading && challengeOfTheDay && challengePage === 1">
       <div class="cotd-glow-orb"></div>
       <div class="cotd-glass-layer"></div>
       <div class="cotd-header">
         <span class="cotd-badge-active">
-          <i class="fa-solid fa-fire star-glow"></i> CHALLENGE OF THE DAY
+          <i class="fa-solid fa-fire star-glow"></i> DAILY HOT PICK
         </span>
-        <span class="cotd-label-latest">LATEST ASSIGNMENT</span>
+        <span class="cotd-label-latest">
+          <i class="fa-solid fa-calendar-day"></i> TODAY'S SPOTLIGHT
+        </span>
       </div>
       <div class="cotd-content-layout">
         <div class="cotd-left-details">
-          <h3 class="cotd-title">{{ challenges[0].title }}</h3>
+          <h3 class="cotd-title">{{ challengeOfTheDay.title }}</h3>
           <p class="cotd-desc">
-            {{ challenges[0].description || 'Initialize this coding challenge module, evaluate test matrices, optimize algorithms, and verify standings.' }}
+            {{ challengeOfTheDay.description || 'Initialize this coding challenge module, evaluate test matrices, optimize algorithms, and verify standings.' }}
           </p>
           <div class="cotd-metadata-tags">
             <span class="cotd-tag tag-company">
-              <i class="fa-solid fa-building"></i> {{ challenges[0].company || 'General' }}
+              <i class="fa-solid fa-building"></i> {{ challengeOfTheDay.company || 'General' }}
             </span>
             <span class="cotd-tag tag-skill">
-              <i class="fa-solid fa-code"></i> {{ challenges[0].skill || 'Coding' }}
+              <i class="fa-solid fa-code"></i> {{ challengeOfTheDay.skill || 'Coding' }}
             </span>
             <span class="cotd-tag tag-time">
-              <i class="fa-solid fa-clock"></i> {{ challenges[0].durationMinutes || 0 }} min Limit
+              <i class="fa-solid fa-clock"></i> {{ challengeOfTheDay.durationMinutes || 0 }} min Limit
             </span>
             <span class="cotd-tag tag-score">
-              <i class="fa-solid fa-trophy"></i> {{ challenges[0].totalMarks || 0 }} Pts
+              <i class="fa-solid fa-trophy"></i> {{ challengeOfTheDay.totalMarks || 0 }} Pts
             </span>
           </div>
         </div>
         <div class="cotd-right-actions">
-          <button type="button" class="btn-cotd-action solve" (click)="startChallenge(challenges[0])">
+          <button type="button" class="btn-cotd-action solve" (click)="startChallenge(challengeOfTheDay)">
             <i class="fa-solid fa-play"></i> Solve Challenge
           </button>
-          <button type="button" class="btn-cotd-action details" (click)="selectChallenge(challenges[0], true)">
+          <button type="button" class="btn-cotd-action details" (click)="selectChallenge(challengeOfTheDay, true)">
             <i class="fa-solid fa-circle-info"></i> View Details
           </button>
         </div>
