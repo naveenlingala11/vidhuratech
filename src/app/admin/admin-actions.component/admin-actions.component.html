@@ -627,12 +627,12 @@
         <!-- Progress or Results Panel -->
         <div class="status-panel loading-status" *ngIf="seedingLoading">
           <div class="spinner-container">
-            <div class="premium-spinner"></div>
+            <div class="premium-spinner" [class.purge-spinner]="purgingLoading"></div>
             <div class="spinner-glow"></div>
           </div>
-          <h4>Generating Mock Jobs...</h4>
+          <h4>{{ purgingLoading ? 'Purging Seeded Dummy Jobs...' : 'Generating Mock Jobs...' }}</h4>
 
-          <div class="progress-details">
+          <div class="progress-details" *ngIf="!purgingLoading">
             <div class="progress-bar-container">
               <div class="progress-bar-fill" [style.width.%]="(seederCountProgress / seederCount) * 100"></div>
             </div>
@@ -643,36 +643,52 @@
                   formatElapsedTime(seederElapsedSeconds) }}</strong></span>
             </div>
           </div>
-          <p class="progress-hint">Executing bulk database insertions. Please keep this panel open...</p>
+          <p class="progress-hint">{{ purgingLoading ? 'Cleaning up seeded mock records from database. Please wait...' : 'Executing bulk database insertions. Please keep this panel open...' }}</p>
         </div>
 
         <div class="status-panel success-status" *ngIf="seederResult">
-          <div class="status-icon-wrapper success">
-            <i class="bi bi-check2-all"></i>
+          <div class="status-icon-wrapper success" [class.purge-success]="seederResult.isPurge">
+            <i class="bi" [ngClass]="seederResult.isPurge ? 'bi-trash3-fill' : 'bi-check2-all'"></i>
           </div>
-          <h4>Seeding Completed!</h4>
+          <h4>{{ seederResult.isPurge ? 'Purge Completed!' : 'Seeding Completed!' }}</h4>
           <div class="results-table">
             <div class="result-row">
               <span class="label">Status</span>
               <span class="value success">SUCCESS</span>
             </div>
-            <div class="result-row" *ngIf="seederResult.jobsSeededCount !== undefined">
-              <span class="label">Seeded Jobs</span>
-              <span class="value highlight">{{ seederResult.jobsSeededCount | number }}</span>
-            </div>
-            <div class="result-row" *ngIf="seederResult.companiesCount !== undefined">
-              <span class="label">Corporate Brands</span>
-              <span class="value">{{ seederResult.companiesCount | number }}</span>
-            </div>
-            <div class="result-row" *ngIf="seederResult.skillsCount !== undefined">
-              <span class="label">Skills Cloud Size</span>
-              <span class="value">{{ seederResult.skillsCount | number }}</span>
-            </div>
-            <div class="result-row" *ngIf="seederResult.timeTakenMs !== undefined">
-              <span class="label">Execution Time</span>
-              <span class="value highlight">{{ formatElapsedTime(seederResult.timeTakenMs / 1000) }} ({{
-                seederResult.timeTakenMs | number }} ms)</span>
-            </div>
+            <ng-container *ngIf="!seederResult.isPurge">
+              <div class="result-row" *ngIf="seederResult.jobsSeededCount !== undefined">
+                <span class="label">Seeded Jobs</span>
+                <span class="value highlight">{{ seederResult.jobsSeededCount | number }}</span>
+              </div>
+              <div class="result-row" *ngIf="seederResult.companiesCount !== undefined">
+                <span class="label">Corporate Brands</span>
+                <span class="value">{{ seederResult.companiesCount | number }}</span>
+              </div>
+              <div class="result-row" *ngIf="seederResult.skillsCount !== undefined">
+                <span class="label">Skills Cloud Size</span>
+                <span class="value">{{ seederResult.skillsCount | number }}</span>
+              </div>
+              <div class="result-row" *ngIf="seederResult.timeTakenMs !== undefined">
+                <span class="label">Execution Time</span>
+                <span class="value highlight">{{ formatElapsedTime(seederResult.timeTakenMs / 1000) }} ({{
+                  seederResult.timeTakenMs | number }} ms)</span>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="seederResult.isPurge">
+              <div class="result-row" *ngIf="seederResult.deletedJobsCount !== undefined">
+                <span class="label">Deleted Jobs</span>
+                <span class="value highlight" style="color: #ef4444;">-{{ seederResult.deletedJobsCount | number }}</span>
+              </div>
+              <div class="result-row" *ngIf="seederResult.deletedSkillsAssociationsCount !== undefined">
+                <span class="label">Skill Assocs Cleaned</span>
+                <span class="value">{{ seederResult.deletedSkillsAssociationsCount | number }}</span>
+              </div>
+              <div class="result-row" *ngIf="seederResult.message">
+                <span class="label">Details</span>
+                <span class="value">{{ seederResult.message }}</span>
+              </div>
+            </ng-container>
           </div>
         </div>
 
@@ -680,8 +696,28 @@
           <div class="status-icon-wrapper error">
             <i class="bi bi-exclamation-triangle-fill"></i>
           </div>
-          <h4>Seeding Failed</h4>
+          <h4>{{ purgingLoading ? 'Purge Failed' : 'Seeding Failed' }}</h4>
           <p class="error-msg">{{ seederError }}</p>
+        </div>
+
+        <!-- Purge Seeded Dummy Data Section -->
+        <div class="control-group purge-seeded-section" *ngIf="!seedingLoading && !seederResult && !seederError"
+          style="margin-top: 24px; border-top: 1px dashed rgba(239, 68, 68, 0.2); padding-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(239, 68, 68, 0.03); border: 1.5px solid rgba(239, 68, 68, 0.15); border-radius: 16px; padding: 16px;">
+            <div style="text-align: left; flex: 1; padding-right: 16px;">
+              <h4 style="color: #991b1b; margin: 0 0 4px 0; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                <i class="bi bi-trash3-fill"></i> Purge Seeded Dummy Data Only
+              </h4>
+              <p style="margin: 0; font-size: 0.75rem; color: #b91c1c; line-height: 1.35;">
+                Safely remove only seeded mock listings (marked with <code>ref=vidhuratech_seed_</code>). Scraped or manual jobs will remain unaffected.
+              </p>
+            </div>
+            <button type="button" class="btn-primary-seeding" (click)="triggerPurgeSeededJobs()" [disabled]="seedingLoading"
+              style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2); font-size: 0.78rem; font-weight: 700; padding: 10px 16px; border-radius: 10px; color: white; cursor: pointer; transition: all 0.2s;">
+              <i class="bi bi-trash-fill" *ngIf="!purgingLoading"></i>
+              <span>{{ purgingLoading ? 'Purging...' : 'Purge Data' }}</span>
+            </button>
+          </div>
         </div>
       </div>
 

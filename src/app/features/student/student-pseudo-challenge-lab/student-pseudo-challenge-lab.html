@@ -160,13 +160,40 @@
 
             <!-- UNLOCKED STATE -->
             <div *ngIf="hintUnlocked && showHintPanel" class="hint-unlocked-container">
-              <div class="hint-step-item" *ngFor="let step of hintSteps; let i = index">
-                <div class="step-num">{{ i + 1 }}</div>
-                <div class="step-text">{{ step }}</div>
+              <!-- Loading State -->
+              <div *ngIf="aiHintsLoading" class="hint-loading-spinner text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Generating Hints...</span>
+                </div>
+                <p class="mt-2 text-muted">Gemini is analyzing the challenge constraints and formulating guidance...</p>
               </div>
-              <div class="no-hints-alert" *ngIf="!hintSteps.length">
-                <i class="bi bi-exclamation-triangle"></i>
-                <span>No specific hints have been registered for this challenge.</span>
+
+              <!-- Error State -->
+              <div *ngIf="!aiHintsLoading && aiHintsError" class="alert alert-danger d-flex align-items-center mt-2" role="alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
+                <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                <div class="flex-grow-1">
+                  {{ aiHintsError }}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadAiHints()" style="padding: 2px 8px; border-radius: 4px; border: 1px solid #f87171; color: #f87171; font-size: 11px;">Retry</button>
+              </div>
+
+              <!-- Hints List -->
+              <div *ngIf="!aiHintsLoading && !aiHintsError">
+                <div class="hint-step-item" *ngFor="let step of hintSteps; let i = index">
+                  <div class="step-num">{{ i + 1 }}</div>
+                  <div class="step-text">{{ step }}</div>
+                </div>
+                <div class="no-hints-alert" *ngIf="!hintSteps.length">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <span>No specific hints have been registered for this challenge. Click below to generate AI hints.</span>
+                </div>
+
+                <!-- Ask AI Button -->
+                <div class="mt-4 text-end">
+                  <button type="button" class="btn-ask-ai-hint" (click)="loadAiHints()" [disabled]="aiHintsLoading">
+                    <i class="bi bi-cpu me-1"></i> Get Fresh AI Hints
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -236,6 +263,10 @@
             <button type="button" class="btn-action-run" [disabled]="!canRun || running" (click)="runCode()">
               <i class="bi bi-play-fill"></i>
               <span>{{ running ? 'Running...' : 'Run Code' }}</span>
+            </button>
+            <button type="button" class="btn-action-ai" (click)="askAiReviewer()" title="Ask AI Reviewer">
+              <i class="bi bi-cpu"></i>
+              <span>Ask AI Reviewer</span>
             </button>
             <button type="button" class="btn-action-submit" [disabled]="submitting" [class.unsaved-warning]="hasUnsavedChanges" (click)="openSubmitModal()">
               <i class="bi" [ngClass]="hasUnsavedChanges ? 'bi-exclamation-triangle' : 'bi-send-check'"></i>
@@ -588,3 +619,46 @@
     </button>
   </div>
 </div>
+
+<!-- ═══════════════════ AI CODE REVIEWER SIDEBAR ═══════════════════ -->
+<aside class="ai-review-sidebar" [class.open]="showAiSidebar">
+  <div class="ai-sidebar-overlay" (click)="closeAiSidebar()"></div>
+  <div class="ai-sidebar-content">
+    <header class="ai-sidebar-header">
+      <div class="ai-header-title">
+        <div class="ai-brain-pulse">
+          <i class="bi bi-cpu"></i>
+        </div>
+        <div>
+          <h3>Gemini AI Code Reviewer</h3>
+          <p>Real-time complexity & correctness feedback</p>
+        </div>
+      </div>
+      <button type="button" class="ai-close-btn" (click)="closeAiSidebar()" title="Close Panel">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    <div class="ai-sidebar-body">
+      <!-- Loading skeleton state -->
+      <div class="ai-loading-container" *ngIf="aiReviewLoading">
+        <div class="ai-loading-scanner"></div>
+        <div class="ai-skeleton-title"></div>
+        <div class="ai-skeleton-line short"></div>
+        <div class="ai-skeleton-line"></div>
+        <div class="ai-skeleton-line medium"></div>
+        <div class="ai-skeleton-title"></div>
+        <div class="ai-skeleton-line"></div>
+        <div class="ai-skeleton-line short"></div>
+        <div class="ai-loading-text">
+          <span>Analyzing code structure...</span>
+          <i class="bi bi-arrow-repeat ai-spin"></i>
+        </div>
+      </div>
+
+      <!-- Rendered AI Review -->
+      <div class="ai-review-content" *ngIf="!aiReviewLoading && aiReviewHtml" [innerHTML]="aiReviewHtml">
+      </div>
+    </div>
+  </div>
+</aside>

@@ -2,6 +2,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PublicPracticeService } from '../../../services/public-practice.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
@@ -110,6 +111,16 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     Microsoft: 'logos/microsoft.svg',
     KPMG: 'logos/kpmg.svg',
     EY: 'logos/ey.svg',
+    Amazon: 'logos/amazon.svg',
+    Flipkart: 'logos/flipkart.svg',
+    CGI: 'logos/cgi-logo.svg',
+    Genpact: 'logos/genpact.svg',
+    Max: 'logos/max.svg',
+    Meta: 'logos/meta.svg',
+    Myntra: 'logos/myntra.svg',
+    PwC: 'logos/pwc.svg',
+    Salesforce: 'logos/salesforce.svg',
+    'Tech Mahindra': 'logos/tech-mahindra.svg',
   };
 
   readonly maxSourceChars = 20000;
@@ -294,6 +305,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   loading = false;
   submitting = false;
   toast = '';
+  loginHistory: string[] = [];
 
   assessments: any[] = [];
   challenges: any[] = [];
@@ -304,9 +316,11 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   selectedCompany = 'ALL';
   selectedSkill = 'ALL';
   selectedType: 'ALL' | PracticeType = 'ALL';
+  selectedAccess: 'ALL' | 'FREE' | 'PREMIUM' = 'ALL';
 
   currentPage = 1;
   pageSize = 6;
+  sortBy: 'LATEST' | 'TITLE' | 'MARKS_DESC' | 'MARKS_ASC' | 'DURATION_DESC' | 'DURATION_ASC' = 'LATEST';
 
   mode: 'LIBRARY' | 'ASSESSMENT' | 'CHALLENGE' = 'LIBRARY';
 
@@ -365,6 +379,10 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   selectedChallenge: any = null;
   private hintUnlockTimer: any;
 
+  generatedAiHints: string[] = [];
+  aiHintsLoading = false;
+  aiHintsError = '';
+
   private redirectTimer?: ReturnType<typeof setInterval>;
 
   lead = {
@@ -388,15 +406,21 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     active: false,
   };
 
+  showAiSidebar = false;
+  aiReviewLoading = false;
+  aiReviewHtml: SafeHtml | null = null;
+
   constructor(
     private publicPracticeService: PublicPracticeService,
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
+    private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) { }
 
   ngOnInit(): void {
+    this.trackLoginAndStreak();
     this.restoreLead();
     this.loadMyPlanAccess();
     this.workspaceUnlocked = false;
@@ -444,7 +468,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   get filteredItems(): any[] {
     const term = this.search.trim().toLowerCase();
 
-    return this.allItems.filter((item) => {
+    const filtered = this.allItems.filter((item) => {
       const text = [item.title, item.description, item.company, item.skill, item.type]
         .join(' ')
         .toLowerCase();
@@ -453,8 +477,29 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         (!term || text.includes(term)) &&
         (this.selectedCompany === 'ALL' || item.company === this.selectedCompany) &&
         (this.selectedSkill === 'ALL' || item.skill === this.selectedSkill) &&
-        (this.selectedType === 'ALL' || item.type === this.selectedType)
+        (this.selectedType === 'ALL' || item.type === this.selectedType) &&
+        (this.selectedAccess === 'ALL' || 
+         (this.selectedAccess === 'FREE' && this.isLeadRequired(item)) ||
+         (this.selectedAccess === 'PREMIUM' && !this.isLeadRequired(item)))
       );
+    });
+
+    return filtered.sort((a, b) => {
+      switch (this.sortBy) {
+        case 'TITLE':
+          return (a.title || '').localeCompare(b.title || '');
+        case 'MARKS_DESC':
+          return (b.totalMarks || 0) - (a.totalMarks || 0);
+        case 'MARKS_ASC':
+          return (a.totalMarks || 0) - (b.totalMarks || 0);
+        case 'DURATION_DESC':
+          return (b.durationMinutes || 0) - (a.durationMinutes || 0);
+        case 'DURATION_ASC':
+          return (a.durationMinutes || 0) - (b.durationMinutes || 0);
+        case 'LATEST':
+        default:
+          return (b.id || 0) - (a.id || 0);
+      }
     });
   }
 
@@ -469,6 +514,47 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
   get pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get visiblePages(): (number | string)[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+    const pages: (number | string)[] = [];
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      if (current > 3) {
+        pages.push('...');
+      }
+
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+
+      let adjustedStart = start;
+      let adjustedEnd = end;
+      if (current <= 3) {
+        adjustedEnd = 4;
+      } else if (current >= total - 2) {
+        adjustedStart = total - 3;
+      }
+
+      for (let i = adjustedStart; i <= adjustedEnd; i++) {
+        pages.push(i);
+      }
+
+      if (current < total - 2) {
+        pages.push('...');
+      }
+
+      pages.push(total);
+    }
+
+    return pages;
   }
 
   get currentQuestion(): any {
@@ -1228,8 +1314,13 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   onLanguageChange(): void {
     const nextStarter = this.getStarterCode(this.language);
 
-    if (!this.sourceCode.trim() || this.sourceCode === this.lastStarterCode) {
-      this.sourceCode = nextStarter;
+    const restored = this.restoreDraftLocally();
+    if (!restored) {
+      if (!this.sourceCode.trim() || this.sourceCode === this.lastStarterCode) {
+        this.sourceCode = nextStarter;
+        this.lastStarterCode = nextStarter;
+      }
+    } else {
       this.lastStarterCode = nextStarter;
     }
 
@@ -1285,14 +1376,26 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       autoIndent: 'full',
       acceptSuggestionOnEnter: 'on',
       tabCompletion: 'on',
+      tabSize: 4,
+      insertSpaces: true,
+      detectIndentation: false,
     });
+
+    const model = editor.getModel();
+    if (model) {
+      model.updateOptions({
+        tabSize: 4,
+        insertSpaces: true,
+        trimAutoWhitespace: true,
+      });
+    }
 
     this.registerCustomAutocomplete();
     this.syncEditorValue();
 
     if (this.monacoInstance) {
-      if (editor.getModel()) {
-        this.monacoInstance.editor.setModelLanguage(editor.getModel(), this.editorLanguage);
+      if (model) {
+        this.monacoInstance.editor.setModelLanguage(model, this.editorLanguage);
       }
       this.monacoInstance.editor.setTheme(this.selectedTheme);
 
@@ -1672,7 +1775,20 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   private syncEditorValue(): void {
     if (!this.editorInstance) return;
     if (this.editorInstance.getValue() !== this.sourceCode) {
+      this.editorInstance.updateOptions({ readOnly: false });
       this.editorInstance.setValue(this.sourceCode || '');
+      
+      const model = this.editorInstance.getModel();
+      const range = this.getEditableRange(model);
+      if (range) {
+        const position = this.editorInstance.getPosition();
+        if (position) {
+          const isInside = position.lineNumber > range.startLine && position.lineNumber < range.endLine;
+          this.editorInstance.updateOptions({ readOnly: !isInside });
+        } else {
+          this.editorInstance.updateOptions({ readOnly: true });
+        }
+      }
     }
     setTimeout(() => {
       this.editorInstance?.layout?.();
@@ -2328,6 +2444,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   }
 
   formatCode(): void {
+    this.clearServerDiagnostics();
     const builtInFormatLanguages = ['typescript', 'javascript', 'html', 'css', 'json'];
     const isBuiltIn = builtInFormatLanguages.includes(this.editorLanguage);
 
@@ -2345,43 +2462,98 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     }
 
     if (this.language === 'PYTHON') {
-      let indent = 0;
-      this.sourceCode = this.sourceCode
-        .split('\n')
-        .map((line) => {
+      const lines = this.sourceCode.split('\n');
+      let startIdx = -1;
+      let endIdx = -1;
+
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].includes('START OF USER LOGIC')) {
+          startIdx = i;
+        }
+        if (lines[i].includes('END OF USER LOGIC')) {
+          endIdx = i;
+        }
+      }
+
+      if (startIdx !== -1 && endIdx !== -1) {
+        // 1. Format wrapper before start
+        const beforeLines = lines.slice(0, startIdx + 1).map((line) => {
           const trimmed = line.trim();
           if (!trimmed) return '';
+          if (trimmed.startsWith('import ') || trimmed.startsWith('def solve():')) {
+            return trimmed;
+          }
+          return '    ' + trimmed;
+        });
 
-          if (trimmed.startsWith('def ') || trimmed.startsWith('class ')) {
-            indent = 0;
-          } else if (
-            trimmed.startsWith('elif ') ||
-            trimmed.startsWith('else:') ||
-            trimmed.startsWith('else ') ||
-            trimmed.startsWith('except ') ||
-            trimmed.startsWith('except:') ||
-            trimmed.startsWith('finally:') ||
-            trimmed.startsWith('finally ')
-          ) {
-            indent = Math.max(indent - 1, 0);
+        // 2. Format user logic lines using stack-based relative indentation
+        const userLines = lines.slice(startIdx + 1, endIdx);
+        const formattedUserLines = [];
+        const indentStack = [{ orig: -1, formatted: 4 }];
+        let prevOrigIndent = -1;
+        let prevFormatted = 4;
+        let forceNextIndent = false;
+
+        for (let i = 0; i < userLines.length; i++) {
+          const line = userLines[i];
+          const trimmed = line.trim();
+          if (!trimmed) {
+            formattedUserLines.push('');
+            continue;
           }
 
-          const formatted = `${'    '.repeat(indent)}${trimmed}`;
+          const match = line.match(/^(\s*)/);
+          const origIndent = match ? match[0].length : 0;
 
-          if (trimmed.endsWith(':')) {
-            indent += 1;
-          } else if (
-            trimmed.startsWith('return') ||
-            trimmed.startsWith('break') ||
-            trimmed.startsWith('continue') ||
-            trimmed.startsWith('pass')
-          ) {
-            indent = Math.max(indent - 1, 0);
+          // Pop from stack if current indentation is less than the top of the stack
+          while (indentStack.length > 1 && origIndent < indentStack[indentStack.length - 1].orig) {
+            indentStack.pop();
           }
 
-          return formatted;
-        })
-        .join('\n');
+          let currentFormatted = indentStack[indentStack.length - 1].formatted;
+
+          // Push to stack if current indentation is greater than the top of the stack
+          if (origIndent > indentStack[indentStack.length - 1].orig) {
+            const nextFormatted = indentStack[indentStack.length - 1].orig === -1 ? 4 : indentStack[indentStack.length - 1].formatted + 4;
+            indentStack.push({ orig: origIndent, formatted: nextFormatted });
+            currentFormatted = nextFormatted;
+          }
+
+          // Force indent if previous line ended with ':' and user didn't indent
+          if (forceNextIndent && origIndent <= prevOrigIndent) {
+            currentFormatted = prevFormatted + 4;
+            indentStack.push({ orig: origIndent, formatted: currentFormatted });
+          }
+
+          // If the line starts with elif/else/except/finally, format it with 4 spaces less
+          let renderIndent = currentFormatted;
+          if (/^(elif|else|except|finally)\b/.test(trimmed) || trimmed.startsWith('else:')) {
+            renderIndent = Math.max(currentFormatted - 4, 4);
+          }
+
+          formattedUserLines.push(' '.repeat(renderIndent) + trimmed);
+
+          // Update tracking variables
+          prevOrigIndent = origIndent;
+          prevFormatted = renderIndent;
+          forceNextIndent = trimmed.endsWith(':');
+        }
+
+        // 3. Format wrapper after end
+        const afterLines = lines.slice(endIdx).map((line) => {
+          const trimmed = line.trim();
+          if (!trimmed) return '';
+          if (trimmed.startsWith('if __name__') || trimmed.includes('import sys')) {
+            return trimmed;
+          }
+          if (trimmed.includes('END OF USER LOGIC')) {
+            return '    ' + trimmed;
+          }
+          return '    ' + trimmed;
+        });
+
+        this.sourceCode = [...beforeLines, ...formattedUserLines, ...afterLines].join('\n');
+      }
 
       setTimeout(() => {
         this.syncEditorValue();
@@ -2887,6 +3059,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
           if (passed && !compilerError) {
             this.showToast('All test cases passed successfully');
+            this.trackChallengeSolved();
           } else if (compilerError) {
             this.showToast('Compilation failed');
           } else {
@@ -2957,6 +3130,10 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   }
 
   get hintSteps(): string[] {
+    if (this.generatedAiHints && this.generatedAiHints.length > 0) {
+      return this.generatedAiHints;
+    }
+
     const text = String(this.challenge?.hintText || this.selectedChallenge?.hintText || '').trim();
     if (!text) return [];
 
@@ -2977,6 +3154,10 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.showHintPanel = false;
     this.hintUnlockSeconds = 30;
 
+    this.generatedAiHints = [];
+    this.aiHintsError = '';
+    this.aiHintsLoading = false;
+
     this.hintUnlockTimer = setInterval(() => {
       this.hintUnlockSeconds--;
 
@@ -2988,9 +3169,49 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
+  loadAiHints(): void {
+    if (!this.challengeId) {
+      return;
+    }
+
+    this.aiHintsLoading = true;
+    this.aiHintsError = '';
+
+    const payload = {
+      accessToken: this.currentGrant?.accessToken || ''
+    };
+
+    this.publicPracticeService.getChallengeAiHints(this.challengeId, payload).subscribe({
+      next: (res: any) => {
+        this.aiHintsLoading = false;
+        if (res && res.success && res.data && res.data.hints) {
+          const rawHints = res.data.hints || '';
+          this.generatedAiHints = rawHints
+            .split(/\r?\n\r?\n|\r?\n/)
+            .map((h: string) => h.trim())
+            .filter((h: string) => h.length > 0 && !h.match(/^\d+\.\s*/));
+        } else {
+          this.aiHintsError = 'Failed to generate AI hints. Please try again.';
+        }
+      },
+      error: (err: any) => {
+        this.aiHintsLoading = false;
+        this.aiHintsError = 'Error connecting to the server. Please try again.';
+        console.error('Error fetching AI hints:', err);
+      }
+    });
+  }
+
   toggleHintPanel(): void {
     if (!this.hintUnlocked) return;
     this.showHintPanel = !this.showHintPanel;
+
+    if (this.showHintPanel) {
+      const dbHintText = String(this.challenge?.hintText || this.selectedChallenge?.hintText || '').trim();
+      if (!dbHintText && this.generatedAiHints.length === 0) {
+        this.loadAiHints();
+      }
+    }
   }
 
   discussionPayload(extra: any = {}): any {
@@ -3546,10 +3767,20 @@ tokens = input.empty? ? [] : input.split
   }
 
   companyLogo(company: string): string {
-    return this.companyLogos[company] || 'VidhuraTechIcon.png';
+    if (!company) return 'VidhuraTechIcon.png';
+    const trimmed = company.trim();
+    const key = Object.keys(this.companyLogos).find(
+      (k) => k.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (key) {
+      return this.companyLogos[key];
+    }
+    const filename = trimmed.toLowerCase().replace(/[\s_]+/g, '-');
+    return `logos/${filename}.svg`;
   }
 
-  setPage(page: number): void {
+  setPage(page: number | string): void {
+    if (typeof page === 'string') return;
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     window.scrollTo({ top: 420, behavior: 'smooth' });
@@ -3557,6 +3788,121 @@ tokens = input.empty? ? [] : input.split
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  trackLoginAndStreak(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      const historyJson = localStorage.getItem('vt_login_history');
+      let history: string[] = historyJson ? JSON.parse(historyJson) : [];
+      
+      const today = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+      
+      if (!history.includes(today)) {
+        history.push(today);
+        history = history.sort().slice(-60);
+        localStorage.setItem('vt_login_history', JSON.stringify(history));
+      }
+      this.loginHistory = history;
+    } catch {
+      this.loginHistory = [new Date().toLocaleDateString('en-CA')];
+    }
+  }
+
+  get calculatedStreak(): number {
+    if (this.loginHistory.length === 0) return 0;
+    
+    const sorted = [...this.loginHistory].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+    
+    if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) {
+      return 0;
+    }
+    
+    let streak = 0;
+    const currentCheck = new Date(sorted[0]);
+    
+    while (true) {
+      const currentCheckStr = currentCheck.toLocaleDateString('en-CA');
+      if (sorted.includes(currentCheckStr)) {
+        streak++;
+        currentCheck.setDate(currentCheck.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  get weeklyStreakDays(): { label: string; active: boolean; isToday: boolean }[] {
+    const history = this.loginHistory || [];
+    const today = new Date();
+    
+    const currentDay = today.getDay();
+    const mondayDiff = currentDay === 0 ? -6 : 1 - currentDay;
+    
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayDiff);
+    
+    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const list = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dateStr = d.toLocaleDateString('en-CA');
+      const isToday = d.toDateString() === today.toDateString();
+      const active = history.includes(dateStr);
+      
+      list.push({
+        label: labels[i],
+        active,
+        isToday
+      });
+    }
+    return list;
+  }
+
+  trackChallengeSolved(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      const solvedDatesJson = localStorage.getItem('vt_challenges_solved_dates');
+      let solvedDates: string[] = solvedDatesJson ? JSON.parse(solvedDatesJson) : [];
+      
+      const today = new Date().toLocaleDateString('en-CA');
+      
+      if (!solvedDates.includes(today)) {
+        solvedDates.push(today);
+        solvedDates = solvedDates.sort().slice(-60);
+        localStorage.setItem('vt_challenges_solved_dates', JSON.stringify(solvedDates));
+      }
+    } catch {}
+  }
+
+  get isChallengeSolvedToday(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      const solvedDatesJson = localStorage.getItem('vt_challenges_solved_dates');
+      const solvedDates: string[] = solvedDatesJson ? JSON.parse(solvedDatesJson) : [];
+      const today = new Date().toLocaleDateString('en-CA');
+      return solvedDates.includes(today);
+    } catch {
+      return false;
+    }
+  }
+
+  get streakMessage(): string {
+    if (!this.isLoggedIn) {
+      return 'Please log in to sync and protect your daily streak.';
+    }
+    if (this.isChallengeSolvedToday) {
+      return 'Streak kept alive for today! Keep up the great work! 🔥';
+    }
+    return 'Solve 1 more challenge today to keep your streak alive!';
   }
 
   backToLibrary(): void {
@@ -3737,5 +4083,184 @@ tokens = input.empty? ? [] : input.split
     setTimeout(() => {
       this.toast = '';
     }, 2600);
+  }
+
+  askAiReviewer(): void {
+    if (!this.challengeId) return;
+
+    if (!this.workspaceUnlocked || !this.currentGrant?.accessToken) {
+      this.requestWorkspaceAccess('Please register to get an access token before requesting AI code review.');
+      return;
+    }
+
+    this.showAiSidebar = true;
+    this.aiReviewLoading = true;
+    this.aiReviewHtml = null;
+
+    const payload = {
+      code: this.sourceCode,
+      language: this.language,
+      accessToken: this.currentGrant.accessToken
+    };
+
+    this.publicPracticeService.reviewChallenge(this.challengeId, payload).subscribe({
+      next: (res: any) => {
+        const reviewText = res?.data?.review || '';
+        this.aiReviewHtml = this.parseMarkdown(reviewText);
+        this.aiReviewLoading = false;
+      },
+      error: (err: any) => {
+        this.aiReviewLoading = false;
+        const errMsg = err?.error?.message || 'Error occurred while contacting the AI Reviewer. Please try again.';
+        this.aiReviewHtml = this.sanitizer.bypassSecurityTrustHtml(
+          `<div class="ai-error-box">
+            <i class="fa fa-exclamation-triangle mr-2"></i> ${errMsg}
+          </div>`
+        );
+      }
+    });
+  }
+
+  closeAiSidebar(): void {
+    this.showAiSidebar = false;
+  }
+
+  parseMarkdown(md: string): SafeHtml {
+    if (!md) return this.sanitizer.bypassSecurityTrustHtml('');
+
+    const buildVscodeFrame = (codeText: string, codeLanguage: string, codeLinesCount: number) => {
+      let lineNumbersHtml = '';
+      for (let l = 1; l <= codeLinesCount; l++) {
+        lineNumbersHtml += `<div>${l}</div>`;
+      }
+
+      const extMap: Record<string, string> = {
+        python: 'py',
+        java: 'java',
+        c: 'c',
+        cpp: 'cpp',
+        csharp: 'cs',
+        php: 'php',
+        ruby: 'rb',
+        go: 'go',
+        rust: 'rs',
+        typescript: 'ts',
+        javascript: 'js'
+      };
+      const fileExt = extMap[codeLanguage] || 'txt';
+      const fileName = `AlternativeSolution.${fileExt}`;
+
+      return `
+        <div class="vscode-frame">
+          <div class="vscode-header">
+            <div class="vscode-controls">
+              <span class="control-dot close"></span>
+              <span class="control-dot minimize"></span>
+              <span class="control-dot maximize"></span>
+            </div>
+            <div class="vscode-tab active">
+              <i class="fa-solid fa-code"></i>
+              <span>${fileName}</span>
+            </div>
+            <button type="button" class="vscode-copy-btn" onclick="const code = this.closest('.vscode-frame').querySelector('.vscode-code code').innerText; navigator.clipboard.writeText(code); const icon = this.querySelector('i'); icon.className = 'fa-solid fa-check'; setTimeout(() => icon.className = 'fa-regular fa-copy', 2000);">
+              <i class="fa-regular fa-copy"></i> Copy
+            </button>
+          </div>
+          <div class="vscode-editor-body">
+            <div class="vscode-line-numbers">${lineNumbersHtml}</div>
+            <pre class="vscode-code"><code class="language-${codeLanguage}">${codeText}</code></pre>
+          </div>
+        </div>
+      `;
+    };
+
+    const lines = md.split('\n');
+    let html = '';
+    let inList = false;
+    let inCodeBlock = false;
+    let codeBlockContent: string[] = [];
+    let codeLanguage = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Code Block detection
+      if (line.trim().startsWith('```')) {
+        if (inCodeBlock) {
+          inCodeBlock = false;
+          const codeText = codeBlockContent.join('\n')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          html += buildVscodeFrame(codeText, codeLanguage, codeBlockContent.length);
+          codeBlockContent = [];
+          codeLanguage = '';
+        } else {
+          inCodeBlock = true;
+          codeLanguage = line.trim().slice(3).trim().toLowerCase();
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeBlockContent.push(line);
+        continue;
+      }
+
+      // Escape line to prevent injection
+      line = line
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Replace symbols with Safe HTML equivalents
+      line = line.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+      line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+      // Headings
+      if (line.startsWith('### ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<h4 class="ai-h4">${line.substring(4).trim()}</h4>`;
+      } else if (line.startsWith('## ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<h3 class="ai-h3">${line.substring(3).trim()}</h3>`;
+      } else if (line.startsWith('# ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<h2 class="ai-h2">${line.substring(2).trim()}</h2>`;
+      }
+      // Lists
+      else if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        if (!inList) {
+          html += '<ul class="ai-list">';
+          inList = true;
+        }
+        const content = line.trim().substring(2).trim();
+        html += `<li>${content}</li>`;
+      }
+      // Paragraph or empty line
+      else {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        if (line.trim()) {
+          html += `<p class="ai-p">${line}</p>`;
+        }
+      }
+    }
+
+    if (inList) {
+      html += '</ul>';
+    }
+    if (inCodeBlock && codeBlockContent.length > 0) {
+      const codeText = codeBlockContent.join('\n')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      html += buildVscodeFrame(codeText, codeLanguage, codeBlockContent.length);
+    }
+
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }
