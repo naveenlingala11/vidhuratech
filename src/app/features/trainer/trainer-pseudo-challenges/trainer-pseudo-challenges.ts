@@ -108,6 +108,13 @@ export class TrainerPseudoChallengesComponent implements OnInit {
   libraryView: LibraryView = 'GROUPS';
   expandedCompanies: Record<string, boolean> = {};
 
+  showEditGroupModal = false;
+  groupEditForm = {
+    groupId: '',
+    title: '',
+    companyName: ''
+  };
+
   activeWorkspaceTab: WorkspaceTab = 'BUILDER';
 
   constructor(
@@ -894,6 +901,46 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     });
   }
 
+  openEditGroupModal(group: ChallengeGroup): void {
+    this.groupEditForm = {
+      groupId: group.id,
+      title: group.title,
+      companyName: group.companyName
+    };
+    this.showEditGroupModal = true;
+  }
+
+  closeEditGroupModal(): void {
+    this.showEditGroupModal = false;
+    this.groupEditForm = { groupId: '', title: '', companyName: '' };
+  }
+
+  saveGroupEdit(): void {
+    if (!this.groupEditForm.title.trim()) {
+      this.showToast('Group title is required');
+      return;
+    }
+
+    this.saving = true;
+    this.service
+      .updateTrainerChallengeGroup(this.groupEditForm.groupId, {
+        title: this.groupEditForm.title.trim(),
+        companyName: this.groupEditForm.companyName.trim()
+      })
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.showToast('Group updated successfully');
+          this.closeEditGroupModal();
+          this.loadChallenges();
+        },
+        error: () => {
+          this.saving = false;
+          this.showToast('Unable to update group');
+        }
+      });
+  }
+
   closePreview(): void {
     this.selectedChallenge = null;
     this.selectedGroup = null;
@@ -962,7 +1009,7 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       batchId: String(payload?.batchId !== undefined && payload?.batchId !== null ? payload.batchId : fallback.batchId),
       companyName: String(payload?.companyName || fallback.companyName),
       challengeGroupTitle: String(
-        payload?.challengeGroupTitle || payload?.groupTitle || fallback.challengeGroupTitle,
+        payload?.challengeGroupTitle || payload?.groupTitle || fallback.challengeGroupTitle || 'General Challenges',
       ),
       title: String(payload?.title || ''),
       problemStatement: String(payload?.problemStatement || ''),
@@ -1032,8 +1079,10 @@ export class TrainerPseudoChallengesComponent implements OnInit {
       payload.testCases.length > 0 &&
       payload.testCases.every(
         (tc: any) =>
-          String(tc.inputData || '').trim().length > 0 &&
-          String(tc.expectedOutput || '').trim().length > 0 &&
+          tc.inputData !== undefined &&
+          tc.inputData !== null &&
+          tc.expectedOutput !== undefined &&
+          tc.expectedOutput !== null &&
           Number(tc.marks) > 0,
       )
     );

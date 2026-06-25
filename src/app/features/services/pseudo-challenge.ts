@@ -77,7 +77,19 @@ export class PseudoChallengeService {
     return this.http.post(`${this.baseUrl}/student/pseudo-challenges/${id}/save`, payload);
   }
 
+  reviewStudentChallenge(id: number, payload: any) {
+    return this.http.post(`${this.baseUrl}/student/pseudo-challenges/${id}/review`, payload);
+  }
+
+  getStudentAiHints(id: number) {
+    return this.http.get<any>(`${this.baseUrl}/student/pseudo-challenges/${id}/ai-hints`);
+  }
+
   createBulkTrainerChallenges(payload: any[]) {
     return this.http.post(`${this.baseUrl}/trainer/pseudo-challenges/bulk`, payload);
+  }
+
+  updateTrainerChallengeGroup(groupId: string, payload: any) {
+    return this.http.put(`${this.baseUrl}/trainer/pseudo-challenges/groups/${groupId}`, payload);
   }
 }

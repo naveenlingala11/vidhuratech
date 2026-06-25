@@ -4,6 +4,7 @@ import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { CodeLanguage, PseudoChallengeService } from '../../services/pseudo-challenge';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 interface LanguageOption {
   label: string;
   value: CodeLanguage;
@@ -46,6 +47,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   compilerDiagnostics: CompilerDiagnostic[] = [];
   localDiagnostics: CompilerDiagnostic[] = [];
   validationErrors: string[] = [];
+
+  showAiSidebar = false;
+  aiReviewLoading = false;
+  aiReviewHtml: SafeHtml | null = null;
 
   private readonly maxSourceChars = 20000;
   private readonly maxSourceLines = 600;
@@ -297,10 +302,15 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   hintUnlockSeconds = 30;
   private hintUnlockTimer: any;
 
+  generatedAiHints: string[] = [];
+  aiHintsLoading = false;
+  aiHintsError = '';
+
   constructor(
     private service: PseudoChallengeService,
     private route: ActivatedRoute,
     private router: Router,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -1838,6 +1848,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
   }
 
   get hintSteps(): string[] {
+    if (this.generatedAiHints && this.generatedAiHints.length > 0) {
+      return this.generatedAiHints;
+    }
+
     const hintText = this.selectedChallenge?.hintText || '';
 
     if (!hintText.trim()) {
@@ -1857,6 +1871,10 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
     this.showHintPanel = false;
     this.hintUnlockSeconds = 30;
 
+    this.generatedAiHints = [];
+    this.aiHintsError = '';
+    this.aiHintsLoading = false;
+
     this.hintUnlockTimer = setInterval(() => {
       this.hintUnlockSeconds--;
 
@@ -1870,12 +1888,49 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       }
     }, 1000);
   }
+
+  loadAiHints(): void {
+    if (!this.selectedChallenge || !this.selectedChallenge.id) {
+      return;
+    }
+
+    this.aiHintsLoading = true;
+    this.aiHintsError = '';
+
+    this.service.getStudentAiHints(this.selectedChallenge.id).subscribe({
+      next: (res: any) => {
+        this.aiHintsLoading = false;
+        if (res && res.success && res.data && res.data.hints) {
+          const rawHints = res.data.hints || '';
+          this.generatedAiHints = rawHints
+            .split(/\r?\n\r?\n|\r?\n/)
+            .map((h: string) => h.trim())
+            .filter((h: string) => h.length > 0 && !h.match(/^\d+\.\s*/));
+        } else {
+          this.aiHintsError = 'Failed to generate AI hints. Please try again.';
+        }
+      },
+      error: (err: any) => {
+        this.aiHintsLoading = false;
+        this.aiHintsError = 'Error connecting to the server. Please try again.';
+        console.error('Error fetching AI hints:', err);
+      }
+    });
+  }
+
   toggleHintPanel(): void {
     if (!this.hintUnlocked) {
       return;
     }
 
     this.showHintPanel = !this.showHintPanel;
+
+    if (this.showHintPanel) {
+      const dbHintText = this.selectedChallenge?.hintText || '';
+      if (!dbHintText.trim() && this.generatedAiHints.length === 0) {
+        this.loadAiHints();
+      }
+    }
   }
 
   get hintProgress(): number {
@@ -2151,5 +2206,132 @@ export class StudentPseudoChallengeLabComponent implements OnInit, OnDestroy {
       clearInterval(this.successCountdownTimer);
       this.closeCompiler();
     }, 3200);
+  }
+
+  askAiReviewer(): void {
+    if (!this.selectedChallenge?.id) return;
+
+    this.showAiSidebar = true;
+    this.aiReviewLoading = true;
+    this.aiReviewHtml = null;
+
+    const payload = {
+      sourceCode: this.sourceCode,
+      language: this.language
+    };
+
+    this.service.reviewStudentChallenge(this.selectedChallenge.id, payload).subscribe({
+      next: (res: any) => {
+        const reviewText = res?.data?.review || '';
+        this.aiReviewHtml = this.parseMarkdown(reviewText);
+        this.aiReviewLoading = false;
+      },
+      error: (err: any) => {
+        this.aiReviewLoading = false;
+        const errMsg = err?.error?.message || 'Error occurred while contacting the AI Reviewer. Please try again.';
+        this.aiReviewHtml = this.sanitizer.bypassSecurityTrustHtml(
+          `<div class="ai-error-box">
+            <i class="fa fa-exclamation-triangle mr-2"></i> ${errMsg}
+          </div>`
+        );
+      }
+    });
+  }
+
+  closeAiSidebar(): void {
+    this.showAiSidebar = false;
+  }
+
+  parseMarkdown(md: string): SafeHtml {
+    if (!md) return this.sanitizer.bypassSecurityTrustHtml('');
+
+    const lines = md.split('\n');
+    let html = '';
+    let inList = false;
+    let inCodeBlock = false;
+    let codeBlockContent: string[] = [];
+    let codeLanguage = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Code Block detection
+      if (line.trim().startsWith('```')) {
+        if (inCodeBlock) {
+          inCodeBlock = false;
+          const codeText = codeBlockContent.join('\n')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          html += `<pre class="ai-code-block language-${codeLanguage}"><code>${codeText}</code></pre>`;
+          codeBlockContent = [];
+          codeLanguage = '';
+        } else {
+          inCodeBlock = true;
+          codeLanguage = line.trim().slice(3).trim().toLowerCase();
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeBlockContent.push(line);
+        continue;
+      }
+
+      // Escape line to prevent injection
+      line = line
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Replace symbols with Safe HTML equivalents
+      line = line.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+      line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+      // Headings
+      if (line.startsWith('### ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<h4 class="ai-h4">${line.substring(4).trim()}</h4>`;
+      } else if (line.startsWith('## ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<h3 class="ai-h3">${line.substring(3).trim()}</h3>`;
+      } else if (line.startsWith('# ')) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<h2 class="ai-h2">${line.substring(2).trim()}</h2>`;
+      }
+      // Lists
+      else if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        if (!inList) {
+          html += '<ul class="ai-list">';
+          inList = true;
+        }
+        const content = line.trim().substring(2).trim();
+        html += `<li>${content}</li>`;
+      }
+      // Paragraph or empty line
+      else {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        if (line.trim()) {
+          html += `<p class="ai-p">${line}</p>`;
+        }
+      }
+    }
+
+    if (inList) {
+      html += '</ul>';
+    }
+    if (inCodeBlock && codeBlockContent.length > 0) {
+      const codeText = codeBlockContent.join('\n')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      html += `<pre class="ai-code-block language-${codeLanguage}"><code>${codeText}</code></pre>`;
+    }
+
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }

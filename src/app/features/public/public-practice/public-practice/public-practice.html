@@ -102,24 +102,29 @@
       </div>
     </section>
 
-    <!-- Daily Streak / Progress Mock -->
+    <!-- Daily Streak / Progress -->
     <section class="daily-streak-section animate-slide-up" style="animation-delay: 0.15s;">
       <div class="streak-card">
         <div class="streak-info">
-          <div class="streak-icon"><i class="fa-solid fa-fire"></i></div>
+          <div class="streak-icon" [class.active]="isLoggedIn && calculatedStreak > 0">
+            <i class="fa-solid fa-fire"></i>
+          </div>
           <div>
-            <h3>3 Day Streak</h3>
-            <p>Solve 1 more challenge today to keep your streak alive!</p>
+            <h3>{{ isLoggedIn ? calculatedStreak : 0 }} Day{{ (isLoggedIn ? calculatedStreak : 0) === 1 ? '' : 's' }} Streak</h3>
+            <p>{{ streakMessage }}</p>
           </div>
         </div>
         <div class="streak-days">
-          <div class="streak-day active"><span>M</span><i class="fa-solid fa-check"></i></div>
-          <div class="streak-day active"><span>T</span><i class="fa-solid fa-check"></i></div>
-          <div class="streak-day active"><span>W</span><i class="fa-solid fa-check"></i></div>
-          <div class="streak-day current"><span>T</span><i></i></div>
-          <div class="streak-day"><span>F</span><i></i></div>
-          <div class="streak-day"><span>S</span><i></i></div>
-          <div class="streak-day"><span>S</span><i></i></div>
+          <div 
+            *ngFor="let day of weeklyStreakDays" 
+            class="streak-day" 
+            [class.active]="isLoggedIn && day.active" 
+            [class.current]="day.isToday"
+          >
+            <span>{{ day.label }}</span>
+            <i *ngIf="isLoggedIn && day.active" class="fa-solid fa-check"></i>
+            <i *ngIf="!isLoggedIn || !day.active"></i>
+          </div>
         </div>
       </div>
     </section>
@@ -167,6 +172,21 @@
           <option value="ASSESSMENT">Mock Tests</option>
           <option value="CHALLENGE">Coding Challenges</option>
         </select>
+
+        <select [(ngModel)]="selectedAccess" (ngModelChange)="resetPage()" class="premium-select">
+          <option value="ALL">All Access Tiers</option>
+          <option value="FREE">Free Attempt</option>
+          <option value="PREMIUM">Premium Lock</option>
+        </select>
+
+        <select [(ngModel)]="sortBy" (ngModelChange)="resetPage()" class="premium-select">
+          <option value="LATEST">Sort: Latest</option>
+          <option value="TITLE">Sort: Title (A-Z)</option>
+          <option value="MARKS_DESC">Sort: Marks (High &rarr; Low)</option>
+          <option value="MARKS_ASC">Sort: Marks (Low &rarr; High)</option>
+          <option value="DURATION_DESC">Sort: Duration (Longest)</option>
+          <option value="DURATION_ASC">Sort: Duration (Shortest)</option>
+        </select>
       </div>
     </section>
 
@@ -187,10 +207,13 @@
         <div class="card-accent" [attr.data-level]="getChallengeDifficulty(item.totalMarks)"></div>
 
         <div class="card-header">
-          <span class="company-tag">
-            <img *ngIf="companyLogo(item.company)" [src]="companyLogo(item.company)" [alt]="item.company" />
-            <i *ngIf="!companyLogo(item.company)" class="fa-solid fa-building"></i>
+          <span class="company-tag" *ngIf="item.company">
+            <img [src]="companyLogo(item.company)" [alt]="item.company" (error)="$any($event.target).src = 'VidhuraTechIcon.png'" />
             {{ item.company }}
+          </span>
+          <span class="company-tag" *ngIf="!item.company">
+            <i class="fa-solid fa-building"></i>
+            Practice
           </span>
 
           <span class="difficulty-tag" [attr.data-level]="getChallengeDifficulty(item.totalMarks)">
@@ -241,20 +264,52 @@
       </article>
     </section>
 
-    <!-- Pagination -->
-    <nav class="pagination" *ngIf="totalPages > 1">
-      <button type="button" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
-        <i class="fa-solid fa-chevron-left"></i>
-      </button>
+    <!-- Premium Pagination Toolbar -->
+    <footer class="premium-pagination-bar animate-fade-in" *ngIf="totalPages > 1">
+      <div class="pagination-summary">
+        <span>Showing page <strong>{{ currentPage }}</strong> of <strong>{{ totalPages }}</strong></span>
+        <span class="pagination-meta">Total {{ filteredItems.length }} practice items found</span>
+      </div>
 
-      <button type="button" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="setPage(page)">
-        {{ page }}
-      </button>
+      <nav class="pagination-controls">
+        <button
+          type="button"
+          class="nav-step-btn"
+          [disabled]="currentPage === 1"
+          (click)="setPage(currentPage - 1)"
+          title="Previous Page"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
 
-      <button type="button" [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">
-        <i class="fa-solid fa-chevron-right"></i>
-      </button>
-    </nav>
+        <div class="nav-number-buttons">
+          <ng-container *ngFor="let page of visiblePages">
+            <button
+              *ngIf="page !== '...'"
+              type="button"
+              class="nav-number-btn"
+              [class.active]="page === currentPage"
+              (click)="setPage(page)"
+            >
+              {{ page }}
+            </button>
+            <span *ngIf="page === '...'" class="pagination-ellipsis">
+              ...
+            </span>
+          </ng-container>
+        </div>
+
+        <button
+          type="button"
+          class="nav-step-btn"
+          [disabled]="currentPage === totalPages"
+          (click)="setPage(currentPage + 1)"
+          title="Next Page"
+        >
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </nav>
+    </footer>
 
     <!-- Empty State -->
     <section class="empty-state" *ngIf="!filteredItems.length">
@@ -517,13 +572,39 @@
                 Hint unlocks after the timer. Try reading formats and samples first.
               </p>
 
-              <ol *ngIf="hintUnlocked && showHintPanel && hintSteps.length">
-                <li *ngFor="let step of hintSteps">{{ step }}</li>
-              </ol>
+              <!-- Loading State -->
+              <div *ngIf="aiHintsLoading" class="hint-loading-spinner text-center py-4" style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 10px;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Generating Hints...</span>
+                </div>
+                <p class="mt-2 text-muted" style="font-size: 12px; color: #8b949e; margin-top: 8px;">Gemini is analyzing the challenge constraints and formulating guidance...</p>
+              </div>
 
-              <p *ngIf="hintUnlocked && showHintPanel && !hintSteps.length">
-                No hint added for this challenge.
-              </p>
+              <!-- Error State -->
+              <div *ngIf="!aiHintsLoading && aiHintsError" class="alert alert-danger d-flex align-items-center mt-2" role="alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                <div class="flex-grow-1">
+                  {{ aiHintsError }}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadAiHints()" style="padding: 2px 8px; border-radius: 4px; border: 1px solid #f87171; color: #f87171; font-size: 11px; background: transparent;">Retry</button>
+              </div>
+
+              <div *ngIf="hintUnlocked && showHintPanel && !aiHintsLoading && !aiHintsError">
+                <ol *ngIf="hintSteps.length" class="hint-steps-list">
+                  <li *ngFor="let step of hintSteps" class="hint-step-item">{{ step }}</li>
+                </ol>
+
+                <p *ngIf="!hintSteps.length" class="hint-empty-text">
+                  No specific hints have been registered for this challenge. Click below to generate AI hints.
+                </p>
+
+                <!-- Ask AI Button -->
+                <div class="mt-4 text-end" style="margin-top: 16px;">
+                  <button type="button" class="btn-ask-ai-hint" (click)="loadAiHints()" [disabled]="aiHintsLoading" style="padding: 6px 14px; border-radius: 6px; background: linear-gradient(135deg, #a855f7 0%, #388bfd 100%); color: #ffffff; font-weight: 600; font-size: 11px; border: 1px solid rgba(168, 85, 247, 0.2); cursor: pointer; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-robot me-1"></i> Get Fresh AI Hints
+                  </button>
+                </div>
+              </div>
             </section>
 
             <!-- Sample Test Cases (in problem tab) -->
@@ -793,10 +874,6 @@
                 <button type="button" class="tool-btn" (click)="downloadCode()" title="Download Solution Code">
                   <i class="fa-solid fa-download"></i> Download
                 </button>
-                <button type="button" class="tool-btn" (click)="toggleFullScreen()" title="Toggle distraction-free full screen">
-                  <i class="fa-solid" [ngClass]="isFullScreen ? 'fa-compress' : 'fa-expand'"></i>
-                  {{ isFullScreen ? 'Exit Full' : 'Full Screen' }}
-                </button>
                 <button type="button" class="tool-btn danger" (click)="clearCode()" title="Clear editor content">
                   <i class="fa-solid fa-trash-can"></i> Clear
                 </button>
@@ -805,6 +882,9 @@
                 </button>
                 <button type="button" class="tool-btn" (click)="resetCode()" title="Reset to starter code template">
                   <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button type="button" class="tool-btn ai-btn" (click)="askAiReviewer()" title="Ask Gemini to review code">
+                  <i class="fa-solid fa-brain"></i> Ask AI Reviewer
                 </button>
                 <button type="button" class="run-btn" [disabled]="submitting || !!editorSecurityWarning"
                   (click)="runChallenge()">
@@ -879,7 +959,7 @@
 
             <!-- The Monaco Editor -->
             <ngx-monaco-editor class="code-editor premium-code-editor" [options]="editorOptions"
-              [(ngModel)]="sourceCode" (onInit)="onEditorInit($event)">
+              [(ngModel)]="sourceCode" (ngModelChange)="onCodeChange()" (onInit)="onEditorInit($event)">
             </ngx-monaco-editor>
           </div>
 
@@ -1265,4 +1345,48 @@
       </form>
     </div>
   </section>
+
 </div>
+
+  <!-- ═══════════════════ AI CODE REVIEWER SIDEBAR ═══════════════════ -->
+  <aside class="ai-review-sidebar" [class.open]="showAiSidebar">
+    <div class="ai-sidebar-overlay" (click)="closeAiSidebar()"></div>
+    <div class="ai-sidebar-content">
+      <header class="ai-sidebar-header">
+        <div class="ai-header-title">
+          <div class="ai-brain-pulse">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div>
+            <h3>Gemini AI Code Reviewer</h3>
+            <p>Real-time complexity & correctness feedback</p>
+          </div>
+        </div>
+        <button type="button" class="ai-close-btn" (click)="closeAiSidebar()" title="Close Panel">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <div class="ai-sidebar-body">
+        <!-- Loading skeleton state -->
+        <div class="ai-loading-container" *ngIf="aiReviewLoading">
+          <div class="ai-loading-scanner"></div>
+          <div class="ai-skeleton-title"></div>
+          <div class="ai-skeleton-line short"></div>
+          <div class="ai-skeleton-line"></div>
+          <div class="ai-skeleton-line medium"></div>
+          <div class="ai-skeleton-title"></div>
+          <div class="ai-skeleton-line"></div>
+          <div class="ai-skeleton-line short"></div>
+          <div class="ai-loading-text">
+            <span>Analyzing code structure...</span>
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+          </div>
+        </div>
+
+        <!-- Rendered AI Review -->
+        <div class="ai-review-content" *ngIf="!aiReviewLoading && aiReviewHtml" [innerHTML]="aiReviewHtml">
+        </div>
+      </div>
+    </div>
+  </aside>

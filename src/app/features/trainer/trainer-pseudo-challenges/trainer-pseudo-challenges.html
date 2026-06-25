@@ -649,6 +649,9 @@ e.g.
             <button type="button" class="card-btn-action secondary-style" (click)="duplicateGroup(group)">
               <i class="bi bi-copy"></i> Reuse Group
             </button>
+            <button type="button" class="card-btn-action secondary-style" (click)="openEditGroupModal(group)">
+              <i class="bi bi-pencil-square"></i> Edit Group
+            </button>
             <button type="button" class="card-btn-action danger-style" (click)="deleteGroup(group)">
               <i class="bi bi-trash"></i> Delete
             </button>
@@ -779,6 +782,9 @@ e.g.
                   </button>
                   <button type="button" class="action-btn-small" (click)="duplicateGroup(group)">
                     <i class="bi bi-copy"></i> Reuse
+                  </button>
+                  <button type="button" class="action-btn-small text-primary" (click)="openEditGroupModal(group)">
+                    <i class="bi bi-pencil-square"></i> Edit
                   </button>
                   <button type="button" class="action-btn-small text-danger" (click)="deleteGroup(group)">
                     <i class="bi bi-trash"></i>
@@ -1064,5 +1070,39 @@ e.g.
         </div>
       </div>
     </ng-container>
+  </div>
+</div>
+
+<!-- Edit Challenge Group Modal -->
+<div class="edit-group-modal-overlay" *ngIf="showEditGroupModal">
+  <div class="edit-group-modal-card">
+    <h3>
+      <i class="bi bi-pencil-square"></i>
+      <span>Modify Challenge Group</span>
+    </h3>
+
+    <div class="input-field-group">
+      <label>Group Title</label>
+      <div class="input-wrapper-styled">
+        <i class="bi bi-journal-album"></i>
+        <input [(ngModel)]="groupEditForm.title" placeholder="Enter Group Title" />
+      </div>
+    </div>
+
+    <div class="input-field-group">
+      <label>Target Company</label>
+      <div class="input-wrapper-styled">
+        <i class="bi bi-building"></i>
+        <input [(ngModel)]="groupEditForm.companyName" placeholder="Enter Company Name" />
+      </div>
+    </div>
+
+    <div class="modal-card-footer">
+      <button type="button" class="btn-cancel" [disabled]="saving" (click)="closeEditGroupModal()">Cancel</button>
+      <button type="button" class="btn-save" [disabled]="saving" (click)="saveGroupEdit()">
+        <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin-icon' : 'bi-check-lg'"></i>
+        <span>{{ saving ? 'Saving...' : 'Save Changes' }}</span>
+      </button>
+    </div>
   </div>
 </div>
