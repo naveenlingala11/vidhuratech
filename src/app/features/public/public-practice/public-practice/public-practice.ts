@@ -41,6 +41,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   serverCompileErrors: CompilerDiagnostic[] = [];
   selectedTheme = 'vs-dark';
   isFullScreen = false;
+  attemptingItemId: number | null = null;
 
   private editorInstance: any;
   private monacoInstance: any;
@@ -121,6 +122,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     PwC: 'logos/pwc.svg',
     Salesforce: 'logos/salesforce.svg',
     'Tech Mahindra': 'logos/tech-mahindra.svg',
+    Google: 'logos/google.svg',
   };
 
   readonly maxSourceChars = 20000;
@@ -479,9 +481,9 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         (this.selectedCompany === 'ALL' || item.company === this.selectedCompany) &&
         (this.selectedSkill === 'ALL' || item.skill === this.selectedSkill) &&
         (this.selectedType === 'ALL' || item.type === this.selectedType) &&
-        (this.selectedAccess === 'ALL' || 
-         (this.selectedAccess === 'FREE' && this.isLeadRequired(item)) ||
-         (this.selectedAccess === 'PREMIUM' && !this.isLeadRequired(item)))
+        (this.selectedAccess === 'ALL' ||
+          (this.selectedAccess === 'FREE' && this.isLeadRequired(item)) ||
+          (this.selectedAccess === 'PREMIUM' && !this.isLeadRequired(item)))
       );
     });
 
@@ -700,6 +702,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     }
 
     this.submitting = true;
+    this.attemptingItemId = item.id;
 
     this.publicPracticeService
       .registerAuthenticatedAccess({
@@ -709,6 +712,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           this.submitting = false;
+          this.attemptingItemId = null;
 
           const grant = res?.data as PracticeGrant;
 
@@ -741,6 +745,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.submitting = false;
+          this.attemptingItemId = null;
           this.loading = false;
 
           const message =
@@ -860,6 +865,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
     if (this.isPremiumItem(item)) {
       if (this.isLoggedIn) {
+        this.attemptingItemId = item.id;
         this.unlockAuthenticatedAccess({ ...item, type });
         return;
       }
@@ -876,6 +882,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
     if (this.isAccountOnlyItem(item)) {
       if (this.isLoggedIn) {
+        this.attemptingItemId = item.id;
         this.unlockAuthenticatedAccess({ ...item, type });
         return;
       }
@@ -896,6 +903,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.pendingItem = { ...item, type };
 
     if (this.isLoggedIn) {
+      this.attemptingItemId = item.id;
       this.unlockAuthenticatedAccess(this.pendingItem);
       return;
     }
@@ -914,11 +922,13 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       this.workspaceUnlocked = true;
 
       if (type === 'ASSESSMENT') {
+        this.attemptingItemId = item.id;
         this.router.navigate(['/practice', 'assessment', item.id]);
         return;
       }
 
       if (type === 'CHALLENGE') {
+        this.attemptingItemId = item.id;
         this.router.navigate(['/practice', 'challenge', item.id]);
         return;
       }
@@ -977,6 +987,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     }
 
     this.submitting = true;
+    this.attemptingItemId = item.id;
 
     this.publicPracticeService
       .registerAccess({
@@ -993,6 +1004,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           this.submitting = false;
+          this.attemptingItemId = null;
 
           const grant = res?.data as PracticeGrant;
 
@@ -1017,6 +1029,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.submitting = false;
+          this.attemptingItemId = null;
 
           const message =
             err?.error?.message ||
@@ -1784,7 +1797,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     if (this.editorInstance.getValue() !== this.sourceCode) {
       this.editorInstance.updateOptions({ readOnly: false });
       this.editorInstance.setValue(this.sourceCode || '');
-      
+
       const model = this.editorInstance.getModel();
       const range = this.getEditableRange(model);
       if (range) {
@@ -2097,7 +2110,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       if (!realTrimmed || realTrimmed.startsWith('//') || realTrimmed.startsWith('*')) return;
 
       const statementOnly = trimmed.split('//')[0].trim();
-      
+
       // Check Java imports
       if (statementOnly.startsWith('import ')) {
         const allowedJavaPackages = [
@@ -2105,7 +2118,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
         ];
         const importPath = statementOnly.slice(7).replace(';', '').trim();
         const rootPkg = importPath.split('.').slice(0, 2).join('.');
-        
+
         if (!allowedJavaPackages.includes(rootPkg) && !importPath.startsWith('static ')) {
           diagnostics.push({
             line: lineNumber,
@@ -3802,9 +3815,9 @@ tokens = input.empty? ? [] : input.split
     try {
       const historyJson = localStorage.getItem('vt_login_history');
       let history: string[] = historyJson ? JSON.parse(historyJson) : [];
-      
+
       const today = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
-      
+
       if (!history.includes(today)) {
         history.push(today);
         history = history.sort().slice(-60);
@@ -3818,21 +3831,21 @@ tokens = input.empty? ? [] : input.split
 
   get calculatedStreak(): number {
     if (this.loginHistory.length === 0) return 0;
-    
+
     const sorted = [...this.loginHistory].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    
+
     const todayStr = new Date().toLocaleDateString('en-CA');
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toLocaleDateString('en-CA');
-    
+
     if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) {
       return 0;
     }
-    
+
     let streak = 0;
     const currentCheck = new Date(sorted[0]);
-    
+
     while (true) {
       const currentCheckStr = currentCheck.toLocaleDateString('en-CA');
       if (sorted.includes(currentCheckStr)) {
@@ -3848,23 +3861,23 @@ tokens = input.empty? ? [] : input.split
   get weeklyStreakDays(): { label: string; active: boolean; isToday: boolean }[] {
     const history = this.loginHistory || [];
     const today = new Date();
-    
+
     const currentDay = today.getDay();
     const mondayDiff = currentDay === 0 ? -6 : 1 - currentDay;
-    
+
     const monday = new Date(today);
     monday.setDate(today.getDate() + mondayDiff);
-    
+
     const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const list = [];
-    
+
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const dateStr = d.toLocaleDateString('en-CA');
       const isToday = d.toDateString() === today.toDateString();
       const active = history.includes(dateStr);
-      
+
       list.push({
         label: labels[i],
         active,
@@ -3879,15 +3892,15 @@ tokens = input.empty? ? [] : input.split
     try {
       const solvedDatesJson = localStorage.getItem('vt_challenges_solved_dates');
       let solvedDates: string[] = solvedDatesJson ? JSON.parse(solvedDatesJson) : [];
-      
+
       const today = new Date().toLocaleDateString('en-CA');
-      
+
       if (!solvedDates.includes(today)) {
         solvedDates.push(today);
         solvedDates = solvedDates.sort().slice(-60);
         localStorage.setItem('vt_challenges_solved_dates', JSON.stringify(solvedDates));
       }
-    } catch {}
+    } catch { }
   }
 
   get isChallengeSolvedToday(): boolean {
