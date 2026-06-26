@@ -110,17 +110,14 @@
             <i class="fa-solid fa-fire"></i>
           </div>
           <div>
-            <h3>{{ isLoggedIn ? calculatedStreak : 0 }} Day{{ (isLoggedIn ? calculatedStreak : 0) === 1 ? '' : 's' }} Streak</h3>
+            <h3>{{ isLoggedIn ? calculatedStreak : 0 }} Day{{ (isLoggedIn ? calculatedStreak : 0) === 1 ? '' : 's' }}
+              Streak</h3>
             <p>{{ streakMessage }}</p>
           </div>
         </div>
         <div class="streak-days">
-          <div 
-            *ngFor="let day of weeklyStreakDays" 
-            class="streak-day" 
-            [class.active]="isLoggedIn && day.active" 
-            [class.current]="day.isToday"
-          >
+          <div *ngFor="let day of weeklyStreakDays" class="streak-day" [class.active]="isLoggedIn && day.active"
+            [class.current]="day.isToday">
             <span>{{ day.label }}</span>
             <i *ngIf="isLoggedIn && day.active" class="fa-solid fa-check"></i>
             <i *ngIf="!isLoggedIn || !day.active"></i>
@@ -208,7 +205,8 @@
 
         <div class="card-header">
           <span class="company-tag" *ngIf="item.company">
-            <img [src]="companyLogo(item.company)" [alt]="item.company" (error)="$any($event.target).src = 'VidhuraTechIcon.png'" />
+            <img [src]="companyLogo(item.company)" [alt]="item.company"
+              (error)="$any($event.target).src = 'VidhuraTechIcon.png'" />
             {{ item.company }}
           </span>
           <span class="company-tag" *ngIf="!item.company">
@@ -253,10 +251,16 @@
           </div>
         </div>
 
-        <button class="attempt-btn" [class.disabled]="!isLeadRequired(item)" [disabled]="!isLeadRequired(item)"
-          (click)="openLeadModal(item)">
-          <span>{{ isLeadRequired(item) ? 'Attempt Now' : 'Premium Lock' }}</span>
-          <i [class]="isLeadRequired(item) ? 'fa-solid fa-arrow-right' : 'fa-solid fa-lock'"></i>
+        <button class="attempt-btn" [class.disabled]="!isLeadRequired(item) || submitting"
+          [disabled]="!isLeadRequired(item) || submitting" (click)="openLeadModal(item)">
+          <ng-container *ngIf="attemptingItemId === item.id && submitting; else normalBtn">
+            <span>Preparing...</span>
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+          </ng-container>
+          <ng-template #normalBtn>
+            <span>{{ isLeadRequired(item) ? 'Attempt Now' : 'Premium Lock' }}</span>
+            <i [class]="isLeadRequired(item) ? 'fa-solid fa-arrow-right' : 'fa-solid fa-lock'"></i>
+          </ng-template>
         </button>
         <small class="policy-note" *ngIf="!isLeadRequired(item)">
           {{ accessPolicyMessage(item) }}
@@ -272,25 +276,15 @@
       </div>
 
       <nav class="pagination-controls">
-        <button
-          type="button"
-          class="nav-step-btn"
-          [disabled]="currentPage === 1"
-          (click)="setPage(currentPage - 1)"
-          title="Previous Page"
-        >
+        <button type="button" class="nav-step-btn" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)"
+          title="Previous Page">
           <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <div class="nav-number-buttons">
           <ng-container *ngFor="let page of visiblePages">
-            <button
-              *ngIf="page !== '...'"
-              type="button"
-              class="nav-number-btn"
-              [class.active]="page === currentPage"
-              (click)="setPage(page)"
-            >
+            <button *ngIf="page !== '...'" type="button" class="nav-number-btn" [class.active]="page === currentPage"
+              (click)="setPage(page)">
               {{ page }}
             </button>
             <span *ngIf="page === '...'" class="pagination-ellipsis">
@@ -299,13 +293,8 @@
           </ng-container>
         </div>
 
-        <button
-          type="button"
-          class="nav-step-btn"
-          [disabled]="currentPage === totalPages"
-          (click)="setPage(currentPage + 1)"
-          title="Next Page"
-        >
+        <button type="button" class="nav-step-btn" [disabled]="currentPage === totalPages"
+          (click)="setPage(currentPage + 1)" title="Next Page">
           <i class="fa-solid fa-chevron-right"></i>
         </button>
       </nav>
@@ -577,20 +566,25 @@
               </p>
 
               <!-- Loading State -->
-              <div *ngIf="aiHintsLoading" class="hint-loading-spinner text-center py-4" style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 10px;">
+              <div *ngIf="aiHintsLoading" class="hint-loading-spinner text-center py-4"
+                style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 10px;">
                 <div class="spinner-border text-primary" role="status">
                   <span class="visually-hidden">Generating Hints...</span>
                 </div>
-                <p class="mt-2 text-muted" style="font-size: 12px; color: #8b949e; margin-top: 8px;">Gemini is analyzing the challenge constraints and formulating guidance...</p>
+                <p class="mt-2 text-muted" style="font-size: 12px; color: #8b949e; margin-top: 8px;">Gemini is analyzing
+                  the challenge constraints and formulating guidance...</p>
               </div>
 
               <!-- Error State -->
-              <div *ngIf="!aiHintsLoading && aiHintsError" class="alert alert-danger d-flex align-items-center mt-2" role="alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
+              <div *ngIf="!aiHintsLoading && aiHintsError" class="alert alert-danger d-flex align-items-center mt-2"
+                role="alert"
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 8px; padding: 12px 16px; font-size: 13px;">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
                 <div class="flex-grow-1">
                   {{ aiHintsError }}
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadAiHints()" style="padding: 2px 8px; border-radius: 4px; border: 1px solid #f87171; color: #f87171; font-size: 11px; background: transparent;">Retry</button>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadAiHints()"
+                  style="padding: 2px 8px; border-radius: 4px; border: 1px solid #f87171; color: #f87171; font-size: 11px; background: transparent;">Retry</button>
               </div>
 
               <div *ngIf="hintUnlocked && showHintPanel && !aiHintsLoading && !aiHintsError">
@@ -604,7 +598,8 @@
 
                 <!-- Ask AI Button -->
                 <div class="mt-4 text-end" style="margin-top: 16px;">
-                  <button type="button" class="btn-ask-ai-hint" (click)="loadAiHints()" [disabled]="aiHintsLoading" style="padding: 6px 14px; border-radius: 6px; background: linear-gradient(135deg, #a855f7 0%, #388bfd 100%); color: #ffffff; font-weight: 600; font-size: 11px; border: 1px solid rgba(168, 85, 247, 0.2); cursor: pointer; transition: all 0.2s ease;">
+                  <button type="button" class="btn-ask-ai-hint" (click)="loadAiHints()" [disabled]="aiHintsLoading"
+                    style="padding: 6px 14px; border-radius: 6px; background: linear-gradient(135deg, #a855f7 0%, #388bfd 100%); color: #ffffff; font-weight: 600; font-size: 11px; border: 1px solid rgba(168, 85, 247, 0.2); cursor: pointer; transition: all 0.2s ease;">
                     <i class="fa-solid fa-robot me-1"></i> Get Fresh AI Hints
                   </button>
                 </div>
@@ -868,9 +863,11 @@
                 </select>
 
                 <div class="font-adjusters">
-                  <button type="button" class="font-btn" (click)="decreaseFontSize()" title="Decrease Font Size">A-</button>
+                  <button type="button" class="font-btn" (click)="decreaseFontSize()"
+                    title="Decrease Font Size">A-</button>
                   <span class="font-size-indicator">{{ editorOptions.fontSize }}px</span>
-                  <button type="button" class="font-btn" (click)="increaseFontSize()" title="Increase Font Size">A+</button>
+                  <button type="button" class="font-btn" (click)="increaseFontSize()"
+                    title="Increase Font Size">A+</button>
                 </div>
               </div>
 
@@ -887,7 +884,8 @@
                 <button type="button" class="tool-btn" (click)="resetCode()" title="Reset to starter code template">
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
-                <button type="button" class="tool-btn ai-btn" (click)="askAiReviewer()" title="Ask Gemini to review code">
+                <button type="button" class="tool-btn ai-btn" (click)="askAiReviewer()"
+                  title="Ask Gemini to review code">
                   <i class="fa-solid fa-brain"></i> Ask AI Reviewer
                 </button>
                 <button type="button" class="run-btn" [disabled]="submitting || !!editorSecurityWarning"
@@ -925,14 +923,17 @@
                   <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
                   <span>Problems & Diagnostics ({{ compilerDiagnostics.length }})</span>
                 </div>
-                <button type="button" class="clear-diagnostics-btn" *ngIf="serverCompileErrors.length" (click)="clearServerDiagnostics()">
+                <button type="button" class="clear-diagnostics-btn" *ngIf="serverCompileErrors.length"
+                  (click)="clearServerDiagnostics()">
                   Clear Compile Errors
                 </button>
               </div>
               <div class="diagnostics-list">
-                <div class="diagnostic-item" *ngFor="let error of compilerDiagnostics" (click)="goToDiagnostic(error)" [class.clickable]="error.line">
+                <div class="diagnostic-item" *ngFor="let error of compilerDiagnostics" (click)="goToDiagnostic(error)"
+                  [class.clickable]="error.line">
                   <div class="diag-meta">
-                    <span class="loc-badge" *ngIf="error.line">Line {{ error.line }}<span *ngIf="error.column">, Col {{ error.column }}</span></span>
+                    <span class="loc-badge" *ngIf="error.line">Line {{ error.line }}<span *ngIf="error.column">, Col {{
+                        error.column }}</span></span>
                     <span class="loc-badge" *ngIf="!error.line">General</span>
                   </div>
                   <pre class="diag-text">{{ error.message }}</pre>
@@ -1029,11 +1030,11 @@
                     <textarea class="custom-input-textarea" [(ngModel)]="customInputText"
                       placeholder="Type custom test case input..."></textarea>
                   </div>
-                  
+
                   <!-- Execution Results -->
                   <div class="custom-result-wrapper">
                     <div class="console-label">Execution Output:</div>
-                    
+
                     <div class="custom-result-empty" *ngIf="!customRunResult && !submitting">
                       <i class="fa-solid fa-terminal"></i>
                       <span>Run your code to see the custom execution output.</span>
@@ -1045,24 +1046,26 @@
                       </div>
                       <span>Executing custom test case...</span>
                     </div>
-                    
+
                     <div class="custom-result-card" *ngIf="customRunResult && !submitting">
-                      <div class="result-header" [class.success]="customRunResult.status === 'SUCCESS'" [class.fail]="customRunResult.status === 'FAIL'">
+                      <div class="result-header" [class.success]="customRunResult.status === 'SUCCESS'"
+                        [class.fail]="customRunResult.status === 'FAIL'">
                         <span class="status-badge">
-                          <i class="fa-solid" [ngClass]="customRunResult.status === 'SUCCESS' ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+                          <i class="fa-solid"
+                            [ngClass]="customRunResult.status === 'SUCCESS' ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
                           {{ customRunResult.status === 'SUCCESS' ? 'SUCCESS' : 'FAIL' }}
                         </span>
                         <span class="runtime-badge" *ngIf="customRunResult.executionTimeMs">
                           <i class="fa-regular fa-clock"></i> {{ customRunResult.executionTimeMs }} ms
                         </span>
                       </div>
-                      
+
                       <div class="result-body">
                         <div class="result-row" *ngIf="customRunResult.errorMessage">
                           <label>Compiler / Execution Error</label>
                           <pre class="error-output">{{ customRunResult.errorMessage }}</pre>
                         </div>
-                        
+
                         <div class="result-row" *ngIf="!customRunResult.errorMessage">
                           <label>Standard Output (Stdout)</label>
                           <pre class="stdout-output">{{ customRunResult.actualOutput || '(No output)' }}</pre>
@@ -1114,7 +1117,8 @@
                     [class.pass]="item.status === 'PASS'" [class.fail]="item.status !== 'PASS'">
                     <header>
                       <strong>Test {{ i + 1 }}</strong>
-                      <span>{{ item.status }}<span class="metrics-time" *ngIf="item.executionTimeMs != null"> • {{ item.executionTimeMs }}ms</span></span>
+                      <span>{{ item.status }}<span class="metrics-time" *ngIf="item.executionTimeMs != null"> • {{
+                          item.executionTimeMs }}ms</span></span>
                     </header>
                     <div class="case-row">
                       <label>Input</label>
@@ -1133,7 +1137,8 @@
                       [class.pass]="item.status === 'PASS'" [class.fail]="item.status !== 'PASS'">
                       <b>Test {{ i + 4 }}</b>
                       <span>{{ hiddenTestStatusIcon(item) }}</span>
-                      <strong>{{ item.status }}<span class="metrics-time-small" *ngIf="item.executionTimeMs != null"> ({{ item.executionTimeMs }}ms)</span></strong>
+                      <strong>{{ item.status }}<span class="metrics-time-small" *ngIf="item.executionTimeMs != null">
+                          ({{ item.executionTimeMs }}ms)</span></strong>
                     </article>
                   </div>
                 </div>
@@ -1180,7 +1185,7 @@
           <p>Handpicked recommendations based on topic and target companies.</p>
         </div>
       </div>
-      
+
       <div class="suggestions-grid">
         <article class="suggestion-card" *ngFor="let sug of similarSuggestions" (click)="navigateToSuggestion(sug)">
           <div class="sug-accent" [attr.data-level]="getChallengeDifficulty(sug.totalMarks)"></div>
@@ -1352,45 +1357,45 @@
 
 </div>
 
-  <!-- ═══════════════════ AI CODE REVIEWER SIDEBAR ═══════════════════ -->
-  <aside class="ai-review-sidebar" [class.open]="showAiSidebar">
-    <div class="ai-sidebar-overlay" (click)="closeAiSidebar()"></div>
-    <div class="ai-sidebar-content">
-      <header class="ai-sidebar-header">
-        <div class="ai-header-title">
-          <div class="ai-brain-pulse">
-            <i class="fa-solid fa-brain"></i>
-          </div>
-          <div>
-            <h3>Gemini AI Code Reviewer</h3>
-            <p>Real-time complexity & correctness feedback</p>
-          </div>
+<!-- ═══════════════════ AI CODE REVIEWER SIDEBAR ═══════════════════ -->
+<aside class="ai-review-sidebar" [class.open]="showAiSidebar">
+  <div class="ai-sidebar-overlay" (click)="closeAiSidebar()"></div>
+  <div class="ai-sidebar-content">
+    <header class="ai-sidebar-header">
+      <div class="ai-header-title">
+        <div class="ai-brain-pulse">
+          <i class="fa-solid fa-brain"></i>
         </div>
-        <button type="button" class="ai-close-btn" (click)="closeAiSidebar()" title="Close Panel">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </header>
-
-      <div class="ai-sidebar-body">
-        <!-- Loading skeleton state -->
-        <div class="ai-loading-container" *ngIf="aiReviewLoading">
-          <div class="ai-loading-scanner"></div>
-          <div class="ai-skeleton-title"></div>
-          <div class="ai-skeleton-line short"></div>
-          <div class="ai-skeleton-line"></div>
-          <div class="ai-skeleton-line medium"></div>
-          <div class="ai-skeleton-title"></div>
-          <div class="ai-skeleton-line"></div>
-          <div class="ai-skeleton-line short"></div>
-          <div class="ai-loading-text">
-            <span>Analyzing code structure...</span>
-            <i class="fa-solid fa-circle-notch fa-spin"></i>
-          </div>
-        </div>
-
-        <!-- Rendered AI Review -->
-        <div class="ai-review-content" *ngIf="!aiReviewLoading && aiReviewHtml" [innerHTML]="aiReviewHtml">
+        <div>
+          <h3>Gemini AI Code Reviewer</h3>
+          <p>Real-time complexity & correctness feedback</p>
         </div>
       </div>
+      <button type="button" class="ai-close-btn" (click)="closeAiSidebar()" title="Close Panel">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+
+    <div class="ai-sidebar-body">
+      <!-- Loading skeleton state -->
+      <div class="ai-loading-container" *ngIf="aiReviewLoading">
+        <div class="ai-loading-scanner"></div>
+        <div class="ai-skeleton-title"></div>
+        <div class="ai-skeleton-line short"></div>
+        <div class="ai-skeleton-line"></div>
+        <div class="ai-skeleton-line medium"></div>
+        <div class="ai-skeleton-title"></div>
+        <div class="ai-skeleton-line"></div>
+        <div class="ai-skeleton-line short"></div>
+        <div class="ai-loading-text">
+          <span>Analyzing code structure...</span>
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+        </div>
+      </div>
+
+      <!-- Rendered AI Review -->
+      <div class="ai-review-content" *ngIf="!aiReviewLoading && aiReviewHtml" [innerHTML]="aiReviewHtml">
+      </div>
     </div>
-  </aside>
+  </div>
+</aside>
