@@ -155,7 +155,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     private studentWorkflowService: StudentWorkflowService,
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any): void {
@@ -213,7 +213,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     localStorage.removeItem('vidhuratech_session_mic');
     localStorage.removeItem('vidhuratech_session_cam');
     localStorage.removeItem('vidhuratech_session_language');
-    
+
     // Automatically enable interviewer mode for non-student roles
     this.isInterviewerMode = ['MENTOR', 'TRAINER', 'ADMIN', 'SUPER_ADMIN', 'HR', 'MANAGER'].includes(this.userRole);
 
@@ -254,8 +254,8 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
 
             const hostEmail = session.trainerEmail;
             this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail &&
-                                      this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
-                                      || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
+              this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
+              || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
 
             if (isEnded || isExpired) {
               if (!this.isCurrentUserHost) {
@@ -306,7 +306,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setScratchpadLanguageTemplate(lang: string): void {
     const defaultMsg = "Write code or paste questions here during the interview...";
-    switch(lang.toLowerCase()) {
+    switch (lang.toLowerCase()) {
       case 'python':
         this.scratchpadText = `# ${defaultMsg}\n\ndef hello_world():\n    print("Welcome to VidhuraTech Mock Interview!")\n`;
         break;
@@ -391,14 +391,14 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           const hostEmail = session.trainerEmail;
-          this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail && 
-                                    this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
-                                    || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
+          this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail &&
+            this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
+            || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
 
           if (isEnded || isExpired) {
             if (!this.isCurrentUserHost) {
               this.isBlocked = true;
-              this.blockReason = isEnded 
+              this.blockReason = isEnded
                 ? 'This meeting ID has already been used and completed. Only the host can access this workspace to review logs.'
                 : 'This meeting invitation has expired. Please coordinate with the host to schedule a new mock interview session.';
               this.toastr.error(this.blockReason);
@@ -431,7 +431,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
         this.prejoinMicEnabled = true;
         this.addLog('Camera and microphone permissions granted in lobby.', 'success');
         this.cdr.detectChanges();
-        
+
         // Bind to video element
         setTimeout(() => {
           const videoEl = document.getElementById('prejoin-camera-preview') as HTMLVideoElement;
@@ -466,10 +466,10 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.loading = false;
-    
+
     // Check if user previously joined this meeting session to support auto-join on refresh
     const hasJoinedBefore = typeof window !== 'undefined' && sessionStorage.getItem('vidhuratech_joined_session_' + this.roomName) === 'true';
-    
+
     if (hasJoinedBefore && (!this.isGuest || this.guestNameEntered)) {
       this.showPrejoinLobby = false;
       this.joinFromLobby();
@@ -524,7 +524,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stopCameraPreview();
     this.showPrejoinLobby = false;
     this.addLog(`Joining meeting with Mic: ${this.prejoinMicEnabled ? 'ON' : 'OFF'}, Camera: ${this.prejoinCamEnabled ? 'ON' : 'OFF'}`, 'info');
-    
+
     // Sync initial meeting mute states
     this.isMicMuted = !this.prejoinMicEnabled;
     this.isCamMuted = !this.prejoinCamEnabled;
@@ -672,7 +672,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       this.addLog('Instantiating JitsiMeetExternalAPI iframe...', 'info');
       this.jitsiAPI = new (window as any).JitsiMeetExternalAPI(domain, options);
-      
+
       this.connectionStatusSteps[1].status = 'success';
       this.addLog('Jitsi Meet iframe initialized and loaded successfully.', 'success');
       this.connectionStatusSteps[2].status = 'process';
@@ -952,7 +952,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.mockSessionId && (this.isInterviewer || this.isCurrentUserHost)) {
       const chatTranscript = this.getChatTranscript();
       const sessionSummary = this.getSessionSummaryText();
-      
+
       let actualDuration = 0;
       if (this.meetingStartTimestamp) {
         const now = new Date();
@@ -989,15 +989,15 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.jitsiAPI.dispose();
       this.jitsiAPI = null;
     }
-    
+
     // 2. Stop local recording if running
     if (this.isRecording) {
       this.stopLocalRecording();
     }
-    
+
     // 3. Clean up stream preview just in case
     this.stopCameraPreview();
-    
+
     // 4. Set state to show the post-meeting page
     this.meetingEnded = true;
     this.cdr.detectChanges();
@@ -1078,7 +1078,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.isSubmittingFeedback = true;
-    
+
     const scoreBreakdown = `\n\n--- Technical Scores ---\n` +
       `• Coding Skills: ${this.evaluation.codingSkills}/5\n` +
       `• System Design: ${this.evaluation.systemDesign}/5\n` +
@@ -1185,7 +1185,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activeDrawer = drawer;
     }
     this.cdr.detectChanges();
-    
+
     if (this.activeDrawer === 'chat') {
       this.hasUnreadMessages = false;
       this.scrollToBottom();
@@ -1195,7 +1195,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
   sendChatMessage(): void {
     const text = this.chatInputText.trim();
     if (!text) return;
-    
+
     if (this.jitsiAPI) {
       this.jitsiAPI.executeCommand('sendChatMessage', text);
       this.chatInputText = '';
@@ -1209,7 +1209,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chatMessages.push(msg);
     this.cdr.detectChanges();
     this.scrollToBottom();
-    
+
     if (!msg.isLocal) {
       this.playNotificationSound();
       if (this.activeDrawer !== 'chat') {
@@ -1225,30 +1225,30 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) return;
       const ctx = new AudioContextClass();
-      
+
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
-      
+
       osc1.type = 'sine';
       osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
       gain1.gain.setValueAtTime(0.15, ctx.currentTime);
       gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-      
+
       osc1.start(ctx.currentTime);
       osc1.stop(ctx.currentTime + 0.35);
-      
+
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.connect(gain2);
       gain2.connect(ctx.destination);
-      
+
       osc2.type = 'sine';
       osc2.frequency.setValueAtTime(880.00, ctx.currentTime + 0.1);
       gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.1);
       gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
-      
+
       osc2.start(ctx.currentTime + 0.1);
       osc2.stop(ctx.currentTime + 0.5);
     } catch (e) {
