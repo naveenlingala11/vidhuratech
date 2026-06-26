@@ -353,7 +353,13 @@ export class AdminPublicPracticePublishingComponent implements OnInit {
   }
 
   displayTitle(item: any): string {
-    return item?.title || item?.question || `Interview Question #${item?.id || ''}`;
+    const titleText = item?.title || item?.question || `Interview Question #${item?.id || ''}`;
+    if (item?.id && (item?.type === 'CHALLENGE' || item?.title)) {
+      if (!titleText.startsWith('#')) {
+        return `#${item.id} - ${titleText}`;
+      }
+    }
+    return titleText;
   }
 
   displayDescription(item: any): string {

@@ -336,7 +336,16 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
   applyStatusFilter(status: ChallengeFilter): void {
     this.statusFilter = status;
+    this.libraryView = 'GROUPS';
+    this.activeWorkspaceTab = 'LIBRARY';
     this.page = 1;
+
+    setTimeout(() => {
+      const targetElement = document.querySelector('.workspace-tabs-navigator') || document.querySelector('.workspace-viewport');
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 
   setLibraryView(view: LibraryView): void {
@@ -346,7 +355,23 @@ export class TrainerPseudoChallengesComponent implements OnInit {
 
   openCompaniesView(): void {
     this.libraryView = 'COMPANIES';
+    this.activeWorkspaceTab = 'LIBRARY';
     this.page = 1;
+
+    setTimeout(() => {
+      // Expand all companies and their nested groups to show complete details
+      this.pagedCompanyGroups.forEach((company) => {
+        this.expandedCompanies[company.id] = true;
+        company.groups.forEach((group) => {
+          this.expandedGroups[group.id] = true;
+        });
+      });
+
+      const targetElement = document.querySelector('.workspace-tabs-navigator') || document.querySelector('.workspace-viewport');
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 
   sortDirectionIcon(): string {
@@ -1112,6 +1137,28 @@ export class TrainerPseudoChallengesComponent implements OnInit {
     if (!b) return a;
 
     return new Date(a).getTime() > new Date(b).getTime() ? a : b;
+  }
+
+  getCompanyGradient(name: string): string {
+    const term = (name || '').trim().toLowerCase();
+    if (!term) return 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)';
+
+    let hash = 0;
+    for (let i = 0; i < term.length; i++) {
+      hash = term.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const index = Math.abs(hash) % 7;
+    const gradients = [
+      'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', // Blue-Indigo
+      'linear-gradient(135deg, #0d9488 0%, #0be9a7 100%)', // Teal-Mint
+      'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)', // Amber-Orange
+      'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)', // Purple-Fuchsia
+      'linear-gradient(135deg, #ef4444 0%, #f43f5e 100%)', // Red-Rose
+      'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)', // Blue-Cyan
+      'linear-gradient(135deg, #16a34a 0%, #10b981 100%)', // Green-Emerald
+    ];
+    return gradients[index];
   }
 
   private getEmptyForm(): ChallengeForm {
