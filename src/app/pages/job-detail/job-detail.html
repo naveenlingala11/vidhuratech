@@ -1,4 +1,4 @@
-<div class="detail-page-wrapper" *ngIf="job$ | async as job; else notFound">
+<div class="detail-page-wrapper" *ngIf="!loading && job; else loadingOrNotFound">
   <!-- Ambient background glows -->
   <div class="policy-ambient-glow">
     <div class="orb orb-1"></div>
@@ -140,7 +140,7 @@
         <!-- JOB DESCRIPTION -->
         <section class="detail-section">
           <h3 class="section-title"><i class="bi bi-file-earmark-text"></i> Role Overview & Responsibilities</h3>
-          <div class="description-content-box" [innerHTML]="job.description || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features and maintain scalability.'">
+          <div class="description-content-box" [innerHTML]="formatDescription(job.description) || 'Our client is looking for a qualified specialist to fulfill this opening. Join a high-performing engineering group to deliver core features and maintain scalability.'">
           </div>
         </section>
       </div>
@@ -425,16 +425,29 @@
   </div>
 </div>
 
-<!-- NOT FOUND -->
-<ng-template #notFound>
-  <div class="detail-not-found-card">
-    <div class="not-found-icon-wrap">
-      <i class="bi bi-exclamation-triangle"></i>
+<!-- LOADING OR NOT FOUND TEMPLATE -->
+<ng-template #loadingOrNotFound>
+  <!-- Loader state -->
+  <div class="premium-loader-container" *ngIf="loading; else notFoundBlock">
+    <div class="loader-pulse-logo">
+      <div class="inner-pulse"></div>
     </div>
-    <h3>Opportunity Not Found</h3>
-    <p>The job you are trying to view might have expired or been removed from the portal.</p>
-    <button class="back-action-btn mt-3" (click)="goBack()">
-      <i class="bi bi-arrow-left"></i> Return to Listing
-    </button>
+    <div class="shimmer-line title-shimmer"></div>
+    <div class="shimmer-line desc-shimmer"></div>
+    <p class="loader-text">Loading Opportunity Details...</p>
   </div>
+
+  <!-- Not Found block -->
+  <ng-template #notFoundBlock>
+    <div class="detail-not-found-card">
+      <div class="not-found-icon-wrap">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <h3>Opportunity Not Found</h3>
+      <p>The job you are trying to view might have expired or been removed from the portal.</p>
+      <button class="back-action-btn mt-3" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i> Return to Listing
+      </button>
+    </div>
+  </ng-template>
 </ng-template>

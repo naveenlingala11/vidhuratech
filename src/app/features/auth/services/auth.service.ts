@@ -1,5 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import { BehaviorSubject, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { TokenService } from './token.service';
@@ -14,8 +16,11 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private tokenService: TokenService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: any
   ) {
     this.authState = new BehaviorSubject<boolean>(this.tokenService.isLoggedIn());
+    this.initActivityTracker();
   }
 
   private authHeaders() {
@@ -102,11 +107,48 @@ export class AuthService {
       profileImageUrl: res.profileImageUrl || '',
     });
     this.authState.next(true);
+    this.updateActivity();
   }
 
   logout() {
     this.tokenService.clearAll();
     this.authState.next(false);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('vt_last_active');
+    }
+  }
+
+  private initActivityTracker() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.updateActivity();
+
+    const events = ['mousemove', 'click', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      window.addEventListener(event, () => this.updateActivity());
+    });
+
+    setInterval(() => {
+      if (this.isLoggedIn()) {
+        const lastActive = Number(localStorage.getItem('vt_last_active') || '0');
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+
+        if (now - lastActive > oneHour) {
+          this.logout();
+          this.router.navigate(['/login']);
+          alert('Session expired due to inactivity. Please login again.');
+        }
+      }
+    }, 10000);
+  }
+
+  private updateActivity() {
+    if (isPlatformBrowser(this.platformId) && this.isLoggedIn()) {
+      localStorage.setItem('vt_last_active', Date.now().toString());
+    }
   }
 
   isLoggedIn() {

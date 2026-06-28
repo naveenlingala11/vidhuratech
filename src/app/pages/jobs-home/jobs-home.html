@@ -12,10 +12,10 @@
     <div class="hero-circle two"></div>
     
     <div class="hero-content">
-      <span class="hero-tagline"><i class="bi bi-stars"></i> AI-Powered Job Discovery</span>
-      <h1>Find Your Dream IT Job</h1>
+      <span class="hero-tagline"><i class="bi bi-stars"></i> Premium Placement Discovery</span>
+      <h1>Find Your Dream Technology Job</h1>
       <p class="sub-headline">
-        Get hired faster with verified opportunities. Explore daily postings matching your profile.
+        Accelerate your career with verified opportunities. Explore high-paying positions matching your technology stack.
       </p>
       
       <!-- Premium Search Bar -->
@@ -41,104 +41,38 @@
         </div>
       </div>
 
+      <!-- Live Scraper Console Simulator -->
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title"><i class="bi bi-cpu-fill"></i> Vidhura Job Crawler Node v2.0</span>
+        </div>
+        <div class="terminal-body">
+          <span class="prompt">$</span> <span class="term-text">{{ currentLiveLog }}</span>
+          <span class="cursor">_</span>
+        </div>
+      </div>
+
       <div class="live-count-badge">
-        <i class="bi bi-fire text-coral animate-pulse"></i> <strong>{{ totalJobs }}+</strong> active jobs waiting for you today
+        <i class="bi bi-patch-check-fill text-indigo me-1"></i> <strong>{{ totalJobs }}+</strong> active openings indexed today
       </div>
 
       <div class="trust-badges">
-        <span class="trust-chip"><i class="bi bi-check-circle-fill text-indigo"></i> 50K+ Users</span>
-        <span class="trust-chip"><i class="bi bi-check-circle-fill text-emerald"></i> Verified Listings</span>
-        <span class="trust-chip"><i class="bi bi-check-circle-fill text-pink"></i> Zero Spam</span>
-      </div>
-
-      <button class="cta-outline-btn" (click)="goToJobs()">
-        Browse All Listings <i class="bi bi-arrow-right"></i>
-      </button>
-    </div>
-  </section>
-
-  <!-- DAILY JOB PORTAL FEATURE -->
-  <section class="portal-promo-section">
-    <div class="container-wrap">
-      <div class="section-title-box text-center">
-        <span class="section-badge">Exclusive Feature</span>
-        <h2 class="promo-main-title">🚀 Introducing Daily Job Portal</h2>
-        <p class="promo-sub-title">This feature is <strong>NOT available anywhere else</strong> — built strictly for our students.</p>
-      </div>
-
-      <div class="promo-flex-grid">
-        <!-- LEFT: Info Panel -->
-        <div class="promo-info-card">
-          <div class="card-glow-indicator"></div>
-          <h3>💼 Receive 500+ New Openings Daily</h3>
-          <p class="promo-desc-lead">
-            Most candidates struggle not because of a lack of skills, but because they lack visibility on <strong>real, active job openings</strong>.
-          </p>
-          <p class="promo-desc-sub">
-            We built a automated job feed directly inside our learning workspace to bridge this gap.
-          </p>
-          <ul class="benefit-list">
-            <li>
-              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
-              <div class="bullet-text">Daily <strong>500+ corporate</strong> listings updated dynamically</div>
-            </li>
-            <li>
-              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
-              <div class="bullet-text">Fresh list published <strong>every morning at 8:00 AM</strong></div>
-            </li>
-            <li>
-              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
-              <div class="bullet-text">Strictly <strong>verified & active</strong> direct-apply linkages</div>
-            </li>
-            <li>
-              <div class="bullet-icon"><i class="bi bi-check-circle-fill"></i></div>
-              <div class="bullet-text">Dedicated filters for Freshers and Senior professionals</div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- RIGHT: Interactive Access Box -->
-        <div class="promo-cta-box">
-          <div class="box-inner-glass">
-            <h4>🔥 Why is this a game changer?</h4>
-            <p>
-              Stop wasting hours manually searching across multiple boards. We aggregate everything you need in one clean dashboard.
-            </p>
-            
-            <div class="schedule-summary-box">
-              <div class="sched-row">
-                <span class="sched-lbl"><i class="bi bi-clock"></i> Update Schedule:</span>
-                <span class="sched-val">8:00 AM Morningly</span>
-              </div>
-              <div class="sched-row">
-                <span class="sched-lbl"><i class="bi bi-building"></i> Coverage:</span>
-                <span class="sched-val">500+ Companies</span>
-              </div>
-              <div class="sched-row">
-                <span class="sched-lbl"><i class="bi bi-shield-lock"></i> Access Tier:</span>
-                <span class="sched-val highlight-gold">Enrolled Students</span>
-              </div>
-            </div>
-
-            <button class="enroll-action-btn" (click)="openEnrollModal()">
-              Request Access Now <i class="bi bi-lightning-charge"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="promo-footer-tagline text-center">
-        <i class="bi bi-info-circle-fill text-primary"></i> No external searching required. We deliver verified openings directly to your learning dashboard.
+        <span class="trust-chip"><i class="bi bi-shield-check text-indigo"></i> Verified Listings</span>
+        <span class="trust-chip"><i class="bi bi-arrow-repeat text-emerald"></i> Real-time Refresh</span>
+        <span class="trust-chip"><i class="bi bi-slash-circle text-pink"></i> Zero Spam Linkages</span>
       </div>
     </div>
   </section>
 
   <!-- TOP COMPANIES CAROUSEL -->
-  <section class="hiring-brands-section">
+  <section class="hiring-brands-section" *ngIf="companies.length > 0">
     <div class="container-wrap">
-      <h2 class="section-header-title">🏢 Hiring Partners & Brands</h2>
+      <h2 class="section-header-title text-center"><i class="bi bi-buildings"></i> Featured Hiring Corporate Partners</h2>
       <div class="brands-marquee-wrap">
-        <div class="brand-item-card" *ngFor="let c of companies | slice:0:10">
+        <div class="brand-item-card" *ngFor="let c of companies | slice:0:12">
           <div class="brand-logo-frame">
             <img [src]="getCompanyLogo(c.name)" (error)="onImgError($event)" alt="{{ c.name }}" />
           </div>
@@ -153,16 +87,127 @@
     <div class="container-wrap">
       <div class="counter-grid">
         <div class="counter-card c-indigo">
+          <div class="count-icon-wrap"><i class="bi bi-briefcase"></i></div>
           <div class="count-num">{{ totalJobs > 0 ? totalJobs : '12,500+' }}</div>
-          <div class="count-lbl">Total Openings</div>
+          <div class="count-lbl">Total Opportunities</div>
         </div>
         <div class="counter-card c-emerald">
+          <div class="count-icon-wrap"><i class="bi bi-building"></i></div>
           <div class="count-num">{{ companies.length > 0 ? companies.length : '80+' }}</div>
-          <div class="count-lbl">Hiring Companies</div>
+          <div class="count-lbl">Hiring Corporates</div>
         </div>
         <div class="counter-card c-pink">
+          <div class="count-icon-wrap"><i class="bi bi-lightning-charge"></i></div>
           <div class="count-num">24/7</div>
-          <div class="count-lbl">Real-Time Refresh</div>
+          <div class="count-lbl">Crawler Uptime</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STRUCTURED PATHWAY SECTION -->
+  <section class="pathway-section">
+    <div class="container-wrap">
+      <div class="section-title-box text-center">
+        <span class="section-badge">Career Progression Journey</span>
+        <h2 class="promo-main-title">Structured Pathway to Success</h2>
+        <p class="promo-sub-title">Bridge the gap between skilled developer standards and premium enterprise placements.</p>
+      </div>
+
+      <div class="pathway-grid">
+        <div class="pathway-card">
+          <div class="pathway-step-num">01</div>
+          <div class="pathway-icon">💻</div>
+          <h4>Skill Development</h4>
+          <p>Industry-level training with real-time projects, coding practice, and enterprise standards.</p>
+        </div>
+
+        <div class="pathway-card">
+          <div class="pathway-step-num">02</div>
+          <div class="pathway-icon">📄</div>
+          <h4>Resume Building</h4>
+          <p>Professional ATS-friendly resume templates aligned directly with active company hiring boards.</p>
+        </div>
+
+        <div class="pathway-card">
+          <div class="pathway-step-num">03</div>
+          <div class="pathway-icon">🎯</div>
+          <h4>Mock Interviews</h4>
+          <p>Technical + HR interview simulations with expert panel reviewers and actionable feedback.</p>
+        </div>
+
+        <div class="pathway-card">
+          <div class="pathway-step-num">04</div>
+          <div class="pathway-icon">🚀</div>
+          <h4>Placement Support</h4>
+          <p>Continuous placement guidance, direct corporate referral pipelines, and daily job updates.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DAILY JOB PORTAL FEATURE -->
+  <section class="portal-promo-section">
+    <div class="container-wrap">
+      <div class="promo-flex-grid">
+        <!-- LEFT: Info Panel -->
+        <div class="promo-info-card">
+          <div class="card-glow-indicator"></div>
+          <span class="exclusive-badge">Student Privilege Only</span>
+          <h3>💼 Receive 500+ New Openings Daily</h3>
+          <p class="promo-desc-lead">
+            Most developers fail to get interviews not due to poor skills, but because they lack access to <strong>fresh, active job openings</strong>.
+          </p>
+          <p class="promo-desc-sub">
+            We built an automated aggregator that directly indexes career pages to bridge this gap for enrolled students.
+          </p>
+          <ul class="benefit-list">
+            <li>
+              <div class="bullet-icon"><i class="bi bi-patch-check-fill text-indigo"></i></div>
+              <div class="bullet-text">Daily <strong>500+ active</strong> vacancies updated automatically</div>
+            </li>
+            <li>
+              <div class="bullet-icon"><i class="bi bi-patch-check-fill text-indigo"></i></div>
+              <div class="bullet-text">Fresh database sync <strong>every morning at 8:00 AM</strong></div>
+            </li>
+            <li>
+              <div class="bullet-icon"><i class="bi bi-patch-check-fill text-indigo"></i></div>
+              <div class="bullet-text">Strictly verified direct tracking URLs with <strong>zero spam</strong></div>
+            </li>
+            <li>
+              <div class="bullet-icon"><i class="bi bi-patch-check-fill text-indigo"></i></div>
+              <div class="bullet-text">Dedicated tracking pipelines for Fresher vs Senior tracks</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- RIGHT: Interactive Access Box -->
+        <div class="promo-cta-box">
+          <div class="box-inner-glass">
+            <h4>⚡ Speeds Up Your Hiring Loop</h4>
+            <p>
+              Stop wasting hours manually scrolling job boards. We aggregate everything you need inside a unified learning dashboard.
+            </p>
+            
+            <div class="schedule-summary-box">
+              <div class="sched-row">
+                <span class="sched-lbl"><i class="bi bi-alarm-fill text-indigo"></i> Update Schedule:</span>
+                <span class="sched-val">8:00 AM Morningly</span>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl"><i class="bi bi-building-fill-check text-emerald"></i> Coverage:</span>
+                <span class="sched-val">500+ Stacks</span>
+              </div>
+              <div class="sched-row">
+                <span class="sched-lbl"><i class="bi bi-shield-lock-fill text-pink"></i> Access Tier:</span>
+                <span class="sched-val highlight-gold">Enrolled Members Only</span>
+              </div>
+            </div>
+
+            <button class="enroll-action-btn" (click)="openEnrollModal()">
+              Request Portal Access <i class="bi bi-lightning-charge-fill"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -171,50 +216,19 @@
   <!-- MAIN JOB SEARCH AND LIST GRID -->
   <section class="listings-section">
     <div class="container-wrap">
-      <h2 class="section-header-title text-center"><i class="bi bi-stars text-indigo"></i> Explore Latest Openings</h2>
+      <div class="section-title-box text-center">
+        <span class="section-badge">Verified Placement Feed</span>
+        <h2 class="promo-main-title">Explore Active Openings</h2>
+        <p class="promo-sub-title">Premium career opportunities updated daily from our partner recruitment networks.</p>
+        
+        <div class="listings-meta-stats">
+          <span class="meta-stat-pill"><i class="bi bi-building text-primary"></i> <strong>{{ companies.length || 12 }}+</strong> Partner Corporates</span>
+          <span class="meta-stat-pill"><i class="bi bi-patch-check-fill text-emerald"></i> <strong>{{ totalJobs || 90 }}+</strong> Active Openings</span>
+          <span class="meta-stat-pill"><i class="bi bi-shield-fill-check text-purple"></i> <strong>100%</strong> Verified Feed</span>
+        </div>
+      </div>
       
       <div class="landing-jobs-wrapper">
-        <!-- FILTER COLUMN (aside) -->
-        <aside class="filters-sidebar-card">
-          <div class="sidebar-top">
-            <i class="bi bi-funnel"></i>
-            <h3>Quick Filters</h3>
-          </div>
-          
-          <div class="filter-card-group">
-            <label>Search Keyword</label>
-            <div class="sidebar-input-wrapper">
-              <i class="bi bi-search"></i>
-              <input type="text" placeholder="Title, skills..." [(ngModel)]="searchText" />
-            </div>
-          </div>
-
-          <div class="filter-card-group">
-            <label>Job Location</label>
-            <select [(ngModel)]="selectedLocation" class="sidebar-select">
-              <option value="">All Locations</option>
-              <option>India</option>
-              <option>Hyderabad</option>
-              <option>Bangalore</option>
-              <option>Remote</option>
-            </select>
-          </div>
-
-          <div class="filter-card-group">
-            <label>Experience Tier</label>
-            <select [(ngModel)]="experience" class="sidebar-select">
-              <option value="">All Experience</option>
-              <option>0-1 yrs</option>
-              <option>1-3 yrs</option>
-              <option>3+ yrs</option>
-            </select>
-          </div>
-
-          <button class="apply-filters-btn" (click)="goToJobs()">
-            Apply & Search <i class="bi bi-search"></i>
-          </button>
-        </aside>
-
         <!-- JOB GRID -->
         <div class="featured-jobs-grid">
           <!-- SKELETONS -->
@@ -235,36 +249,43 @@
           <!-- ACTUAL JOBS -->
           <ng-container *ngIf="!isLoading">
             <article 
-              class="featured-job-card" 
-              *ngFor="let job of jobs | slice:0:9; trackBy: trackById" 
-              (click)="goToDetail(job.id)"
+              class="featured-job-card-premium" 
+              *ngFor="let job of jobs | slice:0:9; trackBy: trackById"
             >
-              <span class="new-job-badge"><i class="bi bi-stars"></i> New</span>
+              <div class="card-shine-glimmer"></div>
               
-              <div class="job-card-header">
-                <div class="logo-outer-box">
+              <div class="job-card-top-header">
+                <span class="premium-verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                <!-- Top Right Action Arrow instead of full card button -->
+                <button class="card-arrow-action-btn" (click)="goToDetail(job.id)" title="View Details">
+                  <i class="bi bi-arrow-up-right-circle-fill"></i>
+                </button>
+              </div>
+              
+              <div class="job-card-header" (click)="goToDetail(job.id)">
+                <div class="logo-outer-box-premium">
                   <img [src]="getCompanyLogo(job.companyName)" (error)="onImgError($event)" alt="company logo" />
                 </div>
                 <div class="job-header-info">
-                  <h3 class="job-role-title">{{ job.title }}</h3>
-                  <span class="job-company-name">{{ job.companyName }}</span>
+                  <h3 class="job-role-title-premium">{{ job.title }}</h3>
+                  <span class="job-company-name-premium">{{ job.companyName }}</span>
                 </div>
               </div>
 
-              <div class="job-meta-badges">
-                <span class="job-badge location-lbl"><i class="bi bi-geo-alt"></i> {{ job.location }}</span>
-                <span class="job-badge exp-lbl"><i class="bi bi-briefcase"></i> {{ job.experience || 'Fresher' }}</span>
-                <span class="job-badge salary-lbl"><i class="bi bi-wallet2"></i> {{ job.salary || 'Not Disclosed' }}</span>
+              <div class="job-meta-badges-premium" (click)="goToDetail(job.id)">
+                <span class="job-badge location-lbl-p"><i class="bi bi-geo-alt-fill text-primary"></i> {{ job.location }}</span>
+                <span class="job-badge exp-lbl-p"><i class="bi bi-briefcase-fill text-purple"></i> {{ job.experience || 'Fresher' }}</span>
+                <span class="job-badge salary-lbl-p"><i class="bi bi-wallet2 text-emerald"></i> {{ job.salary || 'Not Disclosed' }}</span>
               </div>
 
-              <div class="job-card-skills" *ngIf="job.skills && job.skills.length > 0">
-                <span class="skill-tag-pill" *ngFor="let s of job.skills | slice:0:3">{{ s }}</span>
+              <div class="job-card-skills-premium" *ngIf="job.skills && job.skills.length > 0" (click)="goToDetail(job.id)">
+                <span class="skill-tag-pill-premium" *ngFor="let s of job.skills | slice:0:3">{{ s }}</span>
               </div>
 
-              <div class="job-card-footer">
-                <span class="posted-date-lbl"><i class="bi bi-clock"></i> Recently</span>
-                <button class="card-detail-action-btn" (click)="goToDetail(job.id); $event.stopPropagation()">
-                  View Details <i class="bi bi-arrow-right"></i>
+              <div class="job-card-footer-premium">
+                <span class="posted-date-lbl-p"><i class="bi bi-clock-history"></i> Daily Update</span>
+                <button class="card-detail-action-btn-premium" (click)="goToDetail(job.id)">
+                  View Details <i class="bi bi-chevron-right"></i>
                 </button>
               </div>
             </article>
@@ -275,51 +296,61 @@
   </section>
 
   <!-- TRENDING SKILLS CLOUD -->
-  <section class="trending-skills-section">
+  <section class="trending-skills-section" *ngIf="trendingSkills.length > 0">
     <div class="container-wrap">
-      <h2>🔥 Trending Technologies</h2>
-      <p class="skills-subtitle">Based on active corporate recruitment profiles</p>
-      
-      <div class="skills-cloud-pills">
-        <span class="skills-cloud-pill" (click)="quickSearch('Angular')"><i class="bi bi-code-slash text-coral"></i> Angular</span>
-        <span class="skills-cloud-pill" (click)="quickSearch('React')"><i class="bi bi-braces text-sky"></i> React</span>
-        <span class="skills-cloud-pill" (click)="quickSearch('Spring Boot')"><i class="bi bi-terminal text-emerald"></i> Spring Boot</span>
-        <span class="skills-cloud-pill" (click)="quickSearch('Python')"><i class="bi bi-server text-amber"></i> Python</span>
-        <span class="skills-cloud-pill" (click)="quickSearch('AWS')"><i class="bi bi-cloud text-pink"></i> AWS</span>
-      </div>
-
-      <div class="highlight-info-box">
-        <h3>🚀 Why Our Job Discovery Engine is Powerful</h3>
-        <ul class="engine-benefits">
-          <li><i class="bi bi-check-circle-fill text-emerald"></i> Scrapes corporate career systems dynamically.</li>
-          <li><i class="bi bi-check-circle-fill text-emerald"></i> Scheduled cron synchronization every morning.</li>
-          <li><i class="bi bi-check-circle-fill text-emerald"></i> Aggregated and cleaned in a unified student workspace.</li>
-          <li><i class="bi bi-check-circle-fill text-emerald"></i> Outdated or expired listings are automatically pruned.</li>
-        </ul>
+      <div class="premium-trending-card">
+        <div class="trending-card-glow"></div>
+        <span class="trending-mini-tag"><i class="bi bi-graph-up-arrow"></i> Real-time Market Demands</span>
+        <h2>🔥 Trending Technologies</h2>
+        <p class="skills-subtitle">Based on active corporate recruitment profiles in our dashboard</p>
+        
+        <div class="skills-cloud-pills">
+          <span class="skills-cloud-pill" *ngFor="let s of trendingSkills" (click)="quickSearch(s.name)">
+            <span class="pill-left-content">
+              <i class="bi me-1" [ngClass]="[s.icon, s.color]"></i> {{ s.name }}
+            </span>
+            <span class="pill-count-badge" *ngIf="s.count > 0">{{ s.count }} active</span>
+          </span>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- TESTIMONIALS -->
-  <section class="testimonials-slider-section">
+  <!-- SUCCESS STORIES / TESTIMONIALS -->
+  <section class="testimonials-slider-section" *ngIf="testimonials.length > 0">
     <div class="container-wrap">
-      <h2 class="text-center">Success Stories</h2>
-      <div class="testimonials-grid-layout">
-        <div class="testimonial-card-wrap">
-          <i class="bi bi-quote quote-mark"></i>
-          <p class="test-quote">"The daily job feed completely transformed my search. Found a remote developer opening updated that very morning and received a callback in 48 hours!"</p>
-          <div class="test-user">
-            <strong>- Anirudh K.</strong>
-            <span>Placed at Tech Mahindra</span>
-          </div>
-        </div>
+      <div class="section-title-box text-center">
+        <span class="section-badge">Success Stories</span>
+        <h2>Placed Graduates Feedback</h2>
+        <p class="promo-sub-title">Listen to how our unified portal accelerated career goals.</p>
+      </div>
 
-        <div class="testimonial-card-wrap">
-          <i class="bi bi-quote quote-mark"></i>
-          <p class="test-quote">"No spam, direct application links, and updated daily. Excellent portal for graduates wanting to transition to tech hub roles in Bangalore."</p>
+      <div class="testimonials-grid-layout">
+        <div class="testimonial-card-wrap" *ngFor="let t of testimonials">
+          <div class="card-glow-bg"></div>
+          
+          <div class="testimonial-header-row">
+            <span class="verified-placement-badge">
+              <i class="bi bi-patch-check-fill"></i> Verified Placement
+            </span>
+            <i class="bi bi-quote quote-mark"></i>
+          </div>
+          
+          <p class="test-quote">"{{ t.quote }}"</p>
+          <hr class="test-sep" />
+          
           <div class="test-user">
-            <strong>- Shruti S.</strong>
-            <span>Placed at Deloitte India</span>
+            <div class="avatar-circle-premium" [ngClass]="t.avatarColor">
+              <span class="avatar-initials">{{ t.initials }}</span>
+              <div class="avatar-ring"></div>
+            </div>
+            <div class="user-details">
+              <strong>{{ t.author }}</strong>
+              <span class="placed-role-lbl">{{ t.role }}</span>
+              <div class="stars-wrap-premium">
+                <i class="bi bi-star-fill text-amber" *ngFor="let star of [1,2,3,4,5]"></i>
+              </div>
+            </div>
           </div>
         </div>
       </div>

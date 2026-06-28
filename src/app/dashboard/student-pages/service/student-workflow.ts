@@ -31,4 +31,13 @@ export class StudentWorkflowService {
   logSessionJoin(id: number, payload: any) {
     return this.http.post(`${environment.apiUrl}/api/public/mock-interviews/${id}/join`, payload);
   }
+  getMyLiveSessions() {
+    return this.http.get(`${environment.apiUrl}/api/mock-interviews/my-sessions`);
+  }
+  editPublicSession(id: number, payload: any) {
+    return this.http.put(`${environment.apiUrl}/api/mock-interviews/${id}/edit`, payload);
+  }
+  deletePublicSession(id: number) {
+    return this.http.delete(`${environment.apiUrl}/api/mock-interviews/${id}`);
+  }
 }

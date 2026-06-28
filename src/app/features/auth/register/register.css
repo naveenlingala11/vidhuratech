@@ -1022,3 +1022,186 @@
     min-height: 48px;
   }
 }
+
+/* ============================================================
+   REGISTRATION SUCCESS ANIMATION
+   ============================================================ */
+
+.success-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  animation: successFadeIn 0.5s ease forwards;
+}
+
+@keyframes successFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-animation-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 24px;
+  display: grid;
+  place-items: center;
+}
+
+.success-checkmark-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.success-checkmark {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3.5;
+  stroke: #10b981;
+  stroke-miterlimit: 10;
+  box-shadow: inset 0px 0px 0px #10b981;
+  animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s inherit;
+}
+
+.success-checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3.5;
+  stroke-miterlimit: 10;
+  stroke: #10b981;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.success-checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke-width: 3.5;
+  stroke: #10b981;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+.success-glow {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  filter: blur(20px);
+  opacity: 0.3;
+  animation: pulseGlow 2s infinite ease-in-out;
+  z-index: 1;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.45;
+  }
+}
+
+.success-title {
+  font-size: 24px;
+  font-weight: 850;
+  color: #0f172a;
+  margin: 0 0 8px;
+  letter-spacing: -0.3px;
+}
+
+:host-context(body[data-theme='dark']) .success-title {
+  color: #f1f5f9;
+}
+
+.success-message {
+  font-size: 14.5px;
+  color: #64748b;
+  margin: 0 0 32px;
+  line-height: 1.5;
+  max-width: 340px;
+}
+
+.redirect-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.redirect-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.redirect-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6366f1;
+  animation: jumpDot 1.2s infinite ease-in-out;
+}
+
+.redirect-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.redirect-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes jumpDot {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+.redirect-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6366f1;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}

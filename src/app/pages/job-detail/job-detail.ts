@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Job, JobService } from '../../services/job';
 import { ResumeService } from '../../services/resume.service';
 import { Observable, map } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-job-detail',
@@ -13,7 +14,8 @@ import { Observable, map } from 'rxjs';
   styleUrl: './job-detail.css',
 })
 export class JobDetail {
-  job$!: Observable<Job | null>;
+  job: Job | null = null;
+  loading = true;
   activeTab: 'overview' | 'prep' | 'mentors' | 'benefits' | 'compatibility' = 'overview';
   isAnalyzing = false;
   analysisProgress = 0;
@@ -35,23 +37,32 @@ export class JobDetail {
     private router: Router,
     private jobService: JobService,
     public resumeService: ResumeService,
+    private sanitizer: DomSanitizer,
   ) {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.job$ = this.jobService.getById(id).pipe(
-      map((res) => {
-        if (!res) return null;
-        // 🔥 FIX SKILLS STRING → ARRAY
-        return {
-          ...res,
-          skills: res.skills
-            ? (res.skills as any)
-              .toString()
-              .split(',')
-              .map((s: string) => s.trim())
-            : [],
-        };
-      }),
-    );
+    this.loading = true;
+    this.jobService.getById(id).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (!res) {
+          this.job = null;
+        } else {
+          this.job = {
+            ...res,
+            skills: res.skills
+              ? (res.skills as any)
+                .toString()
+                .split(',')
+                .map((s: string) => s.trim())
+              : [],
+          };
+        }
+      },
+      error: () => {
+        this.loading = false;
+        this.job = null;
+      }
+    });
   }
 
   setTab(tab: 'overview' | 'prep' | 'mentors' | 'benefits' | 'compatibility') {
@@ -411,6 +422,60 @@ export class JobDetail {
     this.formattingIssues = [];
     this.recommendations = [];
     this.analysisProgress = 0;
+  }
+
+  formatDescription(desc: string | undefined): SafeHtml {
+    if (!desc) return this.sanitizer.bypassSecurityTrustHtml('');
+    
+    // Strip any existing basic HTML tags to prevent formatting bypass
+    let rawText = desc.replace(/<\/?[^>]+(>|$)/g, " ").trim();
+    rawText = rawText.replace(/\s+/g, ' ');
+
+    // 1. Separate headers/sections
+    let processedText = rawText
+      .replace(/(Role Description|Job Description)/gi, '<h5 class="desc-subtitle"><i class="bi bi-file-earmark-person"></i> Role Description</h5>')
+      .replace(/(Key Responsibilities|Responsibilities)/gi, '<h5 class="desc-subtitle" style="margin-top: 20px;"><i class="bi bi-list-task"></i> Key Responsibilities</h5>')
+      .replace(/(Key Requirements|Requirements|Qualifications)/gi, '<h5 class="desc-subtitle" style="margin-top: 20px;"><i class="bi bi-shield-check"></i> Requirements</h5>');
+
+    // 2. Split into sentences and wrap in list items (fix split regex to match attributes)
+    const sections = processedText.split(/(<h5 class="desc-subtitle".*?<\/h5>)/g);
+    processedText = sections.map(sec => {
+      if (sec.startsWith('<h5 class="desc-subtitle"')) {
+        return sec;
+      }
+      
+      let text = sec.trim();
+      if (!text) return '';
+      
+      // Split by sentences: period followed by space, and restore period
+      const sentences = text.split(/\.\s+/).filter(Boolean).map(s => s.endsWith('.') ? s : s + '.');
+      const listItems = sentences
+        .map(s => s.trim())
+        .filter(s => s.length > 5)
+        .map(s => `<li><i class="bi bi-chevron-right list-bullet-icon"></i> ${s}</li>`);
+        
+      if (listItems.length > 0) {
+        return `<ul class="formatted-desc-list">${listItems.join('')}</ul>`;
+      }
+      
+      return `<p>${text}</p>`;
+    }).join('');
+    
+    // 3. Highlight key technologies & keywords
+    const keywords = [
+      'NodeJS', 'Node\\.js', 'Node JS', 'ReactJS', 'React\\.js', 'React', 'AngularJS', 'Angular', 
+      'Spring Boot', 'SpringBoot', 'Spring', 'Java', 'Python', 'JavaScript', 'TypeScript', 'AWS', 
+      'Docker', 'Kubernetes', 'SQL', 'NoSQL', 'MongoDB', 'MySQL', 'PostgreSQL', 'Oracle', 'REST APIs', 
+      'REST API', 'microservices', 'microservice', 'HTML', 'CSS', 'Full-stack', 'Frontend', 'Backend', 
+      'Scitara', 'Git', 'GitHub', 'CI/CD', 'Docker', 'RESTful'
+    ];
+    
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+      processedText = processedText.replace(regex, '<span class="highlight-keyword">$1</span>');
+    });
+
+    return this.sanitizer.bypassSecurityTrustHtml(processedText);
   }
 
   goBack() {

@@ -123,6 +123,36 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     Salesforce: 'logos/salesforce.svg',
     'Tech Mahindra': 'logos/tech-mahindra.svg',
     Google: 'logos/google.svg',
+    // Matches from public/logos folder
+    Adobe: 'logos/adobe-svgrepo-com.svg',
+    Adyen: 'logos/adyen-svgrepo-com.svg',
+    AMD: 'logos/amd-svgrepo-com.svg',
+    Apple: 'logos/apple.svg',
+    'Azure DevOps': 'logos/azure deops.svg',
+    ByteDance: 'logos/bytedance.svg',
+    Capgemini: 'logos/capgemini.svg',
+    Cisco: 'logos/cisco.svg',
+    DigitalOcean: 'logos/digital ocean.svg',
+    Facebook: 'logos/facebook.svg',
+    'Goldman Sachs': 'logos/goldman sachs.svg',
+    'Juniper Networks': 'logos/juniper networks.svg',
+    Kubernetes: 'logos/kubernetes.svg',
+    LinkedIn: 'logos/linkedin.svg',
+    MakeMyTrip: 'logos/make my trip.svg',
+    Netflix: 'logos/netflix.svg',
+    Oracle: 'logos/oracle.svg',
+    Palantir: 'logos/palantir.svg',
+    PayPal: 'logos/paypal.svg',
+    Qualcomm: 'logos/qualcomm.svg',
+    'Societe Generale': 'logos/societe generale.svg',
+    Splunk: 'logos/splunk.svg',
+    Twitter: 'logos/twitter.svg',
+    Uber: 'logos/uber.svg',
+    YouTube: 'logos/youtube.svg',
+    'L&T Infotech': 'logos/L&T infotech.jpg',
+    Directi: 'logos/directi.jpeg',
+    EPAM: 'logos/epam.png',
+    'Morgan Stanley': 'logos/morgan stanley.jpeg',
   };
 
   readonly maxSourceChars = 20000;
@@ -308,6 +338,11 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   submitting = false;
   toast = '';
   loginHistory: string[] = [];
+  showStreakCalendar = true;
+  calendarMonth = new Date().getMonth();
+  calendarYear = new Date().getFullYear();
+  leaderboardRankValue = 0;
+  leaderboardTotalValue = 0;
 
   assessments: any[] = [];
   challenges: any[] = [];
@@ -319,6 +354,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
   selectedSkill = 'ALL';
   selectedType: 'ALL' | PracticeType = 'ALL';
   selectedAccess: 'ALL' | 'FREE' | 'PREMIUM' = 'ALL';
+  selectedStatus: 'ALL' | 'SOLVED' | 'UNSOLVED' = 'ALL';
 
   currentPage = 1;
   pageSize = 6;
@@ -425,6 +461,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.trackLoginAndStreak();
     this.restoreLead();
     this.loadMyPlanAccess();
+    this.loadRealTimeLeaderboard();
     this.workspaceUnlocked = false;
     this.currentGrant = null;
 
@@ -472,18 +509,24 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     const term = this.search.trim().toLowerCase();
 
     const filtered = this.allItems.filter((item) => {
+      const itemIdStr = String(item.id).toLowerCase();
+      const isIdMatch = term && (itemIdStr === term || itemIdStr === term.replace('#', ''));
+
       const text = [item.title, item.description, item.company, item.skill, item.type]
         .join(' ')
         .toLowerCase();
 
       return (
-        (!term || text.includes(term)) &&
+        (!term || text.includes(term) || isIdMatch) &&
         (this.selectedCompany === 'ALL' || item.company === this.selectedCompany) &&
         (this.selectedSkill === 'ALL' || item.skill === this.selectedSkill) &&
         (this.selectedType === 'ALL' || item.type === this.selectedType) &&
         (this.selectedAccess === 'ALL' ||
           (this.selectedAccess === 'FREE' && this.isLeadRequired(item)) ||
-          (this.selectedAccess === 'PREMIUM' && !this.isLeadRequired(item)))
+          (this.selectedAccess === 'PREMIUM' && !this.isLeadRequired(item))) &&
+        (this.selectedStatus === 'ALL' ||
+          (this.selectedStatus === 'SOLVED' && this.isItemSolved(item)) ||
+          (this.selectedStatus === 'UNSOLVED' && !this.isItemSolved(item)))
       );
     });
 
@@ -774,10 +817,15 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.publicPracticeService.getLibrary().subscribe({
       next: (res: any) => {
         const data = res?.data || {};
-        this.assessments = data.assessments || [];
-        this.challenges = data.challenges || [];
-        this.companies = Array.from(data.companies || []);
-        this.skills = Array.from(data.skills || []);
+        this.assessments = (data.assessments || []).map((x: any) => ({ ...x, type: 'ASSESSMENT' }));
+        this.challenges = (data.challenges || []).map((x: any) => ({ ...x, type: 'CHALLENGE' }));
+        this.companies = Array.from<string>(data.companies || []).filter((c: any) => !!c);
+        
+        const availableSkills = new Set<string>();
+        this.assessments.forEach(item => { if (item.skill) availableSkills.add(item.skill); });
+        this.challenges.forEach(item => { if (item.skill) availableSkills.add(item.skill); });
+        this.skills = Array.from(availableSkills).filter(s => !!s);
+        
         this.loading = false;
       },
       error: () => {
@@ -792,10 +840,14 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     this.publicPracticeService.getLibrary().subscribe({
       next: (res: any) => {
         const data = res?.data || {};
-        this.assessments = data.assessments || [];
-        this.challenges = data.challenges || [];
-        this.companies = Array.from(data.companies || []);
-        this.skills = Array.from(data.skills || []);
+        this.assessments = (data.assessments || []).map((x: any) => ({ ...x, type: 'ASSESSMENT' }));
+        this.challenges = (data.challenges || []).map((x: any) => ({ ...x, type: 'CHALLENGE' }));
+        this.companies = Array.from<string>(data.companies || []).filter((c: any) => !!c);
+
+        const availableSkills = new Set<string>();
+        this.assessments.forEach(item => { if (item.skill) availableSkills.add(item.skill); });
+        this.challenges.forEach(item => { if (item.skill) availableSkills.add(item.skill); });
+        this.skills = Array.from(availableSkills).filter(s => !!s);
       },
       error: () => { }
     });
@@ -1216,6 +1268,15 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
 
           if (isPlatformBrowser(this.platformId)) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            try {
+              const solvedIdsJson = localStorage.getItem('vt_solved_item_ids');
+              let solvedIds: string[] = solvedIdsJson ? JSON.parse(solvedIdsJson) : [];
+              const key = `ASSESSMENT_${this.assessmentId}`;
+              if (!solvedIds.includes(key)) {
+                solvedIds.push(key);
+                localStorage.setItem('vt_solved_item_ids', JSON.stringify(solvedIds));
+              }
+            } catch {}
           }
 
           this.showToast('Mock test submitted successfully');
@@ -3764,6 +3825,55 @@ tokens = input.empty? ? [] : input.split
     );
   }
 
+  canAttemptItem(item: any): boolean {
+    const level = this.itemAccessLevel(item);
+    if (level === 'LEAD_REQUIRED') {
+      return true; // Clickable for all (requires registration if guest, or attempts directly if logged in)
+    }
+    if (this.accountAccessLevels().includes(level)) {
+      return this.isLoggedIn;
+    }
+    if (this.premiumAccessLevels().includes(level)) {
+      return !!(this.isLoggedIn && this.planAccess?.active);
+    }
+    return false;
+  }
+
+  getAttemptButtonClass(item: any): string {
+    const level = this.itemAccessLevel(item);
+    if (this.canAttemptItem(item)) {
+      return 'active-attempt';
+    }
+    if (this.premiumAccessLevels().includes(level)) {
+      return 'premium-lock';
+    }
+    if (this.accountAccessLevels().includes(level)) {
+      return 'login-lock';
+    }
+    return '';
+  }
+
+  getAttemptButtonText(item: any): string {
+    const level = this.itemAccessLevel(item);
+    if (this.canAttemptItem(item)) {
+      return 'Attempt Now';
+    }
+    if (this.premiumAccessLevels().includes(level)) {
+      return 'Unlock Premium';
+    }
+    if (this.accountAccessLevels().includes(level)) {
+      return 'Login to Unlock';
+    }
+    return 'Locked';
+  }
+
+  getAttemptButtonIcon(item: any): string {
+    if (this.canAttemptItem(item)) {
+      return 'fa-solid fa-arrow-right';
+    }
+    return 'fa-solid fa-lock';
+  }
+
   accessPolicyMessage(item: any): string {
     const policy = String(item?.accessLevel || item?.publicAccessLevel || '').toUpperCase();
 
@@ -3784,6 +3894,18 @@ tokens = input.empty? ? [] : input.split
     }
 
     return 'This practice item is not open for guest registration.';
+  }
+
+  hasCompanyLogo(company: string): boolean {
+    if (!company) return false;
+    const trimmed = company.trim().toLowerCase();
+    return Object.keys(this.companyLogos).some(
+      (k) => k.toLowerCase() === trimmed
+    );
+  }
+
+  get companiesWithLogos(): string[] {
+    return this.companies.filter((c) => this.hasCompanyLogo(c));
   }
 
   companyLogo(company: string): string {
@@ -3808,6 +3930,79 @@ tokens = input.empty? ? [] : input.split
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  clearAllFilters(): void {
+    this.search = '';
+    this.selectedCompany = 'ALL';
+    this.selectedSkill = 'ALL';
+    this.selectedType = 'ALL';
+    this.selectedAccess = 'ALL';
+    this.selectedStatus = 'ALL';
+    this.sortBy = 'LATEST';
+    this.resetPage();
+  }
+
+  get hasActiveFilters(): boolean {
+    return (
+      !!this.search.trim() ||
+      this.selectedCompany !== 'ALL' ||
+      this.selectedSkill !== 'ALL' ||
+      this.selectedType !== 'ALL' ||
+      this.selectedAccess !== 'ALL' ||
+      this.selectedStatus !== 'ALL' ||
+      this.sortBy !== 'LATEST'
+    );
+  }
+
+  toggleSkillFilter(skill: string): void {
+    if (this.selectedSkill === skill) {
+      this.selectedSkill = 'ALL';
+    } else {
+      this.selectedSkill = skill;
+    }
+    this.resetPage();
+  }
+
+  toggleCompanyFilter(company: string): void {
+    if (this.selectedCompany === company) {
+      this.selectedCompany = 'ALL';
+    } else {
+      this.selectedCompany = company;
+    }
+    this.resetPage();
+  }
+
+  getSkillMetadata(skill: string): { icon: string; color: string } {
+    const lower = String(skill || '').toLowerCase();
+    if (lower.includes('array')) {
+      return { icon: 'fa-solid fa-layer-group', color: '#2563eb' };
+    }
+    if (lower.includes('string')) {
+      return { icon: 'fa-solid fa-font', color: '#dc2626' };
+    }
+    if (lower.includes('pointer') || lower.includes('two')) {
+      return { icon: 'fa-solid fa-bolt', color: '#f59e0b' };
+    }
+    if (lower.includes('dynamic') || lower.includes('dp') || lower.includes('programming')) {
+      return { icon: 'fa-solid fa-brain', color: '#7c3aed' };
+    }
+    if (lower.includes('tree') || lower.includes('bst')) {
+      return { icon: 'fa-solid fa-code-branch', color: '#059669' };
+    }
+    if (lower.includes('graph') || lower.includes('dfs') || lower.includes('bfs') || lower.includes('node')) {
+      return { icon: 'fa-solid fa-circle-nodes', color: '#0ea5e9' };
+    }
+    if (lower.includes('sql') || lower.includes('database') || lower.includes('db')) {
+      return { icon: 'fa-solid fa-database', color: '#ec4899' };
+    }
+    if (lower.includes('sort') || lower.includes('search')) {
+      return { icon: 'fa-solid fa-arrow-down-a-z', color: '#14b8a6' };
+    }
+    if (lower.includes('stack') || lower.includes('queue') || lower.includes('list')) {
+      return { icon: 'fa-solid fa-boxes-stacked', color: '#f43f5e' };
+    }
+    return { icon: 'fa-solid fa-code', color: '#64748b' };
   }
 
   trackLoginAndStreak(): void {
@@ -3858,6 +4053,98 @@ tokens = input.empty? ? [] : input.split
     return streak;
   }
 
+  /** 50 points per consecutive streak day */
+  get streakPoints(): number {
+    return this.calculatedStreak * 50;
+  }
+
+  /** 1 badge for every 7 consecutive streak days */
+  get streakBadges(): number {
+    return Math.floor(this.calculatedStreak / 7);
+  }
+
+  /** Next badge milestone */
+  get nextBadgeIn(): number {
+    return 7 - (this.calculatedStreak % 7);
+  }
+
+  /* ── Streak Calendar ── */
+  toggleStreakCalendar(): void {
+    this.showStreakCalendar = !this.showStreakCalendar;
+    if (this.showStreakCalendar) {
+      const today = new Date();
+      this.calendarMonth = today.getMonth();
+      this.calendarYear = today.getFullYear();
+    }
+  }
+
+  calendarPrevMonth(): void {
+    if (this.calendarMonth === 0) {
+      this.calendarMonth = 11;
+      this.calendarYear--;
+    } else {
+      this.calendarMonth--;
+    }
+  }
+
+  calendarNextMonth(): void {
+    if (this.calendarMonth === 11) {
+      this.calendarMonth = 0;
+      this.calendarYear++;
+    } else {
+      this.calendarMonth++;
+    }
+  }
+
+  get calendarMonthLabel(): string {
+    return new Date(this.calendarYear, this.calendarMonth).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  get calendarGrid(): { day: number; dateStr: string; isStreakDay: boolean; isToday: boolean; isEmpty: boolean; solvedCount: number }[][] {
+    const history = this.loginHistory || [];
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA');
+
+    const firstDay = new Date(this.calendarYear, this.calendarMonth, 1);
+    const startDow = (firstDay.getDay() + 6) % 7; // Mon=0
+    const daysInMonth = new Date(this.calendarYear, this.calendarMonth + 1, 0).getDate();
+
+    const weeks: { day: number; dateStr: string; isStreakDay: boolean; isToday: boolean; isEmpty: boolean; solvedCount: number }[][] = [];
+    let week: { day: number; dateStr: string; isStreakDay: boolean; isToday: boolean; isEmpty: boolean; solvedCount: number }[] = [];
+
+    for (let i = 0; i < startDow; i++) {
+      week.push({ day: 0, dateStr: '', isStreakDay: false, isToday: false, isEmpty: true, solvedCount: 0 });
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${this.calendarYear}-${String(this.calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      week.push({
+        day: d,
+        dateStr,
+        isStreakDay: history.includes(dateStr),
+        isToday: dateStr === todayStr,
+        isEmpty: false,
+        solvedCount: this.getSolvedCountForDate(dateStr)
+      });
+      if (week.length === 7) {
+        weeks.push(week);
+        week = [];
+      }
+    }
+
+    if (week.length > 0) {
+      while (week.length < 7) {
+        week.push({ day: 0, dateStr: '', isStreakDay: false, isToday: false, isEmpty: true, solvedCount: 0 });
+      }
+      weeks.push(week);
+    }
+
+    return weeks;
+  }
+
   get weeklyStreakDays(): { label: string; active: boolean; isToday: boolean }[] {
     const history = this.loginHistory || [];
     const today = new Date();
@@ -3900,7 +4187,51 @@ tokens = input.empty? ? [] : input.split
         solvedDates = solvedDates.sort().slice(-60);
         localStorage.setItem('vt_challenges_solved_dates', JSON.stringify(solvedDates));
       }
+
+      // Add to vt_solved_item_ids list
+      const solvedIdsJson = localStorage.getItem('vt_solved_item_ids');
+      let solvedIds: string[] = solvedIdsJson ? JSON.parse(solvedIdsJson) : [];
+      const key = `${this.mode}_${this.mode === 'CHALLENGE' ? this.challengeId : this.assessmentId}`;
+      if (!solvedIds.includes(key)) {
+        solvedIds.push(key);
+        localStorage.setItem('vt_solved_item_ids', JSON.stringify(solvedIds));
+      }
+
+      // Update daily solved count (used for goal progress)
+      const countJson = localStorage.getItem('vt_daily_solved_count');
+      let currentGoalObj = countJson ? JSON.parse(countJson) : { date: today, count: 0 };
+      if (currentGoalObj.date === today) {
+        currentGoalObj.count++;
+      } else {
+        currentGoalObj = { date: today, count: 1 };
+      }
+      localStorage.setItem('vt_daily_solved_count', JSON.stringify(currentGoalObj));
+
+      // Update daily solved history (used for calendar heatmap)
+      const historyJson = localStorage.getItem('vt_daily_solve_history');
+      let dailyHistory: Record<string, number> = historyJson ? JSON.parse(historyJson) : {};
+      dailyHistory[today] = (dailyHistory[today] || 0) + 1;
+      localStorage.setItem('vt_daily_solve_history', JSON.stringify(dailyHistory));
     } catch { }
+  }
+
+  isItemSolved(item: any): boolean {
+    if (!item) return false;
+    if (!isPlatformBrowser(this.platformId)) return false;
+    try {
+      // 1. Check if the API response model itself indicates it's solved or completed
+      if (item.solved === true || item.isSolved === true || item.completed === true || item.userStatus === 'SOLVED') {
+        return true;
+      }
+      // 2. Check local storage list
+      const solvedIdsJson = localStorage.getItem('vt_solved_item_ids');
+      const solvedIds: string[] = solvedIdsJson ? JSON.parse(solvedIdsJson) : [];
+      const type = this.resolvePracticeType(item);
+      const key = `${type}_${item.id}`;
+      return solvedIds.includes(key) || solvedIds.includes(`CHALLENGE_${item.id}`) || solvedIds.includes(`ASSESSMENT_${item.id}`);
+    } catch {
+      return false;
+    }
   }
 
   get isChallengeSolvedToday(): boolean {
@@ -3923,6 +4254,178 @@ tokens = input.empty? ? [] : input.split
       return 'Streak kept alive for today! Keep up the great work! 🔥';
     }
     return 'Solve 1 more challenge today to keep your streak alive!';
+  }
+
+  /* ── 1. Longest Streak Record ── */
+  get longestStreak(): number {
+    if (this.loginHistory.length === 0) return 0;
+    const sorted = [...this.loginHistory].sort();
+    let max = 1, current = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1]);
+      const curr = new Date(sorted[i]);
+      const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        current++;
+        max = Math.max(max, current);
+      } else if (diff > 1) {
+        current = 1;
+      }
+    }
+    return Math.max(max, this.loginHistory.length === 1 ? 1 : max);
+  }
+
+  get isNewRecord(): boolean {
+    return this.calculatedStreak > 0 && this.calculatedStreak >= this.longestStreak;
+  }
+
+  /* ── 2. Weekly Progress ── */
+  get weeklyProgress(): number {
+    return this.weeklyStreakDays.filter(d => d.active).length;
+  }
+
+  get weeklyProgressPercent(): number {
+    return Math.round((this.weeklyProgress / 7) * 100);
+  }
+
+  /* ── 3. Daily Goal ── */
+  get dailyGoalTarget(): number {
+    return 3;
+  }
+
+  get dailyGoalSolved(): number {
+    if (!isPlatformBrowser(this.platformId)) return 0;
+    try {
+      const json = localStorage.getItem('vt_daily_solved_count');
+      if (!json) return 0;
+      const data = JSON.parse(json);
+      const today = new Date().toLocaleDateString('en-CA');
+      return data.date === today ? (data.count || 0) : 0;
+    } catch { return 0; }
+  }
+
+  get dailyGoalPercent(): number {
+    return Math.min(100, Math.round((this.dailyGoalSolved / this.dailyGoalTarget) * 100));
+  }
+
+  get dailyGoalComplete(): boolean {
+    return this.dailyGoalSolved >= this.dailyGoalTarget;
+  }
+
+  /* ── 4. Streak Milestones ── */
+  get streakMilestone(): { label: string; icon: string; color: string; next: number } {
+    const s = this.calculatedStreak;
+    if (s >= 100) return { label: 'Diamond', icon: 'fa-gem', color: '#06b6d4', next: 0 };
+    if (s >= 60)  return { label: 'Platinum', icon: 'fa-crown', color: '#a78bfa', next: 100 };
+    if (s >= 30)  return { label: 'Gold', icon: 'fa-trophy', color: '#f59e0b', next: 60 };
+    if (s >= 14)  return { label: 'Silver', icon: 'fa-medal', color: '#94a3b8', next: 30 };
+    if (s >= 7)   return { label: 'Bronze', icon: 'fa-award', color: '#d97706', next: 14 };
+    return { label: 'Starter', icon: 'fa-seedling', color: '#22c55e', next: 7 };
+  }
+
+  get milestoneProgress(): number {
+    const m = this.streakMilestone;
+    if (m.next === 0) return 100;
+    const tiers = [0, 7, 14, 30, 60, 100];
+    const currentTierStart = tiers[tiers.indexOf(m.next) - 1] || 0;
+    return Math.round(((this.calculatedStreak - currentTierStart) / (m.next - currentTierStart)) * 100);
+  }
+
+  /* ── 5. Heatmap intensity for calendar ── */
+  getSolvedCountForDate(dateStr: string): number {
+    if (!isPlatformBrowser(this.platformId)) return 0;
+    try {
+      const json = localStorage.getItem('vt_daily_solve_history');
+      if (!json) return 0;
+      const data: Record<string, number> = JSON.parse(json);
+      return data[dateStr] || 0;
+    } catch { return 0; }
+  }
+
+  /* ── 6. Motivational Quotes ── */
+  get motivationalQuote(): string {
+    const s = this.calculatedStreak;
+    if (s === 0) return '💪 Start your streak today — every expert was once a beginner!';
+    if (s === 1) return '🌱 Day 1 done! The journey of a thousand miles begins with a single step.';
+    if (s <= 3)  return '🔥 ' + s + ' days strong! Building momentum — keep pushing!';
+    if (s <= 7)  return '⚡ Almost a full week! You\'re building a powerful habit.';
+    if (s <= 14) return '🏆 Over a week! You\'re in the top 20% of consistent coders!';
+    if (s <= 30) return '🚀 ' + s + ' days! You\'re unstoppable — discipline beats motivation!';
+    if (s <= 60) return '💎 ' + s + ' day streak! You\'re in the top 5% of all users!';
+    return '👑 ' + s + ' days — Legendary! You\'re an absolute coding machine!';
+  }
+
+  /* ── 7. Leaderboard Position ── */
+  get leaderboardRank(): number {
+    if (this.leaderboardRankValue > 0) {
+      return this.leaderboardRankValue;
+    }
+    const s = this.calculatedStreak;
+    if (s >= 60) return 5;
+    if (s >= 30) return 12;
+    if (s >= 14) return 45;
+    if (s >= 7)  return 112;
+    if (s >= 3)  return 240;
+    return 480;
+  }
+
+  get leaderboardTotal(): number {
+    if (this.leaderboardTotalValue > 0) {
+      return this.leaderboardTotalValue;
+    }
+    return 1582;
+  }
+
+  loadRealTimeLeaderboard(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.isLoggedIn) {
+      this.leaderboardRankValue = 0;
+      this.leaderboardTotalValue = 0;
+      return;
+    }
+
+    this.publicPracticeService.getWeeklyLeaderboard().subscribe({
+      next: (res: any) => {
+        const entries = this.normalizeLeaderboardList(res);
+        const currentUser = this.authService.getUser();
+        const userId = currentUser?.id ? Number(currentUser.id) : null;
+
+        if (entries && entries.length) {
+          this.leaderboardTotalValue = entries.length;
+
+          if (userId) {
+            const userIndex = entries.findIndex((entry: any) => {
+              const entryUserId = entry.userId || entry.user?.id || entry.id;
+              return entryUserId && Number(entryUserId) === userId;
+            });
+
+            if (userIndex !== -1) {
+              this.leaderboardRankValue = userIndex + 1;
+            } else {
+              this.leaderboardRankValue = entries.length + 1;
+              this.leaderboardTotalValue = entries.length + 1;
+            }
+          }
+        }
+      },
+      error: () => {
+        this.leaderboardRankValue = 0;
+        this.leaderboardTotalValue = 0;
+      }
+    });
+  }
+
+  normalizeLeaderboardList(value: any): any[] {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+
+    const payload = value.data || value;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.entries)) return payload.entries;
+    if (Array.isArray(payload.leaderboard)) return payload.leaderboard;
+    if (Array.isArray(payload.results)) return payload.results;
+
+    return [];
   }
 
   backToLibrary(): void {

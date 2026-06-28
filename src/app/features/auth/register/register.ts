@@ -33,7 +33,7 @@ export class Register implements OnDestroy {
   loading = false;
   form: FormGroup;
 
-  step: 'form' | 'otp' = 'form';
+  step: 'form' | 'otp' | 'success' = 'form';
 
   showPassword = false;
   showConfirmPassword = false;
@@ -152,7 +152,10 @@ export class Register implements OnDestroy {
       next: () => {
         const user = this.authService.getUser();
         this.toastr.success('Registration successful');
-        this.checkAndProcessPendingBooking(user);
+        this.step = 'success';
+        setTimeout(() => {
+          this.checkAndProcessPendingBooking(user);
+        }, 3000);
       },
       error: () => this.toastr.error('GitHub registration failed'),
       complete: () => {
@@ -172,7 +175,10 @@ export class Register implements OnDestroy {
       next: () => {
         const user = this.authService.getUser();
         this.toastr.success('Registration successful');
-        this.checkAndProcessPendingBooking(user);
+        this.step = 'success';
+        setTimeout(() => {
+          this.checkAndProcessPendingBooking(user);
+        }, 3000);
       },
       error: () => this.toastr.error('Google registration failed'),
     });
@@ -187,9 +193,10 @@ export class Register implements OnDestroy {
       MANAGER: '/dashboard/manager',
       SUPER_ADMIN: '/dashboard/super-admin',
       MENTOR: '/dashboard/mentor',
+      USER: '/dashboard/user',
     };
 
-    return routes[role] || '/dashboard/student';
+    return routes[role] || '/dashboard/user';
   }
 
   getRedirectRoute(role: string): string {
@@ -406,8 +413,11 @@ export class Register implements OnDestroy {
         );
 
         this.toastr.success('Registration successful');
+        this.step = 'success';
         const user = this.authService.getUser();
-        this.checkAndProcessPendingBooking(user);
+        setTimeout(() => {
+          this.checkAndProcessPendingBooking(user);
+        }, 3000);
       },
       error: () => {
         this.triggerOtpError();

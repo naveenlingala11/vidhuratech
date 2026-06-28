@@ -369,6 +369,19 @@
             <span class="chat-badge-dot" *ngIf="hasUnreadMessages"></span>
           </span>
         </button>
+
+        <!-- Edit Session Settings (Only for Host & Registered Users) -->
+        <button type="button" class="toolbar-btn btn-settings" *ngIf="isCurrentUserHost && !isGuest"
+          (click)="openEditSessionModal()" [title]="'Edit Session Settings'">
+          <span class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-settings">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </span>
+        </button>
       </div>
 
       <div class="user-chip">
@@ -703,6 +716,106 @@
           <span style="font-size: 0.7rem; color: #64748b; font-weight: 500;">Practice dashboard</span>
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inline Edit Session Settings Modal Overlay (Only for Hosts) -->
+<div class="modal-overlay-wrapper" *ngIf="showInlineEditModal" style="color: #0f172a;">
+  <div class="modal-backdrop" (click)="closeEditSessionModal()"></div>
+  <div class="modal-container" style="background: white; max-width: 540px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column; text-align: left;">
+    <div class="modal-header" style="display: flex; align-items: center; padding: 18px 24px; border-bottom: 1px solid #f1f5f9; background: #fff;">
+      <div class="header-icon" style="width: 38px; height: 38px; border-radius: 8px; background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.15); color: #7c3aed; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+        ⚙️
+      </div>
+      <div class="header-text">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 850; margin: 0; color: #0f172a;">Edit Room Settings</h3>
+        <p style="font-size: 0.76rem; color: #64748b; margin: 0; font-weight: 550;">Modify meeting metadata and guest configurations.</p>
+      </div>
+      <button class="btn-modal-close" (click)="closeEditSessionModal()" style="background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; margin-left: auto;">&times;</button>
+    </div>
+
+    <div class="modal-body" style="padding: 20px 24px; overflow-y: auto; max-height: 60vh;">
+      <!-- Title -->
+      <div class="form-row-group" style="margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px;">
+        <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Session Title *</label>
+        <input type="text" class="form-input-control" [(ngModel)]="inlineEditForm.topic" placeholder="e.g. Technical Interview Prep" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem;" />
+      </div>
+
+      <!-- Notes -->
+      <div class="form-row-group" style="margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px;">
+        <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Notes / Agenda</label>
+        <textarea class="form-textarea-control" [(ngModel)]="inlineEditForm.notes" rows="2" placeholder="Describe goals or interview guidelines..." style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem; resize: vertical;"></textarea>
+      </div>
+
+      <div class="form-twin-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <!-- Date -->
+        <div class="form-row-group" style="display: flex; flex-direction: column; gap: 4px;">
+          <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Scheduled Date</label>
+          <input type="date" class="form-input-control" [(ngModel)]="inlineEditForm.preferredDate" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem;" />
+        </div>
+        <!-- Time -->
+        <div class="form-row-group" style="display: flex; flex-direction: column; gap: 4px;">
+          <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Scheduled Time</label>
+          <input type="time" class="form-input-control" [(ngModel)]="inlineEditForm.preferredTime" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem;" />
+        </div>
+      </div>
+
+      <div class="form-twin-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <!-- Duration -->
+        <div class="form-row-group" style="display: flex; flex-direction: column; gap: 4px;">
+          <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Duration</label>
+          <select class="form-select-control" [(ngModel)]="inlineEditForm.maxDurationMinutes" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem; height: 38px;">
+            <option [value]="10">10 mins</option>
+            <option [value]="30">30 mins</option>
+            <option [value]="45">45 mins</option>
+            <option [value]="60">60 mins</option>
+            <option [value]="90">90 mins</option>
+            <option [value]="120">120 mins</option>
+          </select>
+        </div>
+        <!-- Recurrence -->
+        <div class="form-row-group" style="display: flex; flex-direction: column; gap: 4px;">
+          <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Recurrence</label>
+          <select class="form-select-control" [(ngModel)]="inlineEditForm.recurringType" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem; height: 38px;">
+            <option value="ONCE">Once</option>
+            <option value="DAILY">Daily</option>
+            <option value="WEEKLY">Weekly</option>
+            <option value="MONTHLY">Monthly</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Invite List -->
+      <div class="form-row-group" style="margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px;">
+        <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Invite Recipients (Comma Separated)</label>
+        <input type="text" class="form-input-control" [(ngModel)]="inlineEditForm.invitedEmails" placeholder="friend1@gmail.com, friend2@gmail.com" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem;" />
+      </div>
+
+      <div style="height: 1px; background: #e2e8f0; margin: 16px 0;"></div>
+      <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.8rem; text-transform: uppercase; font-weight: 850; color: #7c3aed; margin: 0 0 10px 0;">Candidate Info (Optional)</h4>
+
+      <div class="form-twin-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <!-- Candidate Name -->
+        <div class="form-row-group" style="display: flex; flex-direction: column; gap: 4px;">
+          <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Name</label>
+          <input type="text" class="form-input-control" [(ngModel)]="inlineEditForm.candidateName" placeholder="Candidate Display Name" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem;" />
+        </div>
+        <!-- Candidate Email -->
+        <div class="form-row-group" style="display: flex; flex-direction: column; gap: 4px;">
+          <label class="form-label" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #64748b;">Email</label>
+          <input type="email" class="form-input-control" [(ngModel)]="inlineEditForm.candidateEmail" placeholder="Candidate Email" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 0.84rem;" />
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9;">
+      <button type="button" class="btn-modal-cancel" (click)="closeEditSessionModal()" style="background: white; border: 1.5px solid #e2e8f0; color: #475569; border-radius: 8px; padding: 8px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Cancel</button>
+      <button type="button" class="btn-modal-save" (click)="saveInlineSessionChanges()" [disabled]="submittingInlineEdit" style="background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <span *ngIf="!submittingInlineEdit">✓</span>
+        <span class="cyber-spinner-small" *ngIf="submittingInlineEdit" style="width: 12px; height: 12px; border: 2.2px solid rgba(255,255,255,0.2); border-left-color: #fff; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite;"></span>
+        <span>Save Changes</span>
+      </button>
     </div>
   </div>
 </div>

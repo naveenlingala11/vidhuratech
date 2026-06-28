@@ -47,6 +47,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
   error = '';
   profileImageFailed = false;
 
+  localProfileImage = '';
+  localCoverImage = '';
+  tempProfileImage = '';
+  tempCoverImage = '';
+
+  resumeName = '';
+  resumeSize = '';
+  resumeTimestamp = '';
+  resumeData = '';
+  isUploadingResume = false;
+  uploadProgress = 0;
+
+  dailyStreak = 5;
+  rewardPoints = 340;
+  claimedToday = false;
+
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly prefsKey = 'vt_profile_preferences';
 
@@ -112,6 +128,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadProfile();
     this.userPlanBadgeService.load();
     this.loadLocalProfileData();
+    this.loadResumeData();
+    this.loadGamificationData();
   }
 
   ngOnDestroy(): void {
@@ -169,6 +187,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   get profileImageUrl(): string {
+    if (this.tempProfileImage) {
+      return this.tempProfileImage;
+    }
+    if (this.localProfileImage) {
+      return this.localProfileImage;
+    }
     const url = String(this.user?.profileImageUrl || '').trim();
 
     if (!url || this.profileImageFailed) {
@@ -292,6 +316,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
     this.form.name = this.user?.name || '';
     this.form.phone = this.user?.phone || '';
+    this.form.aboutMe = this.aboutMe || '';
   }
 
   saveProfile(): void {
@@ -301,6 +326,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     this.saving = true;
+    this.aboutMe = this.form.aboutMe.trim();
+    this.saveLocalProfileData();
 
     this.authService
       .updateProfile({
@@ -326,6 +353,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   cancelEdit(): void {
     this.form.name = this.user?.name || '';
     this.form.phone = this.user?.phone || '';
+    this.form.aboutMe = this.aboutMe || '';
     this.editMode = false;
   }
 
@@ -567,6 +595,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   loadLocalProfileData(): void {
     this.aboutMe = localStorage.getItem('vt_profile_bio') || 'Passionate software developer learning code logic, system design, and building web architectures.';
     this.form.aboutMe = this.aboutMe;
+    this.localProfileImage = localStorage.getItem('vt_profile_avatar') || '';
+    this.localCoverImage = localStorage.getItem('vt_profile_cover') || '';
     try {
       this.skillTags = JSON.parse(localStorage.getItem('vt_profile_skills') || '[]');
       if (this.skillTags.length === 0) {
@@ -618,6 +648,259 @@ export class ProfileComponent implements OnInit, OnDestroy {
       list.push({ title: 'Profile Elite', desc: '100% account strength unlocked', icon: 'bi-award-fill', tone: 'gold' });
     }
 
+    // Dynamic Consistency & XP Badges
+    if (this.dailyStreak >= 1) {
+      list.push({ title: 'Streak Starter', desc: `${this.dailyStreak} day consistency active`, icon: 'bi-fire', tone: 'emerald' });
+    }
+    if (this.dailyStreak >= 7) {
+      list.push({ title: 'Consistency Pro', desc: 'Maintained 7+ days learning streak', icon: 'bi-lightning-charge-fill', tone: 'violet' });
+    }
+    if (this.rewardPoints >= 350) {
+      list.push({ title: 'Points Pioneer', desc: 'Accumulated over 350 XP reward points', icon: 'bi-star-fill', tone: 'gold' });
+    }
+
     return list;
+  }
+
+  // === PHOTO UPLOADS & REPLACEMENTS ===
+  onAvatarSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.showError('Please select a valid image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.tempProfileImage = reader.result as string;
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  saveAvatarTemp(): void {
+    if (!this.tempProfileImage) return;
+    this.localProfileImage = this.tempProfileImage;
+    localStorage.setItem('vt_profile_avatar', this.localProfileImage);
+    this.tempProfileImage = '';
+    this.showMessage('Profile picture saved successfully!');
+    this.cdr.markForCheck();
+  }
+
+  cancelAvatarTemp(): void {
+    this.tempProfileImage = '';
+    this.cdr.markForCheck();
+  }
+
+  onCoverSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.showError('Please select a valid image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.tempCoverImage = reader.result as string;
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  saveCoverTemp(): void {
+    if (!this.tempCoverImage) return;
+    this.localCoverImage = this.tempCoverImage;
+    localStorage.setItem('vt_profile_cover', this.localCoverImage);
+    this.tempCoverImage = '';
+    this.showMessage('Cover image saved successfully!');
+    this.cdr.markForCheck();
+  }
+
+  cancelCoverTemp(): void {
+    this.tempCoverImage = '';
+    this.cdr.markForCheck();
+  }
+
+  resetCover(): void {
+    this.localCoverImage = '';
+    localStorage.removeItem('vt_profile_cover');
+    this.showMessage('Cover image reset');
+    this.cdr.markForCheck();
+  }
+
+  // === RESUME MANAGER ===
+  loadResumeData(): void {
+    this.resumeName = localStorage.getItem('vt_resume_name') || '';
+    this.resumeSize = localStorage.getItem('vt_resume_size') || '';
+    this.resumeTimestamp = localStorage.getItem('vt_resume_timestamp') || '';
+    this.resumeData = localStorage.getItem('vt_resume_data') || '';
+  }
+
+  onResumeSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type) && !file.name.endsWith('.pdf') && !file.name.endsWith('.docx') && !file.name.endsWith('.doc')) {
+      this.showError('Please upload a PDF or Word document (.pdf, .doc, .docx)');
+      return;
+    }
+
+    this.isUploadingResume = true;
+    this.uploadProgress = 10;
+
+    const interval = setInterval(() => {
+      this.uploadProgress += 15;
+      if (this.uploadProgress >= 100) {
+        clearInterval(interval);
+        
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.resumeName = file.name;
+          this.resumeSize = this.formatFileSize(file.size);
+          
+          const now = new Date();
+          this.resumeTimestamp = now.toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+          this.resumeData = reader.result as string;
+
+          localStorage.setItem('vt_resume_name', this.resumeName);
+          localStorage.setItem('vt_resume_size', this.resumeSize);
+          localStorage.setItem('vt_resume_timestamp', this.resumeTimestamp);
+          localStorage.setItem('vt_resume_data', this.resumeData);
+
+          this.isUploadingResume = false;
+          this.showMessage('Resume uploaded and stored successfully!');
+          this.cdr.markForCheck();
+        };
+        reader.readAsDataURL(file);
+      }
+    }, 120);
+  }
+
+  deleteResume(): void {
+    this.resumeName = '';
+    this.resumeSize = '';
+    this.resumeTimestamp = '';
+    this.resumeData = '';
+    localStorage.removeItem('vt_resume_name');
+    localStorage.removeItem('vt_resume_size');
+    localStorage.removeItem('vt_resume_timestamp');
+    localStorage.removeItem('vt_resume_data');
+    this.showMessage('Resume deleted successfully');
+    this.cdr.markForCheck();
+  }
+
+  downloadResume(): void {
+    if (!this.resumeData || !this.resumeName) return;
+    
+    const link = document.createElement('a');
+    link.href = this.resumeData;
+    link.download = this.resumeName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // === DYNAMIC STREAKS & REWARDS ===
+  loadGamificationData(): void {
+    try {
+      const historyJson = localStorage.getItem('vt_login_history');
+      const history: string[] = historyJson ? JSON.parse(historyJson) : [];
+      
+      if (history.length === 0) {
+        this.dailyStreak = 0;
+      } else {
+        const sorted = [...history].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+
+        if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) {
+          this.dailyStreak = 0;
+        } else {
+          let streak = 0;
+          const currentCheck = new Date(sorted[0]);
+
+          while (true) {
+            const currentCheckStr = currentCheck.toLocaleDateString('en-CA');
+            if (sorted.includes(currentCheckStr)) {
+              streak++;
+              currentCheck.setDate(currentCheck.getDate() - 1);
+            } else {
+              break;
+            }
+          }
+          this.dailyStreak = streak;
+        }
+      }
+    } catch {
+      this.dailyStreak = 0;
+    }
+
+    const savedPoints = localStorage.getItem('vt_profile_points');
+    this.rewardPoints = savedPoints ? parseInt(savedPoints, 10) : (this.dailyStreak * 50 || 150);
+
+    const lastClaimStr = localStorage.getItem('vt_profile_last_claim');
+    if (lastClaimStr) {
+      const lastClaimDate = new Date(lastClaimStr).toDateString();
+      const todayDate = new Date().toDateString();
+      this.claimedToday = lastClaimDate === todayDate;
+    } else {
+      this.claimedToday = false;
+    }
+  }
+
+  claimDailyReward(): void {
+    if (this.claimedToday) return;
+
+    this.rewardPoints += 50;
+    
+    try {
+      const historyJson = localStorage.getItem('vt_login_history');
+      let history: string[] = historyJson ? JSON.parse(historyJson) : [];
+      const today = new Date().toLocaleDateString('en-CA');
+
+      if (!history.includes(today)) {
+        history.push(today);
+        history = history.sort().slice(-60);
+        localStorage.setItem('vt_login_history', JSON.stringify(history));
+      }
+    } catch {}
+
+    this.claimedToday = true;
+
+    const now = new Date();
+    localStorage.setItem('vt_profile_points', String(this.rewardPoints));
+    localStorage.setItem('vt_profile_last_claim', now.toISOString());
+
+    this.loadGamificationData();
+
+    this.showMessage('Daily checked in! +50 XP rewarded!');
+    this.cdr.markForCheck();
   }
 }

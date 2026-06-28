@@ -57,15 +57,16 @@
         </div>
 
         <div class="stats-card-body">
-          <strong>{{ challenges.length || '350+' }}</strong>
-          <span>Premium Challenges</span>
+          <strong>{{ allItems.length || '350+' }}</strong>
+          <span>Practice Challenges</span>
         </div>
 
         <div class="stats-company-row">
-          <img src="logos/tcs.svg" alt="TCS" />
-          <img src="logos/infosys.svg" alt="Infosys" />
-          <img src="logos/wipro.svg" alt="Wipro" />
-          <img src="logos/deloitte.svg" alt="Deloitte" />
+          <img src="logos/facebook.svg" alt="Facebook" />
+          <img src="logos/amazon.svg" alt="Amazon" />
+          <img src="logos/apple.svg" alt="Apple" />
+          <img src="logos/netflix.svg" alt="Netflix" />
+          <img src="logos/google.svg" alt="Google" />
         </div>
       </div>
     </div>
@@ -84,106 +85,258 @@
   <ng-container *ngIf="!loading && mode === 'LIBRARY'">
 
     <!-- Marquee Strip (Top Companies) -->
-    <section class="marquee-section animate-fade-in">
+    <section class="marquee-section animate-fade-in" *ngIf="companiesWithLogos && companiesWithLogos.length > 0">
       <div class="marquee-track">
-        <span><img src="logos/tcs.svg" alt="TCS" /> TCS NQT</span>
-        <span><img src="logos/infosys.svg" alt="Infosys" /> Infosys SP</span>
-        <span><img src="logos/wipro.svg" alt="Wipro" /> Wipro Elite</span>
-        <span><img src="logos/accenture.svg" alt="Accenture" /> Accenture</span>
-        <span><img src="logos/deloitte.svg" alt="Deloitte" /> Deloitte</span>
-        <span><img src="logos/cognizant.svg" alt="Cognizant" /> Cognizant GenC</span>
-        <!-- Duplicate for loop -->
-        <span><img src="logos/tcs.svg" alt="TCS" /> TCS NQT</span>
-        <span><img src="logos/infosys.svg" alt="Infosys" /> Infosys SP</span>
-        <span><img src="logos/wipro.svg" alt="Wipro" /> Wipro Elite</span>
-        <span><img src="logos/accenture.svg" alt="Accenture" /> Accenture</span>
-        <span><img src="logos/deloitte.svg" alt="Deloitte" /> Deloitte</span>
-        <span><img src="logos/cognizant.svg" alt="Cognizant" /> Cognizant GenC</span>
+        <span *ngFor="let company of companiesWithLogos" 
+          [class.active-company]="selectedCompany === company"
+          (click)="toggleCompanyFilter(company)" 
+          style="cursor: pointer;">
+          <img [src]="companyLogo(company)" [alt]="company" (error)="$any($event.target).src = 'VidhuraTechIcon.png'" />
+        </span>
+        <!-- Duplicate for continuous marquee scrolling loop -->
+        <span *ngFor="let company of companiesWithLogos" 
+          [class.active-company]="selectedCompany === company"
+          (click)="toggleCompanyFilter(company)" 
+          style="cursor: pointer;">
+          <img [src]="companyLogo(company)" [alt]="company" (error)="$any($event.target).src = 'VidhuraTechIcon.png'" />
+        </span>
       </div>
     </section>
 
     <!-- Daily Streak / Progress -->
     <section class="daily-streak-section animate-slide-up" style="animation-delay: 0.15s;">
-      <div class="streak-card">
-        <div class="streak-info">
-          <div class="streak-icon" [class.active]="isLoggedIn && calculatedStreak > 0">
-            <i class="fa-solid fa-fire"></i>
+      <div class="streak-card-v2">
+        <!-- Left: Streak Info & Features -->
+        <div class="streak-left">
+          <!-- Top Header Info -->
+          <div class="streak-header-wrap">
+            <div class="streak-top-row">
+              <div class="streak-icon-v2" [class.active]="calculatedStreak > 0">
+                <i class="fa-solid fa-fire"></i>
+                <span class="streak-count-badge">{{ calculatedStreak }}</span>
+              </div>
+              <div class="streak-text">
+                <div class="streak-title-row">
+                  <h3>{{ calculatedStreak }} Day{{ calculatedStreak === 1 ? '' : 's' }} Streak</h3>
+                  <span class="record-badge" [class.new-record]="isNewRecord">
+                    <i class="fa-solid fa-trophy"></i> Best: {{ longestStreak }}d
+                  </span>
+                  <span class="rank-badge">
+                    <i class="fa-solid fa-ranking-star"></i> Rank #{{ leaderboardRank }}/{{ leaderboardTotal }}
+                  </span>
+                </div>
+                <!-- 6. Motivational Quotes -->
+                <p class="streak-quote-msg">{{ motivationalQuote }}</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3>{{ isLoggedIn ? calculatedStreak : 0 }} Day{{ (isLoggedIn ? calculatedStreak : 0) === 1 ? '' : 's' }}
-              Streak</h3>
-            <p>{{ streakMessage }}</p>
+
+          <!-- Progress Bars and Goals Grid -->
+          <div class="streak-progress-grid">
+            <!-- 2. Weekly Progress -->
+            <div class="progress-box">
+              <div class="progress-header">
+                <span>Weekly Progress</span>
+                <strong>{{ weeklyProgress }}/7 days</strong>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" [style.width.%]="weeklyProgressPercent"></div>
+              </div>
+            </div>
+
+            <!-- 3. Daily Goal Target -->
+            <div class="progress-box">
+              <div class="progress-header">
+                <span>Daily Goal (Target: 3)</span>
+                <strong>{{ dailyGoalSolved }}/{{ dailyGoalTarget }} solved</strong>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill daily-fill" [class.completed]="dailyGoalComplete"
+                  [style.width.%]="dailyGoalPercent"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rewards & Milestones -->
+          <div class="streak-rewards-row">
+            <div class="streak-points-pill-v2" title="Streak Points (50 pts per day)">
+              <i class="fa-solid fa-star"></i>
+              <strong>{{ streakPoints }}</strong>
+              <span>points</span>
+            </div>
+
+            <div class="streak-divider"></div>
+
+            <!-- 4. Streak Milestones -->
+            <div class="streak-milestone-wrap" [title]="'Current Tier: ' + streakMilestone.label">
+              <div class="streak-badge-pill-v2 earned" [style.border-color]="streakMilestone.color">
+                <i class="fa-solid" [ngClass]="streakMilestone.icon" [style.color]="streakMilestone.color"></i>
+                <strong [style.color]="streakMilestone.color">{{ streakMilestone.label }} Tier</strong>
+              </div>
+              <div class="milestone-progress-mini" *ngIf="streakMilestone.next > 0">
+                <span class="milestone-label-hint">Next: {{ streakMilestone.next }}d</span>
+                <div class="milestone-bar-wrap">
+                  <div class="milestone-bar-fill" [style.background-color]="streakMilestone.color"
+                    [style.width.%]="milestoneProgress"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weekdays Row -->
+          <div class="streak-week-row">
+            <div *ngFor="let day of weeklyStreakDays" class="streak-day-v2" [class.active]="day.active"
+              [class.current]="day.isToday">
+              <span class="day-label">{{ day.label }}</span>
+              <div class="day-circle">
+                <i *ngIf="day.active" class="fa-solid fa-check"></i>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!isLoggedIn" class="streak-sync-bar">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Login to sync your streak across devices</span>
+            <a routerLink="/login" [queryParams]="{ redirect: '/practice' }">Sync Now</a>
           </div>
         </div>
-        <div class="streak-days">
-          <div *ngFor="let day of weeklyStreakDays" class="streak-day" [class.active]="isLoggedIn && day.active"
-            [class.current]="day.isToday">
-            <span>{{ day.label }}</span>
-            <i *ngIf="isLoggedIn && day.active" class="fa-solid fa-check"></i>
-            <i *ngIf="!isLoggedIn || !day.active"></i>
+
+        <!-- Right: Calendar with Heatmap -->
+        <div class="streak-calendar-v2 visible">
+          <div class="cal-header-v2">
+            <button type="button" (click)="calendarPrevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
+            <h4>{{ calendarMonthLabel }}</h4>
+            <button type="button" (click)="calendarNextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <div class="cal-weekday-row">
+            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+          </div>
+          <!-- 5. Calendar Heatmap -->
+          <div class="cal-body">
+            <div *ngFor="let week of calendarGrid" class="cal-week-v2">
+              <div *ngFor="let cell of week" class="cal-day" [class.empty]="cell.isEmpty"
+                [class.streak]="cell.isStreakDay" [class.today]="cell.isToday"
+                [class.solve-none]="cell.solvedCount === 0"
+                [class.solve-low]="cell.solvedCount > 0 && cell.solvedCount < 2"
+                [class.solve-medium]="cell.solvedCount >= 2 && cell.solvedCount < 3"
+                [class.solve-high]="cell.solvedCount >= 3"
+                [title]="!cell.isEmpty ? cell.day + ' - ' + cell.solvedCount + ' solved' : ''">
+                <span *ngIf="!cell.isEmpty">{{ cell.day }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="cal-footer">
+            <div class="cal-heatmap-legend">
+              <span>Heatmap:</span>
+              <span class="heatmap-key low" title="1 solve"></span>
+              <span class="heatmap-key med" title="2 solves"></span>
+              <span class="heatmap-key high" title="3+ solves"></span>
+            </div>
+            <div class="cal-stat total">
+              <i class="fa-solid fa-fire-flame-curved"></i>
+              <span>{{ loginHistory.length }} total</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Trending Topics -->
-    <section class="trending-topics-section animate-slide-up" style="animation-delay: 0.2s;">
+    <section class="trending-topics-section animate-slide-up" style="animation-delay: 0.2s;"
+      *ngIf="skills && skills.length > 0">
       <div class="section-label">
         <i class="fa-solid fa-arrow-trend-up"></i>
         <span>Trending Topics</span>
       </div>
       <div class="topics-scroll">
-        <button class="topic-pill"><i class="fa-solid fa-layer-group" style="color: #2563eb;"></i> Arrays</button>
-        <button class="topic-pill"><i class="fa-solid fa-font" style="color: #dc2626;"></i> Strings</button>
-        <button class="topic-pill"><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Two Pointers</button>
-        <button class="topic-pill"><i class="fa-solid fa-brain" style="color: #7c3aed;"></i> Dynamic
-          Programming</button>
-        <button class="topic-pill"><i class="fa-solid fa-code-branch" style="color: #059669;"></i> Trees</button>
-        <button class="topic-pill"><i class="fa-solid fa-chart-network" style="color: #0ea5e9;"></i> Graphs</button>
-        <button class="topic-pill"><i class="fa-solid fa-database" style="color: #ec4899;"></i> SQL</button>
+        <button *ngFor="let skill of skills" class="topic-pill" [class.active]="selectedSkill === skill"
+          (click)="toggleSkillFilter(skill)">
+          <i [class]="getSkillMetadata(skill).icon"
+            [style.color]="selectedSkill === skill ? '#ffffff' : getSkillMetadata(skill).color"></i>
+          {{ skill }}
+        </button>
       </div>
     </section>
 
     <!-- Toolbar -->
     <section class="toolbar-strip animate-slide-up" style="animation-delay: 0.25s;">
       <div class="search-input-wrap">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input [(ngModel)]="search" (ngModelChange)="resetPage()"
-          placeholder="Search for problems, mock tests, companies..." />
-        <div class="search-shortcut">Ctrl+K</div>
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input [(ngModel)]="search" (ngModelChange)="resetPage()" placeholder="Search problems, companies, topics..." />
+        <button *ngIf="search" class="clear-search-btn" (click)="search = ''; resetPage();" title="Clear Search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="search-shortcut hide-mobile">Ctrl+K</div>
       </div>
 
       <div class="filter-group">
-        <select [(ngModel)]="selectedCompany" (ngModelChange)="resetPage()" class="premium-select">
-          <option value="ALL">All Companies</option>
-          <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
-        </select>
+        <!-- Company -->
+        <div class="premium-select-wrap">
+          <i class="fa-solid fa-building select-icon"></i>
+          <select [(ngModel)]="selectedCompany" (ngModelChange)="resetPage()" class="premium-select">
+            <option value="ALL">All Companies</option>
+            <option *ngFor="let company of companies" [value]="company">{{ company }}</option>
+          </select>
+        </div>
 
-        <select [(ngModel)]="selectedSkill" (ngModelChange)="resetPage()" class="premium-select">
-          <option value="ALL">All Skills</option>
-          <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
-        </select>
+        <!-- Skill -->
+        <div class="premium-select-wrap">
+          <i class="fa-solid fa-lightbulb select-icon"></i>
+          <select [(ngModel)]="selectedSkill" (ngModelChange)="resetPage()" class="premium-select">
+            <option value="ALL">All Skills</option>
+            <option *ngFor="let skill of skills" [value]="skill">{{ skill }}</option>
+          </select>
+        </div>
 
-        <select [(ngModel)]="selectedType" (ngModelChange)="resetPage()" class="premium-select">
-          <option value="ALL">All Types</option>
-          <option value="ASSESSMENT">Mock Tests</option>
-          <option value="CHALLENGE">Coding Challenges</option>
-        </select>
+        <!-- Type -->
+        <div class="premium-select-wrap">
+          <i class="fa-solid fa-code select-icon"></i>
+          <select [(ngModel)]="selectedType" (ngModelChange)="resetPage()" class="premium-select">
+            <option value="ALL">All Types</option>
+            <option value="ASSESSMENT">Mock Tests</option>
+            <option value="CHALLENGE">Coding Challenges</option>
+          </select>
+        </div>
 
-        <select [(ngModel)]="selectedAccess" (ngModelChange)="resetPage()" class="premium-select">
-          <option value="ALL">All Access Tiers</option>
-          <option value="FREE">Free Attempt</option>
-          <option value="PREMIUM">Premium Lock</option>
-        </select>
+        <!-- Access -->
+        <div class="premium-select-wrap">
+          <i class="fa-solid fa-lock select-icon"></i>
+          <select [(ngModel)]="selectedAccess" (ngModelChange)="resetPage()" class="premium-select">
+            <option value="ALL">All Access Tiers</option>
+            <option value="FREE">Free Attempt</option>
+            <option value="PREMIUM">Premium Lock</option>
+          </select>
+        </div>
 
-        <select [(ngModel)]="sortBy" (ngModelChange)="resetPage()" class="premium-select">
-          <option value="LATEST">Sort: Latest</option>
-          <option value="TITLE">Sort: Title (A-Z)</option>
-          <option value="MARKS_DESC">Sort: Marks (High &rarr; Low)</option>
-          <option value="MARKS_ASC">Sort: Marks (Low &rarr; High)</option>
-          <option value="DURATION_DESC">Sort: Duration (Longest)</option>
-          <option value="DURATION_ASC">Sort: Duration (Shortest)</option>
-        </select>
+        <!-- Status -->
+        <div class="premium-select-wrap">
+          <i class="fa-solid fa-circle-check select-icon"></i>
+          <select [(ngModel)]="selectedStatus" (ngModelChange)="resetPage()" class="premium-select">
+            <option value="ALL">All Statuses</option>
+            <option value="SOLVED">Solved</option>
+            <option value="UNSOLVED">Unsolved</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div class="premium-select-wrap">
+          <i class="fa-solid fa-arrow-down-wide-short select-icon"></i>
+          <select [(ngModel)]="sortBy" (ngModelChange)="resetPage()" class="premium-select">
+            <option value="LATEST">Sort: Latest</option>
+            <option value="TITLE">Sort: Title (A-Z)</option>
+            <option value="MARKS_DESC">Sort: Marks (High &rarr; Low)</option>
+            <option value="MARKS_ASC">Sort: Marks (Low &rarr; High)</option>
+            <option value="DURATION_DESC">Sort: Duration (Longest)</option>
+            <option value="DURATION_ASC">Sort: Duration (Shortest)</option>
+          </select>
+        </div>
+
+        <!-- Clear Filters Button -->
+        <button *ngIf="hasActiveFilters" class="clear-filters-btn" (click)="clearAllFilters()"
+          title="Reset All Filters">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          <span>Clear</span>
+        </button>
       </div>
     </section>
 
@@ -212,6 +365,16 @@
           <span class="company-tag" *ngIf="!item.company">
             <i class="fa-solid fa-building"></i>
             Practice
+          </span>
+
+          <span class="solved-status-badge" *ngIf="isItemSolved(item)">
+            <i class="fa-solid fa-circle-check"></i>
+            Solved
+          </span>
+
+          <span class="unsolved-status-badge" *ngIf="!isItemSolved(item)">
+            <i class="fa-solid fa-circle-question"></i>
+            Unsolved
           </span>
 
           <span class="difficulty-tag" [attr.data-level]="getChallengeDifficulty(item.totalMarks)">
@@ -251,18 +414,18 @@
           </div>
         </div>
 
-        <button class="attempt-btn" [class.disabled]="!isLeadRequired(item) || submitting"
-          [disabled]="!isLeadRequired(item) || submitting" (click)="openLeadModal(item)">
+        <button class="attempt-btn" [ngClass]="getAttemptButtonClass(item)" [disabled]="submitting"
+          (click)="openLeadModal(item)">
           <ng-container *ngIf="attemptingItemId === item.id && submitting; else normalBtn">
             <span>Preparing...</span>
             <i class="fa-solid fa-circle-notch fa-spin"></i>
           </ng-container>
           <ng-template #normalBtn>
-            <span>{{ isLeadRequired(item) ? 'Attempt Now' : 'Premium Lock' }}</span>
-            <i [class]="isLeadRequired(item) ? 'fa-solid fa-arrow-right' : 'fa-solid fa-lock'"></i>
+            <span>{{ getAttemptButtonText(item) }}</span>
+            <i [class]="getAttemptButtonIcon(item)"></i>
           </ng-template>
         </button>
-        <small class="policy-note" *ngIf="!isLeadRequired(item)">
+        <small class="policy-note" *ngIf="!canAttemptItem(item)">
           {{ accessPolicyMessage(item) }}
         </small>
       </article>
@@ -319,7 +482,12 @@
         </button>
 
         <div class="assessment-title">
-          <span class="assessment-company-tag">{{ assessment.company }} Mock Test</span>
+          <span class="assessment-company-tag" style="display: flex; align-items: center; gap: 6px;">
+            <img *ngIf="assessment.company" [src]="companyLogo(assessment.company)" [alt]="assessment.company"
+              (error)="$any($event.target).style.display = 'none'"
+              style="height: 16px; width: 16px; object-fit: contain;" />
+            {{ assessment.company }} Mock Test
+          </span>
           <h2>{{ assessment.title }}</h2>
           <p>{{ assessment.description }}</p>
         </div>
@@ -452,7 +620,12 @@
       <i class="fa-solid fa-lock"></i>
     </div>
     <span>Registration Required</span>
-    <h2>Unlock {{ assessment.company }} Mock Test</h2>
+    <h2>
+      <img *ngIf="assessment.company" [src]="companyLogo(assessment.company)" [alt]="assessment.company"
+        (error)="$any($event.target).style.display = 'none'"
+        style="height: 28px; vertical-align: middle; margin-right: 8px;" />
+      Unlock {{ assessment.company }} Mock Test
+    </h2>
     <p>
       Complete the registration form to access questions, submit your answers, and receive your
       instant score report.
@@ -473,7 +646,10 @@
         </button>
 
         <div class="challenge-title-area">
-          <div class="challenge-kicker">
+          <div class="challenge-kicker" style="display: flex; align-items: center; gap: 6px;">
+            <img *ngIf="challenge.company" [src]="companyLogo(challenge.company)" [alt]="challenge.company"
+              (error)="$any($event.target).style.display = 'none'"
+              style="height: 16px; width: 16px; object-fit: contain;" />
             <span>{{ challenge.company || 'General' }}</span>
             <b>Coding Challenge</b>
           </div>
@@ -1164,7 +1340,12 @@
       <i class="fa-solid fa-lock"></i>
     </div>
     <span>Registration Required</span>
-    <h2>Unlock {{ challenge.company }} Coding Challenge</h2>
+    <h2>
+      <img *ngIf="challenge.company" [src]="companyLogo(challenge.company)" [alt]="challenge.company"
+        (error)="$any($event.target).style.display = 'none'"
+        style="height: 28px; vertical-align: middle; margin-right: 8px;" />
+      Unlock {{ challenge.company }} Coding Challenge
+    </h2>
     <p>
       Complete the registration form to access the coding editor, execute your solution, and receive
       evaluated test-case results.
@@ -1191,7 +1372,12 @@
           <div class="sug-accent" [attr.data-level]="getChallengeDifficulty(sug.totalMarks)"></div>
           <div class="sug-body">
             <div class="sug-meta">
-              <span class="sug-company">{{ sug.company }}</span>
+              <span class="sug-company" style="display: flex; align-items: center; gap: 6px;">
+                <img *ngIf="sug.company" [src]="companyLogo(sug.company)" [alt]="sug.company"
+                  (error)="$any($event.target).style.display = 'none'"
+                  style="height: 16px; width: 16px; object-fit: contain;" />
+                {{ sug.company }}
+              </span>
               <span class="sug-difficulty" [attr.data-level]="getChallengeDifficulty(sug.totalMarks)">
                 {{ getChallengeDifficulty(sug.totalMarks) }}
               </span>

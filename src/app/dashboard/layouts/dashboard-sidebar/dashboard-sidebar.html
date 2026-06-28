@@ -35,17 +35,21 @@
   </label>
 
   <nav class="menu">
-    <button
-      type="button"
-      class="menu-link"
-      *ngFor="let item of filteredMenuItems"
-      [class.active]="isActive(item.route)"
-      [attr.title]="collapsed ? item.label : null"
-      (click)="navigateTo(item)"
-    >
-      <i [class]="item.icon"></i>
-      <span *ngIf="!collapsed">{{ item.label }}</span>
-    </button>
+    <div class="sidebar-section" *ngFor="let sec of groupedMenuItems">
+      <div class="sidebar-section-hdr" *ngIf="!collapsed">{{ sec.name }}</div>
+      <div class="sidebar-section-divider" *ngIf="collapsed"></div>
+      <button
+        type="button"
+        class="menu-link"
+        *ngFor="let item of sec.items"
+        [class.active]="isActive(item.route)"
+        [attr.title]="collapsed ? item.label : null"
+        (click)="navigateTo(item)"
+      >
+        <i [class]="item.icon"></i>
+        <span *ngIf="!collapsed">{{ item.label }}</span>
+      </button>
+    </div>
   </nav>
 
   <div class="empty-menu" *ngIf="!collapsed && !filteredMenuItems.length">No menu found</div>

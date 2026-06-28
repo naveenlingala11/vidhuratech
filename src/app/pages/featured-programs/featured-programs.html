@@ -1,0 +1,135 @@
+<div class="programs-page" [style.--mesh-color]="currentSection.meshColor">
+  <!-- Interactive Background Glow -->
+  <div class="dynamic-mesh-glow"></div>
+
+  <!-- Page Header -->
+  <header class="programs-header">
+    <span class="programs-badge"><i class="bi bi-rocket-takeoff"></i> Tailored Platforms</span>
+    <h1>Featured Tech Pathways</h1>
+    <p>Discover personalized learning roadmaps, 1:1 mentorship structures, and coding arenas engineered for your goals.</p>
+  </header>
+
+  <!-- Segment Tab Controller -->
+  <div class="tabs-navigator">
+    <button 
+      *ngFor="let sec of sections" 
+      type="button" 
+      class="tab-btn" 
+      [class.active]="activeTabId === sec.id"
+      [style.--tab-color]="sec.color"
+      (click)="selectTab(sec.id)"
+    >
+      <i [class]="sec.icon"></i>
+      <span>{{ sec.badge }}</span>
+    </button>
+  </div>
+
+  <!-- Program Stats Quick Bar -->
+  <div class="program-stats-bar" [style.--theme-color]="currentSection.color">
+    <div class="stat-item" *ngFor="let stat of currentSection.stats">
+      <div class="stat-icon-wrapper" [style.background-color]="currentSection.color + '12'">
+        <i [class]="stat.icon" [style.color]="currentSection.color"></i>
+      </div>
+      <div class="stat-text">
+        <strong>{{ stat.value }}</strong>
+        <span>{{ stat.label }}</span>
+        <small>{{ stat.sub }}</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Program Showcase -->
+  <div class="showcase-viewport" [style.--theme-color]="currentSection.color" [style.--accent-color]="currentSection.accent">
+    <div class="showcase-card" *ngFor="let section of [currentSection]; trackBy: trackBySectionId">
+      
+      <!-- Content Details (Left Column) -->
+      <div class="showcase-details">
+        <span class="content-tag" [style.color]="currentSection.color" [style.background-color]="currentSection.color + '12'">
+          {{ currentSection.badge }}
+        </span>
+        <h2>{{ currentSection.title }}</h2>
+        <h3>{{ currentSection.subtitle }}</h3>
+        <p class="section-desc">{{ currentSection.description }}</p>
+
+        <!-- Dynamic Tech Stack / Mentors Work At -->
+        <h4 class="sub-section-title">
+          {{ currentSection.id === 'mentorship' ? 'Our Mentors Work At' : 'Core Technologies & Tools' }}
+        </h4>
+        <div class="tech-grid">
+          <span class="tech-badge" *ngFor="let tech of currentSection.techStack">
+            <ng-container *ngIf="currentSection.id === 'mentorship'; else techIcon">
+              <img [src]="tech.icon" [alt]="tech.name" class="tech-logo-img" />
+            </ng-container>
+            <ng-template #techIcon>
+              <i [class]="tech.icon" [style.color]="currentSection.color"></i>
+            </ng-template>
+            {{ tech.name }}
+          </span>
+        </div>
+
+        <h4 class="sub-section-title">Key Highlights</h4>
+        <ul class="features-list">
+          <li *ngFor="let feat of currentSection.features; let idx = index" [style.--anim-delay]="idx * 100 + 'ms'">
+            <i class="bi bi-patch-check-fill" [style.color]="currentSection.color"></i>
+            <span>{{ feat }}</span>
+          </li>
+        </ul>
+
+        <button 
+          class="explore-btn" 
+          [style.background]="currentSection.gradient"
+          (click)="navigateTo(currentSection.ctaRoute)"
+        >
+          {{ currentSection.ctaLabel }}
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Roadmap Timeline (Right Column) -->
+      <div class="showcase-roadmap">
+        <h3 class="roadmap-title"><i class="bi bi-signpost-split"></i> Program Roadmap</h3>
+        <div class="roadmap-timeline">
+          <div 
+            class="roadmap-step" 
+            *ngFor="let step of currentSection.roadmap; let idx = index"
+            [style.--anim-delay]="idx * 150 + 'ms'"
+          >
+            <div class="step-badge" [style.background]="currentSection.gradient">
+              {{ step.step }}
+            </div>
+            <div class="step-details">
+              <strong>{{ step.title }}</strong>
+              <span>{{ step.desc }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tab-Specific Accordion FAQs -->
+  <section class="faqs-block" [style.--theme-color]="currentSection.color">
+    <div class="faqs-hdr">
+      <h2><i class="bi bi-patch-question"></i> Frequently Asked Questions</h2>
+      <p>Got questions about the {{ currentSection.title }}? We've got answers.</p>
+    </div>
+    <div class="faqs-list">
+      <div 
+        class="faq-item" 
+        *ngFor="let faq of currentSection.faqs; let i = index"
+        [class.open]="activeFaqIndex === i"
+      >
+        <button type="button" class="faq-question" (click)="toggleFaq(i)">
+          <span>{{ faq.question }}</span>
+          <i class="bi bi-chevron-down faq-arrow"></i>
+        </button>
+        <div class="faq-answer-wrapper">
+          <div class="faq-answer">
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
