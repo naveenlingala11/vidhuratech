@@ -97,7 +97,21 @@ export class Mentors implements OnInit, OnDestroy {
   quickTags = ['Google', 'Microsoft', 'Amazon', 'System Design', 'Frontend', 'Backend', 'Java', 'Angular', 'React', 'DSA'];
 
   // Top companies working cloud
-  companyLogos = ['Google', 'Microsoft', 'Amazon', 'Meta', 'TCS', 'Infosys', 'Cognizant', 'Wipro'];
+  companyLogos = [
+    { name: 'Google', domain: 'google.com' },
+    { name: 'Microsoft', domain: 'microsoft.com' },
+    { name: 'Amazon', domain: 'amazon.com' },
+    { name: 'Meta', domain: 'meta.com' },
+    { name: 'Apple', domain: 'apple.com' },
+    { name: 'Netflix', domain: 'netflix.com' },
+    { name: 'Uber', domain: 'uber.com' },
+    { name: 'Stripe', domain: 'stripe.com' },
+    { name: 'Airbnb', domain: 'airbnb.com' },
+    { name: 'TCS', domain: 'tcs.com' },
+    { name: 'Infosys', domain: 'infosys.com' },
+    { name: 'Cognizant', domain: 'cognizant.com' },
+    { name: 'Wipro', domain: 'wipro.com' }
+  ];
 
   // Pricing Estimator Calculator State
   selectedCalcTopic = 'dsa';
@@ -730,5 +744,14 @@ export class Mentors implements OnInit, OnDestroy {
       }
       this.chatMessages.push({ sender: 'mentor', text: reply, time: 'Now' });
     }, 1200);
+  }
+
+  getInlineLogo(company: string): string {
+    if (!company) return '';
+    const clean = company.toLowerCase().trim();
+    let domain = `${clean}.com`;
+    // Add special mappings if needed:
+    if (clean === 'tcs') domain = 'tcs.com';
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   }
 }

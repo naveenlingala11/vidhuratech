@@ -411,7 +411,8 @@ export class LiveConnectCreateComponent implements OnInit, OnDestroy {
       recurringType: this.recurringType,
       recurringDays: this.recurringDays,
       invitedEmails: this.invitedEmails.trim(),
-      timezone: this.timezone
+      timezone: this.timezone,
+      notes: this.sessionNotes.trim()
     };
 
     this.studentService.createPublicSession(payload).subscribe({

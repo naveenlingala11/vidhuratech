@@ -82,6 +82,66 @@ export class DashboardSidebar implements OnInit {
     );
   }
 
+  get groupedMenuItems(): { name: string; items: any[] }[] {
+    const items = this.filteredMenuItems;
+    const sections: Record<string, any[]> = {
+      'Main Menu': [],
+      'Learning Hub': [],
+      'Career Tools': [],
+      'Account Settings': [],
+    };
+
+    items.forEach(item => {
+      const label = item.label.toLowerCase();
+      if (label === 'dashboard' || label === 'profile') {
+        sections['Main Menu'].push(item);
+      } else if (
+        label.includes('course') || 
+        label.includes('lms') || 
+        label.includes('session') || 
+        label.includes('assignment') || 
+        label.includes('assessment') || 
+        label.includes('challenge') || 
+        label.includes('practice') || 
+        label.includes('material') || 
+        label.includes('note') ||
+        label.includes('question') ||
+        label.includes('mentor') ||
+        label.includes('student') ||
+        label.includes('batch') ||
+        label.includes('content')
+      ) {
+        sections['Learning Hub'].push(item);
+      } else if (
+        label.includes('job') || 
+        label.includes('company') || 
+        label.includes('placement') || 
+        label.includes('resume') || 
+        label.includes('project') || 
+        label.includes('leaderboard') ||
+        label.includes('certificate') ||
+        label.includes('analytics') ||
+        label.includes('invoice') ||
+        label.includes('candidate') ||
+        label.includes('hiring') ||
+        label.includes('team') ||
+        label.includes('lead') ||
+        label.includes('bin') ||
+        label.includes('action') ||
+        label.includes('user') ||
+        label.includes('guide')
+      ) {
+        sections['Career Tools'].push(item);
+      } else {
+        sections['Account Settings'].push(item);
+      }
+    });
+
+    return Object.keys(sections)
+      .map(key => ({ name: key, items: sections[key] }))
+      .filter(sec => sec.items.length > 0);
+  }
+
   get userInitials(): string {
     const name = String(this.user?.name || this.user?.fullName || this.user?.email || 'User');
     const parts = name.trim().split(/\s+/);

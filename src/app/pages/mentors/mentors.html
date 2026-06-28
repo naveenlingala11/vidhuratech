@@ -115,32 +115,6 @@
     </div>
   </div>
 
-  <!-- Live Activity Ticker -->
-  <div class="live-activity-ticker-container">
-    <div class="live-ticker-label">
-      <span class="pulse-red-indicator"></span>
-      LIVE BOOKINGS:
-    </div>
-    <div class="live-ticker-track">
-      <div class="live-ticker-content">
-        <span *ngFor="let item of liveUpdates" class="ticker-item">
-          <svg class="ticker-dot" xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 8 8" fill="currentColor">
-            <circle cx="4" cy="4" r="3" />
-          </svg>
-          <span class="ticker-text">{{ item.text }}</span>
-          <span class="ticker-time">{{ item.time }}</span>
-        </span>
-        <!-- Duplicate for infinite marquee scroll -->
-        <span *ngFor="let item of liveUpdates" class="ticker-item">
-          <svg class="ticker-dot" xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 8 8" fill="currentColor">
-            <circle cx="4" cy="4" r="3" />
-          </svg>
-          <span class="ticker-text">{{ item.text }}</span>
-          <span class="ticker-time">{{ item.time }}</span>
-        </span>
-      </div>
-    </div>
-  </div>
 
   <!-- Infinite Sliding Brand Logo Marquee -->
   <div class="company-marquee-section">
@@ -148,13 +122,13 @@
     <div class="marquee-wrapper">
       <div class="marquee-track">
         <div *ngFor="let comp of companyLogos" class="marquee-logo-card">
-          <span class="marquee-dot"></span>
-          {{ comp }}
+          <img [src]="'https://www.google.com/s2/favicons?domain=' + comp.domain + '&sz=128'" [alt]="comp.name" class="marquee-logo-img" />
+          <span>{{ comp.name }}</span>
         </div>
         <!-- Duplicate for infinite seamless scroll -->
         <div *ngFor="let comp of companyLogos" class="marquee-logo-card">
-          <span class="marquee-dot"></span>
-          {{ comp }}
+          <img [src]="'https://www.google.com/s2/favicons?domain=' + comp.domain + '&sz=128'" [alt]="comp.name" class="marquee-logo-img" />
+          <span>{{ comp.name }}</span>
         </div>
       </div>
     </div>
@@ -183,7 +157,18 @@
             
             <div class="spotlight-meta">
               <h3>{{ mentor.name }}</h3>
-              <p class="role-company">{{ mentor.currentRole }} at <strong>{{ mentor.currentCompany }}</strong></p>
+              <p class="role-company">
+                {{ mentor.currentRole }} at 
+                <strong>
+                  {{ mentor.currentCompany }}
+                  <img 
+                    *ngIf="mentor.currentCompany"
+                    [src]="getInlineLogo(mentor.currentCompany)" 
+                    [alt]="mentor.currentCompany"
+                    class="company-inline-logo"
+                  />
+                </strong>
+              </p>
               <div class="rating-strip">
                 <span class="rating-badge-spot">
                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 20 20">
@@ -758,7 +743,16 @@
                     </span>
                   </div>
                   <p class="role-company-line">
-                    {{mentor.currentRole}} at <span class="highlight-company">{{mentor.currentCompany}}</span>
+                    {{mentor.currentRole}} at 
+                    <span class="highlight-company">
+                      {{mentor.currentCompany}}
+                      <img 
+                        *ngIf="mentor.currentCompany"
+                        [src]="getInlineLogo(mentor.currentCompany)" 
+                        [alt]="mentor.currentCompany"
+                        class="company-inline-logo"
+                      />
+                    </span>
                   </p>
                   
                   <div class="ratings-line">

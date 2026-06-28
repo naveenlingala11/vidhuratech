@@ -1,0 +1,679 @@
+<div class="sessions-history-container">
+  <!-- Atmospheric background glows for modern premium depth -->
+  <div class="ambient-glow primary"></div>
+  <div class="ambient-glow secondary"></div>
+  <div class="ambient-glow tertiary"></div>
+
+  <div class="connect-sessions-content">
+    <!-- Navigation row to back-track -->
+    <div class="back-nav-row animate-fade-in">
+      <button class="btn-back-light" (click)="navigateToCreate()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to Live Connect Create</span>
+      </button>
+    </div>
+
+    <!-- Header Panel -->
+    <div class="sessions-header-card animate-fade-in">
+      <div class="header-left">
+        <div class="header-icon-circle">
+          <i class="bi bi-broadcast"></i>
+        </div>
+        <div class="header-text-block">
+          <div class="badge-row">
+            <span class="banner-badge blue-badge">
+              <i class="bi bi-shield-check"></i> Verified Connection
+            </span>
+            <span class="banner-badge purple-badge">
+              <i class="bi bi-people"></i> Peer-to-Peer
+            </span>
+          </div>
+          <h1 class="header-title">My Live Sessions</h1>
+          <p class="header-subtitle">Manage, edit, and launch your scheduled Live Connect calls, peer discussions, and mock interviews.</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn-create-session shadow-glow-blue hover-up" (click)="navigateToCreate()">
+          <i class="bi bi-plus-lg"></i>
+          <span>Schedule New Session</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-cards-grid animate-fade-in" *ngIf="!loading && sessions.length > 0">
+      <div class="stat-item-card total">
+        <div class="stat-icon"><i class="bi bi-layers"></i></div>
+        <div class="stat-details">
+          <span class="stat-val">{{ sessions.length }}</span>
+          <span class="stat-label">Total Sessions</span>
+        </div>
+      </div>
+      <div class="stat-item-card upcoming">
+        <div class="stat-icon"><i class="bi bi-calendar2-week"></i></div>
+        <div class="stat-details">
+          <span class="stat-val">{{ getUpcomingCount() }}</span>
+          <span class="stat-label">Upcoming</span>
+        </div>
+      </div>
+      <div class="stat-item-card past">
+        <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+        <div class="stat-details">
+          <span class="stat-val">{{ getPastCount() }}</span>
+          <span class="stat-label">Completed / Past</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Row (Filters & Search) -->
+    <div class="controls-bar-wrapper animate-fade-in" *ngIf="!loading && sessions.length > 0">
+      <div class="filter-tabs-row">
+        <button type="button" class="tab-filter-btn" [class.active]="selectedFilter === 'ALL'" (click)="selectedFilter = 'ALL'; currentPage = 1;">
+          <i class="bi bi-collection"></i>
+          <span>All Sessions</span>
+        </button>
+        <button type="button" class="tab-filter-btn" [class.active]="selectedFilter === 'UPCOMING'" (click)="selectedFilter = 'UPCOMING'; currentPage = 1;">
+          <i class="bi bi-calendar-event"></i>
+          <span>Upcoming</span>
+          <span class="badge upcoming-badge">{{ getUpcomingCount() }}</span>
+        </button>
+        <button type="button" class="tab-filter-btn" [class.active]="selectedFilter === 'PAST'" (click)="selectedFilter = 'PAST'; currentPage = 1;">
+          <i class="bi bi-calendar-check"></i>
+          <span>Past History</span>
+          <span class="badge past-badge">{{ getPastCount() }}</span>
+        </button>
+      </div>
+
+      <div class="search-input-box">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" class="search-textbox" [(ngModel)]="searchText" (ngModelChange)="currentPage = 1"
+          placeholder="Search by topic, host, candidates..." />
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-state-card" *ngIf="loading">
+      <div class="cyber-spinner"></div>
+      <h3>Fetching Sessions</h3>
+      <p>Synchronizing scheduled interviews and direct connection histories.</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state-card animate-fade-in" *ngIf="!loading && filteredSessions.length === 0">
+      <div class="empty-icon-circle">
+        <i class="bi bi-camera-video-off"></i>
+      </div>
+      <h3>No Session Records</h3>
+      <p *ngIf="sessions.length > 0">No sessions match your search terms or filter selections.</p>
+      <p *ngIf="sessions.length === 0">You do not have any scheduled or past Live Connect sessions.</p>
+      <button class="btn-create-session shadow-glow-blue hover-up" style="margin-top: 24px;"
+        (click)="navigateToCreate()" *ngIf="sessions.length === 0">
+        <i class="bi bi-plus-lg"></i>
+        <span>Schedule your First Session</span>
+      </button>
+    </div>
+
+    <!-- Sessions Cards Grid -->
+    <div class="sessions-list-grid" *ngIf="!loading && filteredSessions.length > 0">
+      <div class="session-card-wrapper animate-card-up" *ngFor="let s of paginatedSessions; let idx = index" [style.animation-delay]="idx * 0.05 + 's'">
+        <div class="session-card-inner" [class.flipped]="expandedSessionId === s.id">
+          
+          <!-- FRONT SIDE: Session Details -->
+          <div class="session-card session-card-front">
+            <!-- Top Status Row -->
+            <div class="session-card-header">
+              <div class="topic-group">
+                <div class="badge-status-row">
+                  <span class="status-badge" [ngClass]="s.isEnded || s.status === 'COMPLETED' ? 'completed' : 'scheduled'">
+                    {{ s.isEnded || s.status === 'COMPLETED' ? 'Completed' : 'Scheduled' }}
+                  </span>
+                  <span class="recurrence-badge" *ngIf="s.recurringType && s.recurringType !== 'ONCE'">
+                    <i class="bi bi-arrow-repeat"></i> {{ s.recurringType }}
+                  </span>
+                </div>
+                <h3 class="session-topic" [title]="s.topic">{{ s.topic || 'Live Session Connect' }}</h3>
+              </div>
+              <div class="role-pill" [class.host-pill]="isHost(s)">
+                {{ isHost(s) ? 'Host' : 'Participant' }}
+              </div>
+            </div>
+
+            <!-- Center content fields -->
+            <div class="session-card-body">
+              <div class="details-table">
+                <div class="info-row">
+                  <i class="bi bi-calendar3 icon color-blue"></i>
+                  <span class="info-label">Date:</span>
+                  <span class="info-value">{{ formatDate(s.preferredDate) }}</span>
+                </div>
+                <div class="info-row">
+                  <i class="bi bi-clock icon color-purple"></i>
+                  <span class="info-label">Time:</span>
+                  <span class="info-value">
+                    {{ formatTime(s.preferredTime) }}
+                    <span class="duration-highlight">({{ s.maxDurationMinutes || 45 }} mins)</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="divider-line"></div>
+
+              <!-- User lists -->
+              <div class="participant-details">
+                <div class="person-card">
+                  <div class="person-avatar host-avatar">
+                    {{ (s.hostName || 'H').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="person-meta">
+                    <span class="person-role">Host</span>
+                    <span class="person-name" [title]="s.hostEmail">{{ s.hostName || 'Guest Host' }}</span>
+                  </div>
+                </div>
+                <div class="person-card" *ngIf="s.candidateEmail">
+                  <div class="person-avatar candidate-avatar">
+                    {{ (s.candidateName || 'C').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="person-meta">
+                    <span class="person-role">Candidate</span>
+                    <span class="person-name" [title]="s.candidateEmail">{{ s.candidateName || 'Participant' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes section -->
+              <div class="session-notes-box" *ngIf="s.notes">
+                <span class="notes-header">
+                  <i class="bi bi-sticky"></i> Agenda & Notes
+                </span>
+                <p class="notes-text">{{ s.notes }}</p>
+              </div>
+            </div>
+
+            <!-- Footer action triggers -->
+            <div class="session-card-footer">
+              <div class="footer-left" style="display: flex; gap: 8px;">
+                <button type="button" class="btn-card-action btn-join shadow-glow-green" (click)="joinSession(s)">
+                  <i class="bi bi-camera-video"></i>
+                  <span>{{ s.isEnded || s.status === 'COMPLETED' ? 'Enter Room' : 'Start / Join' }}</span>
+                </button>
+                <button type="button" class="btn-card-action btn-copy-link" (click)="viewMeetingUrl(s)" title="View & Copy Meeting Link/ID">
+                  <i class="bi bi-link-45deg"></i>
+                  <span>View URL</span>
+                </button>
+              </div>
+
+              <div class="footer-right" *ngIf="isHost(s)">
+                <button type="button" class="btn-icon-action btn-edit" title="Edit Settings" (click)="openEditModal(s)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="btn-icon-action btn-delete" title="Cancel/Delete" (click)="deleteSession(s)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Details toggle button -->
+            <button type="button" class="btn-toggle-expand" (click)="toggleSessionExpand(s.id)">
+              <span>View Logs & Transcript</span>
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- BACK SIDE: Session Logs & Info (Scrollable & keeps same size) -->
+          <div class="session-card session-card-back">
+            <div class="card-back-header">
+              <h4><i class="bi bi-file-earmark-text color-blue"></i> Session Records</h4>
+              <button type="button" class="btn-flip-back" (click)="toggleSessionExpand(s.id)">
+                <i class="bi bi-arrow-left"></i>
+                <span>Details</span>
+              </button>
+            </div>
+            
+            <div class="card-back-body">
+              <!-- Join history logs -->
+              <div class="expand-subsection">
+                <h5 class="subsection-title">
+                  <i class="bi bi-list-check color-blue"></i> Lobby Join History
+                </h5>
+                
+                <div class="timeline-logs" *ngIf="s.joinHistory && s.joinHistory.length > 0">
+                  <div class="timeline-item" *ngFor="let h of s.joinHistory">
+                    <div class="timeline-avatar">
+                      {{ (h.name || 'G').charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span class="timeline-name">{{ h.name }}</span>
+                        <span class="timeline-role {{ h.role.toLowerCase() }}">{{ h.role }}</span>
+                        <span class="timeline-time">{{ h.joinedAt | date:'mediumTime' }}</span>
+                      </div>
+                      <span class="timeline-email">{{ h.email || 'No email registered' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="empty-timeline-logs" *ngIf="!s.joinHistory || s.joinHistory.length === 0">
+                  <i class="bi bi-info-circle"></i>
+                  <span>No user connection logs found.</span>
+                </div>
+              </div>
+
+              <!-- Invited Guests Recipient Emails -->
+              <div class="expand-subsection" *ngIf="s.invitedEmails">
+                <div class="divider-line"></div>
+                <h5 class="subsection-title">
+                  <i class="bi bi-envelope-open color-purple"></i> Invited Guests
+                </h5>
+                <div class="invited-emails-box">
+                  <i class="bi bi-envelope"></i>
+                  <span>{{ s.invitedEmails }}</span>
+                </div>
+              </div>
+
+              <!-- Rating reviews -->
+              <div class="expand-subsection" *ngIf="s.feedbackRating > 0">
+                <div class="divider-line"></div>
+                <h5 class="subsection-title">
+                  <i class="bi bi-star-fill color-amber"></i> Host Feedback
+                </h5>
+                <div class="feedback-card">
+                  <div class="feedback-stars">
+                    <span class="star-icon filled" *ngFor="let star of [1,2,3,4,5]" [class.active]="s.feedbackRating >= star">★</span>
+                  </div>
+                  <p class="feedback-comment">"{{ s.feedbackText || 'No comments registered.' }}"</p>
+                  <div class="feedback-meta">
+                    <span>By {{ s.feedbackUser || 'Host' }} ({{ s.feedbackEmail }})</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Session Chat Logs -->
+              <div class="expand-subsection" *ngIf="s.sessionChat">
+                <div class="divider-line"></div>
+                <h5 class="subsection-title">
+                  <i class="bi bi-chat-left-dots color-teal"></i> Chat Transcript
+                </h5>
+                <div class="terminal-chat-box">
+                  <pre class="terminal-code">{{ s.sessionChat }}</pre>
+                </div>
+              </div>
+
+              <!-- AI Session Summary / Assessors remarks -->
+              <div class="expand-subsection" *ngIf="s.sessionSummary || s.trainerRemarks">
+                <div class="divider-line"></div>
+                <h5 class="subsection-title">
+                  <i class="bi bi-clipboard2-data color-rose"></i> Summaries & Remarks
+                </h5>
+                <div class="remarks-twin-container">
+                  <div class="remarks-box ai-summary" *ngIf="s.sessionSummary">
+                    <span class="remarks-label"><i class="bi bi-cpu"></i> AI Summary</span>
+                    <p class="remarks-body">{{ s.sessionSummary }}</p>
+                  </div>
+                  <div class="remarks-box trainer-notes" *ngIf="s.trainerRemarks">
+                    <span class="remarks-label"><i class="bi bi-person-badge"></i> Remarks</span>
+                    <p class="remarks-body">{{ s.trainerRemarks }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Session Telemetry badges -->
+              <div class="divider-line"></div>
+              <div class="telemetry-bar">
+                <div class="telemetry-pill">
+                  <i class="bi bi-stopwatch"></i>
+                  <span>Active: {{ s.actualDurationMinutes || 0 }} min</span>
+                </div>
+                <div class="telemetry-pill">
+                  <i class="bi bi-people"></i>
+                  <span>Joins: {{ s.joinCount || 0 }}</span>
+                </div>
+                <div class="telemetry-pill">
+                  <i class="bi bi-globe"></i>
+                  <span>{{ s.timezone || 'Asia/Kolkata' }}</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container animate-fade-in" *ngIf="!loading && totalPages > 1">
+      <button type="button" class="btn-pagination prev" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        <i class="bi bi-chevron-left"></i> Prev
+      </button>
+      
+      <div class="pagination-pages">
+        <button type="button" class="page-num-btn" *ngFor="let p of getPagesArray()" [class.active]="currentPage === p" (click)="goToPage(p)">
+          {{ p }}
+        </button>
+      </div>
+
+      <button type="button" class="btn-pagination next" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- High Fidelity Edit Modal -->
+<div class="modal-overlay-wrapper" *ngIf="showEditModal">
+  <div class="modal-backdrop" (click)="closeEditModal()"></div>
+  <div class="modal-container animate-modal-zoom">
+    
+    <div class="modal-header">
+      <div class="header-icon-circle-small">
+        <i class="bi bi-sliders2-vertical"></i>
+      </div>
+      <div class="header-text-block">
+        <h3>Session Settings</h3>
+        <p>Edit time, candidate assignments, and agenda requirements.</p>
+      </div>
+      <button class="btn-modal-close" (click)="closeEditModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Session Title -->
+      <div class="form-row-group">
+        <label class="form-label" for="edit-title">Session Title *</label>
+        <div class="input-with-icon">
+          <i class="bi bi-type-h1 input-prefix-icon"></i>
+          <input type="text" id="edit-title" class="form-input-control" [(ngModel)]="editForm.topic"
+            placeholder="e.g. Technical Coding Mock Interview" />
+        </div>
+      </div>
+
+      <!-- Notes / Agenda -->
+      <div class="form-row-group">
+        <label class="form-label" for="edit-notes">Agenda & Notes</label>
+        <textarea id="edit-notes" class="form-textarea-control" [(ngModel)]="editForm.notes" rows="3"
+          placeholder="Brief topics, guidelines, or interview questions..."></textarea>
+      </div>
+
+      <!-- Date & Time Twin Grid -->
+      <div class="form-twin-grid">
+        <div class="form-row-group">
+          <label class="form-label" for="edit-date">Preferred Date</label>
+          <div class="input-with-icon">
+            <i class="bi bi-calendar3 input-prefix-icon"></i>
+            <input type="date" id="edit-date" class="form-input-control" [(ngModel)]="editForm.preferredDate" />
+          </div>
+        </div>
+        <div class="form-row-group">
+          <label class="form-label" for="edit-time">Preferred Time</label>
+          <div class="input-with-icon">
+            <i class="bi bi-clock input-prefix-icon"></i>
+            <input type="time" id="edit-time" class="form-input-control" [(ngModel)]="editForm.preferredTime" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration & Recurrence Twin Grid -->
+      <div class="form-twin-grid">
+        <div class="form-row-group">
+          <label class="form-label" for="edit-duration">Duration</label>
+          <div class="input-with-icon">
+            <i class="bi bi-hourglass-split input-prefix-icon"></i>
+            <select id="edit-duration" class="form-select-control" [(ngModel)]="editForm.maxDurationMinutes">
+              <option [ngValue]="10">10 Mins (Guest Limit)</option>
+              <option [ngValue]="30">30 Mins (Standard)</option>
+              <option [ngValue]="45">45 Mins (Standard)</option>
+              <option [ngValue]="60">60 Mins (Extended)</option>
+              <option [ngValue]="90">90 Mins (Deep Dive)</option>
+              <option [ngValue]="120">120 Mins (Long Format)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-group">
+          <label class="form-label" for="edit-recur">Recurrence</label>
+          <div class="input-with-icon">
+            <i class="bi bi-arrow-repeat input-prefix-icon"></i>
+            <select id="edit-recur" class="form-select-control" [(ngModel)]="editForm.recurringType">
+              <option value="ONCE">Once (Single Meeting)</option>
+              <option value="DAILY">Daily (Every Day)</option>
+              <option value="WEEKLY">Weekly (Same Days)</option>
+              <option value="MONTHLY">Monthly</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invite Emails List -->
+      <div class="form-row-group">
+        <label class="form-label" for="edit-invites">Invited Guests (Comma Separated)</label>
+        <div class="input-with-icon">
+          <i class="bi bi-envelope input-prefix-icon"></i>
+          <input type="text" id="edit-invites" class="form-input-control" [(ngModel)]="editForm.invitedEmails"
+            placeholder="e.g. guest1@test.com, guest2@test.com" />
+        </div>
+        <span class="input-tip">An invitation email will be sent automatically to new addresses.</span>
+      </div>
+
+      <div class="divider-line" style="margin: 24px 0 16px 0;"></div>
+      <h4 class="sub-section-title">Candidate Assignment (Optional)</h4>
+
+      <!-- Candidate Assignment Twin Grid -->
+      <div class="form-twin-grid">
+        <div class="form-row-group">
+          <label class="form-label" for="edit-cand-name">Candidate Name</label>
+          <div class="input-with-icon">
+            <i class="bi bi-person input-prefix-icon"></i>
+            <input type="text" id="edit-cand-name" class="form-input-control" [(ngModel)]="editForm.candidateName"
+              placeholder="Candidate full name" />
+          </div>
+        </div>
+        <div class="form-row-group">
+          <label class="form-label" for="edit-cand-email">Candidate Email</label>
+          <div class="input-with-icon">
+            <i class="bi bi-envelope-at input-prefix-icon"></i>
+            <input type="email" id="edit-cand-email" class="form-input-control" [(ngModel)]="editForm.candidateEmail"
+              placeholder="candidate@test.com" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="modal-footer">
+      <button type="button" class="btn-modal-cancel" (click)="closeEditModal()">Cancel</button>
+      <button type="button" class="btn-modal-save shadow-glow-blue" (click)="saveSessionChanges()" [disabled]="submitting">
+        <span class="cyber-spinner-small" *ngIf="submitting"></span>
+        <i class="bi bi-check-lg" *ngIf="!submitting"></i>
+        <span>{{ submitting ? 'Saving Changes...' : 'Save Settings' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- High Fidelity Create Modal -->
+<div class="modal-overlay-wrapper" *ngIf="showCreateModal">
+  <div class="modal-backdrop" (click)="closeCreateModal()"></div>
+  <div class="modal-container animate-modal-zoom">
+    
+    <div class="modal-header">
+      <div class="header-icon-circle-small" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.18); color: var(--brand-green);">
+        <i class="bi bi-calendar-plus"></i>
+      </div>
+      <div class="header-text-block">
+        <h3>Schedule New Session</h3>
+        <p>Set up a secure peer-to-peer Live Connect call.</p>
+      </div>
+      <button class="btn-modal-close" (click)="closeCreateModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Session Title -->
+      <div class="form-row-group">
+        <label class="form-label" for="create-title">Session Title *</label>
+        <div class="input-with-icon">
+          <i class="bi bi-type-h1 input-prefix-icon"></i>
+          <input type="text" id="create-title" class="form-input-control" [(ngModel)]="createForm.topic"
+            placeholder="e.g. Technical Coding Mock Interview" />
+        </div>
+      </div>
+
+      <!-- Notes / Agenda -->
+      <div class="form-row-group">
+        <label class="form-label" for="create-notes">Agenda & Notes</label>
+        <textarea id="create-notes" class="form-textarea-control" [(ngModel)]="createForm.notes" rows="3"
+          placeholder="Brief topics, guidelines, or interview questions..."></textarea>
+      </div>
+
+      <!-- Date & Time Twin Grid -->
+      <div class="form-twin-grid">
+        <div class="form-row-group">
+          <label class="form-label" for="create-date">Preferred Date</label>
+          <div class="input-with-icon">
+            <i class="bi bi-calendar3 input-prefix-icon"></i>
+            <input type="date" id="create-date" class="form-input-control" [(ngModel)]="createForm.preferredDate" />
+          </div>
+        </div>
+        <div class="form-row-group">
+          <label class="form-label" for="create-time">Preferred Time</label>
+          <div class="input-with-icon">
+            <i class="bi bi-clock input-prefix-icon"></i>
+            <input type="time" id="create-time" class="form-input-control" [(ngModel)]="createForm.preferredTime" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration & Recurrence Twin Grid -->
+      <div class="form-twin-grid">
+        <div class="form-row-group">
+          <label class="form-label" for="create-duration">Duration</label>
+          <div class="input-with-icon">
+            <i class="bi bi-hourglass-split input-prefix-icon"></i>
+            <select id="create-duration" class="form-select-control" [(ngModel)]="createForm.maxDurationMinutes">
+              <option [ngValue]="10">10 Mins (Guest Limit)</option>
+              <option [ngValue]="30">30 Mins (Standard)</option>
+              <option [ngValue]="45">45 Mins (Standard)</option>
+              <option [ngValue]="60">60 Mins (Extended)</option>
+              <option [ngValue]="90">90 Mins (Deep Dive)</option>
+              <option [ngValue]="120">120 Mins (Long Format)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-group">
+          <label class="form-label" for="create-recur">Recurrence</label>
+          <div class="input-with-icon">
+            <i class="bi bi-arrow-repeat input-prefix-icon"></i>
+            <select id="create-recur" class="form-select-control" [(ngModel)]="createForm.recurringType">
+              <option value="ONCE">Once (Single Meeting)</option>
+              <option value="DAILY">Daily (Every Day)</option>
+              <option value="WEEKLY">Weekly (Same Days)</option>
+              <option value="MONTHLY">Monthly</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invite Emails List -->
+      <div class="form-row-group">
+        <label class="form-label" for="create-invites">Invited Guests (Comma Separated)</label>
+        <div class="input-with-icon">
+          <i class="bi bi-envelope input-prefix-icon"></i>
+          <input type="text" id="create-invites" class="form-input-control" [(ngModel)]="createForm.invitedEmails"
+            placeholder="e.g. guest1@test.com, guest2@test.com" />
+        </div>
+        <span class="input-tip">An invitation email will be sent automatically to new addresses.</span>
+      </div>
+
+      <div class="divider-line" style="margin: 24px 0 16px 0;"></div>
+      <h4 class="sub-section-title">Candidate Assignment (Optional)</h4>
+
+      <!-- Candidate Assignment Twin Grid -->
+      <div class="form-twin-grid">
+        <div class="form-row-group">
+          <label class="form-label" for="create-cand-name">Candidate Name</label>
+          <div class="input-with-icon">
+            <i class="bi bi-person input-prefix-icon"></i>
+            <input type="text" id="create-cand-name" class="form-input-control" [(ngModel)]="createForm.candidateName"
+              placeholder="Candidate full name" />
+          </div>
+        </div>
+        <div class="form-row-group">
+          <label class="form-label" for="create-cand-email">Candidate Email</label>
+          <div class="input-with-icon">
+            <i class="bi bi-envelope-at input-prefix-icon"></i>
+            <input type="email" id="create-cand-email" class="form-input-control" [(ngModel)]="createForm.candidateEmail"
+              placeholder="candidate@test.com" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="modal-footer">
+      <button type="button" class="btn-modal-cancel" (click)="closeCreateModal()">Cancel</button>
+      <button type="button" class="btn-modal-save shadow-glow-blue" (click)="saveNewSession()" [disabled]="submitting" style="background: linear-gradient(135deg, var(--brand-green) 0%, #059669 100%); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.2);">
+        <span class="cyber-spinner-small" *ngIf="submitting"></span>
+        <i class="bi bi-check-lg" *ngIf="!submitting"></i>
+        <span>{{ submitting ? 'Scheduling...' : 'Schedule Session' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- High Fidelity View/Copy URL Modal -->
+<div class="modal-overlay-wrapper" *ngIf="showUrlModal">
+  <div class="modal-backdrop" (click)="closeUrlModal()"></div>
+  <div class="modal-container animate-modal-zoom" style="max-width: 500px;">
+    
+    <div class="modal-header">
+      <div class="header-icon-circle-small" style="background: rgba(13, 110, 253, 0.08); border-color: rgba(13, 110, 253, 0.18); color: var(--brand-blue);">
+        <i class="bi bi-link-45deg"></i>
+      </div>
+      <div class="header-text-block">
+        <h3>Meeting Link & ID</h3>
+        <p>Share these connection details with other participants.</p>
+      </div>
+      <button class="btn-modal-close" (click)="closeUrlModal()">&times;</button>
+    </div>
+
+    <div class="modal-body" style="padding: 24px;">
+      <!-- Meeting ID Field -->
+      <div class="form-row-group" style="margin-bottom: 20px;">
+        <label class="form-label">Meeting Room ID</label>
+        <div class="input-with-icon" style="display: flex; gap: 8px; align-items: center;">
+          <div style="position: relative; flex: 1;">
+            <i class="bi bi-hash input-prefix-icon"></i>
+            <input type="text" readonly class="form-input-control" [value]="getMeetingId(selectedSessionForUrl)" style="background: #f8fafc; font-family: monospace;" />
+          </div>
+          <button type="button" class="btn-modal-save" style="padding: 10px 16px; margin: 0; min-height: 45px;" (click)="copyToClipboard(getMeetingId(selectedSessionForUrl))">
+            <i class="bi bi-copy"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Meeting URL Field -->
+      <div class="form-row-group">
+        <label class="form-label">Meeting Invitation URL</label>
+        <div class="input-with-icon" style="display: flex; gap: 8px; align-items: center;">
+          <div style="position: relative; flex: 1;">
+            <i class="bi bi-globe input-prefix-icon"></i>
+            <input type="text" readonly class="form-input-control" [value]="getMeetingLink(selectedSessionForUrl)" style="background: #f8fafc;" />
+          </div>
+          <button type="button" class="btn-modal-save" style="padding: 10px 16px; margin: 0; min-height: 45px;" (click)="copyToClipboard(getMeetingLink(selectedSessionForUrl))">
+            <i class="bi bi-copy"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="modal-footer" style="padding: 16px 24px;">
+      <button type="button" class="btn-modal-cancel" (click)="closeUrlModal()">Close</button>
+      <button type="button" class="btn-modal-save shadow-glow-blue" (click)="copyToClipboard(getMeetingLink(selectedSessionForUrl))">
+        <i class="bi bi-check2"></i>
+        <span>{{ copiedText || 'Copy Full Link' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>

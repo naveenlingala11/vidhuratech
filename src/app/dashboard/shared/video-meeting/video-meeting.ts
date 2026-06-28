@@ -60,6 +60,21 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
   meetingLogsText = '';
   isCurrentUserHost = false;
 
+  // Inline Edit Modal State
+  showInlineEditModal = false;
+  submittingInlineEdit = false;
+  inlineEditForm = {
+    topic: '',
+    notes: '',
+    preferredDate: '',
+    preferredTime: '',
+    maxDurationMinutes: 45,
+    recurringType: 'ONCE',
+    invitedEmails: '',
+    candidateName: '',
+    candidateEmail: ''
+  };
+
   // Post-meeting feedback and navigation state
   meetingEnded = false;
   feedbackRating = 0;
@@ -252,7 +267,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
               }
             }
 
-            const hostEmail = session.trainerEmail;
+            const hostEmail = session.hostEmail || session.trainerEmail;
             this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail &&
               this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
               || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
@@ -390,7 +405,7 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
 
-          const hostEmail = session.trainerEmail;
+          const hostEmail = session.hostEmail || session.trainerEmail;
           this.isCurrentUserHost = (this.currentUser && this.currentUser.email && hostEmail &&
             this.currentUser.email.toLowerCase() === hostEmail.toLowerCase())
             || localStorage.getItem('is_host_of_session_' + this.mockSessionId) === 'true';
@@ -1310,5 +1325,100 @@ export class VideoMeetingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.bootstrapJitsi();
     this.cdr.detectChanges();
+  }
+
+  openEditSessionModal(): void {
+    if (!this.sessionDetails) return;
+    const session = this.sessionDetails;
+    this.inlineEditForm = {
+      topic: session.topic || '',
+      notes: session.notes || '',
+      preferredDate: session.preferredDate || '',
+      preferredTime: session.preferredTime ? session.preferredTime.substring(0, 5) : '',
+      maxDurationMinutes: session.maxDurationMinutes || 45,
+      recurringType: session.recurringType || 'ONCE',
+      invitedEmails: session.invitedEmails || '',
+      candidateName: session.candidateName || '',
+      candidateEmail: session.candidateEmail || ''
+    };
+    this.showInlineEditModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeEditSessionModal(): void {
+    this.showInlineEditModal = false;
+    this.cdr.detectChanges();
+  }
+
+  saveInlineSessionChanges(): void {
+    if (!this.inlineEditForm.topic.trim()) {
+      this.toastr.error('Session title/topic is required', 'Validation Error');
+      return;
+    }
+    if (!this.inlineEditForm.preferredDate) {
+      this.toastr.error('Preferred date is required', 'Validation Error');
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const chosenDate = new Date(this.inlineEditForm.preferredDate);
+    if (!isNaN(chosenDate.getTime()) && chosenDate < today) {
+      this.toastr.error('Preferred date cannot be in the past', 'Validation Error');
+      return;
+    }
+
+    if (!this.inlineEditForm.preferredTime) {
+      this.toastr.error('Preferred time is required', 'Validation Error');
+      return;
+    }
+
+    if (!this.inlineEditForm.maxDurationMinutes || this.inlineEditForm.maxDurationMinutes <= 0) {
+      this.toastr.error('Duration must be a positive number of minutes', 'Validation Error');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (this.inlineEditForm.candidateEmail.trim() && !emailRegex.test(this.inlineEditForm.candidateEmail.trim())) {
+      this.toastr.error('Invalid candidate email format', 'Validation Error');
+      return;
+    }
+
+    if (this.inlineEditForm.invitedEmails.trim()) {
+      const guestEmails = this.inlineEditForm.invitedEmails.split(',');
+      for (const email of guestEmails) {
+        const trimmed = email.trim();
+        if (trimmed && !emailRegex.test(trimmed)) {
+          this.toastr.error(`Invalid guest email format: ${trimmed}`, 'Validation Error');
+          return;
+        }
+      }
+    }
+
+    this.submittingInlineEdit = true;
+    const payload = {
+      ...this.inlineEditForm,
+      topic: this.inlineEditForm.topic.trim(),
+      notes: this.inlineEditForm.notes.trim(),
+      invitedEmails: this.inlineEditForm.invitedEmails.trim(),
+      candidateName: this.inlineEditForm.candidateName.trim(),
+      candidateEmail: this.inlineEditForm.candidateEmail.trim()
+    };
+
+    this.studentWorkflowService.editPublicSession(this.mockSessionId!, payload).subscribe({
+      next: (res: any) => {
+        this.toastr.success('Session updated successfully', 'Success');
+        this.sessionDetails = res?.data;
+        this.showInlineEditModal = false;
+        this.submittingInlineEdit = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Failed to update session settings:', err);
+        this.toastr.error(err?.error?.message || 'Failed to update session settings.', 'Error');
+        this.submittingInlineEdit = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

@@ -22,64 +22,115 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <section class="profile-hero">
-      <div class="hero-grid"></div>
+    <div class="profile-header-premium">
+      <!-- Cover Photo Banner -->
+      <div class="profile-cover-banner" [style.background]="(tempCoverImage || localCoverImage) ? 'url(' + (tempCoverImage || localCoverImage) + ') center/cover no-repeat' : ''">
+        <div class="hero-grid" *ngIf="!tempCoverImage && !localCoverImage"></div>
 
-      <div class="identity-block">
-        <div class="avatar-shell">
-          <img
-            *ngIf="profileImageUrl; else profileInitials"
-            class="avatar avatar-img"
-            [src]="profileImageUrl"
-            [alt]="user?.name || 'User'"
-            referrerpolicy="no-referrer"
-            (error)="onProfileImageError()"
-          />
+        <!-- Cover Photo Controller -->
+        <div class="cover-photo-controller">
+          <!-- Save Confirm State -->
+          <ng-container *ngIf="tempCoverImage">
+            <button type="button" class="btn-cover-confirm" (click)="saveCoverTemp()" title="Save Cover Photo">
+              <i class="bi bi-check-lg"></i>
+              <span>Save Cover</span>
+            </button>
+            <button type="button" class="btn-cover-cancel" (click)="cancelCoverTemp()" title="Cancel">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </ng-container>
 
-          <ng-template #profileInitials>
-            <div class="avatar">{{ getInitials() }}</div>
-          </ng-template>
-          <span class="status-dot" [class.danger]="statusTone === 'danger'"></span>
+          <!-- Default State -->
+          <ng-container *ngIf="!tempCoverImage">
+            <label class="btn-cover-upload" title="Change Cover Photo">
+              <i class="bi bi-camera-fill"></i>
+              <span>Change Cover</span>
+              <input type="file" (change)="onCoverSelected($event)" accept="image/*" class="hidden-file-input" />
+            </label>
+            <button *ngIf="localCoverImage" type="button" class="btn-cover-reset" (click)="resetCover()" title="Reset to Default Cover">
+              <i class="bi bi-trash3-fill"></i>
+            </button>
+          </ng-container>
         </div>
+      </div>
 
-        <div class="identity-copy">
-          <span class="eyebrow">Vidhura Tech Account</span>
-          <h1>
-            {{ user?.name || 'User Profile' }}
-            <span
-              class="user-plan-badge"
-              *ngIf="userPlanBadgeService.badge$ | async as planBadge"
-              [ngClass]="planBadge.className"
-            >
-              <i [class]="planBadge.icon"></i>
-              {{ planBadge.label }}
-            </span>
-          </h1>
-          <p>{{ roleLabel }} Workspace | {{ accountStatus }}</p>
+      <!-- User Profile Details Strip (sitting below, overlapping slightly) -->
+      <div class="profile-info-strip">
+        <div class="identity-block">
+          <div class="avatar-shell">
+            <img
+              *ngIf="profileImageUrl; else profileInitials"
+              class="avatar avatar-img"
+              [src]="profileImageUrl"
+              [alt]="user?.name || 'User'"
+              referrerpolicy="no-referrer"
+              (error)="onProfileImageError()"
+            />
 
-          <div class="identity-tags">
-            <span><i class="bi bi-envelope"></i>{{ user?.email || 'Email not available' }}</span>
-            <span><i class="bi bi-phone"></i>{{ user?.phone || 'Phone not added' }}</span>
-            <span><i class="bi bi-person-badge"></i>ID: {{ user?.id || '-' }}</span>
+            <ng-template #profileInitials>
+              <div class="avatar">{{ getInitials() }}</div>
+            </ng-template>
+            <span class="status-dot" [class.danger]="statusTone === 'danger'"></span>
+
+            <!-- Edit Avatar Overlay / Confirm State -->
+            <div class="avatar-upload-overlay" [class.confirm-mode]="tempProfileImage" title="Update Profile Photo">
+              <!-- Save Confirm controls -->
+              <div class="confirm-controls-wrap" *ngIf="tempProfileImage" (click)="$event.stopPropagation()">
+                <button type="button" class="btn-avatar-confirm" (click)="saveAvatarTemp()" title="Save Profile Photo">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button type="button" class="btn-avatar-cancel" (click)="cancelAvatarTemp()" title="Cancel">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+              
+              <!-- Default camera upload controls -->
+              <label class="camera-label-click" *ngIf="!tempProfileImage">
+                <i class="bi bi-camera-fill"></i>
+                <input type="file" (change)="onAvatarSelected($event)" accept="image/*" class="hidden-file-input" />
+              </label>
+            </div>
+          </div>
+
+          <div class="identity-copy">
+            <span class="eyebrow">Vidhura Tech Account</span>
+            <h1>
+              {{ user?.name || 'User Profile' }}
+              <span
+                class="user-plan-badge"
+                *ngIf="userPlanBadgeService.badge$ | async as planBadge"
+                [ngClass]="planBadge.className"
+              >
+                <i [class]="planBadge.icon"></i>
+                {{ planBadge.label }}
+              </span>
+            </h1>
+            <p class="role-subtext">{{ roleLabel }} Workspace | {{ accountStatus }}</p>
+
+            <div class="identity-tags">
+              <span><i class="bi bi-envelope"></i>{{ user?.email || 'Email not available' }}</span>
+              <span><i class="bi bi-phone"></i>{{ user?.phone || 'Phone not added' }}</span>
+              <span><i class="bi bi-person-badge"></i>ID: {{ user?.id || '-' }}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="hero-actions">
-        <button class="ghost-btn" type="button" (click)="copyEmail()">
-          <i class="bi bi-copy"></i>
-          Copy Email
-        </button>
-        <button class="ghost-btn" type="button" (click)="goToSettings()">
-          <i class="bi bi-sliders"></i>
-          Settings
-        </button>
-        <button class="primary-btn" type="button" (click)="toggleEdit()">
-          <i class="bi" [ngClass]="editMode ? 'bi-x-circle' : 'bi-pencil-square'"></i>
-          {{ editMode ? 'Close Edit' : 'Edit Profile' }}
-        </button>
+        <div class="hero-actions">
+          <button class="ghost-btn-dark" type="button" (click)="copyEmail()">
+            <i class="bi bi-copy"></i>
+            Copy Email
+          </button>
+          <button class="ghost-btn-dark" type="button" (click)="goToSettings()">
+            <i class="bi bi-sliders"></i>
+            Settings
+          </button>
+          <button class="primary-btn" type="button" (click)="toggleEdit()">
+            <i class="bi" [ngClass]="editMode ? 'bi-x-circle' : 'bi-pencil-square'"></i>
+            {{ editMode ? 'Close Edit' : 'Edit Profile' }}
+          </button>
+        </div>
       </div>
-    </section>
+    </div>
 
     <section class="insight-grid">
       <article class="insight-card" *ngFor="let insight of insights">
@@ -111,67 +162,77 @@
           </div>
 
           <div class="form-grid">
-            <div class="info-field featured">
-              <label>Full Name</label>
+            <!-- Full Name -->
+            <div class="info-field premium-info-card">
+              <div class="info-card-header">
+                <i class="bi bi-person info-icon text-indigo"></i>
+                <label>Full Name</label>
+              </div>
               <input
                 *ngIf="editMode"
                 type="text"
                 [(ngModel)]="form.name"
                 placeholder="Enter full name"
+                class="form-premium-input"
               />
-              <strong *ngIf="!editMode" class="name-with-plan">
-                {{ user?.name || '-' }}
-                <ng-container *ngIf="userPlanBadgeService.badge$ | async as planBadge">
-                  <h1>
-                    {{ user?.name || 'User Profile' }}
-                    <span
-                      class="user-plan-badge"
-                      [ngClass]="planBadge.className"
-                      [title]="planBadge.helper"
-                    >
-                      <i [class]="planBadge.icon"></i>
-                      {{ planBadge.label }}
-                    </span>
-                  </h1>
-
-                  <p>{{ roleLabel }} Workspace | {{ accountStatus }}</p>
-
-                  <div class="plan-context" [ngClass]="planBadge.className">
-                    <i [class]="planBadge.icon"></i>
-                    <span>{{ planBadge.helper }}</span>
-                  </div>
-                </ng-container>
-              </strong>
+              <div *ngIf="!editMode" class="info-card-value">
+                <strong>{{ user?.name || '-' }}</strong>
+                <span *ngIf="userPlanBadgeService.badge$ | async as planBadge" class="user-plan-badge-inline" [ngClass]="planBadge.className">
+                  <i [class]="planBadge.icon"></i>
+                  {{ planBadge.label }}
+                </span>
+              </div>
             </div>
 
-            <div class="info-field featured">
-              <label>Phone Number</label>
+            <!-- Phone Number -->
+            <div class="info-field premium-info-card">
+              <div class="info-card-header">
+                <i class="bi bi-telephone info-icon text-emerald"></i>
+                <label>Phone Number</label>
+              </div>
               <input
                 *ngIf="editMode"
                 type="tel"
                 [(ngModel)]="form.phone"
                 placeholder="Enter phone number"
+                class="form-premium-input"
               />
               <strong *ngIf="!editMode">{{ user?.phone || '-' }}</strong>
             </div>
 
-            <div class="info-field">
-              <label>Email Address</label>
+            <!-- Email Address -->
+            <div class="info-field premium-info-card">
+              <div class="info-card-header">
+                <i class="bi bi-envelope info-icon text-blue"></i>
+                <label>Email Address</label>
+              </div>
               <strong>{{ user?.email || '-' }}</strong>
             </div>
 
-            <div class="info-field">
-              <label>Role</label>
-              <strong>{{ roleLabel }}</strong>
+            <!-- Role -->
+            <div class="info-field premium-info-card">
+              <div class="info-card-header">
+                <i class="bi bi-shield-lock info-icon text-violet"></i>
+                <label>Role</label>
+              </div>
+              <strong class="role-display">{{ roleLabel }}</strong>
             </div>
 
-            <div class="info-field">
-              <label>User ID</label>
-              <strong>{{ user?.id || '-' }}</strong>
+            <!-- User ID -->
+            <div class="info-field premium-info-card">
+              <div class="info-card-header">
+                <i class="bi bi-key info-icon text-amber"></i>
+                <label>User ID</label>
+              </div>
+              <strong class="font-monospace text-muted">{{ user?.id || '-' }}</strong>
             </div>
 
-            <div class="info-field">
-              <label>Joined</label>
+            <!-- Joined -->
+            <div class="info-field premium-info-card">
+              <div class="info-card-header">
+                <i class="bi bi-calendar-event info-icon text-rose"></i>
+                <label>Joined</label>
+              </div>
               <strong>{{ joinedLabel }}</strong>
             </div>
           </div>
@@ -185,6 +246,107 @@
               <i class="bi bi-x-circle"></i>
               Cancel
             </button>
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <div class="panel-heading">
+            <span>Bio & Expertise</span>
+            <h2>Professional Profile</h2>
+            <p>Tell other members and mentors about your technical background and experience.</p>
+          </div>
+
+          <div class="bio-section">
+            <div class="info-field full-width">
+              <label>About Me</label>
+              <textarea
+                *ngIf="editMode"
+                [(ngModel)]="form.aboutMe"
+                placeholder="Write a brief professional bio..."
+                rows="4"
+                class="bio-textarea"
+              ></textarea>
+              <p *ngIf="!editMode" class="bio-display-text">{{ aboutMe }}</p>
+            </div>
+
+            <div class="skills-section-wrapper">
+              <label class="skills-label">My Skills</label>
+              <div class="skills-tags-container">
+                <span class="skill-pill-interactive" *ngFor="let tag of skillTags">
+                  {{ tag }}
+                  <button *ngIf="editMode" type="button" class="remove-tag-btn" (click)="removeSkillTag(tag)" aria-label="Remove skill">✕</button>
+                </span>
+              </div>
+              
+              <div class="add-skill-bar" *ngIf="editMode">
+                <input 
+                  type="text" 
+                  [(ngModel)]="newSkillText" 
+                  (keyup.enter)="addSkillTag()"
+                  placeholder="Add a new skill (e.g. Docker, Python)..." 
+                  class="add-skill-input"
+                />
+                <button type="button" class="btn-add-skill" (click)="addSkillTag()">
+                  <i class="bi bi-plus-lg"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <div class="panel-heading">
+            <span>Career Assets</span>
+            <h2>Resume & Documents</h2>
+            <p>Upload and store your ATS-optimized resume. This document is referenceable during job applications and mentor review sessions.</p>
+          </div>
+
+          <div class="resume-manager-block">
+            <!-- Loading/Uploading Progress State -->
+            <div class="resume-uploading-state" *ngIf="isUploadingResume">
+              <div class="upload-spinner"></div>
+              <div class="progress-info">
+                <span>Uploading document... {{ uploadProgress }}%</span>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" [style.width.%]="uploadProgress"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Uploaded Resume File Details -->
+            <div class="uploaded-resume-card" *ngIf="!isUploadingResume && resumeName">
+              <div class="doc-icon-wrap">
+                <i class="bi bi-file-earmark-pdf-fill" *ngIf="resumeName.endsWith('.pdf')"></i>
+                <i class="bi bi-file-earmark-word-fill" *ngIf="!resumeName.endsWith('.pdf')"></i>
+              </div>
+              <div class="doc-meta-info">
+                <h3>{{ resumeName }}</h3>
+                <p class="doc-size-time">
+                  <span>{{ resumeSize }}</span>
+                  <span class="dot-separator">•</span>
+                  <span>Uploaded: {{ resumeTimestamp }}</span>
+                </p>
+              </div>
+              <div class="doc-action-buttons">
+                <button type="button" class="btn-doc-download" (click)="downloadResume()" title="Download Resume">
+                  <i class="bi bi-download"></i> Download
+                </button>
+                <button type="button" class="btn-doc-delete" (click)="deleteResume()" title="Delete Resume">
+                  <i class="bi bi-trash3"></i> Delete
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty Dropzone State -->
+            <div class="resume-dropzone-empty" *ngIf="!isUploadingResume && !resumeName">
+              <label class="dropzone-label">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <h3>Select your Resume</h3>
+                <p>Supports PDF, DOCX, or DOC formats (Max 5MB)</p>
+                <span class="btn-select-file">Browse File</span>
+                <input type="file" (change)="onResumeSelected($event)" accept=".pdf,.doc,.docx" class="hidden-file-input" />
+              </label>
+            </div>
           </div>
         </section>
 
@@ -268,6 +430,60 @@
             <div class="check-item" *ngFor="let item of profileChecklist" [class.done]="item.done">
               <i class="bi" [ngClass]="item.done ? 'bi-check2' : 'bi-circle'"></i>
               <span>{{ item.label }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="side-card badges-card">
+          <div class="side-heading">
+            <span>Achievements</span>
+            <h3>Daily Streaks & Rewards</h3>
+          </div>
+
+          <!-- Streaks & XP Stats Widget -->
+          <div class="rewards-summary-widget">
+            <div class="reward-stat-box">
+              <i class="bi bi-fire streak-icon-pulse"></i>
+              <div>
+                <strong>{{ dailyStreak }} Days</strong>
+                <span>Daily Streak</span>
+              </div>
+            </div>
+            <div class="reward-stat-box">
+              <i class="bi bi-trophy-fill xp-icon-gold"></i>
+              <div>
+                <strong>{{ rewardPoints }} XP</strong>
+                <span>Total Points</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Claim Reward Action -->
+          <button 
+            type="button" 
+            class="btn-claim-reward" 
+            [disabled]="claimedToday" 
+            (click)="claimDailyReward()"
+            [ngClass]="claimedToday ? 'claimed' : 'ready'"
+          >
+            <i class="bi" [ngClass]="claimedToday ? 'bi-check2-circle' : 'bi-gift-fill'"></i>
+            {{ claimedToday ? 'Daily Checked-In' : 'Claim Daily Reward (+50 XP)' }}
+          </button>
+
+          <!-- Badges Grid -->
+          <div class="badges-grid-header" *ngIf="earnedBadges.length > 0">
+            <h4>My Badges ({{ earnedBadges.length }})</h4>
+          </div>
+          
+          <div class="badges-grid">
+            <div class="badge-item-premium" *ngFor="let badge of earnedBadges" [ngClass]="badge.tone">
+              <div class="badge-icon-wrap">
+                <i class="bi" [ngClass]="badge.icon"></i>
+              </div>
+              <div class="badge-details">
+                <strong>{{ badge.title }}</strong>
+                <small>{{ badge.desc }}</small>
+              </div>
             </div>
           </div>
         </section>

@@ -40,7 +40,7 @@ export class JobService {
   getAdvanced(filters: any, page = 0): Observable<PageResponse> {
     let params = new HttpParams()
       .set('page', page)
-      .set('size', 15)
+      .set('size', filters.size || 15)
       .set('sort', filters.sort || 'latest');
     if (filters.search) {
       params = params.set('keyword', filters.search);

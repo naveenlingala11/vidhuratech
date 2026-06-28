@@ -22,6 +22,7 @@ import { Checkout } from './pages/checkout/checkout';
 import { CheckoutHelp } from './pages/checkout-help/checkout-help';
 import { CoursesComponent } from './pages/courses/courses';
 import { ExploreTracksComponent } from './pages/explore-tracks/explore-tracks';
+import { FeaturedPrograms } from './pages/featured-programs/featured-programs';
 import { Projects } from './pages/projects/projects';
 import { PublicPracticeComponent } from './features/public/public-practice/public-practice/public-practice';
 import { NotificationsComponent } from './components/notifications/notifications';
@@ -68,6 +69,7 @@ import { StudentDashboard } from './dashboard/student-pages/student-dashboard/st
 import { SuperAdminDashboard } from './dashboard/super-admin-dashboard/super-admin-dashboard';
 import { TrainerDashboard } from './dashboard/trainer-dashboard/trainer-dashboard';
 import { AdminDashboard } from './dashboard/admin/admin-dashboard/admin-dashboard';
+import { UserDashboard } from './dashboard/user-dashboard/user-dashboard';
 import { ProfileComponent } from './dashboard/profile/profile.component/profile.component';
 
 /* =========================
@@ -78,6 +80,7 @@ import { StudentCertificatesComponent } from './dashboard/student-pages/student-
 import { StudentCoursesComponent } from './dashboard/student-pages/student-courses/student-courses';
 import { StudentLearningContentComponent } from './dashboard/student-pages/student-learning-content/student-learning-content';
 import { StudentMockInterviewsComponent } from './dashboard/student-pages/student-mock-interviews/student-mock-interviews';
+import { MyLiveSessionsComponent } from './dashboard/shared/my-live-sessions/my-live-sessions';
 /* =========================
    TRAINER DASHBOARD PAGES
 ========================= */
@@ -167,6 +170,7 @@ export const routes: Routes = [
   { path: '', component: Home },
   { path: 'courses', component: CoursesComponent },
   { path: 'explore-tracks', component: ExploreTracksComponent },
+  { path: 'featured-programs', component: FeaturedPrograms },
   { path: 'projects', component: Projects },
   { path: 'about', component: About },
   { path: 'contact', component: Contact },
@@ -271,6 +275,11 @@ export const routes: Routes = [
         component: MentorDashboard,
         canActivate: [roleGuard(['MENTOR'])],
       },
+      {
+        path: 'user',
+        component: UserDashboard,
+        canActivate: [roleGuard(['USER'])],
+      },
 
       /* --- PROFILES --- */
       {
@@ -334,6 +343,16 @@ export const routes: Routes = [
         canActivate: [roleGuard(['MENTOR'])],
       },
       {
+        path: 'user/profile',
+        component: ProfileComponent,
+        canActivate: [roleGuard(['USER'])],
+      },
+      {
+        path: 'user/notifications',
+        component: NotificationsComponent,
+        canActivate: [roleGuard(['USER'])],
+      },
+      {
         path: 'mentor/edit-profile',
         component: MentorProfileEdit,
         canActivate: [roleGuard(['MENTOR'])],
@@ -346,6 +365,11 @@ export const routes: Routes = [
       {
         path: 'mentor/sessions',
         component: MentorSessionsComponent,
+        canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'mentor/live-sessions',
+        component: MyLiveSessionsComponent,
         canActivate: [roleGuard(['MENTOR'])],
       },
       {
@@ -396,6 +420,11 @@ export const routes: Routes = [
         path: 'mentor/settings',
         component: SettingsComponent,
         canActivate: [roleGuard(['MENTOR'])],
+      },
+      {
+        path: 'user/settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard(['USER'])],
       },
 
       /* --- SUPER ADMIN --- */
@@ -582,6 +611,11 @@ export const routes: Routes = [
         canActivate: [roleGuard(['STUDENT'])],
       },
       {
+        path: 'student/live-sessions',
+        component: MyLiveSessionsComponent,
+        canActivate: [roleGuard(['STUDENT'])],
+      },
+      {
         path: 'student/pseudo-challenges',
         component: StudentPseudoChallengesComponent,
         canActivate: [roleGuard(['STUDENT'])],
@@ -641,6 +675,11 @@ export const routes: Routes = [
       {
         path: 'trainer/mock-interviews',
         component: TrainerMockInterviewsComponent,
+        canActivate: [roleGuard(['TRAINER'])],
+      },
+      {
+        path: 'trainer/live-sessions',
+        component: MyLiveSessionsComponent,
         canActivate: [roleGuard(['TRAINER'])],
       },
       {

@@ -35,7 +35,16 @@ export class Jobs implements OnInit {
   viewMode: 'grid' | 'list' = 'grid';
   selectedJob: Job | null = null;
   drawerTab: 'details' | 'company' | 'benefits' | 'apply' = 'details';
-  trendingSearches = ['Java', 'React', 'Angular', 'Python', 'Remote', 'Spring Boot', 'Hyderabad', 'Bangalore'];
+  dynamicHotTopics: { name: string; icon: string; color: string }[] = [
+    { name: 'Java', icon: 'bi-code-slash', color: 'text-primary' },
+    { name: 'React', icon: 'bi-brightness-high', color: 'text-info' },
+    { name: 'Angular', icon: 'bi-shield-shaded', color: 'text-danger' },
+    { name: 'Python', icon: 'bi-terminal', color: 'text-warning' },
+    { name: 'Remote', icon: 'bi-laptop', color: 'text-success' },
+    { name: 'Spring Boot', icon: 'bi-leaf', color: 'text-success' },
+    { name: 'Hyderabad', icon: 'bi-geo-alt', color: 'text-danger' },
+    { name: 'Bangalore', icon: 'bi-geo', color: 'text-primary' }
+  ];
   isApplying = false;
   applySuccess = false;
   applicantEmail = '';
@@ -341,6 +350,42 @@ export class Jobs implements OnInit {
         { name: 'Python', count: 0 },
         { name: 'Spring Boot', count: 0 }
       ];
+
+      // 1. Get top 4 active skills from database (where count > 0 if possible)
+      let activeSkills = (res.skills || [])
+        .filter((s: any) => s.count > 0)
+        .slice(0, 4)
+        .map((s: any) => s.name);
+      if (!activeSkills.length) {
+        activeSkills = (res.skills || []).slice(0, 4).map((s: any) => s.name);
+      }
+
+      // 2. Get top 3 active locations from database (where count > 0 if possible)
+      let activeLocations = (res.locations || [])
+        .filter((l: any) => l.count > 0)
+        .slice(0, 3)
+        .map((l: any) => l.name);
+      if (!activeLocations.length) {
+        activeLocations = (res.locations || []).slice(0, 3).map((l: any) => l.name);
+      }
+
+      // 3. Fallback sources if empty
+      const skillsSource = activeSkills.length ? activeSkills : ['Java', 'React', 'Angular', 'Python'];
+      const locationsSource = activeLocations.length ? activeLocations : ['Hyderabad', 'Bangalore', 'Pune'];
+
+      // 4. Combine with 'Remote' in the middle
+      const combined = [...new Set([...skillsSource, 'Remote', ...locationsSource])];
+
+      // 5. Map to dynamic topics with icons & colors
+      this.dynamicHotTopics = combined.map(name => {
+        const style = this.getIconAndColorForTopic(name);
+        return {
+          name,
+          icon: style.icon,
+          color: style.color
+        };
+      });
+
       this.cd.detectChanges();
     });
     // ✅ JOBS STREAM (FIXED PIPELINE)
@@ -653,9 +698,64 @@ export class Jobs implements OnInit {
   }
 
   selectTrendingSearch(term: string) {
-    this.searchText = term;
+    // Reset other filters first for clear context
+    this.clearFilters();
+    
+    const termLower = term.toLowerCase();
+    
+    if (termLower === 'remote') {
+      this.filters.remote = true;
+    } else if (this.locationsWithCount.some(l => l.name.toLowerCase() === termLower)) {
+      const match = this.locationsWithCount.find(l => l.name.toLowerCase() === termLower);
+      if (match) this.filters.location = [match.name];
+    } else if (this.skillsWithCount.some(s => s.name.toLowerCase() === termLower)) {
+      const match = this.skillsWithCount.find(s => s.name.toLowerCase() === termLower);
+      if (match) this.filters.skill = [match.name];
+    } else {
+      this.searchText = term;
+    }
+    
+    this.updateTags();
     this.page = 0;
     this.applyAll();
+  }
+
+  getIconAndColorForTopic(name: string): { icon: string; color: string } {
+    const lowercaseName = name.toLowerCase();
+    if (lowercaseName.includes('java') && !lowercaseName.includes('script')) {
+      return { icon: 'bi-code-slash', color: 'text-primary' };
+    }
+    if (lowercaseName.includes('react')) {
+      return { icon: 'bi-brightness-high', color: 'text-info' };
+    }
+    if (lowercaseName.includes('angular')) {
+      return { icon: 'bi-shield-shaded', color: 'text-danger' };
+    }
+    if (lowercaseName.includes('python')) {
+      return { icon: 'bi-terminal', color: 'text-warning' };
+    }
+    if (lowercaseName.includes('spring') || lowercaseName.includes('boot')) {
+      return { icon: 'bi-leaf', color: 'text-success' };
+    }
+    if (lowercaseName.includes('remote')) {
+      return { icon: 'bi-laptop', color: 'text-success' };
+    }
+    if (lowercaseName.includes('hyderabad') || lowercaseName.includes('secunderabad')) {
+      return { icon: 'bi-geo-alt', color: 'text-danger' };
+    }
+    if (lowercaseName.includes('bangalore') || lowercaseName.includes('bengaluru')) {
+      return { icon: 'bi-geo', color: 'text-primary' };
+    }
+    if (lowercaseName.includes('node') || lowercaseName.includes('express')) {
+      return { icon: 'bi-node-plus', color: 'text-success' };
+    }
+    if (lowercaseName.includes('javascript') || lowercaseName.includes('js')) {
+      return { icon: 'bi-braces', color: 'text-warning' };
+    }
+    if (lowercaseName.includes('aws') || lowercaseName.includes('cloud')) {
+      return { icon: 'bi-cloud', color: 'text-primary' };
+    }
+    return { icon: 'bi-hash', color: 'text-muted' };
   }
 
   openQuickView(job: Job, event: Event) {

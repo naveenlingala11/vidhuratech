@@ -566,9 +566,10 @@ export class Login implements OnDestroy {
       MANAGER: '/dashboard/manager',
       SUPER_ADMIN: '/dashboard/super-admin',
       MENTOR: '/dashboard/mentor',
+      USER: '/dashboard/user',
     };
 
-    return routes[role] || '/dashboard/student';
+    return routes[role] || '/dashboard/user';
   }
 
   private getPostLoginRoute(user: any): string {

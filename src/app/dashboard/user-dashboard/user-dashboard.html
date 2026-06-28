@@ -1,0 +1,139 @@
+<div class="user-dash">
+  <!-- Layout Columns -->
+  <div class="dashboard-columns">
+    
+    <!-- LEFT MAIN COLUMN -->
+    <div class="main-column">
+      <!-- Welcome Banner -->
+      <section class="welcome-banner">
+        <div class="welcome-avatar">{{ userInitials }}</div>
+        <div class="welcome-text">
+          <h1>{{ greeting }}, {{ user?.name || 'Explorer' }}! 👋</h1>
+          <p>Welcome to your Vidhura Tech hub. Start exploring courses, practice coding, or build your resume — your tech career begins here.</p>
+        </div>
+      </section>
+
+      <!-- Quick Actions Grid -->
+      <section class="section-block">
+        <h2 class="section-title"><i class="bi bi-lightning-charge"></i> Quick Actions</h2>
+        <div class="actions-grid">
+          <button
+            class="action-card"
+            *ngFor="let action of quickActions"
+            (click)="navigateTo(action.route)"
+          >
+            <div class="action-icon" [style.background]="action.gradient">
+              <i [class]="action.icon"></i>
+            </div>
+            <div class="action-info">
+              <strong>{{ action.title }}</strong>
+              <span>{{ action.desc }}</span>
+            </div>
+            <i class="bi bi-chevron-right action-arrow"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- Featured Courses -->
+      <section class="section-block">
+        <div class="section-hdr-row">
+          <h2 class="section-title"><i class="bi bi-book"></i> Featured Programs</h2>
+          <button class="view-all-btn" (click)="navigateTo('/courses')">View All <i class="bi bi-arrow-right"></i></button>
+        </div>
+        <div class="courses-compact-grid">
+          <div class="course-mini-card" *ngFor="let course of featuredCourses" (click)="navigateTo('/courses/' + course.slug)">
+            <div class="course-mini-info">
+              <h3>{{ course.title }}</h3>
+              <p>{{ course.description }}</p>
+              <div class="course-meta-row">
+                <span class="course-tag">Interactive</span>
+                <span class="course-price" *ngIf="course.price">₹{{ course.price | number }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Jobs -->
+      <section class="section-block">
+        <div class="section-hdr-row">
+          <h2 class="section-title"><i class="bi bi-briefcase"></i> Latest Openings</h2>
+          <button class="view-all-btn" (click)="navigateTo('/jobs-home')">Explore Jobs <i class="bi bi-arrow-right"></i></button>
+        </div>
+        <div class="jobs-compact-list">
+          <div class="job-mini-item" *ngFor="let job of recentJobs" (click)="navigateTo('/jobs/' + job.id)">
+            <div class="job-logo-placeholder">
+              <i class="bi bi-building"></i>
+            </div>
+            <div class="job-mini-details">
+              <strong>{{ job.title }}</strong>
+              <div class="job-sub-row">
+                <span>{{ job.companyName }}</span>
+                <span class="dot">•</span>
+                <span>{{ job.location }}</span>
+                <span class="dot">•</span>
+                <span>{{ job.experience }}</span>
+              </div>
+            </div>
+            <span class="job-salary-badge" *ngIf="job.salary">{{ job.salary }}</span>
+            <i class="bi bi-chevron-right job-arrow"></i>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT SIDEBAR COLUMN -->
+    <div class="side-column">
+      <!-- Profile Completion Card -->
+      <section class="side-card profile-completion-card">
+        <div class="completion-header">
+          <strong>Profile Completion</strong>
+          <span class="completion-percentage">{{ profileCompletion }}%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="profileCompletion"></div>
+        </div>
+        <p class="completion-tip">Complete your phone and profile details to match with tailored mentor advice.</p>
+        <button class="complete-profile-btn" (click)="navigateTo('/dashboard/user/profile')">Edit Profile <i class="bi bi-pencil-square"></i></button>
+      </section>
+
+      <!-- Motivation / Tech Quote -->
+      <section class="side-card quote-card">
+        <div class="quote-header">
+          <i class="bi bi-chat-quote"></i>
+          <span>Daily Tech Motivation</span>
+        </div>
+        <blockquote class="quote-text">
+          "{{ dailyQuote }}"
+        </blockquote>
+      </section>
+
+      <!-- Recent Activity / Task Tracker -->
+      <section class="side-card activity-card">
+        <h3>Activity Timeline</h3>
+        <div class="activity-timeline">
+          <div class="timeline-item" *ngFor="let act of activities" [class.completed]="act.done">
+            <i [class]="act.icon"></i>
+            <div class="timeline-info">
+              <strong>{{ act.text }}</strong>
+              <span>{{ act.time }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <!-- CTA Banner -->
+  <section class="cta-banner" (click)="navigateTo('/courses')">
+    <div class="cta-content">
+      <i class="bi bi-rocket-takeoff"></i>
+      <div>
+        <strong>Ready to level up?</strong>
+        <span>Enroll in a course and unlock your full student dashboard with assignments, assessments, certificates & more.</span>
+      </div>
+    </div>
+    <i class="bi bi-arrow-right cta-arrow"></i>
+  </section>
+</div>
