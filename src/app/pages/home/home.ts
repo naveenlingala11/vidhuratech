@@ -31,6 +31,8 @@ import { MentorService, MentorProfile } from '../../services/mentor.service';
 })
 export class Home implements AfterViewInit, OnInit, OnDestroy {
   // ================= STATE =================
+  isBrowser = false;
+  scrollObserver: any = null;
   activeCourse = signal<'java' | 'python'>('python');
   isAnimating = signal(false);
   javaCount = signal(5);
@@ -170,6 +172,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   // ================= INIT =================
   ngOnInit() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.loadCourses();
     // seats animation
     this.zone.runOutsideAngular(() => {
@@ -190,30 +193,58 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.startTyping();
-    const card = document.querySelector('.premium-card') as HTMLElement;
-    if (!card) return;
-    card.addEventListener('mousemove', (e: any) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const rotateX = -(y / rect.height - 0.5) * 12;
-      const rotateY = (x / rect.width - 0.5) * 12;
-      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = `rotateX(0deg) rotateY(0deg)`;
-    });
-    if (!isPlatformBrowser(this.platformId)) return;
-    setTimeout(() => {
-      // ❌ DO NOT show modal if logged in
-      if (this.isLoggedIn()) {
-        console.log('🚫 Modal blocked: user logged in');
-        return;
+    if (isPlatformBrowser(this.platformId)) {
+      this.startTyping();
+      const card = document.querySelector('.premium-card') as HTMLElement;
+      if (card) {
+        card.addEventListener('mousemove', (e: any) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rotateX = -(y / rect.height - 0.5) * 12;
+          const rotateY = (x / rect.width - 0.5) * 12;
+          card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        });
       }
-      console.log('✅ Opening enroll modal');
-      this.openEnrollModal();
-    }, 1500);
+
+      // Initialize IntersectionObserver for 3D scroll animations
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+
+      this.scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+          } else {
+            const rect = entry.boundingClientRect;
+            if (rect.top > window.innerHeight) {
+              entry.target.classList.remove('in-view');
+            }
+          }
+        });
+      }, observerOptions);
+
+      const animSections = document.querySelectorAll(
+        '.hero-section, .practice-arena-section, .marquee-section, .institute-section, .virtual-interview-section, .ats-resume-promo-section, .home-mentors-section, .program-section, .experience-section, .features-section'
+      );
+      animSections.forEach(section => this.scrollObserver.observe(section));
+
+      setTimeout(() => {
+        // ❌ DO NOT show modal if logged in
+        if (this.isLoggedIn()) {
+          console.log('🚫 Modal blocked: user logged in');
+          return;
+        }
+        console.log('✅ Opening enroll modal');
+        this.openEnrollModal();
+      }, 1500);
+    }
   }
 
   private resolveCourseStartDate(course: any): string | null {
@@ -654,6 +685,9 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.timer.stopCountdown();
+    if (this.scrollObserver) {
+      this.scrollObserver.disconnect();
+    }
   }
 
   safeProfileImageUrl(value: any): string {

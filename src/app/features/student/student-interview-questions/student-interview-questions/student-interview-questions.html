@@ -1,84 +1,47 @@
 <section class="student-interview-page">
   <div class="toast" *ngIf="toast">{{ toast }}</div>
 
-  <header class="overview-panel">
-    <div class="hero-mesh"></div>
-    <div class="hero-grid"></div>
-    <div class="hero-scan"></div>
-
-    <div class="overview-copy">
-      <span class="eyebrow">
-        <i class="bi bi-lightning-charge-fill"></i>
-        Student Interview Practice
-      </span>
-
-      <h1>
-        Interview Questions
-        <span>LeetCode Style Revision</span>
-      </h1>
-
-      <p>
-        Practice company-wise interview questions in a single-column problem list. Open answers
-        inline, write notes, save questions, track confidence, and mark completed topics.
-      </p>
-
-      <div class="quick-highlights">
-        <div>
-          <i class="bi bi-bookmark-star"></i>
-          <span>Mode</span>
-          <strong>Save & Revise</strong>
-        </div>
-
-        <div>
-          <i class="bi bi-check2-circle"></i>
-          <span>Progress</span>
-          <strong>{{ completionPercent }}% Complete</strong>
-        </div>
+  <header class="interview-header-modern">
+    <div class="header-left">
+      <div class="badge-row">
+        <span class="premium-badge-v2">
+          <span class="dot-pulse"></span>
+          Interview Practice
+        </span>
       </div>
+      <h1>Interview Questions <span class="gradient-accent-text">LeetCode Style Revision</span></h1>
+      <p class="subtitle">Practice company-wise questions, track confidence, write notes, and save topics.</p>
     </div>
 
-    <div class="overview-stats">
-      <article class="stat-card primary">
-        <i class="bi bi-list-task"></i>
-        <span>Loaded</span>
-        <strong>{{ stats.loaded }}</strong>
-        <small>Current page</small>
-      </article>
-
-      <article class="stat-card success">
-        <i class="bi bi-check-circle-fill"></i>
-        <span>Done</span>
-        <strong>{{ stats.done }}</strong>
-        <small>Completed</small>
-      </article>
-
-      <article class="stat-card warning">
-        <i class="bi bi-hourglass-split"></i>
-        <span>Todo</span>
-        <strong>{{ stats.todo }}</strong>
-        <small>Need revision</small>
-      </article>
-
-      <article class="stat-card violet">
-        <i class="bi bi-bookmark-fill"></i>
-        <span>Saved</span>
-        <strong>{{ stats.saved }}</strong>
-        <small>Bookmarked</small>
-      </article>
-
-      <article class="stat-card slate">
-        <i class="bi bi-speedometer2"></i>
-        <span>Confidence</span>
-        <strong>{{ stats.avgConfidence }}%</strong>
-        <small>Average</small>
-      </article>
-
-      <article class="stat-card cyan">
-        <i class="bi bi-collection"></i>
-        <span>Total</span>
-        <strong>{{ stats.total }}</strong>
-        <small>Assigned</small>
-      </article>
+    <div class="header-right-stats">
+      <div class="stat-glass-pill loaded">
+        <div class="stat-icon-wrapper"><i class="bi bi-list-task"></i></div>
+        <div class="stat-info">
+          <span>Loaded</span>
+          <strong>{{ stats.loaded }}</strong>
+        </div>
+      </div>
+      <div class="stat-glass-pill progress-pill">
+        <div class="stat-icon-wrapper"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-info">
+          <span>Progress</span>
+          <strong>{{ stats.done }} / {{ stats.total }}</strong>
+        </div>
+      </div>
+      <div class="stat-glass-pill todo">
+        <div class="stat-icon-wrapper"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-info">
+          <span>Revision</span>
+          <strong>{{ stats.todo }}</strong>
+        </div>
+      </div>
+      <div class="stat-glass-pill confidence">
+        <div class="stat-icon-wrapper"><i class="bi bi-speedometer2"></i></div>
+        <div class="stat-info">
+          <span>Confidence</span>
+          <strong>{{ stats.avgConfidence }}%</strong>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -217,6 +180,9 @@
       *ngFor="let q of visibleQuestions; let i = index; trackBy: trackById"
       [class.expanded]="q.expanded"
       [class.done]="q.done"
+      [class.easy]="q.difficulty === 'EASY'"
+      [class.medium]="q.difficulty === 'MEDIUM'"
+      [class.hard]="q.difficulty === 'HARD'"
     >
       <button type="button" class="question-main-row" (click)="toggleExpand(q)">
         <span class="question-number">{{ page * pageSize + i + 1 }}</span>

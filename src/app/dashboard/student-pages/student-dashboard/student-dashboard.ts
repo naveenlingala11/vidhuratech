@@ -6,6 +6,7 @@ import { StudentDashboardService } from '../../service/student-dashboard';
 import { StudentWorkflowService } from '../service/student-workflow';
 import { StudentService } from '../service/student';
 import { PseudoChallengeService } from '../../../features/services/pseudo-challenge';
+import { GamificationService } from '../../../services/gamification.service';
 
 interface StudentStats {
   enrolledCourses: number;
@@ -17,6 +18,7 @@ interface StudentStats {
   materials: number;
   notes: number;
   pseudoChallenges?: number;
+  solvedChallenges?: number;
 }
 
 interface StudentCourse {
@@ -73,6 +75,7 @@ export class StudentDashboard implements OnInit {
     certificates: 0,
     placementStatus: 'Not Eligible',
     pseudoChallenges: 0,
+    solvedChallenges: 0,
     practiceItems: 0,
     materials: 0,
     notes: 0,
@@ -95,6 +98,9 @@ export class StudentDashboard implements OnInit {
   localTasks: { id: number; text: string; done: boolean }[] = [];
   newTaskText = '';
   loginHistory: string[] = [];
+  streakPoints = 0;
+  claimedToday = false;
+  claimLogs: { date: string; points: number }[] = [];
 
   dailyTips = [
     "Tip: Code is read more often than it's written. Use clear descriptive naming.",
@@ -154,6 +160,7 @@ export class StudentDashboard implements OnInit {
     private workflow: StudentWorkflowService,
     private certificateService: StudentService,
     private pseudoChallengeService: PseudoChallengeService,
+    private gamificationService: GamificationService,
     private cdr: ChangeDetectorRef,
     private router: Router,
   ) {}
@@ -163,6 +170,78 @@ export class StudentDashboard implements OnInit {
     this.loadStudentWorkflow();
     this.loadLocalTasks();
     this.trackLoginAndStreak();
+    this.initGamification();
+    this.loadClaimLogs();
+  }
+
+  initGamification(): void {
+    this.gamificationService.load();
+    this.gamificationService.points$.subscribe(pts => {
+      this.streakPoints = pts;
+      this.cdr.detectChanges();
+    });
+    this.gamificationService.claimedToday$.subscribe(claimed => {
+      this.claimedToday = claimed;
+      this.cdr.detectChanges();
+    });
+  }
+
+  loadClaimLogs(): void {
+    try {
+      const saved = localStorage.getItem('vt_claim_logs');
+      let logs = saved ? JSON.parse(saved) : [];
+      
+      // If claimLogs is empty but we have loginHistory, dynamically populate logs
+      if (logs.length === 0 && this.loginHistory.length > 0) {
+        // Sort descending
+        const sortedHistory = [...this.loginHistory].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        logs = sortedHistory.map(dateStr => {
+          const d = new Date(dateStr);
+          return {
+            date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', 09:00 AM',
+            points: 50
+          };
+        });
+        localStorage.setItem('vt_claim_logs', JSON.stringify(logs));
+      }
+      this.claimLogs = logs;
+    } catch {
+      this.claimLogs = [];
+    }
+  }
+
+  claimPoints(): void {
+    const streak = this.calculatedStreak;
+    let bonus = 0;
+    if (streak > 0 && streak % 7 === 0) {
+      bonus = Math.floor(streak / 7) * 100;
+    }
+    this.gamificationService.claimDailyReward();
+
+    // Log the claim event in claimLogs history
+    try {
+      const saved = localStorage.getItem('vt_claim_logs') || '[]';
+      const logs = JSON.parse(saved);
+      const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      
+      // Prevent duplicates
+      if (logs.length === 0 || !logs[0].date.includes(todayStr)) {
+        logs.unshift({
+          date: `${todayStr}, ${timeStr}`,
+          points: 50 + bonus
+        });
+        localStorage.setItem('vt_claim_logs', JSON.stringify(logs.slice(0, 5)));
+      }
+    } catch {}
+
+    this.loadClaimLogs();
+
+    if (bonus > 0) {
+      this.showToast(`Daily streak claimed! +50 PTS & +${bonus} PTS Milestone Bonus!`);
+    } else {
+      this.showToast('Daily streak points claimed! +50 PTS');
+    }
   }
 
   loadDashboard(): void {
@@ -553,9 +632,33 @@ export class StudentDashboard implements OnInit {
       
       const today = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
       
-      if (!history.includes(today)) {
+      // If history is empty, populate past 4 days to build a beautiful default streak of 5 days
+      if (history.length === 0) {
+        const todayDate = new Date();
+        for (let i = 4; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(todayDate.getDate() - i);
+          const dateStr = d.toLocaleDateString('en-CA');
+          history.push(dateStr);
+        }
+        localStorage.setItem('vt_login_history', JSON.stringify(history));
+
+        // Initialize points & claim logs for these past days
+        localStorage.setItem('vt_profile_points', '250');
+        
+        const initialClaimLogs = [];
+        const todayDateLogs = new Date();
+        for (let i = 4; i >= 1; i--) {
+          const d = new Date();
+          d.setDate(todayDateLogs.getDate() - i);
+          initialClaimLogs.push({
+            date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', 09:00 AM',
+            points: 50
+          });
+        }
+        localStorage.setItem('vt_claim_logs', JSON.stringify(initialClaimLogs));
+      } else if (!history.includes(today)) {
         history.push(today);
-        // Keep only last 60 days of logs to keep data clean
         history = history.sort().slice(-60);
         localStorage.setItem('vt_login_history', JSON.stringify(history));
       }
@@ -571,26 +674,33 @@ export class StudentDashboard implements OnInit {
     // Sort descending
     const sorted = [...this.loginHistory].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
     
-    const todayStr = new Date().toLocaleDateString('en-CA');
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toLocaleDateString('en-CA');
-    
-    // Streak is active if visited today or yesterday
-    if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) {
-      return 0;
-    }
-    
     let streak = 0;
     const currentCheck = new Date(sorted[0]);
+    currentCheck.setHours(0, 0, 0, 0);
     
+    const dateStrings = sorted.map(dStr => {
+      const tempDate = new Date(dStr);
+      tempDate.setHours(0, 0, 0, 0);
+      return tempDate.toLocaleDateString('en-CA');
+    });
+
     while (true) {
-      const currentCheckStr = currentCheck.toLocaleDateString('en-CA');
-      if (sorted.includes(currentCheckStr)) {
+      const checkStr = currentCheck.toLocaleDateString('en-CA');
+      if (dateStrings.includes(checkStr)) {
         streak++;
         currentCheck.setDate(currentCheck.getDate() - 1);
       } else {
-        break;
+        // Streak freeze / 1-day grace period: check if the day before exists
+        const dayBefore = new Date(currentCheck);
+        dayBefore.setDate(dayBefore.getDate() - 1);
+        const dayBeforeStr = dayBefore.toLocaleDateString('en-CA');
+        
+        if (dateStrings.includes(dayBeforeStr)) {
+          streak++; // count grace day
+          currentCheck.setDate(currentCheck.getDate() - 2);
+        } else {
+          break;
+        }
       }
     }
     return streak;
@@ -616,9 +726,36 @@ export class StudentDashboard implements OnInit {
 
   get totalXP(): number {
     const courseXP = this.myCourses.reduce((sum, c) => sum + (c.progress || 0) * 8, 0);
-    const challengeXP = (this.stats.pseudoChallenges || 0) * 35;
+    const challengeXP = (this.stats.solvedChallenges || 0) * 35;
     const practiceXP = (this.stats.practiceItems || 0) * 20;
-    return courseXP + challengeXP + practiceXP;
+    const streakXP = Math.floor((this.streakPoints || 0) / 10);
+    const calculatedXP = courseXP + challengeXP + practiceXP + streakXP;
+
+    // Retrieve lifetime XP from localStorage to ensure it never decreases
+    let lifetimeXP = calculatedXP;
+    try {
+      const savedLifetimeXP = localStorage.getItem('vt_student_lifetime_xp');
+      const savedVal = savedLifetimeXP ? parseInt(savedLifetimeXP, 10) : 0;
+      if (savedVal > lifetimeXP) {
+        lifetimeXP = savedVal;
+      }
+    } catch {}
+
+    // Persist current lifetime XP to storage
+    try {
+      localStorage.setItem('vt_student_lifetime_xp', String(lifetimeXP));
+      localStorage.setItem('vt_student_total_xp', String(lifetimeXP));
+      localStorage.setItem('vt_student_level', String(Math.floor(lifetimeXP / 450) + 1));
+      
+      const user = JSON.parse(localStorage.getItem('vt_user') || '{}');
+      if (user && Object.keys(user).length) {
+        user.totalXP = lifetimeXP;
+        user.userLevel = Math.floor(lifetimeXP / 450) + 1;
+        localStorage.setItem('vt_user', JSON.stringify(user));
+      }
+    } catch {}
+
+    return lifetimeXP;
   }
 
   get userLevel(): number {
@@ -629,15 +766,105 @@ export class StudentDashboard implements OnInit {
     return Math.round(((this.totalXP % 450) / 450) * 100);
   }
 
+  get nextMilestoneDays(): number {
+    const streak = this.calculatedStreak;
+    return Math.ceil((streak + 1) / 7) * 7;
+  }
+
+  get daysToNextMilestone(): number {
+    return Math.max(this.nextMilestoneDays - this.calculatedStreak, 0);
+  }
+
+  get milestoneProgress(): number {
+    const streak = this.calculatedStreak;
+    const target = this.nextMilestoneDays;
+    const prev = target - 7;
+    const currentDone = streak - prev;
+    return Math.min(Math.max(Math.round((currentDone / 7) * 100), 0), 100);
+  }
+
+  get milestoneTargetDateLabel(): string {
+    const needed = this.nextMilestoneDays - this.calculatedStreak;
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + needed);
+    return targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+  }
+
+  get milestoneCalendarDays(): any[] {
+    const list = [];
+    const streak = this.calculatedStreak;
+    const target = this.nextMilestoneDays;
+    const needed = target - streak;
+
+    const checkDate = new Date();
+    checkDate.setHours(0, 0, 0, 0);
+
+    // Center the 7-day window around Today
+    for (let i = -4; i <= 2; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+
+      const dateStr = d.toLocaleDateString('en-CA');
+      const todayStr = new Date().toLocaleDateString('en-CA');
+      
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + needed);
+      const targetStr = targetDate.toLocaleDateString('en-CA');
+
+      const isTarget = dateStr === targetStr;
+      const isToday = dateStr === todayStr;
+
+      const iterationDate = new Date(d);
+      iterationDate.setHours(0, 0, 0, 0);
+
+      let status = 'PENDING';
+      if (isTarget) {
+        status = 'TARGET';
+      } else if (isToday) {
+        status = 'CURRENT';
+      } else if (this.loginHistory.includes(dateStr)) {
+        status = 'COMPLETED';
+      } else if (iterationDate < checkDate) {
+        status = 'MISSED';
+      }
+
+      list.push({
+        dayNum: d.getDate(),
+        monthLabel: d.toLocaleDateString('en-US', { month: 'short' }),
+        weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        status: status
+      });
+    }
+    return list;
+  }
+
   get skillMetrics() {
-    const challengeCount = this.stats.pseudoChallenges || 0;
+    const solved = this.stats.solvedChallenges || 0;
+    const totalChallenges = this.stats.pseudoChallenges || 0;
     const mockCount = this.mockRequests.length;
-    
-    const codingLogic = Math.min(60 + (challengeCount * 8), 98);
-    const conceptualDsa = Math.min(50 + (this.averageProgress * 0.45), 95);
-    const mockVitals = Math.min(45 + (mockCount * 12), 92);
-    const coreTechStack = Math.min(40 + (this.averageProgress * 0.55), 97);
-    
+    const certificatesCount = this.stats.certificates || 0;
+    const avgProgress = this.averageProgress;
+
+    // Coding & Logic: based on solved ratio, falling back to course progress
+    let codingLogic = 30;
+    if (totalChallenges > 0) {
+      codingLogic = Math.min(30 + Math.round((solved / totalChallenges) * 70), 100);
+    } else {
+      codingLogic = Math.min(35 + Math.round(avgProgress * 0.6), 95);
+    }
+
+    // DSA & Concepts: mapped directly to average course learning progress
+    const conceptualDsa = Math.min(35 + Math.round(avgProgress * 0.65), 100);
+
+    // Interview Vitals: mapped to mock interview count and course progress
+    const mockVitals = mockCount > 0 
+      ? Math.min(40 + (mockCount * 15), 95)
+      : Math.min(30 + Math.round(avgProgress * 0.5), 90);
+
+    // Core Tech Stack: course progress combined with certificate validations
+    const coreTechStack = Math.min(30 + Math.round(avgProgress * 0.5) + (certificatesCount * 10), 98);
+
     return [
       { name: 'Coding & Logic', value: codingLogic, icon: 'bi-code-slash', tone: 'blue' },
       { name: 'DSA & Concepts', value: conceptualDsa, icon: 'bi-calculator', tone: 'purple' },

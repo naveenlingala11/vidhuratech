@@ -97,6 +97,40 @@
         <button class="complete-profile-btn" (click)="navigateTo('/dashboard/user/profile')">Edit Profile <i class="bi bi-pencil-square"></i></button>
       </section>
 
+      <!-- Daily Streak & Rewards Tracker Card -->
+      <section class="side-card gamification-dashboard-card">
+        <div class="side-heading-gamified">
+          <i class="bi bi-fire fire-icon-glow"></i>
+          <div>
+            <strong>Daily Streak & XP</strong>
+            <span>Keep your learning active!</span>
+          </div>
+        </div>
+
+        <div class="gamified-stats-row">
+          <div class="gamified-stat-cell">
+            <strong>{{ dailyStreak }} Days</strong>
+            <span>Streak</span>
+          </div>
+          <div class="gamified-stat-cell">
+            <strong>{{ rewardPoints }} XP</strong>
+            <span>Points</span>
+          </div>
+        </div>
+
+        <!-- Quick Claim Daily Check-in -->
+        <button 
+          type="button" 
+          class="btn-dashboard-claim" 
+          [disabled]="claimedToday" 
+          (click)="claimDailyReward()"
+          [ngClass]="claimedToday ? 'claimed' : 'ready'"
+        >
+          <i class="bi" [ngClass]="claimedToday ? 'bi-check2-circle' : 'bi-gift-fill'"></i>
+          {{ claimedToday ? 'Checked-In Today' : 'Claim Daily +50 XP' }}
+        </button>
+      </section>
+
       <!-- Motivation / Tech Quote -->
       <section class="side-card quote-card">
         <div class="quote-header">

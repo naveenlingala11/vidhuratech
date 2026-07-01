@@ -55,6 +55,22 @@ export class UserPlanBadgeService {
       return;
     }
 
+    // Check gamified override first
+    try {
+      const override = localStorage.getItem('vt_user_plan_override');
+      if (override === 'elite') {
+        this.badge$.next({
+          tier: 'ELITE',
+          label: 'Elite Pro',
+          className: 'plan-elite',
+          icon: 'bi bi-crown-fill',
+          helper: 'Premium Elite active account. Unlocked via Rewards Shop!',
+          active: true
+        });
+        return;
+      }
+    } catch {}
+
     this.http.get<any>(this.api).subscribe({
       next: (res) => this.badge$.next(this.mapAccess(res?.data)),
       error: () => this.badge$.next(this.fallback),

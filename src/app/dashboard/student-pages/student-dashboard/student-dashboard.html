@@ -2,6 +2,7 @@
   <!-- Interactive Terminal Hero Grid -->
   <div class="hero">
     <div class="hero-copy">
+      <div class="card-accent-bar primary"></div>
       <span class="eyebrow"><i class="bi bi-cpu"></i> Student Workstation</span>
       <h1>Welcome back, {{ studentName }}</h1>
       
@@ -12,6 +13,36 @@
           <div class="xp-progress-bar" [style.width.%]="xpProgressPercentage"></div>
         </div>
         <span class="xp-caption">{{ totalXP }} XP · {{ xpProgressPercentage }}% to next level</span>
+        
+        <div class="info-icon-wrapper level-info-trigger">
+          <i class="bi bi-info-circle"></i>
+          <div class="level-tooltip">
+            <div class="tooltip-header">
+              <i class="bi bi-rocket-takeoff-fill header-icon"></i>
+              <h4>Leveling System</h4>
+            </div>
+            
+            <p class="description">Earn XP from activities. Reach <strong>450 XP</strong> to level up.</p>
+            
+            <div class="xp-rules-list">
+              <div class="xp-rule-item">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                <span class="rule-name">Course Progress</span>
+                <span class="rule-xp">+8 XP / 1%</span>
+              </div>
+              <div class="xp-rule-item">
+                <i class="bi bi-code-slash"></i>
+                <span class="rule-name">Solved Challenges</span>
+                <span class="rule-xp">+35 XP</span>
+              </div>
+              <div class="xp-rule-item">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span class="rule-name">Shared Practices</span>
+                <span class="rule-xp">+20 XP</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Live Terminal Console Daily Tip -->
@@ -19,6 +50,33 @@
         <i class="bi bi-terminal-fill"></i>
         <span>{{ currentTip }}</span>
       </p>
+
+      <!-- Premium Workstation Status Strip -->
+      <div class="status-console-strip">
+        <div class="console-metric">
+          <span class="console-metric-label">Course Progress</span>
+          <div class="console-metric-value-row">
+            <span class="console-metric-number">{{ averageProgress }}%</span>
+            <small class="console-metric-sub">Average</small>
+          </div>
+        </div>
+        
+        <div class="console-metric">
+          <span class="console-metric-label">Certificates Earned</span>
+          <div class="console-metric-value-row">
+            <span class="console-metric-number">{{ stats.certificates || 0 }}</span>
+            <small class="console-metric-sub">Awarded</small>
+          </div>
+        </div>
+        
+        <div class="console-metric">
+          <span class="console-metric-label">Solved Challenges</span>
+          <div class="console-metric-value-row">
+            <span class="console-metric-number">{{ stats.solvedChallenges || 0 }}</span>
+            <small class="console-metric-sub">Tasks</small>
+          </div>
+        </div>
+      </div>
 
       <div class="hero-actions">
         <button class="primary-action" type="button" (click)="goTo('/dashboard/student/lms')">
@@ -38,36 +96,86 @@
 
     <!-- Upgraded Gamification Streak Card -->
     <div class="streak-card">
-      <div class="streak-top">
-        <span>Login Streak</span>
+      <div class="card-accent-bar secondary"></div>
+      <div class="streak-header">
+        <div class="streak-title">
+          <span>Login Streak</span>
+          <strong>{{ calculatedStreak }} {{ calculatedStreak === 1 ? 'Day' : 'Days' }}</strong>
+        </div>
         <i class="bi bi-fire animated-fire"></i>
       </div>
-      
-      <div class="streak-stats">
-        <strong>{{ calculatedStreak }} {{ calculatedStreak === 1 ? 'Day' : 'Days' }}</strong>
-        <small>Consecutive Login Streak</small>
+
+      <!-- Streak Rewards Panel -->
+      <div class="streak-rewards">
+        <div class="reward-info">
+          <span class="reward-label">Streak Points</span>
+          <span class="reward-value"><i class="bi bi-gem"></i> {{ streakPoints }} PTS</span>
+        </div>
+        
+        <button 
+          *ngIf="!claimedToday" 
+          class="claim-btn active-claim" 
+          type="button" 
+          (click)="claimPoints()"
+        >
+          <i class="bi bi-gift-fill"></i> Claim
+        </button>
+        <span *ngIf="claimedToday" class="claim-btn claimed-status">
+          <i class="bi bi-check-circle-fill"></i> Claimed
+        </span>
       </div>
 
-      <!-- GitHub-style daily activity tracker -->
-      <div class="activity-matrix-container">
-        <small class="matrix-label">Weekly Activity Tracker</small>
-        <div class="activity-matrix">
-          <span 
-            *ngFor="let day of last7DaysActivity" 
-            class="matrix-dot" 
-            [class.active]="day.active" 
-            [title]="day.dateLabel + (day.active ? ' - Visited' : ' - Not Visited')"
-          ></span>
+      <!-- Premium Embedded Capsule Calendar (Replaces old tracker) -->
+      <div class="embedded-calendar-container">
+        <small class="calendar-label">Activity & Milestone Calendar</small>
+        <div class="calendar-strip">
+          <div 
+            *ngFor="let day of milestoneCalendarDays" 
+            class="calendar-capsule"
+            [class.completed]="day.status === 'COMPLETED'"
+            [class.current]="day.status === 'CURRENT'"
+            [class.target]="day.status === 'TARGET'"
+            [class.missed]="day.status === 'MISSED'"
+            [title]="day.label"
+          >
+            <span class="capsule-month">{{ day.monthLabel }}</span>
+            <span class="capsule-date">{{ day.dayNum }}</span>
+            <span class="capsule-day">{{ day.weekday }}</span>
+            <div class="capsule-status-dot">
+              <i *ngIf="day.status === 'TARGET'" class="bi bi-star-fill target-star-pulse"></i>
+              <i *ngIf="day.status === 'COMPLETED'" class="bi bi-check-lg"></i>
+              <i *ngIf="day.status === 'MISSED'" class="bi bi-dash"></i>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="placement-gauge">
-        <div class="gauge-meta">
-          <span>Readiness: <strong>{{ stats.placementStatus }}</strong></span>
-          <span>{{ averageProgress }}%</span>
+      <!-- Streak Milestone Progress Tracker -->
+      <div class="streak-milestone">
+        <div class="milestone-meta">
+          <span>Next Milestone: <strong>In {{ daysToNextMilestone }} {{ daysToNextMilestone === 1 ? 'Day' : 'Days' }}</strong> (Target: {{ milestoneTargetDateLabel }})</span>
+          <span>{{ milestoneProgress }}%</span>
         </div>
-        <div class="readiness-meter">
-          <span [style.width.%]="averageProgress"></span>
+        <div class="milestone-meter">
+          <span [style.width.%]="milestoneProgress"></span>
+        </div>
+        <small class="milestone-reward"><i class="bi bi-gift"></i> Reach milestone for bonus PTS</small>
+      </div>
+
+      <!-- Claim History Log Panel -->
+      <div class="claim-history-container">
+        <div class="claim-history-header">
+          <i class="bi bi-clock-history"></i>
+          <span>Claim History Log</span>
+        </div>
+        <div class="claim-history-list">
+          <div class="claim-history-item" *ngFor="let log of claimLogs">
+            <span>{{ log.date }}</span>
+            <strong>+{{ log.points }} PTS</strong>
+          </div>
+          <div class="claim-history-empty" *ngIf="claimLogs.length === 0">
+            No claim logs yet. Claim today's points!
+          </div>
         </div>
       </div>
     </div>

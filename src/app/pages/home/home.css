@@ -4331,7 +4331,7 @@ body:not(.light-mode) .experience-pill-tag {
   line-height: 1.6;
   margin: 0 0 20px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -4579,3 +4579,174 @@ body:not(.light-mode) .price-value {
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   PREMIUM 3D SCROLL ENTRANCE TRANSITIONS
+   ========================================================================== */
+.home-page.js-scroll-animate {
+  perspective: 1600px;
+  perspective-origin: 50% 50%;
+}
+
+/* Base state for animated sections - hidden and tilted back in 3D space */
+.home-page.js-scroll-animate .hero-section:not(.in-view),
+.home-page.js-scroll-animate .practice-arena-section:not(.in-view),
+.home-page.js-scroll-animate .marquee-section:not(.in-view),
+.home-page.js-scroll-animate .institute-section:not(.in-view),
+.home-page.js-scroll-animate .virtual-interview-section:not(.in-view),
+.home-page.js-scroll-animate .ats-resume-promo-section:not(.in-view),
+.home-page.js-scroll-animate .home-mentors-section:not(.in-view),
+.home-page.js-scroll-animate .program-section:not(.in-view),
+.home-page.js-scroll-animate .experience-section:not(.in-view),
+.home-page.js-scroll-animate .features-section:not(.in-view) {
+  opacity: 0;
+  transform: translate3d(0, 80px, -120px) rotateX(12deg);
+  pointer-events: none;
+}
+
+/* Active transition rules for smooth entries */
+.home-page.js-scroll-animate .hero-section,
+.home-page.js-scroll-animate .practice-arena-section,
+.home-page.js-scroll-animate .marquee-section,
+.home-page.js-scroll-animate .institute-section,
+.home-page.js-scroll-animate .virtual-interview-section,
+.home-page.js-scroll-animate .ats-resume-promo-section,
+.home-page.js-scroll-animate .home-mentors-section,
+.home-page.js-scroll-animate .program-section,
+.home-page.js-scroll-animate .experience-section,
+.home-page.js-scroll-animate .features-section {
+  transform-style: preserve-3d;
+  transform-origin: 50% 0%;
+  will-change: transform, opacity;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-page.js-scroll-animate .in-view {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) rotateX(0deg) !important;
+  pointer-events: auto !important;
+}
+
+/* Staggered entry for inner elements */
+.home-page.js-scroll-animate section:not(.in-view) .container > * {
+  opacity: 0;
+  transform: translate3d(0, 30px, 0);
+}
+
+.home-page.js-scroll-animate section .container > * {
+  will-change: transform, opacity;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-page.js-scroll-animate section.in-view .container > * {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Stagger transition delay for children inside container */
+.home-page.js-scroll-animate section.in-view .container > *:nth-child(1) { transition-delay: 0.1s; }
+.home-page.js-scroll-animate section.in-view .container > *:nth-child(2) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate section.in-view .container > *:nth-child(3) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate section.in-view .container > *:nth-child(4) { transition-delay: 0.4s; }
+
+/* Custom 3D element animations inside sections */
+
+/* Practice Arena Section */
+.home-page.js-scroll-animate .practice-arena-section:not(.in-view) .arena-visual {
+  opacity: 0;
+  transform: translate3d(60px, 40px, -100px) rotateY(-15deg) rotateX(8deg);
+}
+.home-page.js-scroll-animate .practice-arena-section .arena-visual {
+  will-change: transform, opacity;
+  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+.home-page.js-scroll-animate .practice-arena-section.in-view .arena-visual {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateY(0deg) rotateX(0deg);
+}
+
+/* Virtual Interview Section */
+.home-page.js-scroll-animate .virtual-interview-section:not(.in-view) .virtual-browser-mockup {
+  opacity: 0;
+  transform: translate3d(0, 80px, -150px) rotateX(15deg);
+}
+.home-page.js-scroll-animate .virtual-interview-section .virtual-browser-mockup {
+  will-change: transform, opacity;
+  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+.home-page.js-scroll-animate .virtual-interview-section.in-view .virtual-browser-mockup {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0deg);
+}
+
+/* ATS Resume Promo Section */
+.home-page.js-scroll-animate .ats-resume-promo-section:not(.in-view) .ats-features-grid-cards > * {
+  opacity: 0;
+  transform: translate3d(0, 40px, -60px) rotateX(8deg);
+}
+.home-page.js-scroll-animate .ats-resume-promo-section .ats-features-grid-cards > * {
+  will-change: transform, opacity;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > *:nth-child(1) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > *:nth-child(2) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > *:nth-child(3) { transition-delay: 0.4s; }
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > * {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0deg);
+}
+
+/* Mentors Section Cards Stagger */
+.home-page.js-scroll-animate .home-mentors-section:not(.in-view) .home-mentor-card {
+  opacity: 0;
+  transform: translate3d(0, 50px, -80px) rotateX(10deg);
+}
+.home-page.js-scroll-animate .home-mentors-section .home-mentor-card {
+  will-change: transform, opacity;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card:nth-child(1) { transition-delay: 0.15s; }
+.home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card:nth-child(2) { transition-delay: 0.25s; }
+.home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card:nth-child(3) { transition-delay: 0.35s; }
+.home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0deg);
+}
+
+/* Program/Course Cards Stagger */
+.home-page.js-scroll-animate .program-section:not(.in-view) .program-card {
+  opacity: 0;
+  transform: translate3d(0, 50px, -80px) rotateX(10deg);
+}
+.home-page.js-scroll-animate .program-section .program-card {
+  will-change: transform, opacity;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(1) { transition-delay: 0.15s; }
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(2) { transition-delay: 0.25s; }
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(3) { transition-delay: 0.35s; }
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(4) { transition-delay: 0.45s; }
+.home-page.js-scroll-animate .program-section.in-view .program-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0deg);
+}
+
+/* Features Grid Items Stagger */
+.home-page.js-scroll-animate .features-section:not(.in-view) .feature-card {
+  opacity: 0;
+  transform: translate3d(0, 40px, -50px) rotateX(8deg);
+}
+.home-page.js-scroll-animate .features-section .feature-card {
+  will-change: transform, opacity;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(1) { transition-delay: 0.1s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(2) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(3) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(4) { transition-delay: 0.4s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(5) { transition-delay: 0.5s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(6) { transition-delay: 0.6s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0deg);
+}
