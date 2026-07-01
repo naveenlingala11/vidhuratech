@@ -14,6 +14,10 @@ import { PublicPracticeService } from '../../../../features/services/public-prac
 export type LeaderboardPeriod = 'daily' | 'weekly' | 'monthly';
 export type LeaderboardScope = 'period' | 'challenge';
 
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { GamificationService } from '../../../../services/gamification.service';
+import { AuthService } from '../../../../features/auth/services/auth.service';
+
 @Component({
   selector: 'app-premium-leaderboard',
   standalone: true,
@@ -22,6 +26,11 @@ export type LeaderboardScope = 'period' | 'challenge';
   styleUrls: ['./premium-leaderboard.css'],
 })
 export class PremiumLeaderboardComponent implements OnInit, OnChanges {
+  constructor(
+    private publicPracticeService: PublicPracticeService,
+    private gamificationService: GamificationService,
+    private authService: AuthService,
+  ) {}
   @Input() title = 'Weekly Leaderboard';
   @Input() subtitle =
     'Track top performers by rank, score, solved challenges, and latest submissions.';
@@ -50,8 +59,6 @@ export class PremiumLeaderboardComponent implements OnInit, OnChanges {
   internalLoading = false;
   internalEntries: any[] = [];
   internalTopThree: any[] = [];
-
-  constructor(private publicPracticeService: PublicPracticeService) {}
 
   ngOnInit(): void {
     this.loadFromApiIfNeeded();

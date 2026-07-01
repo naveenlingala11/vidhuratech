@@ -350,60 +350,101 @@
           </div>
         </section>
 
-        <section class="profile-panel">
-          <div class="panel-heading split">
-            <div>
-              <span>Workspace</span>
-              <h2>{{ roleLabel }} Quick Actions</h2>
-              <p>Role-aware shortcuts built from your active account permissions.</p>
-            </div>
+        <!-- Vidhura Rewards Shop Panel -->
+        <section class="profile-panel rewards-shop-panel">
+          <div class="panel-heading">
+            <span>Redeem Store</span>
+            <h2>Vidhura Rewards Shop</h2>
+            <p>Redeem your daily streak XP points to unlock exclusive premium workspace features.</p>
           </div>
 
-          <div class="quick-actions">
+          <div class="rewards-shop-grid">
+            <div class="reward-shop-card" *ngFor="let reward of shopRewards">
+              <div class="reward-shop-icon-box" [ngClass]="reward.colorClass">
+                <i [class]="reward.icon"></i>
+              </div>
+              <div class="reward-shop-details">
+                <h3>{{ reward.title }}</h3>
+                <p>{{ reward.desc }}</p>
+                <div class="reward-cost-tag">
+                  <i class="bi bi-star-fill"></i>
+                  <span>{{ reward.xpCost }} XP</span>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                class="btn-redeem-reward" 
+                [disabled]="reward.unlocked || reward.xpCost > rewardPoints"
+                [ngClass]="reward.unlocked ? 'unlocked' : (reward.xpCost <= rewardPoints ? 'ready' : 'locked')"
+                (click)="redeemReward(reward)"
+              >
+                <span *ngIf="reward.unlocked"><i class="bi bi-check-circle-fill"></i> Unlocked</span>
+                <span *ngIf="!reward.unlocked && reward.xpCost <= rewardPoints">Redeem Now</span>
+                <span *ngIf="!reward.unlocked && reward.xpCost > rewardPoints">Needs {{ reward.xpCost - rewardPoints }} XP</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Compact Premium Workspace Quick Actions Panel -->
+        <section class="profile-panel quick-actions-panel">
+          <div class="panel-heading-compact">
+            <h2>{{ roleLabel }} Quick Actions</h2>
+            <p>Role-aware shortcuts built from your active permissions.</p>
+          </div>
+
+          <div class="quick-actions-grid-compact">
             <button
               type="button"
-              class="quick-card"
+              class="compact-quick-card"
               *ngFor="let action of roleActions"
               (click)="goToAction(action)"
             >
-              <b>{{ action.code }}</b>
-              <div>
-                <strong>{{ action.title }}</strong>
-                <small>{{ action.desc }}</small>
+              <div class="quick-card-left">
+                <div class="quick-icon-box-compact">
+                  <i [class]="action.icon"></i>
+                </div>
+                <div class="quick-text-box-compact">
+                  <strong>{{ action.title }}</strong>
+                  <p>{{ action.desc }}</p>
+                </div>
               </div>
-              <i [class]="action.icon"></i>
+              <span class="quick-arrow-compact"><i class="bi bi-arrow-right-short"></i></span>
             </button>
           </div>
         </section>
 
-        <section class="profile-panel">
-          <div class="panel-heading">
-            <span>Preferences</span>
+        <!-- Compact Premium Notification Preferences Panel -->
+        <section class="profile-panel preferences-panel">
+          <div class="panel-heading-compact">
             <h2>Notification Settings</h2>
-            <p>These preferences control dashboard and email notifications for this account.</p>
+            <p>Control dashboard and email alert reminders for this account.</p>
           </div>
 
-          <div class="preferences">
-            <button
-              class="preference-item"
-              type="button"
+          <div class="preferences-grid-compact">
+            <div
+              class="compact-pref-card"
               *ngFor="let pref of preferences"
               (click)="togglePreference(pref)"
             >
-              <i [class]="pref.icon"></i>
-              <div>
-                <strong>{{ pref.title }}</strong>
-                <span>{{ pref.desc }}</span>
+              <div class="pref-left-block-compact">
+                <div class="pref-icon-box-compact">
+                  <i [class]="pref.icon"></i>
+                </div>
+                <div class="pref-details-compact">
+                  <strong>{{ pref.title }}</strong>
+                  <p>{{ pref.desc }}</p>
+                </div>
               </div>
-              <label class="switch" (click)="$event.stopPropagation()">
+              <label class="compact-switch" (click)="$event.stopPropagation()">
                 <input
                   type="checkbox"
                   [ngModel]="pref.enabled"
                   (ngModelChange)="setPreference(pref, $event)"
                 />
-                <i></i>
+                <span class="compact-slider"></span>
               </label>
-            </button>
+            </div>
           </div>
         </section>
       </main>
@@ -442,18 +483,25 @@
 
           <!-- Streaks & XP Stats Widget -->
           <div class="rewards-summary-widget">
-            <div class="reward-stat-box">
+            <div class="reward-stat-box" title="Current Daily Streak">
               <i class="bi bi-fire streak-icon-pulse"></i>
               <div>
                 <strong>{{ dailyStreak }} Days</strong>
-                <span>Daily Streak</span>
+                <span>Streak</span>
               </div>
             </div>
-            <div class="reward-stat-box">
-              <i class="bi bi-trophy-fill xp-icon-gold"></i>
+            <div class="reward-stat-box" title="Active Streak Reward Points">
+              <i class="bi bi-gem text-blue"></i>
               <div>
-                <strong>{{ rewardPoints }} XP</strong>
-                <span>Total Points</span>
+                <strong>{{ rewardPoints }} PTS</strong>
+                <span>Points</span>
+              </div>
+            </div>
+            <div class="reward-stat-box" title="Student XP Level (10 PTS = 1 XP)">
+              <i class="bi bi-award-fill xp-icon-gold"></i>
+              <div>
+                <strong>Lvl {{ studentLevel }}</strong>
+                <span>{{ totalXP % 450 }}/450 XP</span>
               </div>
             </div>
           </div>

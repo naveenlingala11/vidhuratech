@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { JobService, Job } from '../../services/job';
 import { PublicCourseService } from '../../pages/courses/service/public-course';
+import { GamificationService } from '../../services/gamification.service';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -69,11 +70,16 @@ export class UserDashboard implements OnInit {
     "A journey of a thousand leagues begins with a single step. Start exploring mentors today."
   ];
 
+  dailyStreak = 0;
+  rewardPoints = 150;
+  claimedToday = false;
+
   constructor(
     private authService: AuthService,
     private router: Router,
     private jobService: JobService,
-    private courseService: PublicCourseService
+    private courseService: PublicCourseService,
+    public gamificationService: GamificationService
   ) {}
 
   ngOnInit(): void {
@@ -84,6 +90,16 @@ export class UserDashboard implements OnInit {
 
     this.loadFeaturedCourses();
     this.loadRecentJobs();
+
+    // Track daily login & subscribe to gamification values
+    this.gamificationService.trackLogin();
+    this.gamificationService.streak$.subscribe(val => this.dailyStreak = val);
+    this.gamificationService.points$.subscribe(val => this.rewardPoints = val);
+    this.gamificationService.claimedToday$.subscribe(val => this.claimedToday = val);
+  }
+
+  claimDailyReward(): void {
+    this.gamificationService.claimDailyReward();
   }
 
   get userInitials(): string {

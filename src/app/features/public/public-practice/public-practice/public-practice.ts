@@ -6,6 +6,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PublicPracticeService } from '../../../services/public-practice.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { GamificationService } from '../../../../services/gamification.service';
 
 type PracticeType = 'ASSESSMENT' | 'CHALLENGE' | 'INTERVIEW';
 type OptionKey = 'A' | 'B' | 'C' | 'D';
@@ -455,10 +456,23 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: Object,
+    public gamificationService: GamificationService,
   ) { }
 
   ngOnInit(): void {
-    this.trackLoginAndStreak();
+    // Sync login streak through the global GamificationService
+    this.gamificationService.trackLogin();
+    
+    // Auto-update calendar loginHistory when gamification updates globally
+    this.gamificationService.streak$.subscribe(() => {
+      try {
+        const historyJson = localStorage.getItem('vt_login_history');
+        this.loginHistory = historyJson ? JSON.parse(historyJson) : [];
+      } catch {
+        this.loginHistory = [];
+      }
+    });
+
     this.restoreLead();
     this.loadMyPlanAccess();
     this.loadRealTimeLeaderboard();
@@ -4053,9 +4067,9 @@ tokens = input.empty? ? [] : input.split
     return streak;
   }
 
-  /** 50 points per consecutive streak day */
+  /** Global XP points synced through GamificationService */
   get streakPoints(): number {
-    return this.calculatedStreak * 50;
+    return this.gamificationService.pointsSubject?.value || 150;
   }
 
   /** 1 badge for every 7 consecutive streak days */
@@ -4357,16 +4371,7 @@ tokens = input.empty? ? [] : input.split
 
   /* ── 7. Leaderboard Position ── */
   get leaderboardRank(): number {
-    if (this.leaderboardRankValue > 0) {
-      return this.leaderboardRankValue;
-    }
-    const s = this.calculatedStreak;
-    if (s >= 60) return 5;
-    if (s >= 30) return 12;
-    if (s >= 14) return 45;
-    if (s >= 7)  return 112;
-    if (s >= 3)  return 240;
-    return 480;
+    return this.gamificationService.rankSubject?.value || 512;
   }
 
   get leaderboardTotal(): number {

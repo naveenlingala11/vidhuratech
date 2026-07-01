@@ -63,6 +63,45 @@ export class ProfileComponent implements OnInit, OnDestroy {
   rewardPoints = 340;
   claimedToday = false;
 
+  shopRewards = [
+    {
+      id: 'pdf_templates',
+      title: 'Premium Resume Templates',
+      desc: 'Unlock 5 high-converting, double-column ATS-compliant resume templates.',
+      xpCost: 150,
+      unlocked: false,
+      icon: 'bi bi-file-earmark-pdf-fill',
+      colorClass: 'violet'
+    },
+    {
+      id: 'ai_scan',
+      title: 'AI Resume Optimization Scan',
+      desc: 'Get detailed ATS scoring, keyword match checking, and AI suggestions.',
+      xpCost: 250,
+      unlocked: false,
+      icon: 'bi bi-robot',
+      colorClass: 'emerald'
+    },
+    {
+      id: 'mentor_call',
+      title: '1:1 Live Mentor Call Pass',
+      desc: 'Get a 30-minute private call pass with a senior engineer for mentor support.',
+      xpCost: 500,
+      unlocked: false,
+      icon: 'bi bi-chat-left-text-fill',
+      colorClass: 'blue'
+    },
+    {
+      id: 'elite_upgrade',
+      title: 'Elite Pro Plan Upgrade',
+      desc: 'Unlock active Elite status: all course access, premium templates, and elite badges.',
+      xpCost: 1000,
+      unlocked: false,
+      icon: 'bi bi-crown-fill',
+      colorClass: 'gold'
+    }
+  ];
+
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly prefsKey = 'vt_profile_preferences';
 
@@ -273,8 +312,30 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
+  get totalXP(): number {
+    const savedXP = localStorage.getItem('vt_student_lifetime_xp') || localStorage.getItem('vt_student_total_xp');
+    if (savedXP) {
+      return parseInt(savedXP, 10);
+    }
+    try {
+      const user = JSON.parse(localStorage.getItem('vt_user') || '{}');
+      if (user?.totalXP) {
+        return user.totalXP;
+      }
+    } catch {}
+    return Math.floor(this.rewardPoints / 10);
+  }
+
+  get studentLevel(): number {
+    return Math.floor(this.totalXP / 450) + 1;
+  }
+
+  get xpProgressPercentage(): number {
+    return Math.round(((this.totalXP % 450) / 450) * 100);
+  }
+
   get insights(): ProfileInsight[] {
-    return [
+    const base = [
       {
         label: 'Completion',
         value: `${this.profileCompletion}%`,
@@ -287,19 +348,40 @@ export class ProfileComponent implements OnInit, OnDestroy {
         helper: this.user?.active === false ? 'Access disabled' : 'Ready to use',
         icon: 'bi bi-check2-circle',
       },
-      {
-        label: 'Role',
-        value: this.roleLabel,
-        helper: 'Permissions enabled',
-        icon: 'bi bi-person-badge',
-      },
-      {
-        label: 'Alerts',
-        value: `${this.enabledPreferenceCount}/${this.preferences.length}`,
-        helper: 'Preferences active',
-        icon: 'bi bi-bell',
-      },
     ];
+
+    if (this.roleKey === 'STUDENT') {
+      base.push(
+        {
+          label: 'Student Level',
+          value: `Lvl ${this.studentLevel}`,
+          helper: `${this.totalXP % 450}/450 XP (${this.xpProgressPercentage}%)`,
+          icon: 'bi bi-award',
+        },
+        {
+          label: 'Login Streak',
+          value: `${this.dailyStreak} Days`,
+          helper: `${this.rewardPoints} PTS (XP: ${this.totalXP})`,
+          icon: 'bi bi-fire',
+        }
+      );
+    } else {
+      base.push(
+        {
+          label: 'Role',
+          value: this.roleLabel,
+          helper: 'Permissions enabled',
+          icon: 'bi bi-person-badge',
+        },
+        {
+          label: 'Alerts',
+          value: `${this.enabledPreferenceCount}/${this.preferences.length}`,
+          helper: 'Preferences active',
+          icon: 'bi bi-bell',
+        }
+      );
+    }
+    return base;
   }
 
   get profileChecklist(): { label: string; done: boolean }[] {
@@ -873,6 +955,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
     } else {
       this.claimedToday = false;
     }
+
+    try {
+      const unlockedJson = localStorage.getItem('vt_unlocked_rewards');
+      const unlockedIds: string[] = unlockedJson ? JSON.parse(unlockedJson) : [];
+      this.shopRewards.forEach(reward => {
+        reward.unlocked = unlockedIds.includes(reward.id);
+      });
+    } catch {
+      this.shopRewards.forEach(reward => {
+        reward.unlocked = false;
+      });
+    }
   }
 
   claimDailyReward(): void {
@@ -901,6 +995,36 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadGamificationData();
 
     this.showMessage('Daily checked in! +50 XP rewarded!');
+    this.cdr.markForCheck();
+  }
+
+  redeemReward(reward: any): void {
+    if (reward.unlocked) return;
+    if (this.rewardPoints < reward.xpCost) {
+      this.showError(`Insufficient XP. You need ${reward.xpCost - this.rewardPoints} more XP.`);
+      return;
+    }
+
+    this.rewardPoints -= reward.xpCost;
+    reward.unlocked = true;
+
+    try {
+      localStorage.setItem('vt_profile_points', String(this.rewardPoints));
+      const unlockedJson = localStorage.getItem('vt_unlocked_rewards');
+      const unlockedIds: string[] = unlockedJson ? JSON.parse(unlockedJson) : [];
+      if (!unlockedIds.includes(reward.id)) {
+        unlockedIds.push(reward.id);
+        localStorage.setItem('vt_unlocked_rewards', JSON.stringify(unlockedIds));
+      }
+      
+      // If the user purchased the Elite upgrade, set the override and reload
+      if (reward.id === 'elite_upgrade') {
+        localStorage.setItem('vt_user_plan_override', 'elite');
+        this.userPlanBadgeService.load();
+      }
+    } catch {}
+
+    this.showMessage(`Successfully redeemed ${reward.title}!`);
     this.cdr.markForCheck();
   }
 }
