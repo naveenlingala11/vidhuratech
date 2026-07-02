@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PublicPracticeService } from '../../../services/public-practice.service';
 import { PremiumLeaderboardComponent } from '../../../../shared/components/premium-leaderboard/premium-leaderboard/premium-leaderboard';
-type Period = 'daily' | 'weekly' | 'monthly';
+type Period = 'daily' | 'weekly' | 'monthly' | 'overall';
 type LeaderboardScope = 'period' | 'challenge';
 type PracticeType = 'ASSESSMENT' | 'CHALLENGE';
 interface PracticeGrant {
@@ -53,6 +53,7 @@ export class CodingContestsComponent implements OnInit {
   dailyTopThree: any[] = [];
   weeklyTopThree: any[] = [];
   monthlyTopThree: any[] = [];
+  overallTopThree: any[] = [];
   planAccessLoading = false;
   planAccess: any = {
     loggedIn: false,
@@ -181,7 +182,9 @@ export class CodingContestsComponent implements OnInit {
           ? this.dailyTopThree
           : this.leaderboardPeriod === 'monthly'
             ? this.monthlyTopThree
-            : this.weeklyTopThree;
+            : this.leaderboardPeriod === 'overall'
+              ? this.overallTopThree
+              : this.weeklyTopThree;
     return [...(source || [])]
       .sort((a, b) => Number(a.rank || 999999) - Number(b.rank || 999999))
       .slice(0, 3);
@@ -244,6 +247,66 @@ export class CodingContestsComponent implements OnInit {
       error: () => (this.announcements = []),
     });
   }
+
+  parseWinners(message: string): { prefix: string; winners: any[] } {
+    if (!message) return { prefix: '', winners: [] };
+    
+    if (message.includes('#1') && message.includes('#2')) {
+      const parts = message.split('#1');
+      const prefix = parts[0].replace(/:$/, '').trim();
+      
+      const winnersList: any[] = [];
+      const winnersString = '#1' + parts[1];
+      
+      let r1 = '';
+      let r2 = '';
+      let r3 = '';
+      
+      const idx1 = winnersString.indexOf('#1');
+      const idx2 = winnersString.indexOf('#2');
+      const idx3 = winnersString.indexOf('#3');
+      
+      if (idx1 !== -1 && idx2 !== -1) {
+        r1 = winnersString.substring(idx1 + 2, idx2).trim();
+        if (idx3 !== -1) {
+          r2 = winnersString.substring(idx2 + 2, idx3).trim();
+          r3 = winnersString.substring(idx3 + 2).trim();
+        } else {
+          r2 = winnersString.substring(idx2 + 2).trim();
+        }
+      }
+      
+      const parseWinnerDetails = (str: string, rank: number) => {
+        if (!str) return null;
+        let cleanStr = str.trim();
+        if (cleanStr.endsWith(',')) {
+          cleanStr = cleanStr.substring(0, cleanStr.length - 1).trim();
+        }
+        const hyphenIdx = cleanStr.indexOf('-');
+        let name = '';
+        let details = '';
+        if (hyphenIdx !== -1) {
+          name = cleanStr.substring(0, hyphenIdx).trim();
+          details = cleanStr.substring(hyphenIdx + 1).trim();
+        } else {
+          name = cleanStr;
+        }
+        return { rank, name, details };
+      };
+      
+      const w1 = parseWinnerDetails(r1, 1);
+      const w2 = parseWinnerDetails(r2, 2);
+      const w3 = parseWinnerDetails(r3, 3);
+      
+      if (w1) winnersList.push(w1);
+      if (w2) winnersList.push(w2);
+      if (w3) winnersList.push(w3);
+      
+      return { prefix, winners: winnersList };
+    }
+    
+    return { prefix: message, winners: [] };
+  }
   private extractLeaderboardPayload(res: any): any {
     return res?.data || res || {};
   }
@@ -292,7 +355,9 @@ export class CodingContestsComponent implements OnInit {
         ? this.publicPracticeService.getDailyLeaderboard()
         : period === 'monthly'
           ? this.publicPracticeService.getMonthlyLeaderboard()
-          : this.publicPracticeService.getWeeklyLeaderboard();
+          : period === 'overall'
+            ? this.publicPracticeService.getOverallLeaderboard()
+            : this.publicPracticeService.getWeeklyLeaderboard();
     request.subscribe({
       next: (res: any) => {
         const entries = this.extractEntries(res);
@@ -301,6 +366,7 @@ export class CodingContestsComponent implements OnInit {
         if (period === 'daily') this.dailyTopThree = topThree;
         if (period === 'weekly') this.weeklyTopThree = topThree;
         if (period === 'monthly') this.monthlyTopThree = topThree;
+        if (period === 'overall') this.overallTopThree = topThree;
         this.leaderboardLoading = false;
         if (!entries.length && this.selectedChallenge?.id) {
           this.selectChallenge(this.selectedChallenge, true);
@@ -345,7 +411,9 @@ export class CodingContestsComponent implements OnInit {
   }
   showPeriodLeaderboard(): void {
     this.leaderboardScope = 'period';
+    this.leaderboardPeriod = 'overall';
     this.leaderboardPage = 1;
+    this.loadPeriodLeaderboard('overall');
   }
   resetFilters(): void {
     this.search = '';

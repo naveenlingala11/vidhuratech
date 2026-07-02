@@ -1,6 +1,9 @@
 <section class="assessment-page">
   <div class="toast" *ngIf="toast">{{ toast }}</div>
 
+  <!-- =====================================================
+       GLASS HUB HEADER ZONE
+  ====================================================== -->
   <header class="overview-panel">
     <div class="hero-mesh"></div>
     <div class="hero-grid"></div>
@@ -9,79 +12,130 @@
     <div class="overview-copy">
       <span class="eyebrow">
         <i class="bi bi-stars"></i>
-        Student Assessment Hub
+        Student Practice Hub
       </span>
 
       <h1>
-        My Assessments
-        <span>Track. Attempt. Improve.</span>
+        Assessment Arena
+        <span>Measure. Analyze. Perfect.</span>
       </h1>
 
       <p>
-        Monitor assigned tests, continue your attempts, compare performance, and improve with a
-        cleaner assessment dashboard built for focused progress.
+        Track assigned cohorts, analyze pass/fail standings, and boost your coding knowledge.
+        Enter live test windows or resume practice modules with interactive bookmarking.
       </p>
 
       <div class="quick-highlights">
-        <div>
-          <i class="bi bi-graph-up-arrow"></i>
-          <span>Focus Area</span>
-          <strong>Skill Growth</strong>
+        <div class="highlight-item">
+          <i class="bi bi-shield-check icon-indigo"></i>
+          <div>
+            <span>Status Control</span>
+            <strong>Premium Access</strong>
+          </div>
         </div>
 
-        <div>
-          <i class="bi bi-arrow-repeat"></i>
-          <span>Progress Mode</span>
-          <strong>Continuous</strong>
+        <div class="highlight-item">
+          <i class="bi bi-calendar-event icon-emerald"></i>
+          <div>
+            <span>Syllabus Track</span>
+            <strong>Active Term</strong>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="overview-stats">
-      <article class="stat-card primary">
-        <i class="bi bi-journal-check"></i>
-        <span>Total</span>
-        <strong>{{ assessments.length }}</strong>
-        <small>Assigned assessments</small>
-      </article>
+    <!-- FUTURISTIC GLASS STATS CONSOLE -->
+    <div class="overview-stats-console">
+      <!-- PANEL 1: PROGRESS RING -->
+      <div class="stats-panel-card card-progress">
+        <div class="panel-card-glow"></div>
+        <div class="progress-ring-box">
+          <svg class="ring-svg" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4f46e5" />
+                <stop offset="100%" stop-color="#0ea5e9" />
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="50" cy="50" r="40"></circle>
+            <circle 
+              class="ring-fill" 
+              cx="50" 
+              cy="50" 
+              r="40" 
+              stroke="url(#ringGrad)"
+              [style.strokeDashoffset]="251.2 - (251.2 * attemptPercentage / 100)"
+            ></circle>
+          </svg>
+          <div class="ring-center-text">
+            <strong>{{ attemptPercentage }}%</strong>
+            <span>Completed</span>
+          </div>
+        </div>
+        <div class="panel-card-info text-center">
+          <h4>Tests Finished</h4>
+          <p>{{ attemptedCount }} of {{ assessments.length }} Submitted</p>
+        </div>
+      </div>
 
-      <article class="stat-card success">
-        <i class="bi bi-check2-circle"></i>
-        <span>Passed</span>
-        <strong>{{ passedCount }}</strong>
-        <small>Qualified attempts</small>
-      </article>
+      <!-- PANEL 2: SCORE & PASS/FAIL METRICS -->
+      <div class="stats-panel-card card-performance">
+        <div class="panel-card-glow"></div>
+        <div class="performance-metric">
+          <span>Average Standing</span>
+          <h2>{{ averageScore }}%</h2>
+          <div class="mini-progress-bar">
+            <div class="mini-bar-fill" [style.width.%]="averageScore"></div>
+          </div>
+        </div>
+        
+        <div class="performance-sub-row">
+          <div class="sub-stat success">
+            <i class="bi bi-patch-check-fill"></i>
+            <div>
+              <span>Passed</span>
+              <strong>{{ passedCount }}</strong>
+            </div>
+          </div>
+          
+          <div class="sub-stat danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+              <span>Failed</span>
+              <strong>{{ failedCount }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <article class="stat-card danger">
-        <i class="bi bi-x-circle"></i>
-        <span>Failed</span>
-        <strong>{{ failedCount }}</strong>
-        <small>Needs practice</small>
-      </article>
-
-      <article class="stat-card warning">
-        <i class="bi bi-hourglass-split"></i>
-        <span>Pending</span>
-        <strong>{{ pendingCount }}</strong>
-        <small>Not attempted</small>
-      </article>
-
-      <article class="stat-card violet">
-        <i class="bi bi-percent"></i>
-        <span>Average</span>
-        <strong>{{ averageScore }}%</strong>
-        <small>Overall score</small>
-      </article>
-
-      <article class="stat-card slate">
-        <i class="bi bi-ui-checks-grid"></i>
-        <span>Attempted</span>
-        <strong>{{ attemptedCount }}</strong>
-        <small>Submitted once</small>
-      </article>
+      <!-- PANEL 3: PENDING TASKS SHORTCUT -->
+      <div class="stats-panel-card card-action" (click)="statusFilter = 'PENDING'; resetPage()">
+        <div class="panel-card-glow"></div>
+        <div class="action-card-top">
+          <div class="action-icon-shell">
+            <i class="bi bi-hourglass-split pulse-hourglass"></i>
+          </div>
+          <div class="action-badge">
+            <span>{{ pendingCount }} Pending</span>
+          </div>
+        </div>
+        
+        <div class="action-card-content">
+          <h4>Awaiting Attempts</h4>
+          <p>You have {{ pendingCount }} exams waiting. Click this card to filter and begin.</p>
+        </div>
+        
+        <div class="action-card-footer">
+          <span>Go to Pending</span>
+          <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
     </div>
   </header>
 
+  <!-- =====================================================
+       TOOLBAR FILTER DOCK
+  ====================================================== -->
   <section class="toolbar-panel">
     <div class="toolbar-title">
       <span>Assessment Library</span>
@@ -90,167 +144,224 @@
 
     <label class="search-box">
       <i class="bi bi-search"></i>
-      <input type="text" [(ngModel)]="search" placeholder="Search title, status, marks..." />
+      <input 
+        type="text" 
+        [(ngModel)]="search" 
+        (ngModelChange)="resetPage()" 
+        placeholder="Search title, status, marks..." 
+      />
     </label>
 
     <div class="toolbar-controls">
-      <select [(ngModel)]="statusFilter">
+      <select [(ngModel)]="statusFilter" (ngModelChange)="resetPage()">
         <option value="ALL">All Status</option>
         <option value="PENDING">Not Attempted</option>
         <option value="PASS">Passed</option>
         <option value="FAIL">Needs Practice</option>
       </select>
 
-      <select [(ngModel)]="sortBy">
+      <select [(ngModel)]="sortBy" (ngModelChange)="resetPage()">
         <option value="LATEST">Latest Attempt</option>
         <option value="SCORE_HIGH">Score High to Low</option>
         <option value="SCORE_LOW">Score Low to High</option>
         <option value="TITLE">Title A to Z</option>
       </select>
 
-      <button type="button" class="refresh-btn" (click)="loadAssessments()">
+      <button type="button" class="refresh-btn" (click)="loadAssessments(); resetPage()">
         <i class="bi bi-arrow-clockwise"></i>
-        Refresh
+        <span>Refresh</span>
       </button>
     </div>
 
     <div class="view-chip">{{ filteredAssessments.length }} Showing</div>
   </section>
 
+  <!-- =====================================================
+       LOADING & EMPTY STATES
+  ====================================================== -->
   <section class="loading-state" *ngIf="loading">
-    <div class="loader"></div>
+    <div class="loader-ring"></div>
     <h2>Loading assessments</h2>
     <p>Please wait while your latest assigned assessments are being prepared.</p>
   </section>
 
   <section class="empty-state" *ngIf="!loading && !filteredAssessments.length">
-    <div class="empty-icon">
-      <i class="bi bi-journal-x"></i>
+    <div class="empty-icon-shell">
+      <i class="bi bi-inboxes-fill"></i>
     </div>
-
     <h2>No assessments found</h2>
-    <p>Try changing your search or filter. Newly assigned assessments will appear here.</p>
+    <p>Try changing your search query or status filter. Newly assigned assessments will appear here.</p>
   </section>
 
+  <!-- =====================================================
+       ASSESSMENTS GRID
+  ====================================================== -->
   <section class="assessment-grid" *ngIf="!loading && filteredAssessments.length">
     <article
       class="assessment-card"
-      *ngFor="let assessment of filteredAssessments; trackBy: trackById"
+      *ngFor="let assessment of paginatedAssessments; trackBy: trackById"
       [class.pass-card]="normalizedStatus(assessment) === 'PASS'"
       [class.fail-card]="normalizedStatus(assessment) === 'FAIL'"
       [class.pending-card]="normalizedStatus(assessment) === 'PENDING'"
     >
+      <div class="card-glow"></div>
+
+      <!-- TOP META ROW -->
       <div class="card-topline">
         <span class="subject-chip">
-          <i class="bi bi-patch-check"></i>
-          {{ assessment.companyName || 'General' }} <span *ngIf="assessment.askedYear">· {{ assessment.askedYear }}</span>
+          <i class="bi bi-tag-fill"></i>
+          <span>{{ assessment.companyName || 'General Practice' }}</span>
+          <b *ngIf="assessment.askedYear">· {{ assessment.askedYear }}</b>
         </span>
 
         <span class="status-pill" [ngClass]="getStatusClass(assessment)">
           <i class="bi" [ngClass]="getStatusIcon(assessment)"></i>
-          {{ getStatusLabel(assessment) }}
+          <span>{{ getStatusLabel(assessment) }}</span>
         </span>
       </div>
 
+      <!-- MAIN DETAIL SECTION -->
       <div class="card-main">
         <div class="title-block">
           <h3>{{ assessment.title }}</h3>
-
           <p [class.expanded]="isDescriptionExpanded(assessment.id)">
             {{ assessment.description || 'No description provided for this assessment.' }}
           </p>
-
           <button
             type="button"
             class="description-toggle"
             *ngIf="shouldShowDescriptionToggle(assessment.description)"
             (click)="toggleDescription(assessment.id)"
           >
-            {{ isDescriptionExpanded(assessment.id) ? 'View Less' : 'View More' }}
+            <span>{{ isDescriptionExpanded(assessment.id) ? 'View Less' : 'View More' }}</span>
           </button>
         </div>
 
-        <div class="score-box">
-          <div class="score-ring" [style.--score]="assessment.percentage || 0">
-            <div>
-              <strong>{{ getScoreLabel(assessment) }}</strong>
+        <!-- SCORE CIRCULAR PIE -->
+        <div class="score-container" *ngIf="normalizedStatus(assessment) !== 'PENDING'">
+          <div class="score-pie-box" [style.--score-val]="assessment.percentage || 0">
+            <div class="score-pie-inner">
+              <strong>{{ assessment.percentage || 0 }}%</strong>
               <span>Score</span>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- INSIGHTS ROW -->
       <div class="insight-row">
-        <div>
-          <i class="bi bi-activity"></i>
-          <span>Latest Result</span>
-          <strong>
-            {{
-              normalizedStatus(assessment) === 'PASS'
-                ? 'Qualified'
-                : normalizedStatus(assessment) === 'FAIL'
-                  ? 'Needs Practice'
-                  : 'Not Started'
-            }}
-          </strong>
+        <div class="insight-col">
+          <i class="bi bi-activity text-blue"></i>
+          <div>
+            <span>Latest Result</span>
+            <strong>
+              {{
+                normalizedStatus(assessment) === 'PASS'
+                  ? 'Qualified'
+                  : normalizedStatus(assessment) === 'FAIL'
+                    ? 'Failed'
+                    : 'Not Started'
+              }}
+            </strong>
+          </div>
         </div>
 
-        <div>
-          <i class="bi bi-arrow-repeat"></i>
-          <span>Attempt Type</span>
-          <strong>{{ assessment.attemptCount > 0 ? 'Reattempt Ready' : 'First Attempt' }}</strong>
+        <div class="insight-col">
+          <i class="bi bi-clock-history text-purple"></i>
+          <div>
+            <span>Attempt Type</span>
+            <strong>{{ assessment.attemptCount > 0 ? 'Reattempt Ready' : 'First Attempt' }}</strong>
+          </div>
         </div>
       </div>
 
+      <!-- SPECIFICATION CHIPS -->
       <div class="metrics-grid">
-        <div class="metric-card">
+        <div class="metric-chip">
           <span>Marks</span>
           <strong>{{ assessment.lastScore || 0 }}/{{ assessment.totalMarks || 0 }}</strong>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-chip">
           <span>Duration</span>
           <strong>{{ assessment.durationMinutes || 0 }} min</strong>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-chip">
           <span>Attempts</span>
           <strong>{{ assessment.attemptCount || 0 }}</strong>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-chip">
           <span>Questions</span>
           <strong>{{ assessment.questionCount || 0 }}</strong>
         </div>
       </div>
 
-      <div class="progress-section">
+      <!-- PROGRESS SLIDER -->
+      <div class="progress-section" *ngIf="normalizedStatus(assessment) !== 'PENDING'">
         <div class="progress-head">
-          <span>Performance Progress</span>
+          <span>Performance Gauge</span>
           <strong>{{ assessment.percentage || 0 }}%</strong>
         </div>
-
         <div class="progress-track">
           <div class="progress-fill" [style.width.%]="assessment.percentage || 0"></div>
         </div>
-
-        <div class="progress-note">
+        <div class="progress-labels">
           <span>0%</span>
           <span>Target 100%</span>
         </div>
       </div>
 
+      <!-- FOOTER ACTIONS -->
       <div class="card-footer">
         <div class="date-block">
-          <span>Last Attempt</span>
+          <span>Last Attempted</span>
           <strong>{{ formatDate(assessment.lastSubmittedAt) }}</strong>
         </div>
 
         <button type="button" class="attempt-button" (click)="startAssessment(assessment.id)">
-          <i class="bi bi-play-fill"></i>
-          {{ getActionLabel(assessment) }}
+          <span>{{ getActionLabel(assessment) }}</span>
+          <i class="bi bi-arrow-right-short"></i>
         </button>
       </div>
     </article>
+  </section>
+
+  <!-- =====================================================
+       PAGINATION DECK
+  ====================================================== -->
+  <section class="pagination-panel" *ngIf="!loading && filteredAssessments.length > pageSize">
+    <button 
+      type="button" 
+      class="page-control-btn" 
+      [disabled]="currentPage === 1" 
+      (click)="setPage(currentPage - 1)"
+    >
+      <i class="bi bi-chevron-left"></i>
+      <span>Previous</span>
+    </button>
+
+    <div class="page-numbers">
+      <button
+        type="button"
+        class="page-num-btn"
+        *ngFor="let page of pagesArray"
+        [class.active]="currentPage === page"
+        (click)="setPage(page)"
+      >
+        {{ page }}
+      </button>
+    </div>
+
+    <button 
+      type="button" 
+      class="page-control-btn" 
+      [disabled]="currentPage === totalPages" 
+      (click)="setPage(currentPage + 1)"
+    >
+      <span>Next</span>
+      <i class="bi bi-chevron-right"></i>
+    </button>
   </section>
 </section>

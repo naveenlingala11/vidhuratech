@@ -71,6 +71,10 @@ export class PublicPracticeService {
     return this.http.get(`${this.baseUrl}/leaderboard/monthly`);
   }
 
+  getOverallLeaderboard(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/leaderboard/overall`);
+  }
+
   getContestAnnouncements(): Observable<any> {
     return this.http.get(`${this.baseUrl}/announcements`);
   }

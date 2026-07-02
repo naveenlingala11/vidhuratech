@@ -210,11 +210,11 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
         });
       }
 
-      // Initialize IntersectionObserver for 3D scroll animations
+      // Initialize IntersectionObserver for smooth scroll animations
       const observerOptions = {
         root: null,
-        rootMargin: '0px',
-        threshold: 0.1
+        rootMargin: '0px 0px -80px 0px',
+        threshold: 0.02
       };
 
       this.scrollObserver = new IntersectionObserver((entries) => {
@@ -231,7 +231,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
       }, observerOptions);
 
       const animSections = document.querySelectorAll(
-        '.hero-section, .practice-arena-section, .marquee-section, .institute-section, .virtual-interview-section, .ats-resume-promo-section, .home-mentors-section, .program-section, .experience-section, .features-section'
+        '.practice-arena-section, .marquee-section, .institute-section, .virtual-interview-section, .ats-resume-promo-section, .home-mentors-section, .program-section, .experience-section, .features-section'
       );
       animSections.forEach(section => this.scrollObserver.observe(section));
 
