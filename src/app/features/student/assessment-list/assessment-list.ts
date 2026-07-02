@@ -24,6 +24,36 @@ export class AssessmentListComponent implements OnInit {
   sortBy: AssessmentSort = 'LATEST';
   expandedDescriptions = new Set<number>();
 
+  currentPage = 1;
+  pageSize = 6;
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredAssessments.length / this.pageSize);
+  }
+
+  get paginatedAssessments(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return this.filteredAssessments.slice(startIndex, endIndex);
+  }
+
+  setPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+
+  get pagesArray(): number[] {
+    const pages = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
+  }
+
   constructor(
     private assessmentService: AssessmentService,
     private router: Router,
@@ -54,6 +84,11 @@ export class AssessmentListComponent implements OnInit {
 
     const total = this.assessments.reduce((sum, item) => sum + Number(item.percentage || 0), 0);
     return Math.round(total / this.assessments.length);
+  }
+
+  get attemptPercentage(): number {
+    if (!this.assessments.length) return 0;
+    return Math.round((this.attemptedCount / this.assessments.length) * 100);
   }
 
   get filteredAssessments(): any[] {

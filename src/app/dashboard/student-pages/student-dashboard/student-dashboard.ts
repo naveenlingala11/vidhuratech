@@ -7,6 +7,7 @@ import { StudentWorkflowService } from '../service/student-workflow';
 import { StudentService } from '../service/student';
 import { PseudoChallengeService } from '../../../features/services/pseudo-challenge';
 import { GamificationService } from '../../../services/gamification.service';
+import { PublicPracticeService } from '../../../features/services/public-practice.service';
 
 interface StudentStats {
   enrolledCourses: number;
@@ -101,6 +102,8 @@ export class StudentDashboard implements OnInit {
   streakPoints = 0;
   claimedToday = false;
   claimLogs: { date: string; points: number }[] = [];
+  leaderboardEntries: any[] = [];
+  myRank = 4;
 
   dailyTips = [
     "Tip: Code is read more often than it's written. Use clear descriptive naming.",
@@ -161,6 +164,7 @@ export class StudentDashboard implements OnInit {
     private certificateService: StudentService,
     private pseudoChallengeService: PseudoChallengeService,
     private gamificationService: GamificationService,
+    private publicPracticeService: PublicPracticeService,
     private cdr: ChangeDetectorRef,
     private router: Router,
   ) {}
@@ -172,6 +176,7 @@ export class StudentDashboard implements OnInit {
     this.trackLoginAndStreak();
     this.initGamification();
     this.loadClaimLogs();
+    this.loadLeaderboard();
   }
 
   initGamification(): void {
@@ -242,6 +247,75 @@ export class StudentDashboard implements OnInit {
     } else {
       this.showToast('Daily streak points claimed! +50 PTS');
     }
+  }
+
+  loadLeaderboard(): void {
+    this.publicPracticeService.getWeeklyLeaderboard().subscribe({
+      next: (res: any) => {
+        const payload = res?.data || res || {};
+        let list: any[] = [];
+        if (Array.isArray(payload)) {
+          list = payload;
+        } else if (Array.isArray(payload.entries)) {
+          list = payload.entries;
+        } else if (Array.isArray(payload.leaderboard)) {
+          list = payload.leaderboard;
+        } else if (Array.isArray(payload.results)) {
+          list = payload.results;
+        } else if (Array.isArray(payload.winners)) {
+          list = payload.winners;
+        } else if (Array.isArray(payload.topThree)) {
+          list = payload.topThree;
+        } else if (Array.isArray(payload.content)) {
+          list = payload.content;
+        }
+
+        const parsedList = list.map(item => ({
+          name: item.name || item.fullName || item.username || 'Student',
+          score: item.score ?? item.points ?? 0,
+          email: item.email || ''
+        }));
+
+        parsedList.sort((a, b) => b.score - a.score);
+
+        const placeholders = [
+          { name: 'Naveen Lingala', score: 1250, email: 'student@test.com' },
+          { name: 'Sundeep Kumar', score: 940, email: 'sundeep@test.com' },
+          { name: 'Priya Sharma', score: 880, email: 'priya@test.com' }
+        ];
+
+        while (parsedList.length < 3) {
+          const nextPlaceholder = placeholders[parsedList.length];
+          if (nextPlaceholder) {
+            parsedList.push(nextPlaceholder);
+          } else {
+            parsedList.push({ name: `User #${parsedList.length + 1}`, score: 100 - (parsedList.length * 10), email: '' });
+          }
+        }
+
+        this.leaderboardEntries = parsedList.slice(0, 3);
+
+        const email = this.currentUser?.email;
+        if (email) {
+          const idx = parsedList.findIndex(e => String(e.email || '').toLowerCase() === email.toLowerCase());
+          if (idx !== -1) {
+            this.myRank = idx + 1;
+          } else {
+            this.myRank = 4;
+          }
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.leaderboardEntries = [
+          { name: 'Naveen Lingala', score: 1250, email: 'student@test.com' },
+          { name: 'Sundeep Kumar', score: 940, email: 'sundeep@test.com' },
+          { name: 'Priya Sharma', score: 880, email: 'priya@test.com' }
+        ];
+        this.myRank = 4;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadDashboard(): void {

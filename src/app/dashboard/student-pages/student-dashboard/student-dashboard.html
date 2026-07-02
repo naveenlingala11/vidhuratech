@@ -1,643 +1,616 @@
-<section class="student-dashboard">
-  <!-- Interactive Terminal Hero Grid -->
-  <div class="hero">
-    <div class="hero-copy">
-      <div class="card-accent-bar primary"></div>
-      <span class="eyebrow"><i class="bi bi-cpu"></i> Student Workstation</span>
-      <h1>Welcome back, {{ studentName }}</h1>
-      
-      <!-- Premium XP & Level Badge Progress Tracker -->
-      <div class="level-indicator">
-        <span class="badge-level">LEVEL {{ userLevel }}</span>
-        <div class="xp-progress-wrapper">
-          <div class="xp-progress-bar" [style.width.%]="xpProgressPercentage"></div>
-        </div>
-        <span class="xp-caption">{{ totalXP }} XP · {{ xpProgressPercentage }}% to next level</span>
-        
-        <div class="info-icon-wrapper level-info-trigger">
-          <i class="bi bi-info-circle"></i>
-          <div class="level-tooltip">
-            <div class="tooltip-header">
-              <i class="bi bi-rocket-takeoff-fill header-icon"></i>
-              <h4>Leveling System</h4>
-            </div>
-            
-            <p class="description">Earn XP from activities. Reach <strong>450 XP</strong> to level up.</p>
-            
-            <div class="xp-rules-list">
-              <div class="xp-rule-item">
-                <i class="bi bi-journal-bookmark-fill"></i>
-                <span class="rule-name">Course Progress</span>
-                <span class="rule-xp">+8 XP / 1%</span>
-              </div>
-              <div class="xp-rule-item">
-                <i class="bi bi-code-slash"></i>
-                <span class="rule-name">Solved Challenges</span>
-                <span class="rule-xp">+35 XP</span>
-              </div>
-              <div class="xp-rule-item">
-                <i class="bi bi-lightning-charge-fill"></i>
-                <span class="rule-name">Shared Practices</span>
-                <span class="rule-xp">+20 XP</span>
-              </div>
-            </div>
-          </div>
-        </div>
+<div class="std-dashboard-wrapper">
+  
+  <!-- DYNAMIC LIVE STATUS NOTIFICATION BAR -->
+  <div class="std-top-ticker" *ngIf="toast">
+    <div class="ticker-content">
+      <i class="bi bi-lightning-charge-fill ticker-icon"></i>
+      <span>{{ toast }}</span>
+    </div>
+  </div>
+
+  <!-- THE ULTIMATE METRIC HEADER BAR -->
+  <header class="std-station-header">
+    <div class="header-profile-card">
+      <div class="profile-glow-ring">
+        <span class="profile-initials">{{ studentName.slice(0, 2).toUpperCase() }}</span>
       </div>
-
-      <!-- Live Terminal Console Daily Tip -->
-      <p class="console-tip">
-        <i class="bi bi-terminal-fill"></i>
-        <span>{{ currentTip }}</span>
-      </p>
-
-      <!-- Premium Workstation Status Strip -->
-      <div class="status-console-strip">
-        <div class="console-metric">
-          <span class="console-metric-label">Course Progress</span>
-          <div class="console-metric-value-row">
-            <span class="console-metric-number">{{ averageProgress }}%</span>
-            <small class="console-metric-sub">Average</small>
-          </div>
-        </div>
-        
-        <div class="console-metric">
-          <span class="console-metric-label">Certificates Earned</span>
-          <div class="console-metric-value-row">
-            <span class="console-metric-number">{{ stats.certificates || 0 }}</span>
-            <small class="console-metric-sub">Awarded</small>
-          </div>
-        </div>
-        
-        <div class="console-metric">
-          <span class="console-metric-label">Solved Challenges</span>
-          <div class="console-metric-value-row">
-            <span class="console-metric-number">{{ stats.solvedChallenges || 0 }}</span>
-            <small class="console-metric-sub">Tasks</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-actions">
-        <button class="primary-action" type="button" (click)="goTo('/dashboard/student/lms')">
-          <i class="bi bi-play-fill"></i>
-          Continue Learning
-        </button>
-        <button
-          class="secondary-action"
-          type="button"
-          routerLink="/dashboard/student/mock-interviews"
-        >
-          <i class="bi bi-mic"></i>
-          Mock Interviews
-        </button>
+      <div class="profile-text-info">
+        <span class="sys-badge"><i class="bi bi-shield-check"></i> STUDENT WORKSPACE</span>
+        <h1 class="welcome-heading">Hello, <span class="gradient-name">{{ studentName }}</span> ✨</h1>
+        <p class="console-prompt">
+          <i class="bi bi-chevron-right prompt-arrow"></i>
+          <span class="prompt-text">{{ currentTip }}</span>
+        </p>
       </div>
     </div>
 
-    <!-- Upgraded Gamification Streak Card -->
-    <div class="streak-card">
-      <div class="card-accent-bar secondary"></div>
-      <div class="streak-header">
-        <div class="streak-title">
-          <span>Login Streak</span>
-          <strong>{{ calculatedStreak }} {{ calculatedStreak === 1 ? 'Day' : 'Days' }}</strong>
-        </div>
-        <i class="bi bi-fire animated-fire"></i>
-      </div>
-
-      <!-- Streak Rewards Panel -->
-      <div class="streak-rewards">
-        <div class="reward-info">
-          <span class="reward-label">Streak Points</span>
-          <span class="reward-value"><i class="bi bi-gem"></i> {{ streakPoints }} PTS</span>
-        </div>
-        
-        <button 
-          *ngIf="!claimedToday" 
-          class="claim-btn active-claim" 
-          type="button" 
-          (click)="claimPoints()"
-        >
-          <i class="bi bi-gift-fill"></i> Claim
-        </button>
-        <span *ngIf="claimedToday" class="claim-btn claimed-status">
-          <i class="bi bi-check-circle-fill"></i> Claimed
-        </span>
-      </div>
-
-      <!-- Premium Embedded Capsule Calendar (Replaces old tracker) -->
-      <div class="embedded-calendar-container">
-        <small class="calendar-label">Activity & Milestone Calendar</small>
-        <div class="calendar-strip">
-          <div 
-            *ngFor="let day of milestoneCalendarDays" 
-            class="calendar-capsule"
-            [class.completed]="day.status === 'COMPLETED'"
-            [class.current]="day.status === 'CURRENT'"
-            [class.target]="day.status === 'TARGET'"
-            [class.missed]="day.status === 'MISSED'"
-            [title]="day.label"
-          >
-            <span class="capsule-month">{{ day.monthLabel }}</span>
-            <span class="capsule-date">{{ day.dayNum }}</span>
-            <span class="capsule-day">{{ day.weekday }}</span>
-            <div class="capsule-status-dot">
-              <i *ngIf="day.status === 'TARGET'" class="bi bi-star-fill target-star-pulse"></i>
-              <i *ngIf="day.status === 'COMPLETED'" class="bi bi-check-lg"></i>
-              <i *ngIf="day.status === 'MISSED'" class="bi bi-dash"></i>
-            </div>
-          </div>
+    <!-- RADIAL SYSTEM GAUGE -->
+    <div class="header-gauge-card">
+      <div class="gauge-ring" [style.--xp-percentage]="xpProgressPercentage">
+        <div class="gauge-inner">
+          <span class="gauge-lbl">LEVEL</span>
+          <span class="gauge-val">{{ userLevel }}</span>
         </div>
       </div>
-
-      <!-- Streak Milestone Progress Tracker -->
-      <div class="streak-milestone">
-        <div class="milestone-meta">
-          <span>Next Milestone: <strong>In {{ daysToNextMilestone }} {{ daysToNextMilestone === 1 ? 'Day' : 'Days' }}</strong> (Target: {{ milestoneTargetDateLabel }})</span>
-          <span>{{ milestoneProgress }}%</span>
+      <div class="gauge-details">
+        <div class="xp-row">
+          <strong>{{ totalXP }} <span class="xp-unit">XP</span></strong>
+          <span>{{ xpProgressPercentage }}% to Level {{ userLevel + 1 }}</span>
         </div>
-        <div class="milestone-meter">
-          <span [style.width.%]="milestoneProgress"></span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="xpProgressPercentage"></div>
         </div>
-        <small class="milestone-reward"><i class="bi bi-gift"></i> Reach milestone for bonus PTS</small>
-      </div>
-
-      <!-- Claim History Log Panel -->
-      <div class="claim-history-container">
-        <div class="claim-history-header">
-          <i class="bi bi-clock-history"></i>
-          <span>Claim History Log</span>
-        </div>
-        <div class="claim-history-list">
-          <div class="claim-history-item" *ngFor="let log of claimLogs">
-            <span>{{ log.date }}</span>
-            <strong>+{{ log.points }} PTS</strong>
-          </div>
-          <div class="claim-history-empty" *ngIf="claimLogs.length === 0">
-            No claim logs yet. Claim today's points!
+        <div class="xp-rules-btn">
+          <i class="bi bi-info-circle"></i> Earn XP Rules
+          <div class="xp-rules-popover">
+            <h5>XP Earning System</h5>
+            <ul>
+              <li><i class="bi bi-check2-circle text-indigo"></i> Course Progress: <strong>+8 XP / 1%</strong></li>
+              <li><i class="bi bi-code-slash text-emerald"></i> Code Challenges: <strong>+35 XP</strong></li>
+              <li><i class="bi bi-lightning-fill text-amber"></i> Daily Streak: <strong>+20 XP</strong></li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Banner Alerts -->
-  <div class="toast" *ngIf="toast">
-    <i class="bi bi-info-circle-fill"></i>
-    <span>{{ toast }}</span>
-  </div>
-
-  <div *ngIf="error" class="error-banner">
-    <i class="bi bi-exclamation-triangle-fill"></i>
-    <span>{{ error }}</span>
-    <button type="button" (click)="loadDashboard()">Retry</button>
-  </div>
-
-  <!-- Grid 2: Skill Analytics Console -->
-  <div class="skills-panel panel">
-    <div class="panel-title compact">
-      <div>
-        <span>Competency Matrix</span>
-        <h2>Developer Skill Profile</h2>
+  <!-- QUICK SHORTCUT METRIC DECK -->
+  <section class="std-metric-deck" *ngIf="!loading">
+    <div class="deck-card tone-sky" (click)="goTo('/dashboard/student/courses')">
+      <div class="card-glow-bg"></div>
+      <div class="card-content">
+        <div class="card-icon-box"><i class="bi bi-book-half"></i></div>
+        <div class="card-data">
+          <h3>{{ myCourses.length }}</h3>
+          <span>My Courses</span>
+          <small>{{ averageProgress }}% avg progress</small>
+        </div>
       </div>
     </div>
     
-    <div class="skills-grid">
-      <div class="skill-card" *ngFor="let skill of skillMetrics" [class]="skill.tone">
-        <div class="skill-meta">
-          <span class="skill-icon-box">
-            <i class="bi" [ngClass]="skill.icon"></i>
-          </span>
-          <div>
-            <strong>{{ skill.name }}</strong>
-            <small>{{ skill.value }}% Proficiency</small>
-          </div>
-        </div>
-        <div class="skill-progress-track">
-          <span [style.width.%]="skill.value"></span>
+    <div class="deck-card tone-emerald" (click)="goTo('/dashboard/student/certificates')">
+      <div class="card-glow-bg"></div>
+      <div class="card-content">
+        <div class="card-icon-box"><i class="bi bi-patch-check-fill"></i></div>
+        <div class="card-data">
+          <h3>{{ stats.certificates || 0 }}</h3>
+          <span>Certificates</span>
+          <small>Earned Credentials</small>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Grid 3: Stats Dashboard Cards -->
-  <div class="stats-grid" *ngIf="!loading; else loadingStats">
-    <button
-      *ngFor="let card of statCards; trackBy: trackByTitle"
-      class="stat-card"
-      [class]="card.tone"
-      type="button"
-      (click)="card.route && goTo(card.route)"
-    >
-      <span class="stat-icon">
-        <i class="bi" [ngClass]="card.icon"></i>
-      </span>
-      <span>
-        <small>{{ card.label }}</small>
-        <strong>{{ card.value }}</strong>
-        <em>{{ card.caption }}</em>
-      </span>
-    </button>
-  </div>
-
-  <ng-template #loadingStats>
-    <div class="stats-grid">
-      <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></div>
+    <div class="deck-card tone-amber" (click)="goTo('/dashboard/student/pseudo-challenges')">
+      <div class="card-glow-bg"></div>
+      <div class="card-content">
+        <div class="card-icon-box"><i class="bi bi-terminal-fill"></i></div>
+        <div class="card-data">
+          <h3>{{ stats.solvedChallenges || 0 }}</h3>
+          <span>Solved Tasks</span>
+          <small>Out of {{ stats.pseudoChallenges || 0 }} total</small>
+        </div>
+      </div>
     </div>
-  </ng-template>
 
-  <!-- Grid 4: Main Workspace Area -->
-  <div class="main-grid">
-    <!-- Active Course Tracker -->
-    <article class="panel continue-panel">
-      <div class="panel-title">
-        <div>
-          <span>Next Best Step</span>
-          <h2>Continue Learning</h2>
-        </div>
-        <button type="button" routerLink="/dashboard/student/lms">
-          <i class="bi bi-arrow-right"></i>
-        </button>
-      </div>
-
-      <ng-container *ngIf="activeCourse; else noActiveCourse">
-        <div class="featured-course">
-          <div class="course-mark">
-            <i class="bi bi-code-slash"></i>
-          </div>
-          <div>
-            <h3>{{ getCourseName(activeCourse) }}</h3>
-            <p>{{ activeCourse.progress || 0 }}% completed</p>
-          </div>
-        </div>
-        
-        <div class="large-progress">
-          <span [ngStyle]="progressStyle(activeCourse.progress)"></span>
-        </div>
-        
-        <div class="course-meta">
-          <span>
-            <i class="bi bi-person-video3"></i>
-            {{ activeCourse.mentor || 'Mentor will be assigned' }}
-          </span>
-          <span>
-            <i class="bi bi-calendar-event"></i>
-            {{ activeCourse.nextClass || 'Next class details soon' }}
-          </span>
-        </div>
-        
-        <button
-          class="wide-action"
-          type="button"
-          [routerLink]="['/dashboard/student/lms', activeCourse.batchId]"
-        >
-          Open Course Player
-        </button>
-      </ng-container>
-
-      <ng-template #noActiveCourse>
-        <div class="empty-state">
-          <i class="bi bi-journal-plus"></i>
-          <h3>No active course yet</h3>
-          <p>Explore available courses and start your learning path.</p>
-          <button type="button" routerLink="/courses">Explore Courses</button>
-        </div>
-      </ng-template>
-    </article>
-
-    <!-- Upgraded Interactive Local Task Planner -->
-    <aside class="panel plan-panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Today's Workspace Planner</span>
-          <h2>Focus Checklist</h2>
+    <div class="deck-card tone-rose" (click)="goTo('/dashboard/student/mock-interviews')">
+      <div class="card-glow-bg"></div>
+      <div class="card-content">
+        <div class="card-icon-box"><i class="bi bi-person-video"></i></div>
+        <div class="card-data">
+          <h3>{{ mockRequests.length }}</h3>
+          <span>Mock Interviews</span>
+          <small>Feedback & Vitals</small>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- Local Task Creator Input Box -->
-      <div class="planner-creator">
-        <input 
-          type="text" 
-          [(ngModel)]="newTaskText" 
-          placeholder="Add custom task (e.g. Solve binary search)..." 
-          (keyup.enter)="addLocalTask()"
-        />
-        <button type="button" (click)="addLocalTask()">
-          <i class="bi bi-plus-lg"></i>
-        </button>
-      </div>
-
-      <!-- Planner checklist rows -->
-      <div class="plan-list planner-list">
-        <div class="plan-item planner-item" *ngFor="let item of localTasks">
-          <span class="check" [class.done]="item.done" (click)="toggleLocalTask(item)">
-            <i class="bi" [ngClass]="item.done ? 'bi-check2' : 'bi-circle'"></i>
-          </span>
-          <div class="planner-text-wrapper" [class.done]="item.done" (click)="toggleLocalTask(item)">
-            <strong>{{ item.text }}</strong>
+  <!-- THE CORE DASHBOARD WORKSPACE GRID -->
+  <div class="std-console-grid">
+    
+    <!-- LEFT PANEL GROUP: CORE CONTENT (65%) -->
+    <main class="std-console-main">
+      
+      <!-- FEATURED CONFLICT WORKSTATION (ACTIVE COURSE) -->
+      <section class="premium-console-panel active-workstation-panel">
+        <div class="panel-stripe-accent bg-gradient-indigo"></div>
+        <div class="panel-top">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-activity text-indigo"></i> WORKSTATION ACTIVE TASK</span>
+            <h2>Continue Learning</h2>
           </div>
-          <button class="delete-task-btn" type="button" (click)="deleteLocalTask(item.id)">
-            <i class="bi bi-trash3-fill"></i>
+          <button class="premium-header-lms-btn" (click)="goTo('/dashboard/student/lms')">
+            <span>Open LMS Console</span>
+            <i class="bi bi-arrow-right-circle-fill"></i>
           </button>
         </div>
+
+        <ng-container *ngIf="activeCourse; else noActiveCourse">
+          <div class="active-course-console-box">
+            <div class="course-visual-avatar">
+              <i class="bi bi-code-square"></i>
+            </div>
+            <div class="course-info-col">
+              <h3>{{ getCourseName(activeCourse) }}</h3>
+              <div class="course-meta-badges">
+                <span class="meta-pill"><i class="bi bi-person-circle"></i> Mentor: {{ activeCourse.mentor || 'Assigning shortly' }}</span>
+                <span class="meta-pill"><i class="bi bi-clock-fill"></i> {{ activeCourse.nextClass || 'No classes today' }}</span>
+              </div>
+              <div class="course-progress-container-new">
+                <div class="progress-details-row">
+                  <span>Course Progress</span>
+                  <strong>{{ activeCourse.progress || 0 }}%</strong>
+                </div>
+                <div class="console-progress-track">
+                  <span class="console-progress-fill bg-gradient-indigo" [style.width.%]="activeCourse.progress"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="active-console-actions">
+            <button 
+              class="premium-launch-player-btn" 
+              type="button" 
+              [routerLink]="['/dashboard/student/lms', activeCourse.batchId]"
+            >
+              <span class="btn-glow-pulse"></span>
+              <span class="btn-content">
+                <i class="bi bi-play-fill icon-circle-bg"></i>
+                <span>Resume Learning Workstation</span>
+              </span>
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-template #noActiveCourse>
+          <div class="empty-console-state">
+            <i class="bi bi-folder-plus text-muted"></i>
+            <h3>No active course currently</h3>
+            <p>Select your favorite course and initiate learning to build your skills profile.</p>
+            <button class="premium-launch-player-btn" routerLink="/courses">
+              <span class="btn-content">
+                <i class="bi bi-search"></i>
+                <span>Browse Catalog</span>
+              </span>
+            </button>
+          </div>
+        </ng-template>
+      </section>
+
+      <!-- REAL & USEFUL FEATURES: SANDBOX LAUNCHER & LEADERBOARD WIDGETS -->
+      <div class="planner-shortcut-row">
+        <!-- 1. Interactive Coding Sandbox Launcher -->
+        <section class="premium-console-panel sandbox-launcher-panel">
+          <div class="panel-stripe-accent bg-gradient-indigo"></div>
+          <div class="panel-top-compact">
+            <div class="panel-header-title">
+              <span class="pre-lbl"><i class="bi bi-terminal text-indigo"></i> DEVELOPER TOOLBOX</span>
+              <h2>Interactive Compiler</h2>
+            </div>
+          </div>
+          <div class="sandbox-shell-widget">
+            <div class="shell-header">
+              <span class="shell-dot red"></span>
+              <span class="shell-dot yellow"></span>
+              <span class="shell-dot green"></span>
+              <span class="shell-title">v-compiler.sh</span>
+            </div>
+            <div class="shell-body">
+              <pre><code>$ npm run compile --mode=practice
+Compiler initialized. Ready to execute code loops...</code></pre>
+            </div>
+            <button class="shell-launch-action-btn" (click)="goTo('/preparation')">
+              <i class="bi bi-play-circle-fill"></i> Launch Coding Sandbox
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. Batch Leaderboard Performance Ring -->
+        <section class="premium-console-panel leaderboard-panel">
+          <div class="panel-stripe-accent bg-gradient-amber"></div>
+          <div class="panel-top-compact">
+            <div class="panel-header-title">
+              <span class="pre-lbl"><i class="bi bi-trophy text-amber"></i> COHORT STANDINGS</span>
+              <h2>Batch Leaderboard</h2>
+            </div>
+          </div>
+          <div class="leaderboard-widget-rows">
+            <div 
+              *ngFor="let item of leaderboardEntries; let i = index" 
+              class="leaderboard-item" 
+              [class.first-place]="i === 0"
+            >
+              <span class="rank-badge" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">{{ i + 1 }}</span>
+              <div class="leader-avatar">{{ item.name.slice(0, 2).toUpperCase() }}</div>
+              <div class="leader-info">
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.score }} XP</span>
+              </div>
+              <i *ngIf="i === 0" class="bi bi-award-fill trophy-gold"></i>
+              <i *ngIf="i === 1" class="bi bi-award-fill trophy-silver"></i>
+              <i *ngIf="i === 2" class="bi bi-award-fill trophy-bronze"></i>
+            </div>
+            <div class="leaderboard-footer">
+              <span>Your Rank: <strong>#{{ myRank }}</strong> · Keep solving challenges to climb!</span>
+            </div>
+          </div>
+        </section>
       </div>
+
+      <!-- SKILL METRICS PANEL -->
+      <section class="premium-console-panel competency-panel">
+        <div class="panel-stripe-accent bg-gradient-emerald"></div>
+        <div class="panel-top">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-award-fill text-emerald"></i> SKILLS PROFILE MATRIX</span>
+            <h2>Developer Skill Profile</h2>
+          </div>
+        </div>
+
+        <div class="competency-matrix-grid">
+          <div class="competency-card" *ngFor="let skill of skillMetrics" [class]="skill.tone">
+            <div class="comp-card-header">
+              <span class="comp-icon"><i class="bi" [ngClass]="skill.icon"></i></span>
+              <div class="comp-title-info">
+                <strong>{{ skill.name }}</strong>
+                <span>{{ skill.value }}% Proficiency</span>
+              </div>
+            </div>
+            <div class="comp-progress-track">
+              <span class="comp-progress-fill" [style.width.%]="skill.value"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEARNING MODULES PANEL (GRID IN 2 COLUMNS) -->
+      <section class="premium-console-panel learning-modules-panel">
+        <div class="panel-stripe-accent bg-gradient-purple"></div>
+        <div class="panel-top">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-layers-fill text-purple"></i> LMS MODULES HUB</span>
+            <h2>My Courses & Learning Content</h2>
+          </div>
+        </div>
+
+        <div class="modules-dual-grid">
+          <!-- Course Card -->
+          <div class="console-module-box">
+            <h3 class="module-title-h3"><i class="bi bi-journal-check text-indigo"></i> Enrolled Courses</h3>
+            <div class="module-list-container" *ngIf="myCourses.length; else emptyCourses">
+              <a 
+                class="module-item-row" 
+                *ngFor="let course of myCourses; trackBy: trackByTitle"
+                [routerLink]="['/dashboard/student/lms', course.batchId]"
+              >
+                <span class="item-badge-avatar">{{ getCourseName(course).slice(0, 1) }}</span>
+                <div class="item-details-block">
+                  <strong>{{ getCourseName(course) }}</strong>
+                  <div class="progress-bar-row">
+                    <span>{{ course.progress || 0 }}% completed</span>
+                    <div class="mini-progress-fill-bar"><i [ngStyle]="progressStyle(course.progress)"></i></div>
+                  </div>
+                </div>
+                <i class="bi bi-chevron-right item-row-arrow"></i>
+              </a>
+            </div>
+            <ng-template #emptyCourses>
+              <p class="empty-console-lbl">No enrolled courses.</p>
+            </ng-template>
+          </div>
+
+          <!-- Pseudo coding challenges -->
+          <div class="console-module-box">
+            <h3 class="module-title-h3"><i class="bi bi-terminal-code text-emerald"></i> Logic Challenges</h3>
+            <div class="module-list-container" *ngIf="(stats.pseudoChallenges ?? 0) > 0; else emptyPseudo">
+              <a 
+                class="module-item-row highlight-item" 
+                routerLink="/dashboard/student/pseudo-challenges"
+              >
+                <span class="item-icon bg-emerald"><i class="bi bi-cpu"></i></span>
+                <div class="item-details-block">
+                  <strong>Available Pseudo Challenges</strong>
+                  <p>{{ stats.pseudoChallenges }} challenges waiting</p>
+                </div>
+                <i class="bi bi-arrow-right item-row-arrow"></i>
+              </a>
+            </div>
+            <ng-template #emptyPseudo>
+              <p class="empty-console-lbl">No logic challenges.</p>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="modules-dual-grid mt-24">
+          <!-- Materials -->
+          <div class="console-module-box">
+            <h3 class="module-title-h3"><i class="bi bi-folder-symlink-fill text-amber"></i> Study Materials</h3>
+            <div class="module-list-container" *ngIf="learningContent.length; else emptyContent">
+              <div class="document-item-row" *ngFor="let item of learningContent">
+                <span class="doc-badge-icon bg-amber">
+                  <i class="bi" [ngClass]="item.type === 'PRACTICE' ? 'bi-lightning-charge-fill' : item.type === 'MATERIAL' ? 'bi-file-pdf-fill' : 'bi-journal-richtext'"></i>
+                </span>
+                <div class="item-details-block">
+                  <strong>{{ item.title }}</strong>
+                  <small>{{ item.type }} · Batch #{{ item.batchId }}</small>
+                  <p class="doc-description">{{ item.description }}</p>
+                  <a class="doc-download-btn" *ngIf="item.fileName" [href]="'/api/trainer/content/' + item.id + '/file'" target="_blank">
+                    <i class="bi bi-cloud-arrow-down-fill"></i> Download {{ item.fileName }}
+                  </a>
+                </div>
+              </div>
+            </div>
+            <ng-template #emptyContent>
+              <p class="empty-console-lbl">No documents shared.</p>
+            </ng-template>
+          </div>
+
+          <!-- Upcoming assessments and mock requests -->
+          <div class="console-module-box">
+            <h3 class="module-title-h3"><i class="bi bi-clipboard2-data-fill text-rose"></i> Assessments & Mocks</h3>
+            <div class="module-list-container">
+              <!-- Assessments -->
+              <a class="module-item-row mb-12" routerLink="/dashboard/student/assessments" *ngIf="stats.assessmentsUpcoming > 0">
+                <span class="item-icon bg-rose"><i class="bi bi-check2-square"></i></span>
+                <div class="item-details-block">
+                  <strong>Pending Evaluations</strong>
+                  <p>{{ stats.assessmentsUpcoming }} assessments scheduled</p>
+                </div>
+                <i class="bi bi-chevron-right item-row-arrow"></i>
+              </a>
+              <p class="empty-console-lbl" *ngIf="stats.assessmentsUpcoming === 0">No evaluations scheduled.</p>
+              
+              <!-- Mocks requests -->
+              <div class="mocks-request-wrapper" *ngIf="mockRequests.length">
+                <h4 class="mini-sec-heading">Mock Interviews Status</h4>
+                <div class="mock-card-row" *ngFor="let mock of mockRequests">
+                  <i class="bi bi-chat-dots-fill mock-card-icon"></i>
+                  <div class="item-details-block">
+                    <strong>{{ mock.topic }}</strong>
+                    <div class="mock-status-row">
+                      <span class="badge-status-pill" [ngClass]="mock.status.toLowerCase()">{{ mock.status }}</span>
+                      <small>{{ mock.preferredDate }} · {{ mock.preferredTime }}</small>
+                    </div>
+                    <a class="meeting-url" *ngIf="mock.meetingLink" [href]="mock.meetingLink" target="_blank">
+                      <i class="bi bi-arrow-up-right-circle-fill"></i> Join Interview Session
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS & TIMELINE PANEL (FULL WIDTH AT BOTTOM OF LEFT COLUMN) -->
+      <section class="premium-console-panel timeline-panel">
+        <div class="panel-stripe-accent bg-gradient-sky"></div>
+        <div class="panel-top">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-bell-fill text-sky"></i> SYSTEMS NOTIFICATION</span>
+            <h2>Activity & Notifications</h2>
+          </div>
+        </div>
+
+        <div class="feed-timeline-container" *ngIf="activityFeed.length; else emptyFeed">
+          <div class="feed-timeline-row" *ngFor="let item of activityFeed; trackBy: trackByTitle">
+            <span class="feed-bullet-icon"><i class="bi bi-bell"></i></span>
+            <div class="feed-timeline-details">
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.message || item.date || 'New update available' }}</p>
+            </div>
+          </div>
+        </div>
+        <ng-template #emptyFeed>
+          <p class="empty-console-lbl">No recent notifications.</p>
+        </ng-template>
+
+        <hr class="timeline-divider" />
+
+        <div class="panel-top mt-16">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-calendar2-week text-purple"></i> MENTOR SESSION SCHEDULER</span>
+            <h2>Mentor Sessions</h2>
+          </div>
+        </div>
+        <div class="mentor-timeline-feed" *ngIf="mentorSessions.length; else emptySessions">
+          <div class="mentor-timeline-row" *ngFor="let session of mentorSessions; trackBy: trackByTitle">
+            <span class="mentor-bullet"></span>
+            <div class="mentor-timeline-details">
+              <strong>{{ session.title }}</strong>
+              <small>{{ session.date || 'Schedule pending' }}</small>
+            </div>
+          </div>
+        </div>
+        <ng-template #emptySessions>
+          <p class="empty-console-lbl">No scheduled mentor sessions.</p>
+        </ng-template>
+      </section>
+
+    </main>
+
+    <!-- RIGHT PANEL GROUP: GAMIFICATION STATS (32%) -->
+    <aside class="std-console-sidebar">
+      
+      <!-- STREAK & XP ENGINE CARD -->
+      <section class="premium-console-panel gamification-engine-panel">
+        <div class="panel-stripe-accent bg-gradient-rose"></div>
+        <div class="streak-neon-banner">
+          <div class="streak-data-block">
+            <span class="str-label">ACTIVE STREAK</span>
+            <span class="str-days">{{ calculatedStreak }} {{ calculatedStreak === 1 ? 'Day' : 'Days' }}</span>
+          </div>
+          <div class="flame-neon-pulse">
+            <i class="bi bi-fire"></i>
+          </div>
+        </div>
+
+        <div class="claim-xp-wrapper">
+          <div class="claim-xp-left">
+            <span class="str-label">REWARD POINTS</span>
+            <strong class="pts-glow-value"><i class="bi bi-gem"></i> {{ streakPoints }} <span class="pts-unit">PTS</span></strong>
+          </div>
+          <div class="claim-xp-right">
+            <button 
+              *ngIf="!claimedToday" 
+              class="neon-claim-btn" 
+              type="button" 
+              (click)="claimPoints()"
+            >
+              <i class="bi bi-gift-fill"></i> Claim
+            </button>
+            <span *ngIf="claimedToday" class="neon-claimed-badge">
+              <i class="bi bi-check-all"></i> Claimed
+            </span>
+          </div>
+        </div>
+
+        <!-- Milestone Calendar days -->
+        <div class="calendar-milestone-strip-wrapper">
+          <span class="str-label mb-8 block">Daily Milestone Strip</span>
+          <div class="calendar-horizontal-scroll">
+            <div 
+              *ngFor="let day of milestoneCalendarDays" 
+              class="horizontal-calendar-capsule"
+              [class.completed]="day.status === 'COMPLETED'"
+              [class.current]="day.status === 'CURRENT'"
+              [class.target]="day.status === 'TARGET'"
+              [class.missed]="day.status === 'MISSED'"
+              [title]="day.label"
+            >
+              <span class="caps-m">{{ day.monthLabel }}</span>
+              <strong class="caps-d">{{ day.dayNum }}</strong>
+              <span class="caps-w">{{ day.weekday }}</span>
+              <div class="caps-status">
+                <i *ngIf="day.status === 'TARGET'" class="bi bi-star-fill active-star"></i>
+                <i *ngIf="day.status === 'COMPLETED'" class="bi bi-check-lg text-emerald"></i>
+                <i *ngIf="day.status === 'MISSED'" class="bi bi-dash"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next milestone progress -->
+        <div class="next-milestone-progress-container">
+          <div class="milestone-text-row">
+            <span>Milestone Boost</span>
+            <strong>{{ milestoneProgress }}%</strong>
+          </div>
+          <div class="milestone-progress-bar">
+            <div class="milestone-bar-fill" [style.width.%]="milestoneProgress"></div>
+          </div>
+          <small class="milestone-target-lbl"><i class="bi bi-calendar-check-fill text-rose"></i> Target: {{ milestoneTargetDateLabel }} · In {{ daysToNextMilestone }} Days</small>
+        </div>
+
+        <!-- Claim logs history -->
+        <div class="claim-history-log-panel">
+          <h3><i class="bi bi-clock-history"></i> Claim Activity</h3>
+          <div class="history-log-list" *ngIf="claimLogs.length > 0; else emptyLogs">
+            <div class="history-log-item" *ngFor="let log of claimLogs">
+              <span>{{ log.date }}</span>
+              <strong>+{{ log.points }} PTS</strong>
+            </div>
+          </div>
+          <ng-template #emptyLogs>
+            <p class="empty-console-lbl">No logs yet.</p>
+          </ng-template>
+        </div>
+      </section>
+
+      <!-- TODAY'S WORK PLANNER (PLACED IN SIDEBAR UNDER STREAKS) -->
+      <section class="premium-console-panel task-planner-panel">
+        <div class="panel-stripe-accent bg-gradient-emerald"></div>
+        <div class="panel-top">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-check2-circle text-emerald"></i> WORKSPACE PLANNER</span>
+            <h2>Today's Focus Planner</h2>
+          </div>
+        </div>
+
+        <div class="planner-input-wrapper">
+          <input 
+            type="text" 
+            [(ngModel)]="newTaskText" 
+            placeholder="Type a daily workspace target..." 
+            (keyup.enter)="addLocalTask()"
+          />
+          <button class="planner-add-action-btn" type="button" (click)="addLocalTask()">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+
+        <div class="planner-rows-container">
+          <div class="planner-task-card" *ngFor="let item of localTasks">
+            <span class="planner-icon-checkbox" [class.done]="item.done" (click)="toggleLocalTask(item)">
+              <i class="bi" [ngClass]="item.done ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+            </span>
+            <div class="planner-text-lbl" [class.done]="item.done" (click)="toggleLocalTask(item)">
+              <strong>{{ item.text }}</strong>
+            </div>
+            <button class="planner-delete-action-btn" type="button" (click)="deleteLocalTask(item.id)">
+              <i class="bi bi-trash3-fill"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUICK SHORTCUTS NAVIGATION -->
+      <section class="premium-console-panel shortcuts-panel">
+        <div class="panel-stripe-accent bg-gradient-amber"></div>
+        <div class="panel-top">
+          <div class="panel-header-title">
+            <span class="pre-lbl"><i class="bi bi-compass text-amber"></i> NAV DOCK</span>
+            <h2>Quick Actions</h2>
+          </div>
+        </div>
+
+        <div class="shortcuts-console-column">
+          <!-- Highlighted Premium Open LMS Card -->
+          <a
+            class="shortcut-console-card highlight-lms-card"
+            routerLink="/dashboard/student/lms"
+          >
+            <span class="shortcut-icon-box bg-gradient-indigo"><i class="bi bi-laptop-fill"></i></span>
+            <div class="shortcut-text-block">
+              <strong>Open LMS Workspace</strong>
+              <small>Resume courses, lectures & codes</small>
+            </div>
+            <i class="bi bi-arrow-right-circle-fill shortcut-card-arrow"></i>
+          </a>
+
+          <a
+            *ngFor="let action of quickActions.slice(1); trackBy: trackByTitle"
+            class="shortcut-console-card"
+            [class]="action.tone"
+            [routerLink]="action.route"
+          >
+            <span class="shortcut-icon-box"><i class="bi" [ngClass]="action.icon"></i></span>
+            <div class="shortcut-text-block">
+              <strong>{{ action.label }}</strong>
+              <small>{{ action.helper }}</small>
+            </div>
+            <i class="bi bi-chevron-right shortcut-card-arrow"></i>
+          </a>
+          
+          <a class="shortcut-console-card action-rose" routerLink="/dashboard/student/mock-interviews">
+            <span class="shortcut-icon-box bg-gradient-rose"><i class="bi bi-mic-fill"></i></span>
+            <div class="shortcut-text-block">
+              <strong>Mock Interviews</strong>
+              <small>Request and track mentor feedback</small>
+            </div>
+            <i class="bi bi-chevron-right shortcut-card-arrow"></i>
+          </a>
+        </div>
+      </section>
+
     </aside>
   </div>
 
-  <!-- Grid 5: Courses & Content Modules -->
-  <div class="content-grid">
-    <!-- Enrolled Courses -->
-    <article class="panel">
-      <div class="panel-title">
-        <div>
-          <span>Enrolled</span>
-          <h2>My Courses</h2>
-        </div>
-        <button type="button" routerLink="/dashboard/student/courses">View All</button>
-      </div>
-      
-      <div class="course-list" *ngIf="myCourses.length; else emptyCourses">
-        <a
-          class="course-row"
-          *ngFor="let course of myCourses; trackBy: trackByTitle"
-          [routerLink]="['/dashboard/student/lms', course.batchId]"
-        >
-          <span class="course-avatar">{{ getCourseName(course).slice(0, 1) }}</span>
-          <span class="course-info">
-            <strong>{{ getCourseName(course) }}</strong>
-            <small>{{ course.batchName || 'Batch' }} · {{ course.progress || 0 }}% completed</small>
-            <span class="mini-progress">
-              <i [ngStyle]="progressStyle(course.progress)"></i>
-            </span>
-          </span>
-          <i class="bi bi-chevron-right"></i>
-        </a>
-      </div>
-      
-      <ng-template #emptyCourses>
-        <div class="empty-line">No enrolled courses yet.</div>
-      </ng-template>
-    </article>
-
-    <!-- Pseudo coding challenges -->
-    <article class="panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Coding Practice</span>
-          <h2>Pseudo Challenges</h2>
-        </div>
-        <button type="button" routerLink="/dashboard/student/pseudo-challenges">View All</button>
-      </div>
-
-      <div
-        class="activity-list"
-        *ngIf="(stats.pseudoChallenges ?? 0) > 0; else emptyPseudoChallenges"
-      >
-        <button
-          class="activity-item assessment-item"
-          type="button"
-          routerLink="/dashboard/student/pseudo-challenges"
-        >
-          <span>
-            <i class="bi bi-code-square"></i>
-          </span>
-          <div>
-            <strong>Available Pseudo Challenges</strong>
-            <p>
-              {{ stats.pseudoChallenges ?? 0 }} coding logic challenges available
-            </p>
-          </div>
-          <i class="bi bi-arrow-right"></i>
-        </button>
-      </div>
-
-      <ng-template #emptyPseudoChallenges>
-        <div class="empty-line">No pseudo challenges available yet.</div>
-      </ng-template>
-    </article>
-
-    <!-- Shared Materials & Notes -->
-    <article class="panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Trainer Content</span>
-          <h2>Practice & Study Materials</h2>
-        </div>
-      </div>
-
-      <div class="activity-list" *ngIf="learningContent.length; else emptyContent">
-        <div class="activity-item" *ngFor="let item of learningContent">
-          <span>
-            <i
-              class="bi"
-              [ngClass]="
-                item.type === 'PRACTICE'
-                  ? 'bi-lightning-charge'
-                  : item.type === 'MATERIAL'
-                    ? 'bi-folder2-open'
-                    : 'bi-journal-text'
-              "
-            ></i>
-          </span>
-          <div>
-            <strong>{{ item.title }}</strong>
-            <p>{{ item.type }} · Batch #{{ item.batchId }}</p>
-            <small>{{ item.description }}</small>
-            <a
-              *ngIf="item.fileName"
-              [href]="'/api/trainer/content/' + item.id + '/file'"
-              target="_blank"
-            >
-              <i class="bi bi-download"></i> Download {{ item.fileName }}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <ng-template #emptyContent>
-        <div class="empty-line">No study resources shared yet.</div>
-      </ng-template>
-    </article>
-
-    <!-- Scheduled Assessments -->
-    <article class="panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Assessments</span>
-          <h2>Upcoming Assessments</h2>
-        </div>
-        <button type="button" routerLink="/dashboard/student/assessments">View All</button>
-      </div>
-      
-      <div class="activity-list" *ngIf="stats.assessmentsUpcoming > 0; else emptyAssessments">
-        <button
-          class="activity-item assessment-item"
-          type="button"
-          routerLink="/dashboard/student/assessments"
-        >
-          <span>
-            <i class="bi bi-clipboard-data"></i>
-          </span>
-          <div>
-            <strong>Scheduled Assessments</strong>
-            <p>
-              {{ stats.assessmentsUpcoming }} evaluations pending
-            </p>
-          </div>
-          <i class="bi bi-arrow-right"></i>
-        </button>
-      </div>
-      
-      <ng-template #emptyAssessments>
-        <div class="empty-line">No upcoming assessments scheduled.</div>
-      </ng-template>
-    </article>
+  <!-- ERROR NOTIFICATION BANNER -->
+  <div *ngIf="error" class="std-console-error-banner">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>{{ error }}</span>
+    <button type="button" (click)="loadDashboard()">Retry connection</button>
   </div>
-
-  <!-- Grid 6: Activity Logs & Shortcuts -->
-  <div class="content-grid bottom">
-    <!-- Activity Feed -->
-    <article class="panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Updates</span>
-          <h2>Activity & Notifications</h2>
-        </div>
-      </div>
-      
-      <div class="activity-list" *ngIf="activityFeed.length; else emptyActivity">
-        <div class="activity-item" *ngFor="let item of activityFeed; trackBy: trackByTitle">
-          <span><i class="bi bi-bell"></i></span>
-          <div>
-            <strong>{{ item.title }}</strong>
-            <p>{{ item.message || item.date || 'New update available' }}</p>
-          </div>
-        </div>
-      </div>
-      
-      <ng-template #emptyActivity>
-        <div class="empty-line">No new notifications.</div>
-      </ng-template>
-    </article>
-
-    <!-- Quick Shortcuts Navigation -->
-    <article class="panel quick-panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Shortcuts</span>
-          <h2>Quick Actions</h2>
-        </div>
-      </div>
-      
-      <div class="quick-grid">
-        <a
-          *ngFor="let action of quickActions; trackBy: trackByTitle"
-          class="quick-action"
-          [class]="action.tone"
-          [routerLink]="action.route"
-        >
-          <i class="bi" [ngClass]="action.icon"></i>
-          <span>
-            <strong>{{ action.label }}</strong>
-            <small>{{ action.helper }}</small>
-          </span>
-        </a>
-        <a class="quick-action mock-button" routerLink="/dashboard/student/mock-interviews">
-          <i class="bi bi-mic"></i>
-          <span>
-            <strong>Mock Interviews</strong>
-            <small>Request and track trainer feedback</small>
-          </span>
-        </a>
-      </div>
-    </article>
-  </div>
-
-  <!-- Grid 7: Requests & Mentorship -->
-  <div class="content-grid bottom">
-    <!-- Mock Interviews Status list -->
-    <article class="panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Interview Prep</span>
-          <h2>Mock Interview Requests</h2>
-        </div>
-      </div>
-      
-      <div class="activity-list" *ngIf="mockRequests.length; else emptyMocks">
-        <div class="activity-item" *ngFor="let mock of mockRequests">
-          <span><i class="bi bi-camera-video"></i></span>
-          <div>
-            <strong>{{ mock.topic }}</strong>
-            <p>{{ mock.status }} · {{ mock.preferredDate }} {{ mock.preferredTime }}</p>
-            <a *ngIf="mock.meetingLink" [href]="mock.meetingLink" target="_blank">
-              <i class="bi bi-box-arrow-up-right"></i> Join Meeting
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      <ng-template #emptyMocks>
-        <div class="empty-line">No mock interview requests created.</div>
-      </ng-template>
-    </article>
-
-    <!-- Mentor Session Timeline -->
-    <article class="panel">
-      <div class="panel-title compact">
-        <div>
-          <span>Support</span>
-          <h2>Mentor Sessions</h2>
-        </div>
-      </div>
-      
-      <div class="timeline" *ngIf="mentorSessions.length; else emptyMentor">
-        <div class="timeline-item" *ngFor="let session of mentorSessions; trackBy: trackByTitle">
-          <span></span>
-          <div>
-            <strong>{{ session.title }}</strong>
-            <small>{{ session.date || 'Schedule pending' }}</small>
-          </div>
-        </div>
-      </div>
-      
-      <ng-template #emptyMentor>
-        <div class="empty-line">No mentor sessions scheduled yet.</div>
-      </ng-template>
-    </article>
-  </div>
-
-  <!-- Request Mock Interview Dialog Popup -->
-  <div class="modal-overlay" *ngIf="showMockPopup">
-    <div class="modal-box">
-      <button class="close" type="button" (click)="closeMockInterviewPopup()">×</button>
-      <h2>Request Mock Interview</h2>
-      <p>Choose your batch, topic, date, and preferred time slot.</p>
-      
-      <select [(ngModel)]="mockForm.batchId">
-        <option value="">Select Batch</option>
-        <option *ngFor="let course of myCourses" [value]="course.batchId">
-          {{ getCourseName(course) }} - Batch #{{ course.batchId }}
-        </option>
-      </select>
-      
-      <input [(ngModel)]="mockForm.topic" placeholder="Topic or role, ex: Java OOP / HR round" />
-      <input type="date" [(ngModel)]="mockForm.preferredDate" />
-      <input type="time" [(ngModel)]="mockForm.preferredTime" />
-      
-      <textarea
-        [(ngModel)]="mockForm.notes"
-        rows="4"
-        placeholder="Tell trainer what you want to practice"
-      ></textarea>
-      
-      <button class="primary" type="button" (click)="submitMockInterviewRequest()">
-        Send Request
-      </button>
-      
-      <button type="button" class="btn-secondary-modal" routerLink="/dashboard/student/mock-interviews">
-        View All Requests
-      </button>
-    </div>
-  </div>
-</section>
+</div>

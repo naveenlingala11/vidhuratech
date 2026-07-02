@@ -4581,172 +4581,229 @@ body:not(.light-mode) .price-value {
 }
 
 /* ==========================================================================
-   PREMIUM 3D SCROLL ENTRANCE TRANSITIONS
+   PREMIUM SMOOTH SCROLL ENTRANCE TRANSITIONS (FIXED & OPTIMIZED)
    ========================================================================== */
-.home-page.js-scroll-animate {
-  perspective: 1600px;
-  perspective-origin: 50% 50%;
+
+/* 1. HERO LOAD ANIMATIONS (Immediate, no scroll required) */
+.home-page .hero-copy {
+  animation: premiumFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.home-page .hero-stage {
+  animation: premiumFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 0.15s;
 }
 
-/* Base state for animated sections - hidden and tilted back in 3D space */
-.home-page.js-scroll-animate .hero-section:not(.in-view),
-.home-page.js-scroll-animate .practice-arena-section:not(.in-view),
-.home-page.js-scroll-animate .marquee-section:not(.in-view),
-.home-page.js-scroll-animate .institute-section:not(.in-view),
-.home-page.js-scroll-animate .virtual-interview-section:not(.in-view),
-.home-page.js-scroll-animate .ats-resume-promo-section:not(.in-view),
-.home-page.js-scroll-animate .home-mentors-section:not(.in-view),
-.home-page.js-scroll-animate .program-section:not(.in-view),
-.home-page.js-scroll-animate .experience-section:not(.in-view),
-.home-page.js-scroll-animate .features-section:not(.in-view) {
+@keyframes premiumFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 2. BASE SCROLL ANIMATIONS (For all other sections) */
+.home-page.js-scroll-animate section:not(.hero-section) {
   opacity: 0;
-  transform: translate3d(0, 80px, -120px) rotateX(12deg);
-  pointer-events: none;
-}
-
-/* Active transition rules for smooth entries */
-.home-page.js-scroll-animate .hero-section,
-.home-page.js-scroll-animate .practice-arena-section,
-.home-page.js-scroll-animate .marquee-section,
-.home-page.js-scroll-animate .institute-section,
-.home-page.js-scroll-animate .virtual-interview-section,
-.home-page.js-scroll-animate .ats-resume-promo-section,
-.home-page.js-scroll-animate .home-mentors-section,
-.home-page.js-scroll-animate .program-section,
-.home-page.js-scroll-animate .experience-section,
-.home-page.js-scroll-animate .features-section {
-  transform-style: preserve-3d;
-  transform-origin: 50% 0%;
+  transform: translateY(40px);
   will-change: transform, opacity;
-  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.home-page.js-scroll-animate .in-view {
+.home-page.js-scroll-animate section.in-view:not(.hero-section) {
   opacity: 1 !important;
-  transform: translate3d(0, 0, 0) rotateX(0deg) !important;
-  pointer-events: auto !important;
+  transform: translateY(0) !important;
 }
 
-/* Staggered entry for inner elements */
-.home-page.js-scroll-animate section:not(.in-view) .container > * {
+/* 3. STAGGERED REVEALS FOR INNER CONTENT (Snappy & Elegant) */
+
+/* Practice Arena elements */
+.home-page.js-scroll-animate .practice-arena-section:not(.in-view) .arena-visual,
+.home-page.js-scroll-animate .practice-arena-section:not(.in-view) .flow-step {
   opacity: 0;
-  transform: translate3d(0, 30px, 0);
+  transform: translateY(30px);
 }
 
-.home-page.js-scroll-animate section .container > * {
-  will-change: transform, opacity;
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+.home-page.js-scroll-animate .practice-arena-section .arena-visual,
+.home-page.js-scroll-animate .practice-arena-section .flow-step {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.home-page.js-scroll-animate section.in-view .container > * {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
-
-/* Stagger transition delay for children inside container */
-.home-page.js-scroll-animate section.in-view .container > *:nth-child(1) { transition-delay: 0.1s; }
-.home-page.js-scroll-animate section.in-view .container > *:nth-child(2) { transition-delay: 0.2s; }
-.home-page.js-scroll-animate section.in-view .container > *:nth-child(3) { transition-delay: 0.3s; }
-.home-page.js-scroll-animate section.in-view .container > *:nth-child(4) { transition-delay: 0.4s; }
-
-/* Custom 3D element animations inside sections */
-
-/* Practice Arena Section */
-.home-page.js-scroll-animate .practice-arena-section:not(.in-view) .arena-visual {
-  opacity: 0;
-  transform: translate3d(60px, 40px, -100px) rotateY(-15deg) rotateX(8deg);
-}
-.home-page.js-scroll-animate .practice-arena-section .arena-visual {
-  will-change: transform, opacity;
-  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
-}
 .home-page.js-scroll-animate .practice-arena-section.in-view .arena-visual {
   opacity: 1;
-  transform: translate3d(0, 0, 0) rotateY(0deg) rotateX(0deg);
+  transform: translateY(0);
+  transition-delay: 0.15s;
 }
 
-/* Virtual Interview Section */
-.home-page.js-scroll-animate .virtual-interview-section:not(.in-view) .virtual-browser-mockup {
+.home-page.js-scroll-animate .practice-arena-section.in-view .flow-step {
+  opacity: 1;
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .practice-arena-section.in-view .flow-step:nth-child(1) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate .practice-arena-section.in-view .flow-step:nth-child(2) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate .practice-arena-section.in-view .flow-step:nth-child(3) { transition-delay: 0.4s; }
+
+/* Institute Section elements */
+.home-page.js-scroll-animate .institute-section:not(.in-view) .institute-media,
+.home-page.js-scroll-animate .institute-section:not(.in-view) .stat-card {
   opacity: 0;
-  transform: translate3d(0, 80px, -150px) rotateX(15deg);
+  transform: translateY(30px);
 }
-.home-page.js-scroll-animate .virtual-interview-section .virtual-browser-mockup {
-  will-change: transform, opacity;
-  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+
+.home-page.js-scroll-animate .institute-section .institute-media,
+.home-page.js-scroll-animate .institute-section .stat-card {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.home-page.js-scroll-animate .institute-section.in-view .institute-media {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.15s;
+}
+
+.home-page.js-scroll-animate .institute-section.in-view .stat-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .institute-section.in-view .stat-card:nth-child(1) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate .institute-section.in-view .stat-card:nth-child(2) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate .institute-section.in-view .stat-card:nth-child(3) { transition-delay: 0.4s; }
+.home-page.js-scroll-animate .institute-section.in-view .stat-card:nth-child(4) { transition-delay: 0.5s; }
+
+/* Virtual Interview Section elements */
+.home-page.js-scroll-animate .virtual-interview-section:not(.in-view) .virtual-browser-mockup,
+.home-page.js-scroll-animate .virtual-interview-section:not(.in-view) .flow-item-card {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.home-page.js-scroll-animate .virtual-interview-section .virtual-browser-mockup,
+.home-page.js-scroll-animate .virtual-interview-section .flow-item-card {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .home-page.js-scroll-animate .virtual-interview-section.in-view .virtual-browser-mockup {
   opacity: 1;
-  transform: translate3d(0, 0, 0) rotateX(0deg);
+  transform: translateY(0);
+  transition-delay: 0.15s;
 }
 
-/* ATS Resume Promo Section */
-.home-page.js-scroll-animate .ats-resume-promo-section:not(.in-view) .ats-features-grid-cards > * {
-  opacity: 0;
-  transform: translate3d(0, 40px, -60px) rotateX(8deg);
-}
-.home-page.js-scroll-animate .ats-resume-promo-section .ats-features-grid-cards > * {
-  will-change: transform, opacity;
-  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > *:nth-child(1) { transition-delay: 0.2s; }
-.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > *:nth-child(2) { transition-delay: 0.3s; }
-.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > *:nth-child(3) { transition-delay: 0.4s; }
-.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-features-grid-cards > * {
+.home-page.js-scroll-animate .virtual-interview-section.in-view .flow-item-card {
   opacity: 1;
-  transform: translate3d(0, 0, 0) rotateX(0deg);
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .virtual-interview-section.in-view .flow-item-card:nth-child(1) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate .virtual-interview-section.in-view .flow-item-card:nth-child(2) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate .virtual-interview-section.in-view .flow-item-card:nth-child(3) { transition-delay: 0.4s; }
+.home-page.js-scroll-animate .virtual-interview-section.in-view .flow-item-card:nth-child(4) { transition-delay: 0.5s; }
+
+/* ATS Resume Promo Section elements */
+.home-page.js-scroll-animate .ats-resume-promo-section:not(.in-view) .ats-resume-visual,
+.home-page.js-scroll-animate .ats-resume-promo-section:not(.in-view) .ats-feature-card-item {
+  opacity: 0;
+  transform: translateY(30px);
 }
 
-/* Mentors Section Cards Stagger */
+.home-page.js-scroll-animate .ats-resume-promo-section .ats-resume-visual,
+.home-page.js-scroll-animate .ats-resume-promo-section .ats-feature-card-item {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-resume-visual {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.15s;
+}
+
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-feature-card-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-feature-card-item:nth-child(1) { transition-delay: 0.2s; }
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-feature-card-item:nth-child(2) { transition-delay: 0.3s; }
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-feature-card-item:nth-child(3) { transition-delay: 0.4s; }
+.home-page.js-scroll-animate .ats-resume-promo-section.in-view .ats-feature-card-item:nth-child(4) { transition-delay: 0.5s; }
+
+/* Mentors Section elements */
 .home-page.js-scroll-animate .home-mentors-section:not(.in-view) .home-mentor-card {
   opacity: 0;
-  transform: translate3d(0, 50px, -80px) rotateX(10deg);
+  transform: translateY(30px);
 }
+
 .home-page.js-scroll-animate .home-mentors-section .home-mentor-card {
-  will-change: transform, opacity;
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card {
+  opacity: 1;
+  transform: translateY(0);
 }
 .home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card:nth-child(1) { transition-delay: 0.15s; }
 .home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card:nth-child(2) { transition-delay: 0.25s; }
 .home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card:nth-child(3) { transition-delay: 0.35s; }
-.home-page.js-scroll-animate .home-mentors-section.in-view .home-mentor-card {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) rotateX(0deg);
-}
 
-/* Program/Course Cards Stagger */
+/* Program Section elements */
+.home-page.js-scroll-animate .program-section:not(.in-view) .featured-course,
 .home-page.js-scroll-animate .program-section:not(.in-view) .program-card {
   opacity: 0;
-  transform: translate3d(0, 50px, -80px) rotateX(10deg);
-}
-.home-page.js-scroll-animate .program-section .program-card {
-  will-change: transform, opacity;
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(1) { transition-delay: 0.15s; }
-.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(2) { transition-delay: 0.25s; }
-.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(3) { transition-delay: 0.35s; }
-.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(4) { transition-delay: 0.45s; }
-.home-page.js-scroll-animate .program-section.in-view .program-card {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) rotateX(0deg);
+  transform: translateY(30px);
 }
 
-/* Features Grid Items Stagger */
-.home-page.js-scroll-animate .features-section:not(.in-view) .feature-card {
-  opacity: 0;
-  transform: translate3d(0, 40px, -50px) rotateX(8deg);
-}
-.home-page.js-scroll-animate .features-section .feature-card {
-  will-change: transform, opacity;
+.home-page.js-scroll-animate .program-section .featured-course,
+.home-page.js-scroll-animate .program-section .program-card {
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(1) { transition-delay: 0.1s; }
-.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(2) { transition-delay: 0.2s; }
-.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(3) { transition-delay: 0.3s; }
-.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(4) { transition-delay: 0.4s; }
-.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(5) { transition-delay: 0.5s; }
-.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(6) { transition-delay: 0.6s; }
+
+.home-page.js-scroll-animate .program-section.in-view .featured-course,
+.home-page.js-scroll-animate .program-section.in-view .program-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .program-section.in-view .featured-course:nth-child(1),
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(1) { transition-delay: 0.15s; }
+.home-page.js-scroll-animate .program-section.in-view .featured-course:nth-child(2),
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(2) { transition-delay: 0.25s; }
+.home-page.js-scroll-animate .program-section.in-view .featured-course:nth-child(3),
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(3) { transition-delay: 0.35s; }
+.home-page.js-scroll-animate .program-section.in-view .program-card:nth-child(4) { transition-delay: 0.45s; }
+
+/* Timeline/Experience Section elements */
+.home-page.js-scroll-animate .experience-section:not(.in-view) .timeline-item {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.home-page.js-scroll-animate .experience-section .timeline-item {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-page.js-scroll-animate .experience-section.in-view .timeline-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .experience-section.in-view .timeline-item:nth-child(1) { transition-delay: 0.15s; }
+.home-page.js-scroll-animate .experience-section.in-view .timeline-item:nth-child(2) { transition-delay: 0.25s; }
+.home-page.js-scroll-animate .experience-section.in-view .timeline-item:nth-child(3) { transition-delay: 0.35s; }
+.home-page.js-scroll-animate .experience-section.in-view .timeline-item:nth-child(4) { transition-delay: 0.45s; }
+
+/* Features Section elements */
+.home-page.js-scroll-animate .features-section:not(.in-view) .feature-card {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.home-page.js-scroll-animate .features-section .feature-card {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .home-page.js-scroll-animate .features-section.in-view .feature-card {
   opacity: 1;
-  transform: translate3d(0, 0, 0) rotateX(0deg);
-}
+  transform: translateY(0);
+}
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(1) { transition-delay: 0.1s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(2) { transition-delay: 0.18s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(3) { transition-delay: 0.26s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(4) { transition-delay: 0.34s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(5) { transition-delay: 0.42s; }
+.home-page.js-scroll-animate .features-section.in-view .feature-card:nth-child(6) { transition-delay: 0.5s; }

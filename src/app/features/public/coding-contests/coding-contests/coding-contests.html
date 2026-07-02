@@ -147,50 +147,23 @@
               <span class="dot dot-green"></span>
             </div>
             <div class="editor-tabs">
-              <div class="tab active-tab">challenge.cpp</div>
+              <div class="tab active-tab">Solution.java</div>
               <div class="tab">test_cases.json</div>
             </div>
           </div>
           <div class="editor-body">
             <div class="code-lines">
-              <div class="line">
-                <span class="line-number">1</span><span class="keyword">#include</span>
-                <span class="string">&lt;iostream&gt;</span>
-              </div>
-              <div class="line">
-                <span class="line-number">2</span><span class="keyword">using namespace</span>
-                <span class="variable">std</span>;
-              </div>
-              <div class="line"><span class="line-number">3</span></div>
-              <div class="line">
-                <span class="line-number">4</span
-                ><span class="comment">// Optimize algorithm performance</span>
-              </div>
-              <div class="line">
-                <span class="line-number">5</span><span class="keyword">int</span>
-                <span class="function-name">solve</span>(<span class="keyword">int</span>
-                <span class="variable">n</span>) &#123;
-              </div>
-              <div class="line">
-                <span class="line-number">6</span> <span class="keyword">int</span>
-                <span class="variable">score</span> = <span class="variable">n</span> *
-                <span class="number">10</span>;
-              </div>
-              <div class="line">
-                <span class="line-number">7</span> <span class="keyword">return</span>
-                <span class="variable">score</span>;
-              </div>
-              <div class="line"><span class="line-number">8</span>&#125;</div>
-              <div class="line"><span class="line-number">9</span></div>
-              <div class="line">
-                <span class="line-number">10</span><span class="keyword">int</span>
-                <span class="function-name">main</span>() &#123;
-              </div>
-              <div class="line">
-                <span class="line-number">11</span> <span class="variable">cout</span> &lt;&lt;
-                <span class="function-name">solve</span>(<span class="number">100</span>) &lt;&lt;
-                <span class="variable">endl</span>;
-              </div>
+              <div class="line"><span class="line-number">1</span><span class="keyword">import </span><span class="variable">java.util.*</span>;</div>
+              <div class="line"><span class="line-number">2</span><span class="comment">// Optimize algorithm performance</span></div>
+              <div class="line"><span class="line-number">3</span><span class="keyword">public class </span><span class="function-name">Solution</span> &#123;</div>
+              <div class="line"><span class="line-number">4</span>  <span class="keyword">public static int </span><span class="function-name">solve</span>(<span class="keyword">int </span><span class="variable">n</span>) &#123;</div>
+              <div class="line"><span class="line-number">5</span>    <span class="keyword">int </span><span class="variable">score</span> = <span class="variable">n</span> * <span class="number">10</span>;</div>
+              <div class="line"><span class="line-number">6</span>    <span class="keyword">return </span><span class="variable">score</span>;</div>
+              <div class="line"><span class="line-number">7</span>  &#125;</div>
+              <div class="line"><span class="line-number">8</span></div>
+              <div class="line"><span class="line-number">9</span>  <span class="keyword">public static void </span><span class="function-name">main</span>(<span class="variable">String</span>[] <span class="variable">args</span>) &#123;</div>
+              <div class="line"><span class="line-number">10</span>    <span class="variable">System.out.println</span>(<span class="function-name">solve</span>(<span class="number">100</span>));</div>
+              <div class="line"><span class="line-number">11</span>  &#125;</div>
               <div class="line"><span class="line-number">12</span>&#125;</div>
               <div class="editor-terminal">
                 <div class="terminal-header">
@@ -217,14 +190,36 @@
       class="broadcast-announcement-pill"
       *ngFor="let item of announcements.slice(0, 2); trackBy: trackById"
     >
-      <div class="live-signal-badge">
-        <span class="signal-ping-dot"></span>
-        <span>Broadcast</span>
-      </div>
-      <div class="ticker-text-wrapper">
-        <strong>{{ item.title }}</strong>
-        <span class="separator-dot-node"></span>
-        <p>{{ item.message }}</p>
+      <div class="broadcast-pill-content">
+        <div class="broadcast-header-row">
+          <div class="live-signal-badge">
+            <span class="signal-ping-dot"></span>
+            <i class="fa-solid fa-bullhorn" style="font-size: 11px;"></i>
+            <span>Broadcast</span>
+          </div>
+          <h3 class="broadcast-title-main">{{ item.title }}</h3>
+          <div class="broadcast-action-arrow">
+            <i class="fa-solid fa-arrow-right"></i>
+          </div>
+        </div>
+        
+        <div class="broadcast-message-area">
+          <p class="broadcast-prefix">{{ parseWinners(item.message).prefix }}</p>
+          
+          <div class="broadcast-winners-grid" *ngIf="parseWinners(item.message).winners.length">
+            <div class="broadcast-winner-card" *ngFor="let winner of parseWinners(item.message).winners" [class]="'rank-' + winner.rank">
+              <div class="rank-icon-badge">
+                <i class="fa-solid fa-trophy" *ngIf="winner.rank === 1"></i>
+                <i class="fa-solid fa-award" *ngIf="winner.rank !== 1"></i>
+                <span>#{{ winner.rank }}</span>
+              </div>
+              <div class="winner-details-block">
+                <span class="winner-username">{{ winner.name }}</span>
+                <span class="winner-points">{{ winner.details }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>

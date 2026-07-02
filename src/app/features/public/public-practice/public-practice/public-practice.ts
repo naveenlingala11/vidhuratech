@@ -961,7 +961,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.isLeadRequired(item)) {
+    if (!this.isLeadRequired(item) && access !== 'FREE') {
       this.showToast(this.accessPolicyMessage(item));
       return;
     }
@@ -1159,7 +1159,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           });
           return;
         }
-        if (!this.isLeadRequired(this.assessment)) {
+        if (!this.isLeadRequired(this.assessment) && access !== 'FREE') {
           this.workspaceUnlocked = false;
           this.showLeadModal = false;
           this.showToast(this.accessPolicyMessage(this.assessment));
@@ -1365,7 +1365,7 @@ export class PublicPracticeComponent implements OnInit, OnDestroy {
           return;
         }
 
-        if (!this.isLeadRequired(this.challenge)) {
+        if (!this.isLeadRequired(this.challenge) && access !== 'FREE') {
           this.loading = false;
           this.workspaceUnlocked = false;
           this.showLeadModal = false;
@@ -3841,6 +3841,9 @@ tokens = input.empty? ? [] : input.split
 
   canAttemptItem(item: any): boolean {
     const level = this.itemAccessLevel(item);
+    if (level === 'FREE') {
+      return true;
+    }
     if (level === 'LEAD_REQUIRED') {
       return true; // Clickable for all (requires registration if guest, or attempts directly if logged in)
     }

@@ -11,7 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { PublicPracticeService } from '../../../../features/services/public-practice.service';
 
-export type LeaderboardPeriod = 'daily' | 'weekly' | 'monthly';
+export type LeaderboardPeriod = 'daily' | 'weekly' | 'monthly' | 'overall';
 export type LeaderboardScope = 'period' | 'challenge';
 
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
@@ -241,7 +241,9 @@ export class PremiumLeaderboardComponent implements OnInit, OnChanges {
         ? this.publicPracticeService.getDailyLeaderboard()
         : period === 'monthly'
           ? this.publicPracticeService.getMonthlyLeaderboard()
-          : this.publicPracticeService.getWeeklyLeaderboard();
+          : period === 'overall'
+            ? this.publicPracticeService.getOverallLeaderboard()
+            : this.publicPracticeService.getWeeklyLeaderboard();
 
     request.subscribe({
       next: (res: any) => {
@@ -334,12 +336,13 @@ export class PremiumLeaderboardComponent implements OnInit, OnChanges {
   }
 
   showOverall(): void {
+    this.period = 'overall';
     this.scope = 'period';
     this.page = 1;
     this.overallClick.emit();
 
     if (this.autoLoad) {
-      this.loadPeriodLeaderboard(this.period);
+      this.loadPeriodLeaderboard('overall');
     }
   }
 
