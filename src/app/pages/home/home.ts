@@ -159,6 +159,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   // Placement Workspace Dashboard States
   latestCompany = signal<string>('TCS');
+  latestChallenges = signal<any[]>([]);
   selectedTab = signal<'SERVICE' | 'PRODUCT' | 'CONSULTING'>('SERVICE');
 
   getCompanyTrack(name: string): 'SERVICE' | 'PRODUCT' | 'CONSULTING' {
@@ -245,6 +246,21 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
             const track = this.getCompanyTrack(newestCompany);
             this.selectedTab.set(track);
           }
+
+          // Dynamic Coding Arena: Load top 4 latest challenges/assessments with unique companies
+          const allChallenges = [...challenges, ...assessments];
+          allChallenges.sort((a: any, b: any) => b.id - a.id);
+          
+          const seenCompanies = new Set<string>();
+          const uniqueItems: any[] = [];
+          for (const item of allChallenges) {
+            if (item.company && item.company !== 'General' && item.company !== 'undefined' && !seenCompanies.has(item.company)) {
+              seenCompanies.add(item.company);
+              uniqueItems.push(item);
+            }
+            if (uniqueItems.length >= 4) break;
+          }
+          this.latestChallenges.set(uniqueItems);
         }
       },
       error: (err) => {
@@ -259,6 +275,85 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   navigateToCompany(companyName: string) {
     this.router.navigate(['/company', companyName]);
+  }
+
+  getCompanyLogoClass(company: string): string {
+    const term = (company || '').trim().toLowerCase();
+    if (/tcs/.test(term)) return 'bg-gradient-orange';
+    if (/infosys/.test(term)) return 'bg-gradient-blue';
+    if (/wipro/.test(term)) return 'bg-gradient-orange';
+    if (/accenture/.test(term)) return 'bg-gradient-blue';
+    if (/amazon/.test(term)) return 'bg-gradient-orange';
+    if (/zoho/.test(term)) return 'bg-gradient-blue';
+    if (/microsoft/.test(term)) return 'bg-gradient-orange';
+    if (/deloitte/.test(term)) return 'bg-gradient-orange';
+    if (/ey/.test(term)) return 'bg-gradient-blue';
+    if (/pwc/.test(term)) return 'bg-gradient-orange';
+    if (/kpmg/.test(term)) return 'bg-gradient-blue';
+    return 'bg-gradient-blue';
+  }
+
+  failedLogos = new Set<string>();
+
+  getCompanyLogo(company: string): string | null {
+    if (!company) return null;
+    const clean = company.trim().toLowerCase();
+    if (this.failedLogos.has(clean)) return null;
+
+    // Handle names that differ slightly from lowercase filenames
+    if (clean === 'l&t' || clean === 'l&t infotech' || clean === 'lnt') {
+      return 'logos/L&T infotech.jpg';
+    }
+    if (clean === 'cgi') {
+      return 'logos/cgi-logo.svg';
+    }
+    if (clean === 'tech mahindra' || clean === 'mahindra') {
+      return 'logos/tech-mahindra.svg';
+    }
+
+    // List of exact lowercase svg logos supported
+    const validLogos = [
+      'accenture', 'adobe-svgrepo-com', 'adyen-svgrepo-com', 'amazon', 'amd-svgrepo-com', 'apple',
+      'azure deops', 'bytedance', 'capgemini', 'cisco-svgrepo-com', 'cisco', 'cognizant', 'deloitte',
+      'digital ocean', 'docker', 'ey', 'facebook', 'flipkart', 'genpact', 'github', 'goldman sachs',
+      'google', 'ibm', 'infosys', 'juniper networks', 'kpmg', 'kubernetes', 'linkedin', 'make my trip',
+      'max', 'meta', 'microsoft', 'myntra', 'netflix', 'oracle', 'palantir', 'paypal', 'pwc',
+      'qualcomm', 'salesforce', 'societe generale', 'splunk', 'tcs', 'twitter', 'uber', 'wipro',
+      'youtube', 'zoho'
+    ];
+
+    if (validLogos.includes(clean)) {
+      return `logos/${clean}.svg`;
+    }
+
+    return null;
+  }
+
+  handleLogoError(company: string) {
+    if (company) {
+      this.failedLogos.add(company.trim().toLowerCase());
+    }
+  }
+
+  getSkillIconClass(skill: string): string {
+    const term = (skill || '').trim().toLowerCase();
+    if (/code|program/i.test(term)) return 'fa-solid fa-code text-primary';
+    if (/aptitude|math/i.test(term)) return 'fa-solid fa-calculator text-warning';
+    if (/verbal|english/i.test(term)) return 'fa-solid fa-spell-check text-success';
+    return 'fa-solid fa-lightbulb text-info';
+  }
+
+  getDifficulty(item: any): string {
+    if (item.difficultyLevel) return item.difficultyLevel;
+    if (item.difficulty) return item.difficulty;
+    return 'Medium';
+  }
+
+  getDifficultyClass(difficulty: string): string {
+    const term = (difficulty || '').trim().toLowerCase();
+    if (term === 'easy') return 'diff-easy';
+    if (term === 'hard') return 'diff-hard';
+    return 'diff-medium';
   }
 
   constructor(
