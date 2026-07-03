@@ -12,16 +12,49 @@
       <!-- ARENA CONTENT -->
       <div class="arena-copy">
         <span class="arena-kicker">
-          <i class="fa-solid fa-laptop-code"></i> Free Practice + Weekly Coding Arena
+          <i class="fa-solid fa-laptop-code"></i> Free Practice &amp; Coding Arena
         </span>
         <h2>
-          Practice Verified Assessments. <br />
-          <span class="gradient-text">Compete in National Contests.</span> <br />
-          Evaluate Performance Live.
+          Accelerate Placement Success. <br />
+          <span class="gradient-text">Train in Authentic Coding Labs.</span> <br />
+          Validate Technical Skills Live.
         </h2>
         <p class="arena-desc">
-          Build target readiness by practicing real past assessment questions, adaptive aptitude MCQ tests, and coding challenges collected from historical recruitment exams. Compile and test your solutions instantly with automated test-case evaluation.
+          Bridge the gap between academic preparation and corporate recruitment. Master actual historical assessment
+          questions, company-specific mock tests, and adaptive quantitative aptitude exams curated directly from major
+          recruiting drives. Instantly compile, execute, and validate your code against automated test cases on an
+          industrial-grade sandbox.
         </p>
+
+        <!-- Motivating Quote Ticker -->
+        <div class="arena-quote-container" *ngIf="currentQuote()">
+          <i class="fa-solid fa-quote-left quote-icon-accent"></i>
+          <span class="arena-quote-text" [class.fade-transition]="isQuoteFading()">
+            {{ currentQuote() }}
+          </span>
+        </div>
+
+        <!-- Premium Minimalist Stats Accent Strip -->
+        <div class="arena-stats-minimal">
+          <div class="stat-item-min indigo">
+            <div class="stat-content">
+              <h4>50+</h4>
+              <span>Corporate Tracks</span>
+            </div>
+          </div>
+          <div class="stat-item-min sky">
+            <div class="stat-content">
+              <h4>1,500+</h4>
+              <span>Verified Challanges</span>
+            </div>
+          </div>
+          <div class="stat-item-min amber">
+            <div class="stat-content">
+              <h4>100%</h4>
+              <span>Automated Audits</span>
+            </div>
+          </div>
+        </div>
 
         <div class="arena-actions">
           <a routerLink="/practice" class="btn btn-primary">
@@ -99,7 +132,24 @@
                       <i class="challenge-skill-icon" [ngClass]="getSkillIconClass(item.skill)"></i>
                       <strong>{{ item.title }}</strong>
                     </div>
-                    <span>{{ item.skill }} · {{ item.type }}</span>
+                    <div class="challenge-meta-row">
+                      <span class="challenge-main-meta">{{ item.skill }} · {{ item.type }}</span>
+
+                      <!-- Topic Tag -->
+                      <span *ngIf="item.challengeGroupTitle" class="challenge-meta-tag tag-topic">
+                        <i class="fa-solid fa-folder-open"></i> {{ item.challengeGroupTitle }}
+                      </span>
+
+                      <!-- Duration Tag -->
+                      <span *ngIf="item.durationMinutes" class="challenge-meta-tag tag-duration">
+                        <i class="fa-solid fa-clock"></i> {{ item.durationMinutes }}m
+                      </span>
+
+                      <!-- Marks Tag -->
+                      <span *ngIf="item.totalMarks" class="challenge-meta-tag tag-marks">
+                        <i class="fa-solid fa-star"></i> {{ item.totalMarks }} pts
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -118,36 +168,62 @@
         <div class="arena-leaderboard-card">
           <div class="arena-leaderboard-head">
             <div>
-              <span>Weekly Coding Champions</span>
+              <span *ngIf="leaderboardType === 'weekly'">Weekly Coding Champions</span>
+              <span *ngIf="leaderboardType === 'monthly'">Monthly Coding Champions</span>
+              <span *ngIf="leaderboardType === 'overall'">Overall Coding Champions</span>
               <strong>Top 3 Performers</strong>
             </div>
             <a routerLink="/leaderboard"><i class="fa-solid fa-ranking-star"></i> View All</a>
           </div>
 
-          <div class="arena-winners" *ngIf="weeklyContestTopThree.length; else arenaNoWinners">
-            <article class="arena-winner" *ngFor="let winner of weeklyContestTopThree" [class.gold]="winner.rank === 1"
-              [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
-              <div class="arena-medal">
-                <ng-container *ngIf="winnerAvatarUrl(winner); else winnerInitialTpl">
-                  <img class="arena-winner-avatar" [src]="winnerAvatarUrl(winner)" [alt]="winner.name || 'Participant'"
-                    referrerpolicy="no-referrer" (error)="markWinnerAvatarFailed(winner)" />
-                </ng-container>
-                <ng-template #winnerInitialTpl>
-                  <strong>{{ winnerInitial(winner) }}</strong>
-                </ng-template>
-                <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
-              </div>
-
-              <div class="arena-winner-info">
-                <h3>{{ winner.name || 'Participant' }}</h3>
-                <p>{{ winner.email || 'Contest participant' }}</p>
-                <div class="winner-stats-badges">
-                  <span class="stat-badge"><i class="fa-solid fa-check-double"></i>
-                    {{ winner.solvedChallenges || 0 }} solved</span>
-                  <span class="stat-badge"><i class="fa-solid fa-star"></i> {{ winner.score || 0 }} pts</span>
+          <div class="arena-winners"
+            *ngIf="weeklyContestTopThree.length || leaderboardTopThree.length; else arenaNoWinners">
+            <ng-container *ngFor="let winner of leaderboardTopThree">
+              <!-- Real Winner Card -->
+              <article *ngIf="!winner.isPlaceholder" class="arena-winner" [class.gold]="winner.rank === 1"
+                [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
+                <div class="arena-medal">
+                  <ng-container *ngIf="winnerAvatarUrl(winner); else winnerInitialTpl">
+                    <img class="arena-winner-avatar" [src]="winnerAvatarUrl(winner)"
+                      [alt]="winner.name || 'Participant'" referrerpolicy="no-referrer"
+                      (error)="markWinnerAvatarFailed(winner)" />
+                  </ng-container>
+                  <ng-template #winnerInitialTpl>
+                    <strong>{{ winnerInitial(winner) }}</strong>
+                  </ng-template>
+                  <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
                 </div>
-              </div>
-            </article>
+
+                <div class="arena-winner-info">
+                  <h3>{{ winner.name || 'Participant' }}</h3>
+                  <p>{{ winner.email || 'Contest participant' }}</p>
+                  <div class="winner-stats-badges">
+                    <span class="stat-badge"><i class="fa-solid fa-check-double"></i>
+                      {{ winner.solvedChallenges || 0 }} solved</span>
+                    <span class="stat-badge"><i class="fa-solid fa-star"></i> {{ winner.score || 0 }} pts</span>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Placeholder Card -->
+              <article *ngIf="winner.isPlaceholder" class="arena-winner placeholder-card"
+                [class.gold]="winner.rank === 1" [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
+                <div class="arena-medal">
+                  <div class="arena-winner-avatar-placeholder">
+                    <i class="fa-solid fa-user-plus placeholder-avatar-icon"></i>
+                  </div>
+                  <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
+                </div>
+
+                <div class="arena-winner-info">
+                  <h3>{{ winner.name }}</h3>
+                  <p>{{ winner.desc }}</p>
+                  <div class="winner-stats-badges">
+                    <span class="stat-badge placeholder-badge"><i class="fa-solid fa-lock"></i> Open Spot</span>
+                  </div>
+                </div>
+              </article>
+            </ng-container>
           </div>
 
           <ng-template #arenaNoWinners>
@@ -169,7 +245,8 @@
           <i class="fa-solid fa-user-plus step-icon text-orange"></i>
         </div>
         <strong>One-Time Registration</strong>
-        <p>Quickly configure your student profile and credentials. Your practice history, score metrics, and dashboard access are securely preserved for all mock attempts.</p>
+        <p>Quickly configure your student profile and credentials. Your practice history, score metrics, and dashboard
+          access are securely preserved for all mock attempts.</p>
       </article>
 
       <article class="flow-step glass-panel shadow-glow">
@@ -178,7 +255,8 @@
           <i class="fa-solid fa-code-branch step-icon text-blue"></i>
         </div>
         <strong>Practice & Code Sandbox</strong>
-        <p>Launch realistic company-wise assessments, complete interactive coding challenges, and compile your solutions live on our low-latency IDE workspace.</p>
+        <p>Launch realistic company-wise assessments, complete interactive coding challenges, and compile your solutions
+          live on our low-latency IDE workspace.</p>
       </article>
 
       <article class="flow-step glass-panel shadow-glow">
@@ -187,7 +265,8 @@
           <i class="fa-solid fa-trophy step-icon text-green"></i>
         </div>
         <strong>Instant Evaluation & Rank</strong>
-        <p>Receive comprehensive test case reports immediately upon submitting code. Claim points, track learning growth, and climb the weekly leaderboard.</p>
+        <p>Receive comprehensive test case reports immediately upon submitting code. Claim points, track learning
+          growth, and climb the weekly leaderboard.</p>
       </article>
     </div>
   </section>
@@ -329,7 +408,10 @@
                 (click)="navigateToCompany(company.name)" style="cursor: pointer;">
                 <div class="workspace-card-header">
                   <div class="workspace-logo-avatar" [ngClass]="company.color || 'bg-gradient-blue'">
-                    {{ company.logoLetter }}
+                    <img *ngIf="company.logo && !company.logoFailed" [src]="company.logo" [alt]="company.name + ' logo'"
+                      class="company-logo-img" (error)="company.logoFailed = true" />
+                    <span class="company-logo-fallback" *ngIf="!company.logo || company.logoFailed">{{
+                      company.logoLetter }}</span>
                   </div>
                   <div class="workspace-card-title-group">
                     <strong class="company-card-title">
@@ -604,33 +686,150 @@
     </div>
   </section>
 
-  <!-- MEET OUR EXPERT MENTORS SHOWCASE SECTION -->
-  <section class="home-mentors-section">
+  <section class="home-mentors-section premium-mentors-showcase">
     <div class="mentors-radial-glow primary"></div>
     <div class="mentors-radial-glow secondary"></div>
+    <div class="mentors-radial-glow tertiary"></div>
 
     <div class="container">
-      <div class="section-heading">
-        <span class="section-kicker">
+      <!-- Section Header -->
+      <div class="section-heading text-center">
+        <span class="section-kicker premium-kicker">
           <i class="fa-solid fa-users-gear"></i> 1:1 Live Mentorship
         </span>
-        <h2>Learn from Industry Experts. <br />
-          <span class="gradient-text">Accelerate Your Coding Career.</span>
-        </h2>
-        <p>
-          Connect 1:1 with verified software engineers, systems architects, and technology leads. Get direct advice,
-          project reviews, portfolio audits, and mock interview practice.
+        <h2 class="premium-section-title">Personalized Mentorship to<br>Accelerate Your Career</h2>
+        <p class="premium-section-subtitle">
+          Connect with verified tech leads and senior developers to learn what books and bootcamps cannot teach you.
         </p>
       </div>
 
-      <!-- Mentors Grid -->
+      <!-- ═══════ THREE COLUMN PREMIUM FEATURE PILLARS ═══════ -->
+      <div class="mentors-pillars-grid">
+
+        <!-- PILLAR 1: Why 1:1 Mentorship -->
+        <div class="mentor-pillar-card pillar-why">
+          <div class="pillar-accent-line"></div>
+          <div class="pillar-icon-badge">
+            <i class="fa-solid fa-lightbulb"></i>
+          </div>
+          <span class="pillar-kicker">Why 1:1 Mentorship?</span>
+          <h3>Skip Months of Trial & Error</h3>
+          <p class="pillar-desc">
+            Get calibrated feedback from experts at top tech companies. No more guessing — accelerate your placement
+            readiness with direct, personalized guidance.
+          </p>
+          <div class="pillar-highlights">
+            <div class="pillar-highlight-item">
+              <span class="highlight-icon"><i class="fa-solid fa-comments"></i></span>
+              <div>
+                <strong>Mock Interviews</strong>
+                <span>Simulate real technical & behavioral rounds with rating rubrics.</span>
+              </div>
+            </div>
+            <div class="pillar-highlight-item">
+              <span class="highlight-icon"><i class="fa-solid fa-bug-slash"></i></span>
+              <div>
+                <strong>Code Reviews</strong>
+                <span>Get feedback on clean code, DB queries, and system architecture.</span>
+              </div>
+            </div>
+            <div class="pillar-highlight-item">
+              <span class="highlight-icon"><i class="fa-solid fa-route"></i></span>
+              <div>
+                <strong>Company Roadmaps</strong>
+                <span>Step-by-step prep paths tailored to top service & product companies.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PILLAR 2: How It Works -->
+        <div class="mentor-pillar-card pillar-how">
+          <div class="pillar-accent-line accent-emerald"></div>
+          <div class="pillar-icon-badge badge-emerald">
+            <i class="fa-solid fa-diagram-project"></i>
+          </div>
+          <span class="pillar-kicker kicker-emerald">How It Works</span>
+          <h3>Three Simple Steps to Start</h3>
+          <p class="pillar-desc">
+            From selecting a mentor to your first live session — the entire journey takes under five minutes.
+          </p>
+          <div class="pillar-steps-list">
+            <div class="pillar-step">
+              <div class="step-number">01</div>
+              <div class="step-content">
+                <strong>Select Your Mentor</strong>
+                <span>Browse verified experts by company, tech stack, or domain expertise.</span>
+              </div>
+            </div>
+            <div class="pillar-step">
+              <div class="step-number step-num-teal">02</div>
+              <div class="step-content">
+                <strong>Book a Slot</strong>
+                <span>Pick a convenient time. Calendar-synced instant confirmation.</span>
+              </div>
+            </div>
+            <div class="pillar-step">
+              <div class="step-number step-num-orange">03</div>
+              <div class="step-content">
+                <strong>Connect & Calibrate</strong>
+                <span>Meet 1:1 on Virtual Connect with code scratchpads & action plans.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PILLAR 3: Live Interview Connect -->
+        <div class="mentor-pillar-card pillar-connect">
+          <div class="pillar-accent-line accent-violet"></div>
+          <div class="pillar-icon-badge badge-violet">
+            <i class="fa-solid fa-video"></i>
+          </div>
+          <span class="pillar-kicker kicker-violet">
+            <span class="live-dot animate-ping"></span> Live Interview Connect
+          </span>
+          <h3>Peer-to-Peer Mock Sessions</h3>
+          <p class="pillar-desc">
+            Create a secure WebRTC video room instantly. Collaborate on scratchpad editors and grade candidates on
+            custom rubrics.
+          </p>
+
+          <div class="pillar-connect-actions">
+            <button type="button" class="btn pillar-action-btn action-start" routerLink="/live-connect/create">
+              <i class="fa-solid fa-video"></i> Start Meeting
+            </button>
+            <div class="pillar-join-group">
+              <div class="pillar-join-input-wrap">
+                <i class="fa-solid fa-key"></i>
+                <input type="text" [(ngModel)]="joinRoomName" placeholder="Enter Room Name..."
+                  (keydown.enter)="joinSession()" autocomplete="off" />
+              </div>
+              <button type="button" class="btn pillar-action-btn action-join" (click)="joinSession()"
+                [disabled]="!joinRoomName.trim()">
+                Join
+              </button>
+            </div>
+            <a routerLink="/live-connect" fragment="quick-manual" class="pillar-guide-link">
+              <i class="fa-solid fa-book-open"></i> User Guide & Manual
+            </a>
+          </div>
+
+          <div class="pillar-privacy-note">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span><strong>Privacy First</strong> — WebRTC peer-to-peer. Client-side recordings.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ MENTORS SHOWCASE GRID (LAST) ═══════ -->
       <div class="mentors-showcase-grid" *ngIf="featuredMentors.length">
-        <article class="home-mentor-card" *ngFor="let mentor of featuredMentors">
+        <article class="home-mentor-card premium-mentor-card glass-panel" *ngFor="let mentor of featuredMentors">
           <div class="card-glow-element"></div>
 
           <!-- Popular / Featured Badging -->
           <div class="mentor-badge-strip">
-            <span class="popular-tag" *ngIf="mentor.rating >= 4.9"><i class="fa-solid fa-fire"></i> Popular</span>
+            <span class="popular-tag" *ngIf="mentor.rating >= 4.9"><i class="fa-solid fa-fire animate-pulse"></i>
+              Popular</span>
             <span class="super-tag" *ngIf="mentor.yearsOfExperience >= 8"><i class="fa-solid fa-award"></i> Super
               Mentor</span>
           </div>
@@ -647,9 +846,8 @@
                 </div>
               </ng-template>
             </div>
-            <!-- Verification check badge -->
             <span class="verified-badge-check" title="Verified Industry Professional">
-              <i class="fa-solid fa-certificate"></i>
+              <i class="fa-solid fa-circle-check"></i>
             </span>
           </div>
 
@@ -670,8 +868,8 @@
             <h3 class="mentor-name">{{ mentor.name }}</h3>
 
             <div class="role-company-info">
-              <span>{{ mentor.currentRole }}</span>
-              <strong>at {{ mentor.currentCompany }}</strong>
+              <span class="role-title">{{ mentor.currentRole }}</span>
+              <strong class="company-name">at {{ mentor.currentCompany }}</strong>
             </div>
 
             <span class="experience-pill-tag">
@@ -680,7 +878,6 @@
 
             <p class="mentor-short-bio">{{ mentor.biography }}</p>
 
-            <!-- Skills Pills Row -->
             <div class="mentor-skills-stack">
               <span class="skill-pill" *ngFor="let skill of getSkillsList(mentor.skills) | slice:0:4">
                 {{ skill }}
@@ -695,7 +892,7 @@
               <strong class="price-value">₹{{ formatPrice(mentor.pricePerMonth || (mentor.pricePerHour ?
                 mentor.pricePerHour * 4 : 3999)) }}<small>/mo</small></strong>
             </div>
-            <a [routerLink]="['/mentors', mentor.userId]" class="btn btn-primary btn-book-mentor">
+            <a [routerLink]="['/mentors', mentor.userId]" class="btn btn-book-action hover-up">
               <span>Book 1:1</span>
               <i class="fa-solid fa-circle-chevron-right"></i>
             </a>
@@ -705,66 +902,10 @@
 
       <!-- Section CTA -->
       <div class="section-footer-cta">
-        <a routerLink="/mentors" class="btn btn-secondary explore-all-mentors-btn">
+        <a routerLink="/mentors" class="btn btn-secondary-outline explore-all-mentors-btn hover-up">
           <i class="fa-solid fa-users"></i> Explore All Mentors
           <i class="fa-solid fa-arrow-right-long"></i>
         </a>
-      </div>
-
-      <!-- Integrated Mock Interview & Meeting Sandbox Panel -->
-      <div class="mentors-connect-sandbox glass-panel shadow-glow">
-        <div class="sandbox-intro-row">
-          <div class="sandbox-label-group">
-            <span class="sandbox-tag-pill">
-              <span class="live-dot"></span>
-              <span>LIVE INTERVIEW CONNECT</span>
-            </span>
-            <h3>Practice Live Peer-to-Peer Mock Interviews</h3>
-            <p>
-              Instantly create a secure WebRTC video room, collaborate on scratchpad editors, and grade candidates on custom rubrics.
-            </p>
-          </div>
-          <div class="sandbox-guide-action">
-            <a routerLink="/live-connect" fragment="quick-manual" class="btn btn-tertiary-link font-semibold">
-              <i class="fa-solid fa-book-open"></i> Read User Guide & Manual
-            </a>
-          </div>
-        </div>
-
-        <div class="sandbox-control-console">
-          <!-- Create/Start Mock Session -->
-          <div class="sandbox-console-card">
-            <div class="card-details">
-              <strong>Start a Session</strong>
-              <span>Generate a private space with screen sharing and scratchpads.</span>
-            </div>
-            <button type="button" class="btn btn-primary-gradient shadow-glow hover-up" routerLink="/live-connect/create">
-              <i class="fa-solid fa-circle-play"></i> Start Meeting
-            </button>
-          </div>
-
-          <!-- Join Mock Session -->
-          <div class="sandbox-console-card">
-            <div class="card-details">
-              <strong>Join Session</strong>
-              <span>Enter custom room ID or paste the direct invite link.</span>
-            </div>
-            <div class="home-join-session-panel">
-              <div class="join-input-group">
-                <i class="fa-solid fa-key join-icon"></i>
-                <input type="text" [(ngModel)]="joinRoomName" placeholder="Enter Room Name..."
-                  (keydown.enter)="joinSession()" autocomplete="off" />
-              </div>
-              <button type="button" class="btn btn-join-action" (click)="joinSession()" [disabled]="!joinRoomName.trim()">
-                <span>Join Room</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <p class="quick-disclaimer text-center">
-          🔒 <strong>Privacy First:</strong> Audio/video feeds stream peer-to-peer over secure WebRTC. Local recordings are processed client-side.
-        </p>
       </div>
     </div>
   </section>
@@ -876,10 +1017,8 @@
       <div class="courses-dashboard-console" *ngIf="featuredCourses.length">
         <!-- TOP SWITCHER: High-end interactive selectors -->
         <div class="console-tab-selector">
-          <button type="button" class="console-tab-card"
-            *ngFor="let course of featuredCourses; let i = index"
-            [class.active-tab]="heroCourseIndex === i"
-            (click)="setHeroCourse(course, i)">
+          <button type="button" class="console-tab-card" *ngFor="let course of featuredCourses; let i = index"
+            [class.active-tab]="heroCourseIndex === i" (click)="setHeroCourse(course, i)">
             <div class="tab-indicator-bar"></div>
             <div class="tab-meta">
               <span class="tab-level">{{ course.level || 'Live Track' }}</span>
@@ -939,45 +1078,77 @@
                 <i class="fa-solid fa-check"></i> {{ highlight }}
               </span>
             </div>
+
+            <!-- Redesigned Premium Actions (Moved to Left Column) -->
+            <div class="workspace-cta-actions">
+              <button type="button" class="btn btn-demo-action hover-up" (click)="openEnrollModal(heroCourse)">
+                <i class="fa-solid fa-play"></i> Join Free Demo
+              </button>
+              <a class="btn btn-enroll-action shadow-glow hover-up text-center" [routerLink]="['/checkout']"
+                [queryParams]="{
+                  courseId: heroCourse?.id,
+                  course: heroCourse?.title,
+                  amount: heroCourse?.price,
+                  batch: heroCourse?.activeBatch?.name,
+                  batchId: heroCourse?.activeBatch?.id,
+                }">
+                <span>Enroll Now</span>
+                <i class="fa-solid fa-circle-chevron-right"></i>
+              </a>
+            </div>
           </div>
 
-          <!-- RIGHT SIDE: Batch Mockup Editor Console -->
+          <!-- RIGHT SIDE: Batch Mockup Editor Console (Redesigned Light/Premium Style) -->
           <div class="workspace-stage">
-            <div class="editor-mockup glass-panel">
+            <div class="editor-mockup glass-panel premium-light-mockup">
+              <!-- Header Bar -->
               <div class="editor-header">
                 <div class="action-dots">
                   <span class="dot red"></span>
                   <span class="dot yellow"></span>
                   <span class="dot green"></span>
                 </div>
-                <span class="file-name"><i class="fa-solid fa-code text-blue"></i> {{ heroCourse?.title?.toLowerCase()?.includes('python') ? 'career_track.py' : 'spring_boot.java' }}</span>
+                <span class="file-name"><i class="fa-solid fa-code text-blue"></i> {{
+                  heroCourse?.title?.toLowerCase()?.includes('python') ? 'career_track.py' : 'spring_boot.java'
+                  }}</span>
                 <span class="live-indicator-tag animate-pulse">Live Batch</span>
               </div>
+
+              <!-- Editor Code Body (Light style) -->
               <div class="editor-body">
-                <div class="code-line"><span class="code-kw">course</span> = "{{ heroCourse?.title }}"</div>
-                <div class="code-line"><span class="code-kw">level</span> = "{{ heroCourse?.level || 'Beginner Friendly' }}"</div>
-                <div class="code-line"><span class="code-kw">duration</span> = "{{ heroCourse?.duration || 'Live Track' }}"</div>
-                <div class="code-line"><span class="code-kw">price</span> = "₹{{ formatPrice(heroCourse?.price) }}"</div>
-                <div class="code-line"><span class="code-kw">focus</span> = "Interactive Projects & Live Compilation"</div>
-                <div class="code-line terminal-output"><span class="success-text">>>> Ready to compile. Click Free Demo or Enroll.</span></div>
+                <div class="code-line"><span class="code-kw">course</span> = <span class="code-val">"{{
+                    heroCourse?.title }}"</span></div>
+                <div class="code-line"><span class="code-kw">level</span> = <span class="code-val">"{{ heroCourse?.level
+                    || 'Beginner Friendly' }}"</span></div>
+                <div class="code-line"><span class="code-kw">duration</span> = <span class="code-val">"{{
+                    heroCourse?.duration || 'Live Track' }}"</span></div>
+                <div class="code-line"><span class="code-kw">price</span> = <span class="code-val">"₹{{
+                    formatPrice(heroCourse?.price) }}"</span></div>
+                <div class="code-line"><span class="code-kw">focus</span> = <span class="code-val">"Interactive Projects
+                    & Live Compilation"</span></div>
+                <div class="code-line terminal-output"><span class="success-text">>>> Ready to compile. Selection
+                    verified.</span></div>
               </div>
 
-              <!-- Pricing & Purchase Console -->
+              <!-- Pricing & Purchase Console (Light/Frosted premium styling) -->
               <div class="offer-console-panel">
-                <div class="offer-badges">
-                  <span class="tag-bestseller"><i class="fa-solid fa-fire"></i> Best Seller</span>
-                  <span class="tag-seats"><i class="fa-solid fa-chair"></i> Few Seats Left</span>
-                </div>
-                <div class="pricing-row">
-                  <div class="price-tags">
-                    <span class="discount-price">₹{{ formatPrice(heroCourse?.price) }}</span>
-                    <span class="original-price" *ngIf="heroCourse?.oldPrice">₹{{ formatPrice(heroCourse.oldPrice) }}</span>
+                <div class="offer-header-row">
+                  <div class="offer-badges">
+                    <span class="tag-bestseller"><i class="fa-solid fa-fire"></i> Best Seller</span>
+                    <span class="tag-seats"><i class="fa-solid fa-chair"></i> Few Seats Left</span>
                   </div>
                   <span class="discount-tag" *ngIf="heroCourse?.discountLabel">{{ heroCourse.discountLabel }}</span>
                 </div>
-                <p class="batch-alert-text">
-                  <i class="fa-solid fa-circle-exclamation"></i> Offer valid until batch starts soon!
-                </p>
+
+                <div class="pricing-display">
+                  <div class="price-tags">
+                    <span class="discount-price">₹{{ formatPrice(heroCourse?.price) }}</span>
+                    <span class="original-price" *ngIf="heroCourse?.oldPrice">₹{{ formatPrice(heroCourse.oldPrice)
+                      }}</span>
+                  </div>
+                  <span class="alert-timer-text"><i class="fa-solid fa-clock animate-pulse"></i> Batch starts
+                    soon</span>
+                </div>
 
                 <!-- Timer countdown -->
                 <div class="timer-countdown-row">
@@ -998,23 +1169,6 @@
                     <span>Sec</span>
                   </div>
                 </div>
-
-                <!-- CTA Row -->
-                <div class="cta-actions-row">
-                  <button type="button" class="btn btn-secondary-outline hover-up" (click)="openEnrollModal(heroCourse)">
-                    <i class="fa-solid fa-play"></i> Free Demo
-                  </button>
-                  <a class="btn btn-primary-gradient shadow-glow hover-up text-center" [routerLink]="['/checkout']" [queryParams]="{
-                      courseId: heroCourse?.id,
-                      course: heroCourse?.title,
-                      amount: heroCourse?.price,
-                      batch: heroCourse?.activeBatch?.name,
-                      batchId: heroCourse?.activeBatch?.id,
-                    }">
-                    <span>Enroll Now</span>
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                  </a>
-                </div>
               </div>
             </div>
           </div>
@@ -1023,99 +1177,105 @@
 
       <!-- STANDALONE STATIC METHODOLOGY CARDS (3-Column Layout) -->
       <div class="program-grid institute-programs">
+        <!-- 1. Core Learning Tracks -->
         <article class="program-card">
-          <div class="icon-wrap icon-float">
+          <div class="icon-wrap icon-float text-blue bg-blue-light">
             <i class="fa-solid fa-code"></i>
           </div>
-          <h3>Programming Foundations</h3>
+          <h3>Core Learning Tracks</h3>
           <p>
-            Master fundamental coding constructs, logic-building algorithms, structured testing
-            methods, and clean coding principles. Perfect for beginners starting their journey.
+            Master fundamental coding constructs, object-oriented concepts, database schemas, and full-stack web
+            architectures. Built for developers.
           </p>
           <div class="chips">
-            <span>Python</span>
-            <span>Java</span>
-            <span>Logic Building</span>
+            <span>Python & DSA</span>
+            <span>Java Full Stack</span>
+            <span>SQL Databases</span>
           </div>
         </article>
 
+        <!-- 2. Weekly Coding Arena -->
         <article class="program-card">
-          <div class="icon-wrap icon-float">
-            <i class="fa-solid fa-layer-group"></i>
+          <div class="icon-wrap icon-float text-teal bg-teal-light">
+            <i class="fa-solid fa-terminal"></i>
           </div>
-          <h3>Full Stack Development</h3>
+          <h3>Weekly Coding Arena</h3>
           <p>
-            Develop end-to-end web architectures, responsive user interfaces, RESTful API
-            microservices, database schemas, and deploy live production systems.
+            Compete in weekly coding contests, solve challenges on a live online compiler, view instant test cases, and
+            climb the leaderboard.
           </p>
           <div class="chips">
-            <span>Angular</span>
-            <span>Web APIs</span>
-            <span>SQL Database</span>
+            <span>Coding Contests</span>
+            <span>Interactive IDE</span>
+            <span>Leaderboard</span>
           </div>
         </article>
 
+        <!-- 3. Timed Assessments -->
         <article class="program-card">
-          <div class="icon-wrap icon-float">
-            <i class="fa-solid fa-flask"></i>
+          <div class="icon-wrap icon-float text-orange bg-orange-light">
+            <i class="fa-solid fa-stopwatch"></i>
           </div>
-          <h3>Project Sandbox Lab</h3>
+          <h3>Timed Assessments</h3>
           <p>
-            Build real-world production projects in our isolated developer sandbox, manage source
-            control with Git, and construct a robust portfolio.
+            Build exam confidence with realistic simulations. Take timed aptitude, coding, and verbal assessments
+            formatted to mimic real recruitment drives.
           </p>
           <div class="chips">
-            <span>CRUD Apps</span>
-            <span>Git & GitHub</span>
-            <span>Portfolios</span>
+            <span>Mock Tests</span>
+            <span>TCS NQT Style</span>
+            <span>Scoring & Review</span>
           </div>
         </article>
 
+        <!-- 4. Structured Interview Banks -->
         <article class="program-card">
-          <div class="icon-wrap icon-float">
-            <i class="fa-solid fa-rocket"></i>
+          <div class="icon-wrap icon-float text-purple bg-purple-light">
+            <i class="fa-solid fa-folder-open"></i>
           </div>
-          <h3>Career Accelerator</h3>
+          <h3>Structured Interview Banks</h3>
           <p>
-            Accelerate your transition with custom resume building, LinkedIn optimization, dedicated
-            mentor support, and realistic mock interview rounds.
+            Browse curated archives of past technical, aptitude, and verbal questions from top firms, complete with
+            detailed answers and tips.
           </p>
           <div class="chips">
-            <span>Resumes</span>
-            <span>Mentors</span>
-            <span>Mock Rounds</span>
+            <span>Past Papers</span>
+            <span>Model Answers</span>
+            <span>Cracking Tips</span>
           </div>
         </article>
 
+        <!-- 5. ATS Resume Scanner -->
         <article class="program-card">
-          <div class="icon-wrap icon-float">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <div class="icon-wrap icon-float text-pink bg-pink-light">
+            <i class="fa-solid fa-file-invoice"></i>
           </div>
-          <h3>AI Resume Builder</h3>
+          <h3>ATS Resume Scanner</h3>
           <p>
-            Create parser-safe ATS compliant resumes, scan keyword compliance against job descriptions, and access
-            premium templates with one-click AI optimizations.
+            Verify your resume match rate against job descriptions. Check keywords, calibrate ATS compatibility indices,
+            and download clean PDFs.
           </p>
           <div class="chips">
             <span>ATS Scoring</span>
-            <span>PDF Export</span>
-            <span>AI Optimizer</span>
+            <span>PDF Builder</span>
+            <span>Match Optimizer</span>
           </div>
         </article>
 
+        <!-- 6. 1:1 Mentor Assistance -->
         <article class="program-card">
-          <div class="icon-wrap icon-float">
-            <i class="fa-solid fa-briefcase"></i>
+          <div class="icon-wrap icon-float text-emerald bg-emerald-light">
+            <i class="fa-solid fa-user-tie"></i>
           </div>
-          <h3>Placement & Jobs</h3>
+          <h3>1:1 Mentor Assistance</h3>
           <p>
-            Access exclusive job listings, connect with partner companies, submit applications directly through our
-            integrated job board, and track recruitment status.
+            Book live sessions with verified industry experts. Get ATS resume audits, code reviews, and tailored mock
+            interviews to align placement goals.
           </p>
           <div class="chips">
-            <span>Job Board</span>
-            <span>Hiring Partners</span>
-            <span>Direct Referrals</span>
+            <span>Live Bookings</span>
+            <span>Mock Interviews</span>
+            <span>Project Feedback</span>
           </div>
         </article>
       </div>

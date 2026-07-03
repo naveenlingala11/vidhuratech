@@ -125,6 +125,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   selectedEnrollCourse: any = null;
   selectedEnrollBatch: any = null;
   weeklyContestTopThree: any[] = [];
+  leaderboardType: 'weekly' | 'monthly' | 'overall' = 'weekly';
 
   showMockInterviewLeadForm = false;
   mockInterviewSubmitting = false;
@@ -162,6 +163,23 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   latestChallenges = signal<any[]>([]);
   selectedTab = signal<'SERVICE' | 'PRODUCT' | 'CONSULTING'>('SERVICE');
 
+  // Motivational Quotes Ticker
+  motivationalQuotes = [
+    "Every line of code you write today is building the foundation of your career tomorrow.",
+    "Success isn't just about passing the test; it is about building the skills that make you irreplaceable.",
+    "The secret of getting ahead is getting started. Small, daily commits lead to monumental breakthroughs.",
+    "Great developers are not born; they are forged through relentless practice and debugging.",
+    "Your target companies are not looking for perfection; they are looking for problem-solvers who never give up.",
+    "Don't write code just to compile; write code that builds systems, solves problems, and opens doors.",
+    "Opportunities don't just happen; you create them by being prepared when the right door opens.",
+    "Consistency is the difference between average talent and elite engineering mastery.",
+    "Every bug you fix, every test case you pass, brings you one step closer to your dream offer.",
+    "The best way to predict the future is to invent it. Prepare today, lead tomorrow."
+  ];
+  currentQuote = signal('');
+  isQuoteFading = signal(false);
+  private quoteInterval: any;
+
   getCompanyTrack(name: string): 'SERVICE' | 'PRODUCT' | 'CONSULTING' {
     const term = name.trim().toLowerCase();
     if (/tcs|infosys|wipro|accenture|cognizant|mahindra|hcl|capgemini|l&t|mindtree/.test(term)) {
@@ -173,24 +191,45 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     return 'PRODUCT';
   }
 
+  get leaderboardTopThree(): any[] {
+    const list = [...this.weeklyContestTopThree];
+    list.sort((a, b) => a.rank - b.rank);
+
+    const result: any[] = [];
+    for (let r = 1; r <= 3; r++) {
+      const existing = list.find(w => w.rank === r);
+      if (existing) {
+        result.push({ ...existing, isPlaceholder: false });
+      } else {
+        result.push({
+          rank: r,
+          isPlaceholder: true,
+          name: r === 1 ? 'Rank #1 Open' : r === 2 ? 'Rank #2 Open' : 'Rank #3 Open',
+          desc: r === 1 ? 'Be the first to claim' : r === 2 ? 'Solve tests to rank' : 'Submit solutions to join',
+        });
+      }
+    }
+    return result;
+  }
+
   get workspaceCompanies(): any[] {
     const tab = this.selectedTab();
     
     const allMockCompanies = [
-      { name: 'TCS', logoLetter: 'T', track: 'SERVICE', desc: 'IT Services Track', tasks: ['Aptitude', 'Coding', '4 Mock Tests'], salary: '3.6 - 7.2 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
-      { name: 'Infosys', logoLetter: 'I', track: 'SERVICE', desc: 'System Engineer Track', tasks: ['Verbal', 'DSA Code', '2 Mock Tests'], salary: '3.6 - 8.0 LPA', difficulty: 'Easy', color: 'bg-gradient-blue' },
-      { name: 'Wipro', logoLetter: 'W', track: 'SERVICE', desc: 'Elite NLTH Track', tasks: ['Aptitude', 'Coding', '3 Mock Tests'], salary: '3.5 - 7.0 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
-      { name: 'Accenture', logoLetter: 'A', track: 'SERVICE', desc: 'ASE & FADA Track', tasks: ['Reasoning', 'Technical', '4 Mock Tests'], salary: '4.5 - 6.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'TCS', logoLetter: 'T', logo: '/logos/tcs.svg', track: 'SERVICE', desc: 'IT Services Track', tasks: ['Aptitude', 'Coding', '4 Mock Tests'], salary: '3.6 - 7.2 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
+      { name: 'Infosys', logoLetter: 'I', logo: '/logos/infosys.svg', track: 'SERVICE', desc: 'System Engineer Track', tasks: ['Verbal', 'DSA Code', '2 Mock Tests'], salary: '3.6 - 8.0 LPA', difficulty: 'Easy', color: 'bg-gradient-blue' },
+      { name: 'Wipro', logoLetter: 'W', logo: '/logos/wipro.svg', track: 'SERVICE', desc: 'Elite NLTH Track', tasks: ['Aptitude', 'Coding', '3 Mock Tests'], salary: '3.5 - 7.0 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
+      { name: 'Accenture', logoLetter: 'A', logo: '/logos/accenture.svg', track: 'SERVICE', desc: 'ASE & FADA Track', tasks: ['Reasoning', 'Technical', '4 Mock Tests'], salary: '4.5 - 6.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
       
-      { name: 'Amazon', logoLetter: 'A', track: 'PRODUCT', desc: 'SDE Preparation Track', tasks: ['DSA', 'System Design', '5 Mock Tests'], salary: '18 - 44 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
-      { name: 'Zoho', logoLetter: 'Z', track: 'PRODUCT', desc: 'Software Developer Track', tasks: ['C/Java Coding', 'Logic', '3 Mock Tests'], salary: '6.5 - 12 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
-      { name: 'Microsoft', logoLetter: 'M', track: 'PRODUCT', desc: 'SDE Practice Track', tasks: ['Algorithms', 'OS/DBMS', '4 Mock Tests'], salary: '20 - 48 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
-      { name: 'Salesforce', logoLetter: 'S', track: 'PRODUCT', desc: 'Cloud Architect Track', tasks: ['OOPs', 'Apex Coding', '2 Mock Tests'], salary: '16 - 38 LPA', difficulty: 'Hard', color: 'bg-gradient-blue' },
+      { name: 'Amazon', logoLetter: 'A', logo: '/logos/amazon.svg', track: 'PRODUCT', desc: 'SDE Preparation Track', tasks: ['DSA', 'System Design', '5 Mock Tests'], salary: '18 - 44 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
+      { name: 'Zoho', logoLetter: 'Z', logo: '/logos/zoho.svg', track: 'PRODUCT', desc: 'Software Developer Track', tasks: ['C/Java Coding', 'Logic', '3 Mock Tests'], salary: '6.5 - 12 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'Microsoft', logoLetter: 'M', logo: '/logos/microsoft.svg', track: 'PRODUCT', desc: 'SDE Practice Track', tasks: ['Algorithms', 'OS/DBMS', '4 Mock Tests'], salary: '20 - 48 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
+      { name: 'Salesforce', logoLetter: 'S', logo: '/logos/salesforce.svg', track: 'PRODUCT', desc: 'Cloud Architect Track', tasks: ['OOPs', 'Apex Coding', '2 Mock Tests'], salary: '16 - 38 LPA', difficulty: 'Hard', color: 'bg-gradient-blue' },
       
-      { name: 'Deloitte', logoLetter: 'D', track: 'CONSULTING', desc: 'Consulting Technology Track', tasks: ['Case Skills', 'Aptitude', '3 Mock Tests'], salary: '5.5 - 10 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
-      { name: 'EY', logoLetter: 'E', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Reasoning', 'Finance MCQ', '2 Mock Tests'], salary: '5.0 - 9.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
-      { name: 'PwC', logoLetter: 'P', track: 'CONSULTING', desc: 'Technology Consultant Track', tasks: ['Data Analytics', 'HR Round', '2 Mock Tests'], salary: '5.2 - 9.8 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
-      { name: 'KPMG', logoLetter: 'K', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Aptitude', 'Case Interview', '2 Mock Tests'], salary: '5.0 - 9.0 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' }
+      { name: 'Deloitte', logoLetter: 'D', logo: '/logos/deloitte.svg', track: 'CONSULTING', desc: 'Consulting Technology Track', tasks: ['Case Skills', 'Aptitude', '3 Mock Tests'], salary: '5.5 - 10 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
+      { name: 'EY', logoLetter: 'E', logo: '/logos/ey.svg', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Reasoning', 'Finance MCQ', '2 Mock Tests'], salary: '5.0 - 9.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'PwC', logoLetter: 'P', logo: '/logos/pwc.svg', track: 'CONSULTING', desc: 'Technology Consultant Track', tasks: ['Data Analytics', 'HR Round', '2 Mock Tests'], salary: '5.2 - 9.8 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
+      { name: 'KPMG', logoLetter: 'K', logo: '/logos/kpmg.svg', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Aptitude', 'Case Interview', '2 Mock Tests'], salary: '5.0 - 9.0 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' }
     ];
 
     const list = allMockCompanies.filter(c => c.track === tab);
@@ -204,6 +243,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
           list.unshift({
             name: latest,
             logoLetter: latest.charAt(0).toUpperCase(),
+            logo: '',
             track: latestTrack,
             desc: `${latest} Dynamic Pipeline`,
             tasks: ['Aptitude', 'Coding', 'Mock Assessments'],
@@ -389,6 +429,11 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
     this.loadWeeklyContestTopThree();
     this.loadFeaturedMentors();
+
+    // Initialize motivational quotes
+    const randomIndex = Math.floor(Math.random() * this.motivationalQuotes.length);
+    this.currentQuote.set(this.motivationalQuotes[randomIndex]);
+    this.startQuoteRotation();
   }
 
   ngAfterViewInit() {
@@ -683,10 +728,52 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
   loadWeeklyContestTopThree(): void {
     this.publicPracticeService.getWeeklyLeaderboard().subscribe({
       next: (res: any) => {
-        this.weeklyContestTopThree = res?.data?.topThree || [];
+        const topThree = res?.data?.topThree || [];
+        if (topThree.length > 0) {
+          this.weeklyContestTopThree = topThree;
+          this.leaderboardType = 'weekly';
+        } else {
+          this.loadMonthlyLeaderboard();
+        }
+      },
+      error: () => {
+        this.loadMonthlyLeaderboard();
+      },
+    });
+  }
+
+  loadMonthlyLeaderboard(): void {
+    this.publicPracticeService.getMonthlyLeaderboard().subscribe({
+      next: (res: any) => {
+        const topThree = res?.data?.topThree || [];
+        if (topThree.length > 0) {
+          this.weeklyContestTopThree = topThree;
+          this.leaderboardType = 'monthly';
+        } else {
+          this.loadOverallLeaderboard();
+        }
+      },
+      error: () => {
+        this.loadOverallLeaderboard();
+      },
+    });
+  }
+
+  loadOverallLeaderboard(): void {
+    this.publicPracticeService.getOverallLeaderboard().subscribe({
+      next: (res: any) => {
+        const topThree = res?.data?.topThree || [];
+        if (topThree.length > 0) {
+          this.weeklyContestTopThree = topThree;
+          this.leaderboardType = 'overall';
+        } else {
+          this.weeklyContestTopThree = [];
+          this.leaderboardType = 'weekly';
+        }
       },
       error: () => {
         this.weeklyContestTopThree = [];
+        this.leaderboardType = 'weekly';
       },
     });
   }
@@ -887,6 +974,28 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     if (this.scrollObserver) {
       this.scrollObserver.disconnect();
     }
+    if (this.quoteInterval) {
+      clearInterval(this.quoteInterval);
+    }
+  }
+
+  startQuoteRotation(): void {
+    if (this.quoteInterval) {
+      clearInterval(this.quoteInterval);
+    }
+    this.quoteInterval = setInterval(() => {
+      this.isQuoteFading.set(true);
+      setTimeout(() => {
+        let nextIndex;
+        const currentText = this.currentQuote();
+        do {
+          nextIndex = Math.floor(Math.random() * this.motivationalQuotes.length);
+        } while (this.motivationalQuotes[nextIndex] === currentText && this.motivationalQuotes.length > 1);
+
+        this.currentQuote.set(this.motivationalQuotes[nextIndex]);
+        this.isQuoteFading.set(false);
+      }, 350); // duration of fade-out transition
+    }, 30000); // 30 seconds
   }
 
   safeProfileImageUrl(value: any): string {
