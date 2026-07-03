@@ -334,46 +334,135 @@
         </p>
 
         <div class="institute-actions">
-          <a routerLink="/preparation" class="btn btn-primary prep-offer-action">
-            <span><i class="fa-solid fa-circle-arrow-up"></i> Crack Interviews</span>
+          <a routerLink="/preparation" class="btn btn-primary prep-offer-action animate-pulse-glow">
+            <span><i class="fa-solid fa-rocket"></i> Enter Placement Workspace</span>
             <small><del>₹999/year</del> Free for limited period</small>
+          </a>
+          <a routerLink="/explore-tracks" class="btn btn-secondary">
+            <span>Explore Programs</span>
           </a>
         </div>
       </div>
 
       <div class="institute-media">
-        <div class="mock-image-card">
-          <img src="/TCS NQT 2026 mock tests promotion.png" alt="TCS NQT 2026 Mock Tests Promotion" />
-          <div class="mock-image-label">
-            <span class="mock-badge">TCS NQT 2026 Ready</span>
-            <strong>Mock Tests + Interview Preparation</strong>
-            <p>Practice aptitude, coding challenges, verbal ability, and technical MCQ rounds.</p>
+        <!-- Interactive Glassmorphic Preparation Console Mockup -->
+        <div class="prep-browser-mockup glass-panel shadow-glow">
+          <div class="browser-header">
+            <div class="action-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="address-bar">
+              <i class="fa-solid fa-lock text-success"></i> vidhuratech.com/dashboard/preparation
+            </div>
+          </div>
+          
+          <div class="browser-body">
+            <!-- Console Top Info -->
+            <div class="console-hud-top">
+              <div class="console-hud-brand">
+                <span class="hud-brand-emoji">🚀</span>
+                <div>
+                  <strong>Placement Hub v2.0</strong>
+                  <span class="dynamic-alert-pulse" *ngIf="latestCompany()"><i class="fa-solid fa-circle-notch fa-spin"></i> Latest: {{ latestCompany() }} Pipeline</span>
+                </div>
+              </div>
+              <div class="hud-readiness-badge">
+                <span class="hud-label">Readiness Index</span>
+                <span class="hud-val text-green">85% Calibrated</span>
+              </div>
+            </div>
+
+            <!-- Simulated Tabs Selector (Fully Dynamic Click Actions) -->
+            <div class="console-hud-tabs">
+              <button type="button" class="hud-tab-btn" [class.active]="selectedTab() === 'SERVICE'" (click)="selectTab('SERVICE')">
+                <i class="fa-solid fa-network-wired text-blue"></i> Services
+              </button>
+              <button type="button" class="hud-tab-btn" [class.active]="selectedTab() === 'PRODUCT'" (click)="selectTab('PRODUCT')">
+                <i class="fa-solid fa-microchip text-teal"></i> Products
+              </button>
+              <button type="button" class="hud-tab-btn" [class.active]="selectedTab() === 'CONSULTING'" (click)="selectTab('CONSULTING')">
+                <i class="fa-solid fa-chart-pie text-amber"></i> Consulting
+              </button>
+            </div>
+
+            <!-- Simulated Workspace Roster Grid (Iterates Real-Time Filtered Data) -->
+            <div class="console-hud-roster">
+              <div 
+                *ngFor="let company of workspaceCompanies" 
+                class="hud-workspace-card"
+                [class.active-card]="company.name.toLowerCase() === latestCompany().toLowerCase()"
+                (click)="navigateToCompany(company.name)"
+                style="cursor: pointer;"
+              >
+                <div class="workspace-card-header">
+                  <div class="workspace-logo-avatar" [ngClass]="company.color || 'bg-gradient-blue'">
+                    {{ company.logoLetter }}
+                  </div>
+                  <div class="workspace-card-title-group">
+                    <strong class="company-card-title">
+                      {{ company.name }} 
+                      <span class="latest-badge-mini" *ngIf="company.name.toLowerCase() === latestCompany().toLowerCase()">
+                        <i class="fa-solid fa-bolt text-amber"></i> LATEST
+                      </span>
+                    </strong>
+                    <span>{{ company.desc }}</span>
+                  </div>
+                </div>
+                <div class="workspace-card-tasks">
+                  <span *ngFor="let task of company.tasks" class="task-badge">
+                    {{ task }}
+                  </span>
+                </div>
+                <div class="workspace-card-action">
+                  <span>Enter {{ company.name }} Pipeline</span>
+                  <i class="fa-solid fa-circle-arrow-right text-orange-gradient"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Popular Ribbon Inside Mockup -->
+            <div class="console-hud-footer">
+              <span class="footer-label">ACTIVE WORKSPACES</span>
+              <div class="footer-pills">
+                <span class="footer-pill" (click)="navigateToCompany('Accenture')" style="cursor: pointer;">
+                  <i class="fa-brands fa-accenture text-purple"></i> Accenture <i class="fa-solid fa-chevron-right tiny-arrow"></i>
+                </span>
+                <span class="footer-pill" (click)="navigateToCompany('Wipro')" style="cursor: pointer;">
+                  <i class="fa-solid fa-building text-blue"></i> Wipro <i class="fa-solid fa-chevron-right tiny-arrow"></i>
+                </span>
+                <span class="footer-pill" (click)="navigateToCompany('Zoho')" style="cursor: pointer;">
+                  <i class="fa-solid fa-cube text-teal"></i> Zoho <i class="fa-solid fa-chevron-right tiny-arrow"></i>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- HIGHLIGHTS GRID -->
       <div class="institute-stats">
-        <div class="stat-card">
-          <div class="stat-icon-wrap"><i class="fa-solid fa-building-user"></i></div>
-          <strong>Target Companies</strong>
-          <span>TCS, Infosys, Wipro, and Accenture role-wise practice challenges.</span>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon-wrap"><i class="fa-solid fa-stopwatch"></i></div>
-          <strong>Timed Assessments</strong>
-          <span>Assessments with timed MCQs, coding challenges, scoring, and reviews.</span>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon-wrap"><i class="fa-solid fa-file-code"></i></div>
-          <strong>Coding Challenges</strong>
-          <span>Pseudo-code and code exercises with test cases, constraints, and metrics.</span>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon-wrap"><i class="fa-solid fa-user-tie"></i></div>
-          <strong>Structured Interviews</strong>
-          <span>Company-wise past interview banks with answers and detailed tips.</span>
-        </div>
+        <a routerLink="/preparation" class="stat-card" style="text-decoration: none; display: block;">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-building-user text-blue"></i></div>
+          <strong>Company Pipelines</strong>
+          <span>Target top services, product, and consulting firms with dedicated recruitment workspaces.</span>
+        </a>
+        <a routerLink="/preparation" class="stat-card" style="text-decoration: none; display: block;">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-square-check text-red"></i></div>
+          <strong>Readiness Checklist</strong>
+          <span>Self-assess your core skills to compute and calibrate your real-time placement index.</span>
+        </a>
+        <a routerLink="/preparation" class="stat-card" style="text-decoration: none; display: block;">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-laptop-code text-green"></i></div>
+          <strong>Mock Assessment Hub</strong>
+          <span>Run timed simulator tests with real-time test cases, code compilers, and reports.</span>
+        </a>
+        <a routerLink="/preparation" class="stat-card" style="text-decoration: none; display: block;">
+          <div class="stat-icon-wrap"><i class="fa-solid fa-user-tie text-purple"></i></div>
+          <strong>Structured Interview Banks</strong>
+          <span>Study verified archives of past interview questions, model answers, and strategy guides.</span>
+        </a>
       </div>
     </div>
   </section>

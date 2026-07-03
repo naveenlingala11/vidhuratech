@@ -157,6 +157,110 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
 
   private heroCountdownInterval: any;
 
+  // Placement Workspace Dashboard States
+  latestCompany = signal<string>('TCS');
+  selectedTab = signal<'SERVICE' | 'PRODUCT' | 'CONSULTING'>('SERVICE');
+
+  getCompanyTrack(name: string): 'SERVICE' | 'PRODUCT' | 'CONSULTING' {
+    const term = name.trim().toLowerCase();
+    if (/tcs|infosys|wipro|accenture|cognizant|mahindra|hcl|capgemini|l&t|mindtree/.test(term)) {
+      return 'SERVICE';
+    }
+    if (/deloitte|ey|pwc|kpmg|mckinsey|bcg|bain/.test(term)) {
+      return 'CONSULTING';
+    }
+    return 'PRODUCT';
+  }
+
+  get workspaceCompanies(): any[] {
+    const tab = this.selectedTab();
+    
+    const allMockCompanies = [
+      { name: 'TCS', logoLetter: 'T', track: 'SERVICE', desc: 'IT Services Track', tasks: ['Aptitude', 'Coding', '4 Mock Tests'], salary: '3.6 - 7.2 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
+      { name: 'Infosys', logoLetter: 'I', track: 'SERVICE', desc: 'System Engineer Track', tasks: ['Verbal', 'DSA Code', '2 Mock Tests'], salary: '3.6 - 8.0 LPA', difficulty: 'Easy', color: 'bg-gradient-blue' },
+      { name: 'Wipro', logoLetter: 'W', track: 'SERVICE', desc: 'Elite NLTH Track', tasks: ['Aptitude', 'Coding', '3 Mock Tests'], salary: '3.5 - 7.0 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
+      { name: 'Accenture', logoLetter: 'A', track: 'SERVICE', desc: 'ASE & FADA Track', tasks: ['Reasoning', 'Technical', '4 Mock Tests'], salary: '4.5 - 6.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      
+      { name: 'Amazon', logoLetter: 'A', track: 'PRODUCT', desc: 'SDE Preparation Track', tasks: ['DSA', 'System Design', '5 Mock Tests'], salary: '18 - 44 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
+      { name: 'Zoho', logoLetter: 'Z', track: 'PRODUCT', desc: 'Software Developer Track', tasks: ['C/Java Coding', 'Logic', '3 Mock Tests'], salary: '6.5 - 12 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'Microsoft', logoLetter: 'M', track: 'PRODUCT', desc: 'SDE Practice Track', tasks: ['Algorithms', 'OS/DBMS', '4 Mock Tests'], salary: '20 - 48 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
+      { name: 'Salesforce', logoLetter: 'S', track: 'PRODUCT', desc: 'Cloud Architect Track', tasks: ['OOPs', 'Apex Coding', '2 Mock Tests'], salary: '16 - 38 LPA', difficulty: 'Hard', color: 'bg-gradient-blue' },
+      
+      { name: 'Deloitte', logoLetter: 'D', track: 'CONSULTING', desc: 'Consulting Technology Track', tasks: ['Case Skills', 'Aptitude', '3 Mock Tests'], salary: '5.5 - 10 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
+      { name: 'EY', logoLetter: 'E', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Reasoning', 'Finance MCQ', '2 Mock Tests'], salary: '5.0 - 9.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'PwC', logoLetter: 'P', track: 'CONSULTING', desc: 'Technology Consultant Track', tasks: ['Data Analytics', 'HR Round', '2 Mock Tests'], salary: '5.2 - 9.8 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
+      { name: 'KPMG', logoLetter: 'K', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Aptitude', 'Case Interview', '2 Mock Tests'], salary: '5.0 - 9.0 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' }
+    ];
+
+    const list = allMockCompanies.filter(c => c.track === tab);
+
+    const latest = this.latestCompany();
+    if (latest && latest !== 'General') {
+      const latestTrack = this.getCompanyTrack(latest);
+      if (latestTrack === tab) {
+        const exists = list.find(c => c.name.toLowerCase() === latest.toLowerCase());
+        if (!exists) {
+          list.unshift({
+            name: latest,
+            logoLetter: latest.charAt(0).toUpperCase(),
+            track: latestTrack,
+            desc: `${latest} Dynamic Pipeline`,
+            tasks: ['Aptitude', 'Coding', 'Mock Assessments'],
+            salary: 'Dynamic CTC',
+            difficulty: 'Medium',
+            color: 'bg-gradient-orange'
+          });
+        } else {
+          const idx = list.indexOf(exists);
+          if (idx > -1) {
+            list.splice(idx, 1);
+            list.unshift(exists);
+          }
+        }
+      }
+    }
+
+    return list.slice(0, 3);
+  }
+
+  loadLatestCompany() {
+    this.publicPracticeService.getLibrary().subscribe({
+      next: (res: any) => {
+        if (res && res.success && res.data) {
+          const assessments = res.data.assessments || [];
+          const challenges = res.data.challenges || [];
+          const interviewQuestions = res.data.interviewQuestions || [];
+
+          const allItems = [...assessments, ...challenges, ...interviewQuestions];
+          
+          const validItems = allItems.filter(
+            (item: any) => item.company && item.company !== 'General' && item.company !== 'undefined'
+          );
+
+          if (validItems.length > 0) {
+            validItems.sort((a: any, b: any) => b.id - a.id);
+            const newestCompany = validItems[0].company;
+            this.latestCompany.set(newestCompany);
+            
+            const track = this.getCompanyTrack(newestCompany);
+            this.selectedTab.set(track);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error loading latest company:', err);
+      }
+    });
+  }
+
+  selectTab(tab: 'SERVICE' | 'PRODUCT' | 'CONSULTING') {
+    this.selectedTab.set(tab);
+  }
+
+  navigateToCompany(companyName: string) {
+    this.router.navigate(['/company', companyName]);
+  }
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private modalService: ModalService,
@@ -170,10 +274,10 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     private router: Router,
   ) {}
 
-  // ================= INIT =================
   ngOnInit() {
     this.isBrowser = isPlatformBrowser(this.platformId);
     this.loadCourses();
+    this.loadLatestCompany();
     // seats animation
     this.zone.runOutsideAngular(() => {
       setInterval(() => {
