@@ -329,7 +329,9 @@
                 (click)="navigateToCompany(company.name)" style="cursor: pointer;">
                 <div class="workspace-card-header">
                   <div class="workspace-logo-avatar" [ngClass]="company.color || 'bg-gradient-blue'">
-                    {{ company.logoLetter }}
+                    <img *ngIf="company.logo && !company.logoFailed" [src]="company.logo" [alt]="company.name + ' logo'"
+                      class="company-logo-img" (error)="company.logoFailed = true" />
+                    <span class="company-logo-fallback" *ngIf="!company.logo || company.logoFailed">{{ company.logoLetter }}</span>
                   </div>
                   <div class="workspace-card-title-group">
                     <strong class="company-card-title">

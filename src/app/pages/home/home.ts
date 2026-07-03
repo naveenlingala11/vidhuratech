@@ -177,20 +177,20 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
     const tab = this.selectedTab();
     
     const allMockCompanies = [
-      { name: 'TCS', logoLetter: 'T', track: 'SERVICE', desc: 'IT Services Track', tasks: ['Aptitude', 'Coding', '4 Mock Tests'], salary: '3.6 - 7.2 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
-      { name: 'Infosys', logoLetter: 'I', track: 'SERVICE', desc: 'System Engineer Track', tasks: ['Verbal', 'DSA Code', '2 Mock Tests'], salary: '3.6 - 8.0 LPA', difficulty: 'Easy', color: 'bg-gradient-blue' },
-      { name: 'Wipro', logoLetter: 'W', track: 'SERVICE', desc: 'Elite NLTH Track', tasks: ['Aptitude', 'Coding', '3 Mock Tests'], salary: '3.5 - 7.0 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
-      { name: 'Accenture', logoLetter: 'A', track: 'SERVICE', desc: 'ASE & FADA Track', tasks: ['Reasoning', 'Technical', '4 Mock Tests'], salary: '4.5 - 6.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'TCS', logoLetter: 'T', logo: '/logos/tcs.svg', track: 'SERVICE', desc: 'IT Services Track', tasks: ['Aptitude', 'Coding', '4 Mock Tests'], salary: '3.6 - 7.2 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
+      { name: 'Infosys', logoLetter: 'I', logo: '/logos/infosys.svg', track: 'SERVICE', desc: 'System Engineer Track', tasks: ['Verbal', 'DSA Code', '2 Mock Tests'], salary: '3.6 - 8.0 LPA', difficulty: 'Easy', color: 'bg-gradient-blue' },
+      { name: 'Wipro', logoLetter: 'W', logo: '/logos/wipro.svg', track: 'SERVICE', desc: 'Elite NLTH Track', tasks: ['Aptitude', 'Coding', '3 Mock Tests'], salary: '3.5 - 7.0 LPA', difficulty: 'Easy', color: 'bg-gradient-orange' },
+      { name: 'Accenture', logoLetter: 'A', logo: '/logos/accenture.svg', track: 'SERVICE', desc: 'ASE & FADA Track', tasks: ['Reasoning', 'Technical', '4 Mock Tests'], salary: '4.5 - 6.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
       
-      { name: 'Amazon', logoLetter: 'A', track: 'PRODUCT', desc: 'SDE Preparation Track', tasks: ['DSA', 'System Design', '5 Mock Tests'], salary: '18 - 44 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
-      { name: 'Zoho', logoLetter: 'Z', track: 'PRODUCT', desc: 'Software Developer Track', tasks: ['C/Java Coding', 'Logic', '3 Mock Tests'], salary: '6.5 - 12 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
-      { name: 'Microsoft', logoLetter: 'M', track: 'PRODUCT', desc: 'SDE Practice Track', tasks: ['Algorithms', 'OS/DBMS', '4 Mock Tests'], salary: '20 - 48 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
-      { name: 'Salesforce', logoLetter: 'S', track: 'PRODUCT', desc: 'Cloud Architect Track', tasks: ['OOPs', 'Apex Coding', '2 Mock Tests'], salary: '16 - 38 LPA', difficulty: 'Hard', color: 'bg-gradient-blue' },
+      { name: 'Amazon', logoLetter: 'A', logo: '/logos/amazon.svg', track: 'PRODUCT', desc: 'SDE Preparation Track', tasks: ['DSA', 'System Design', '5 Mock Tests'], salary: '18 - 44 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
+      { name: 'Zoho', logoLetter: 'Z', logo: '/logos/zoho.svg', track: 'PRODUCT', desc: 'Software Developer Track', tasks: ['C/Java Coding', 'Logic', '3 Mock Tests'], salary: '6.5 - 12 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'Microsoft', logoLetter: 'M', logo: '/logos/microsoft.svg', track: 'PRODUCT', desc: 'SDE Practice Track', tasks: ['Algorithms', 'OS/DBMS', '4 Mock Tests'], salary: '20 - 48 LPA', difficulty: 'Hard', color: 'bg-gradient-orange' },
+      { name: 'Salesforce', logoLetter: 'S', logo: '/logos/salesforce.svg', track: 'PRODUCT', desc: 'Cloud Architect Track', tasks: ['OOPs', 'Apex Coding', '2 Mock Tests'], salary: '16 - 38 LPA', difficulty: 'Hard', color: 'bg-gradient-blue' },
       
-      { name: 'Deloitte', logoLetter: 'D', track: 'CONSULTING', desc: 'Consulting Technology Track', tasks: ['Case Skills', 'Aptitude', '3 Mock Tests'], salary: '5.5 - 10 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
-      { name: 'EY', logoLetter: 'E', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Reasoning', 'Finance MCQ', '2 Mock Tests'], salary: '5.0 - 9.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
-      { name: 'PwC', logoLetter: 'P', track: 'CONSULTING', desc: 'Technology Consultant Track', tasks: ['Data Analytics', 'HR Round', '2 Mock Tests'], salary: '5.2 - 9.8 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
-      { name: 'KPMG', logoLetter: 'K', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Aptitude', 'Case Interview', '2 Mock Tests'], salary: '5.0 - 9.0 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' }
+      { name: 'Deloitte', logoLetter: 'D', logo: '/logos/deloitte.svg', track: 'CONSULTING', desc: 'Consulting Technology Track', tasks: ['Case Skills', 'Aptitude', '3 Mock Tests'], salary: '5.5 - 10 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
+      { name: 'EY', logoLetter: 'E', logo: '/logos/ey.svg', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Reasoning', 'Finance MCQ', '2 Mock Tests'], salary: '5.0 - 9.5 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' },
+      { name: 'PwC', logoLetter: 'P', logo: '/logos/pwc.svg', track: 'CONSULTING', desc: 'Technology Consultant Track', tasks: ['Data Analytics', 'HR Round', '2 Mock Tests'], salary: '5.2 - 9.8 LPA', difficulty: 'Medium', color: 'bg-gradient-orange' },
+      { name: 'KPMG', logoLetter: 'K', logo: '/logos/kpmg.svg', track: 'CONSULTING', desc: 'Advisory Associate Track', tasks: ['Aptitude', 'Case Interview', '2 Mock Tests'], salary: '5.0 - 9.0 LPA', difficulty: 'Medium', color: 'bg-gradient-blue' }
     ];
 
     const list = allMockCompanies.filter(c => c.track === tab);
@@ -204,6 +204,7 @@ export class Home implements AfterViewInit, OnInit, OnDestroy {
           list.unshift({
             name: latest,
             logoLetter: latest.charAt(0).toUpperCase(),
+            logo: '',
             track: latestTrack,
             desc: `${latest} Dynamic Pipeline`,
             tasks: ['Aptitude', 'Coding', 'Mock Assessments'],
