@@ -12,16 +12,49 @@
       <!-- ARENA CONTENT -->
       <div class="arena-copy">
         <span class="arena-kicker">
-          <i class="fa-solid fa-laptop-code"></i> Free Practice + Weekly Coding Arena
+          <i class="fa-solid fa-laptop-code"></i> Free Practice &amp; Coding Arena
         </span>
         <h2>
-          Practice Verified Assessments. <br />
-          <span class="gradient-text">Compete in National Contests.</span> <br />
-          Evaluate Performance Live.
+          Accelerate Placement Success. <br />
+          <span class="gradient-text">Train in Authentic Coding Labs.</span> <br />
+          Validate Technical Skills Live.
         </h2>
         <p class="arena-desc">
-          Build target readiness by practicing real past assessment questions, adaptive aptitude MCQ tests, and coding challenges collected from historical recruitment exams. Compile and test your solutions instantly with automated test-case evaluation.
+          Bridge the gap between academic preparation and corporate recruitment. Master actual historical assessment
+          questions, company-specific mock tests, and adaptive quantitative aptitude exams curated directly from major
+          recruiting drives. Instantly compile, execute, and validate your code against automated test cases on an
+          industrial-grade sandbox.
         </p>
+
+        <!-- Motivating Quote Ticker -->
+        <div class="arena-quote-container" *ngIf="currentQuote()">
+          <i class="fa-solid fa-quote-left quote-icon-accent"></i>
+          <span class="arena-quote-text" [class.fade-transition]="isQuoteFading()">
+            {{ currentQuote() }}
+          </span>
+        </div>
+
+        <!-- Premium Minimalist Stats Accent Strip -->
+        <div class="arena-stats-minimal">
+          <div class="stat-item-min indigo">
+            <div class="stat-content">
+              <h4>50+</h4>
+              <span>Corporate Tracks</span>
+            </div>
+          </div>
+          <div class="stat-item-min sky">
+            <div class="stat-content">
+              <h4>1,500+</h4>
+              <span>Verified Challanges</span>
+            </div>
+          </div>
+          <div class="stat-item-min amber">
+            <div class="stat-content">
+              <h4>100%</h4>
+              <span>Automated Audits</span>
+            </div>
+          </div>
+        </div>
 
         <div class="arena-actions">
           <a routerLink="/practice" class="btn btn-primary">
@@ -99,7 +132,24 @@
                       <i class="challenge-skill-icon" [ngClass]="getSkillIconClass(item.skill)"></i>
                       <strong>{{ item.title }}</strong>
                     </div>
-                    <span>{{ item.skill }} · {{ item.type }}</span>
+                    <div class="challenge-meta-row">
+                      <span class="challenge-main-meta">{{ item.skill }} · {{ item.type }}</span>
+
+                      <!-- Topic Tag -->
+                      <span *ngIf="item.challengeGroupTitle" class="challenge-meta-tag tag-topic">
+                        <i class="fa-solid fa-folder-open"></i> {{ item.challengeGroupTitle }}
+                      </span>
+
+                      <!-- Duration Tag -->
+                      <span *ngIf="item.durationMinutes" class="challenge-meta-tag tag-duration">
+                        <i class="fa-solid fa-clock"></i> {{ item.durationMinutes }}m
+                      </span>
+
+                      <!-- Marks Tag -->
+                      <span *ngIf="item.totalMarks" class="challenge-meta-tag tag-marks">
+                        <i class="fa-solid fa-star"></i> {{ item.totalMarks }} pts
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -118,36 +168,62 @@
         <div class="arena-leaderboard-card">
           <div class="arena-leaderboard-head">
             <div>
-              <span>Weekly Coding Champions</span>
+              <span *ngIf="leaderboardType === 'weekly'">Weekly Coding Champions</span>
+              <span *ngIf="leaderboardType === 'monthly'">Monthly Coding Champions</span>
+              <span *ngIf="leaderboardType === 'overall'">Overall Coding Champions</span>
               <strong>Top 3 Performers</strong>
             </div>
             <a routerLink="/leaderboard"><i class="fa-solid fa-ranking-star"></i> View All</a>
           </div>
 
-          <div class="arena-winners" *ngIf="weeklyContestTopThree.length; else arenaNoWinners">
-            <article class="arena-winner" *ngFor="let winner of weeklyContestTopThree" [class.gold]="winner.rank === 1"
-              [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
-              <div class="arena-medal">
-                <ng-container *ngIf="winnerAvatarUrl(winner); else winnerInitialTpl">
-                  <img class="arena-winner-avatar" [src]="winnerAvatarUrl(winner)" [alt]="winner.name || 'Participant'"
-                    referrerpolicy="no-referrer" (error)="markWinnerAvatarFailed(winner)" />
-                </ng-container>
-                <ng-template #winnerInitialTpl>
-                  <strong>{{ winnerInitial(winner) }}</strong>
-                </ng-template>
-                <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
-              </div>
-
-              <div class="arena-winner-info">
-                <h3>{{ winner.name || 'Participant' }}</h3>
-                <p>{{ winner.email || 'Contest participant' }}</p>
-                <div class="winner-stats-badges">
-                  <span class="stat-badge"><i class="fa-solid fa-check-double"></i>
-                    {{ winner.solvedChallenges || 0 }} solved</span>
-                  <span class="stat-badge"><i class="fa-solid fa-star"></i> {{ winner.score || 0 }} pts</span>
+          <div class="arena-winners"
+            *ngIf="weeklyContestTopThree.length || leaderboardTopThree.length; else arenaNoWinners">
+            <ng-container *ngFor="let winner of leaderboardTopThree">
+              <!-- Real Winner Card -->
+              <article *ngIf="!winner.isPlaceholder" class="arena-winner" [class.gold]="winner.rank === 1"
+                [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
+                <div class="arena-medal">
+                  <ng-container *ngIf="winnerAvatarUrl(winner); else winnerInitialTpl">
+                    <img class="arena-winner-avatar" [src]="winnerAvatarUrl(winner)"
+                      [alt]="winner.name || 'Participant'" referrerpolicy="no-referrer"
+                      (error)="markWinnerAvatarFailed(winner)" />
+                  </ng-container>
+                  <ng-template #winnerInitialTpl>
+                    <strong>{{ winnerInitial(winner) }}</strong>
+                  </ng-template>
+                  <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
                 </div>
-              </div>
-            </article>
+
+                <div class="arena-winner-info">
+                  <h3>{{ winner.name || 'Participant' }}</h3>
+                  <p>{{ winner.email || 'Contest participant' }}</p>
+                  <div class="winner-stats-badges">
+                    <span class="stat-badge"><i class="fa-solid fa-check-double"></i>
+                      {{ winner.solvedChallenges || 0 }} solved</span>
+                    <span class="stat-badge"><i class="fa-solid fa-star"></i> {{ winner.score || 0 }} pts</span>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Placeholder Card -->
+              <article *ngIf="winner.isPlaceholder" class="arena-winner placeholder-card"
+                [class.gold]="winner.rank === 1" [class.silver]="winner.rank === 2" [class.bronze]="winner.rank === 3">
+                <div class="arena-medal">
+                  <div class="arena-winner-avatar-placeholder">
+                    <i class="fa-solid fa-user-plus placeholder-avatar-icon"></i>
+                  </div>
+                  <span class="winner-rank-badge"><i class="fa-solid fa-award"></i> Rank #{{ winner.rank }}</span>
+                </div>
+
+                <div class="arena-winner-info">
+                  <h3>{{ winner.name }}</h3>
+                  <p>{{ winner.desc }}</p>
+                  <div class="winner-stats-badges">
+                    <span class="stat-badge placeholder-badge"><i class="fa-solid fa-lock"></i> Open Spot</span>
+                  </div>
+                </div>
+              </article>
+            </ng-container>
           </div>
 
           <ng-template #arenaNoWinners>
@@ -169,7 +245,8 @@
           <i class="fa-solid fa-user-plus step-icon text-orange"></i>
         </div>
         <strong>One-Time Registration</strong>
-        <p>Quickly configure your student profile and credentials. Your practice history, score metrics, and dashboard access are securely preserved for all mock attempts.</p>
+        <p>Quickly configure your student profile and credentials. Your practice history, score metrics, and dashboard
+          access are securely preserved for all mock attempts.</p>
       </article>
 
       <article class="flow-step glass-panel shadow-glow">
@@ -178,7 +255,8 @@
           <i class="fa-solid fa-code-branch step-icon text-blue"></i>
         </div>
         <strong>Practice & Code Sandbox</strong>
-        <p>Launch realistic company-wise assessments, complete interactive coding challenges, and compile your solutions live on our low-latency IDE workspace.</p>
+        <p>Launch realistic company-wise assessments, complete interactive coding challenges, and compile your solutions
+          live on our low-latency IDE workspace.</p>
       </article>
 
       <article class="flow-step glass-panel shadow-glow">
@@ -187,7 +265,8 @@
           <i class="fa-solid fa-trophy step-icon text-green"></i>
         </div>
         <strong>Instant Evaluation & Rank</strong>
-        <p>Receive comprehensive test case reports immediately upon submitting code. Claim points, track learning growth, and climb the weekly leaderboard.</p>
+        <p>Receive comprehensive test case reports immediately upon submitting code. Claim points, track learning
+          growth, and climb the weekly leaderboard.</p>
       </article>
     </div>
   </section>
@@ -331,7 +410,8 @@
                   <div class="workspace-logo-avatar" [ngClass]="company.color || 'bg-gradient-blue'">
                     <img *ngIf="company.logo && !company.logoFailed" [src]="company.logo" [alt]="company.name + ' logo'"
                       class="company-logo-img" (error)="company.logoFailed = true" />
-                    <span class="company-logo-fallback" *ngIf="!company.logo || company.logoFailed">{{ company.logoLetter }}</span>
+                    <span class="company-logo-fallback" *ngIf="!company.logo || company.logoFailed">{{
+                      company.logoLetter }}</span>
                   </div>
                   <div class="workspace-card-title-group">
                     <strong class="company-card-title">
@@ -635,7 +715,8 @@
           <span class="pillar-kicker">Why 1:1 Mentorship?</span>
           <h3>Skip Months of Trial & Error</h3>
           <p class="pillar-desc">
-            Get calibrated feedback from experts at top tech companies. No more guessing — accelerate your placement readiness with direct, personalized guidance.
+            Get calibrated feedback from experts at top tech companies. No more guessing — accelerate your placement
+            readiness with direct, personalized guidance.
           </p>
           <div class="pillar-highlights">
             <div class="pillar-highlight-item">
@@ -709,7 +790,8 @@
           </span>
           <h3>Peer-to-Peer Mock Sessions</h3>
           <p class="pillar-desc">
-            Create a secure WebRTC video room instantly. Collaborate on scratchpad editors and grade candidates on custom rubrics.
+            Create a secure WebRTC video room instantly. Collaborate on scratchpad editors and grade candidates on
+            custom rubrics.
           </p>
 
           <div class="pillar-connect-actions">
@@ -722,7 +804,8 @@
                 <input type="text" [(ngModel)]="joinRoomName" placeholder="Enter Room Name..."
                   (keydown.enter)="joinSession()" autocomplete="off" />
               </div>
-              <button type="button" class="btn pillar-action-btn action-join" (click)="joinSession()" [disabled]="!joinRoomName.trim()">
+              <button type="button" class="btn pillar-action-btn action-join" (click)="joinSession()"
+                [disabled]="!joinRoomName.trim()">
                 Join
               </button>
             </div>
@@ -745,8 +828,10 @@
 
           <!-- Popular / Featured Badging -->
           <div class="mentor-badge-strip">
-            <span class="popular-tag" *ngIf="mentor.rating >= 4.9"><i class="fa-solid fa-fire animate-pulse"></i> Popular</span>
-            <span class="super-tag" *ngIf="mentor.yearsOfExperience >= 8"><i class="fa-solid fa-award"></i> Super Mentor</span>
+            <span class="popular-tag" *ngIf="mentor.rating >= 4.9"><i class="fa-solid fa-fire animate-pulse"></i>
+              Popular</span>
+            <span class="super-tag" *ngIf="mentor.yearsOfExperience >= 8"><i class="fa-solid fa-award"></i> Super
+              Mentor</span>
           </div>
 
           <!-- Profile / Avatar Section -->
@@ -932,10 +1017,8 @@
       <div class="courses-dashboard-console" *ngIf="featuredCourses.length">
         <!-- TOP SWITCHER: High-end interactive selectors -->
         <div class="console-tab-selector">
-          <button type="button" class="console-tab-card"
-            *ngFor="let course of featuredCourses; let i = index"
-            [class.active-tab]="heroCourseIndex === i"
-            (click)="setHeroCourse(course, i)">
+          <button type="button" class="console-tab-card" *ngFor="let course of featuredCourses; let i = index"
+            [class.active-tab]="heroCourseIndex === i" (click)="setHeroCourse(course, i)">
             <div class="tab-indicator-bar"></div>
             <div class="tab-meta">
               <span class="tab-level">{{ course.level || 'Live Track' }}</span>
@@ -1001,7 +1084,8 @@
               <button type="button" class="btn btn-demo-action hover-up" (click)="openEnrollModal(heroCourse)">
                 <i class="fa-solid fa-play"></i> Join Free Demo
               </button>
-              <a class="btn btn-enroll-action shadow-glow hover-up text-center" [routerLink]="['/checkout']" [queryParams]="{
+              <a class="btn btn-enroll-action shadow-glow hover-up text-center" [routerLink]="['/checkout']"
+                [queryParams]="{
                   courseId: heroCourse?.id,
                   course: heroCourse?.title,
                   amount: heroCourse?.price,
@@ -1024,18 +1108,26 @@
                   <span class="dot yellow"></span>
                   <span class="dot green"></span>
                 </div>
-                <span class="file-name"><i class="fa-solid fa-code text-blue"></i> {{ heroCourse?.title?.toLowerCase()?.includes('python') ? 'career_track.py' : 'spring_boot.java' }}</span>
+                <span class="file-name"><i class="fa-solid fa-code text-blue"></i> {{
+                  heroCourse?.title?.toLowerCase()?.includes('python') ? 'career_track.py' : 'spring_boot.java'
+                  }}</span>
                 <span class="live-indicator-tag animate-pulse">Live Batch</span>
               </div>
 
               <!-- Editor Code Body (Light style) -->
               <div class="editor-body">
-                <div class="code-line"><span class="code-kw">course</span> = <span class="code-val">"{{ heroCourse?.title }}"</span></div>
-                <div class="code-line"><span class="code-kw">level</span> = <span class="code-val">"{{ heroCourse?.level || 'Beginner Friendly' }}"</span></div>
-                <div class="code-line"><span class="code-kw">duration</span> = <span class="code-val">"{{ heroCourse?.duration || 'Live Track' }}"</span></div>
-                <div class="code-line"><span class="code-kw">price</span> = <span class="code-val">"₹{{ formatPrice(heroCourse?.price) }}"</span></div>
-                <div class="code-line"><span class="code-kw">focus</span> = <span class="code-val">"Interactive Projects & Live Compilation"</span></div>
-                <div class="code-line terminal-output"><span class="success-text">>>> Ready to compile. Selection verified.</span></div>
+                <div class="code-line"><span class="code-kw">course</span> = <span class="code-val">"{{
+                    heroCourse?.title }}"</span></div>
+                <div class="code-line"><span class="code-kw">level</span> = <span class="code-val">"{{ heroCourse?.level
+                    || 'Beginner Friendly' }}"</span></div>
+                <div class="code-line"><span class="code-kw">duration</span> = <span class="code-val">"{{
+                    heroCourse?.duration || 'Live Track' }}"</span></div>
+                <div class="code-line"><span class="code-kw">price</span> = <span class="code-val">"₹{{
+                    formatPrice(heroCourse?.price) }}"</span></div>
+                <div class="code-line"><span class="code-kw">focus</span> = <span class="code-val">"Interactive Projects
+                    & Live Compilation"</span></div>
+                <div class="code-line terminal-output"><span class="success-text">>>> Ready to compile. Selection
+                    verified.</span></div>
               </div>
 
               <!-- Pricing & Purchase Console (Light/Frosted premium styling) -->
@@ -1051,9 +1143,11 @@
                 <div class="pricing-display">
                   <div class="price-tags">
                     <span class="discount-price">₹{{ formatPrice(heroCourse?.price) }}</span>
-                    <span class="original-price" *ngIf="heroCourse?.oldPrice">₹{{ formatPrice(heroCourse.oldPrice) }}</span>
+                    <span class="original-price" *ngIf="heroCourse?.oldPrice">₹{{ formatPrice(heroCourse.oldPrice)
+                      }}</span>
                   </div>
-                  <span class="alert-timer-text"><i class="fa-solid fa-clock animate-pulse"></i> Batch starts soon</span>
+                  <span class="alert-timer-text"><i class="fa-solid fa-clock animate-pulse"></i> Batch starts
+                    soon</span>
                 </div>
 
                 <!-- Timer countdown -->
@@ -1090,7 +1184,8 @@
           </div>
           <h3>Core Learning Tracks</h3>
           <p>
-            Master fundamental coding constructs, object-oriented concepts, database schemas, and full-stack web architectures. Built for developers.
+            Master fundamental coding constructs, object-oriented concepts, database schemas, and full-stack web
+            architectures. Built for developers.
           </p>
           <div class="chips">
             <span>Python & DSA</span>
@@ -1106,7 +1201,8 @@
           </div>
           <h3>Weekly Coding Arena</h3>
           <p>
-            Compete in weekly coding contests, solve challenges on a live online compiler, view instant test cases, and climb the leaderboard.
+            Compete in weekly coding contests, solve challenges on a live online compiler, view instant test cases, and
+            climb the leaderboard.
           </p>
           <div class="chips">
             <span>Coding Contests</span>
@@ -1122,7 +1218,8 @@
           </div>
           <h3>Timed Assessments</h3>
           <p>
-            Build exam confidence with realistic simulations. Take timed aptitude, coding, and verbal assessments formatted to mimic real recruitment drives.
+            Build exam confidence with realistic simulations. Take timed aptitude, coding, and verbal assessments
+            formatted to mimic real recruitment drives.
           </p>
           <div class="chips">
             <span>Mock Tests</span>
@@ -1138,7 +1235,8 @@
           </div>
           <h3>Structured Interview Banks</h3>
           <p>
-            Browse curated archives of past technical, aptitude, and verbal questions from top firms, complete with detailed answers and tips.
+            Browse curated archives of past technical, aptitude, and verbal questions from top firms, complete with
+            detailed answers and tips.
           </p>
           <div class="chips">
             <span>Past Papers</span>
@@ -1154,7 +1252,8 @@
           </div>
           <h3>ATS Resume Scanner</h3>
           <p>
-            Verify your resume match rate against job descriptions. Check keywords, calibrate ATS compatibility indices, and download clean PDFs.
+            Verify your resume match rate against job descriptions. Check keywords, calibrate ATS compatibility indices,
+            and download clean PDFs.
           </p>
           <div class="chips">
             <span>ATS Scoring</span>
@@ -1170,7 +1269,8 @@
           </div>
           <h3>1:1 Mentor Assistance</h3>
           <p>
-            Book live sessions with verified industry experts. Get ATS resume audits, code reviews, and tailored mock interviews to align placement goals.
+            Book live sessions with verified industry experts. Get ATS resume audits, code reviews, and tailored mock
+            interviews to align placement goals.
           </p>
           <div class="chips">
             <span>Live Bookings</span>
