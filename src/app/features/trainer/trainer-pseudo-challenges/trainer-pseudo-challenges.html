@@ -609,7 +609,12 @@ e.g.
             <div class="header-titles">
               <span class="company-badge-label"><i class="bi bi-building"></i> {{ group.companyName }} <span *ngIf="group.challenges[0]?.askedYear">({{ group.challenges[0].askedYear }})</span></span>
               <h3>{{ group.title }}</h3>
-              <p>Batch ID #{{ group.batchId }} · Configured for recruitment assessments.</p>
+              <p>
+                Batch ID #{{ group.batchId }} · Configured for recruitment assessments.
+                <span class="posted-date-meta" *ngIf="group.latestCreatedAt" style="margin-left: 8px; color: var(--neutral-light); font-size: 0.9em;">
+                  · <i class="bi bi-clock-history"></i> Posted: {{ group.latestCreatedAt | date:'dd MMM yyyy, h:mm a' }}
+                </span>
+              </p>
             </div>
             <div class="header-badges">
               <span class="status-indicator-badge" [ngClass]="groupStatusClass(group)">
@@ -678,6 +683,10 @@ e.g.
                   <span>{{ item.attemptCount || 0 }} attempts</span>
                   <span>·</span>
                   <span>{{ item.durationMinutes }} mins</span>
+                  <span *ngIf="item.createdAt" style="margin-left: 4px; color: var(--neutral-light);">
+                    <span>·</span>
+                    <i class="bi bi-calendar3"></i> Posted: {{ item.createdAt | date:'dd MMM yyyy, h:mm a' }}
+                  </span>
                 </div>
                 <div class="constraints-render-preview compact" *ngIf="constraintsPreview(item.constraintsText).length">
                   <ol class="preview-bullets">
@@ -777,6 +786,9 @@ e.g.
                   <p>
                     <i class="bi bi-shield-check"></i> {{ group.challenges.length }} challenges &nbsp;·&nbsp; 
                     <i class="bi bi-graph-up-arrow"></i> {{ group.attemptCount }} evaluation runs
+                    <span *ngIf="group.latestCreatedAt" style="color: var(--neutral-light); font-size: 0.95em; margin-left: 8px;">
+                      &nbsp;·&nbsp; <i class="bi bi-clock-history"></i> Posted: {{ group.latestCreatedAt | date:'dd MMM yyyy, h:mm a' }}
+                    </span>
                   </p>
                 </div>
 
@@ -816,6 +828,7 @@ e.g.
                       <span class="meta-pill-small"><i class="bi bi-award-fill"></i> {{ item.totalMarks }} Marks</span>
                       <span class="meta-pill-small"><i class="bi bi-hourglass-split"></i> {{ item.durationMinutes }} Mins</span>
                       <span class="meta-pill-small"><i class="bi bi-people-fill"></i> {{ item.attemptCount || 0 }} Attempts</span>
+                      <span class="meta-pill-small" *ngIf="item.createdAt" style="color: var(--neutral-light);"><i class="bi bi-calendar3"></i> Posted: {{ item.createdAt | date:'dd MMM yyyy, h:mm a' }}</span>
                     </div>
                   </div>
 
@@ -954,6 +967,10 @@ e.g.
           <span>Roster Status</span>
           <strong>{{ groupStatusLabel(selectedGroup) }}</strong>
         </div>
+        <div class="meta-pill" *ngIf="selectedGroup.latestCreatedAt">
+          <span>Posted Date</span>
+          <strong>{{ selectedGroup.latestCreatedAt | date:'dd MMM yyyy, h:mm a' }}</strong>
+        </div>
       </div>
 
       <!-- Sub-challenges checklist details -->
@@ -1009,6 +1026,10 @@ e.g.
         <div class="meta-pill">
           <span>Timer Duration Limit</span>
           <strong>{{ selectedChallenge.durationMinutes }} mins</strong>
+        </div>
+        <div class="meta-pill" *ngIf="selectedChallenge.createdAt">
+          <span>Posted Date</span>
+          <strong>{{ selectedChallenge.createdAt | date:'dd MMM yyyy, h:mm a' }}</strong>
         </div>
       </div>
 
